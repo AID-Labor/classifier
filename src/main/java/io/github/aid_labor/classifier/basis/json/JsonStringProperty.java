@@ -41,6 +41,21 @@ public class JsonStringProperty extends SimpleStringProperty {
 		}
 	}
 	
+	
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// #                                                                              		      #
+// #	Instanzen																			  #
+// #																						  #
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Attribute																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Konstruktoren																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		
 	public JsonStringProperty() {
 		super();
 	}
@@ -56,6 +71,11 @@ public class JsonStringProperty extends SimpleStringProperty {
 	public JsonStringProperty(String initialValue) {
 		super(initialValue);
 	}
+	
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Methoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
 	public boolean equals(Object obj) {

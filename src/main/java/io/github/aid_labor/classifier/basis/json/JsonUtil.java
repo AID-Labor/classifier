@@ -17,8 +17,17 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 public final class JsonUtil {
 	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
 	private static JsonFactory fabrik;
+
 	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenmethoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
 	public static JsonFactory getJsonFabrik() {
 		if (fabrik == null) {
 			var mapper = new ObjectMapper();
@@ -41,6 +50,14 @@ public final class JsonUtil {
 		return getJsonFabrik().createParser(quelle);
 	}
 	
+	
+	
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// #                                                                              		      #
+// #	Instanzen																			  #
+// #																						  #
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+		
 	private JsonUtil() {
 		// statische Hilfsklasse, keine Instanzen erlaubt!
 	}

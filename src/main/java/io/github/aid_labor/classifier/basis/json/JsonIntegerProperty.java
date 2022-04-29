@@ -34,6 +34,20 @@ public class JsonIntegerProperty extends SimpleIntegerProperty {
 		}
 	}
 
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// #                                                                              		      #
+// #	Instanzen																			  #
+// #																						  #
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+		
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Attribute																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Konstruktoren																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		
 	public JsonIntegerProperty() {
 		super();
 	}
@@ -49,6 +63,11 @@ public class JsonIntegerProperty extends SimpleIntegerProperty {
 	public JsonIntegerProperty(Object bean, String name) {
 		super(bean, name);
 	}
+	
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Methoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
 	public boolean equals(Object obj) {

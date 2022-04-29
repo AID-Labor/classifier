@@ -39,6 +39,21 @@ public class JsonObjectProperty<T> extends SimpleObjectProperty<T> {
 		}
 	}
 	
+	
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// #                                                                              		      #
+// #	Instanzen																			  #
+// #																						  #
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+		
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Attribute																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Konstruktoren																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		
 	public JsonObjectProperty() {
 		super();
 	}
@@ -54,6 +69,11 @@ public class JsonObjectProperty<T> extends SimpleObjectProperty<T> {
 	public JsonObjectProperty(T initialValue) {
 		super(initialValue);
 	}
+	
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Methoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
 	public boolean equals(Object obj) {

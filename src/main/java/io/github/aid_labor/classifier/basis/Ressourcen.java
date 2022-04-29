@@ -7,18 +7,32 @@
 package io.github.aid_labor.classifier.basis;
 
 import java.util.Objects;
+import java.util.logging.Logger;
 
 
 public class Ressourcen {
 	
+	private static Logger log = Logger.getLogger(Ressourcen.class.getName());
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
 	private static Ressourcen instanz;
 	private static ProgrammDetails programm;
+
 	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenmethoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
 	public static Ressourcen get() {
 		if (programm == null) {
-			throw new IllegalStateException("Bevor eine Instanz erzeugt werden kann "
+			var exception = new IllegalStateException("Bevor eine Instanz erzeugt werden kann "
 					+ "muessen mit Ressourcen.setProgrammDetails die "
 					+ "Programminformationen mitgeteilt werden!");
+			log.throwing(Ressourcen.class.getName(), "get", exception);
+			throw exception;
 		}
 		if (instanz == null) {
 			instanz = new Ressourcen(programm);
@@ -31,18 +45,43 @@ public class Ressourcen {
 		Ressourcen.programm = Objects.requireNonNull(programm);
 	}
 	
+	
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// #                                                                              		      #
+// #	Instanzen																			  #
+// #																						  #
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Attribute																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
 	public final Ressource LIGHT_THEME_CSS;
 	public final Ressource DARK_THEME_CSS;
 	public final Ressource NUTZER_THEME_CSS;
 	
 	public final Ressource NUTZER_EINSTELLUNGEN;
 	
+	public final Ressource LOGGER_DEBUG_CONSOLE;
+	public final Ressource LOGGER_DEBUG_LINUX;
+	public final Ressource LOGGER_DEBUG_MAC;
+	public final Ressource LOGGER_DEBUG_WINDOWS;
+	
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Konstruktoren																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
 	private Ressourcen(ProgrammDetails programm) {
 		RessourceBuilder builder = new RessourceBuilder(programm);
-		this.LIGHT_THEME_CSS = builder.erzeuge(RessourceTyp.CSS, "lightTheme.css");
-		this.DARK_THEME_CSS = builder.erzeuge(RessourceTyp.CSS, "darkTheme.css");
-		this.NUTZER_THEME_CSS = builder.erzeuge(RessourceTyp.CSS, "customTheme.css");
-		this.NUTZER_EINSTELLUNGEN = builder.erzeuge(RessourceTyp.EINSTELLUNGSDATEI,
-				"nutzerEinstellung.json");
+		this.LIGHT_THEME_CSS = builder.css("lightTheme.css");
+		this.DARK_THEME_CSS = builder.css("darkTheme.css");
+		this.NUTZER_THEME_CSS = builder.css("customTheme.css");
+		this.NUTZER_EINSTELLUNGEN = builder.konfigurationsdatei("nutzerEinstellung.json");
+		this.LOGGER_DEBUG_CONSOLE = builder.konfigurationsdatei("logging_debug.properties");
+		this.LOGGER_DEBUG_LINUX = builder.konfigurationsdatei("logging_debug_linux.properties");
+		this.LOGGER_DEBUG_MAC = builder.konfigurationsdatei("logging_debug_mac.properties");
+		this.LOGGER_DEBUG_WINDOWS = builder.konfigurationsdatei("logging_debug_win.properties");
 	}
+	
 }

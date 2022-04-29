@@ -16,8 +16,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 
-@JsonSerialize(contentAs = String.class, 
-		converter = JsonEnumProperty.PropertyZuTypKonverter.class)
+@JsonSerialize(contentAs = String.class, converter = JsonEnumProperty.PropertyZuTypKonverter.class)
 @JsonDeserialize(converter = JsonEnumProperty.EnumZuPropertyKonverter.class)
 public class JsonEnumProperty<T extends Enum<T>> extends SimpleObjectProperty<T> {
 	
@@ -27,17 +26,18 @@ public class JsonEnumProperty<T extends Enum<T>> extends SimpleObjectProperty<T>
 		public String convert(ObjectProperty<T> value) {
 			String klasse = value.getValue().getClass().getName();
 			String wert = value.get().name();
-			return klasse + "." + wert; 
+			return klasse + "." + wert;
 		}
 	}
 	
 	public static class EnumZuPropertyKonverter<T extends Enum<T>>
 			extends StdConverter<String, ObjectProperty<T>> {
+		@SuppressWarnings("unchecked")
 		@Override
 		public ObjectProperty<T> convert(String value) {
 			int klassenEnde = value.lastIndexOf(".");
 			String klasse = value.substring(0, klassenEnde);
-			String wert = value.substring(klassenEnde+1, value.length());
+			String wert = value.substring(klassenEnde + 1, value.length());
 			T enumeration = null;
 			try {
 				enumeration = Enum.valueOf((Class<T>) Class.forName(klasse), wert);
@@ -48,6 +48,21 @@ public class JsonEnumProperty<T extends Enum<T>> extends SimpleObjectProperty<T>
 			return new JsonEnumProperty<>(enumeration);
 		}
 	}
+	
+	
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// #                                                                              		      #
+// #	Instanzen																			  #
+// #																						  #
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Attribute																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Konstruktoren																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public JsonEnumProperty() {
 		super();
@@ -64,6 +79,11 @@ public class JsonEnumProperty<T extends Enum<T>> extends SimpleObjectProperty<T>
 	public JsonEnumProperty(T initialValue) {
 		super(initialValue);
 	}
+	
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Methoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
 	public boolean equals(Object obj) {

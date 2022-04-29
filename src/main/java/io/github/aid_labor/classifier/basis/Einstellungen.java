@@ -8,6 +8,8 @@ package io.github.aid_labor.classifier.basis;
 
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -22,20 +24,32 @@ import javafx.beans.property.ObjectProperty;
 @JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, creatorVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
 public class Einstellungen {
 	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+	private static Logger log = Logger.getLogger(Einstellungen.class.getName());
+	
 	private static Einstellungen defaultInstanz;
+	private static Einstellungen benutzerInstanz;
+	
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenmethoden																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public static Einstellungen getDefault() {
 		if (defaultInstanz == null) {
+			log.info(() -> "erzeuge Default-Einstellungen");
 			defaultInstanz = new Einstellungen();
 		}
 		
 		return defaultInstanz;
 	}
 	
-	private static Einstellungen benutzerInstanz;
-	
 	public static Einstellungen getBenutzerdefiniert() {
 		if (benutzerInstanz == null) {
+			log.info(() -> "erzeuge benutzerdefinierte Einstellungen");
 			benutzerInstanz = laden(Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath())
 					.orElse(new Einstellungen());
 		}
@@ -48,21 +62,25 @@ public class Einstellungen {
 	}
 	
 	public static boolean resetBenutzerdefiniert() {
+		log.info(() -> "Benutzereinstellungen zuruecksetzen");
 		var benutzerInstanzNeu = laden(Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath());
 		if (benutzerInstanzNeu.isPresent()) {
 			benutzerInstanz = benutzerInstanzNeu.get();
+			log.info(() -> "Reset erfolgreich");
 			return true;
 		} else {
+			log.warning(() -> "Reset nicht erfolgreich");
 			return false;
 		}
 	}
 	
+	// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	private static boolean speichern(Einstellungen e, Path ziel) {
 		try (JsonGenerator generator = JsonUtil.getUTF8JsonGenerator(ziel)) {
 			generator.writePOJO(e);
 			generator.flush();
 		} catch (Exception exc) {
-			// TODO: handle exception
+			log.log(Level.WARNING, exc, () -> "Speichern der Einstellungen nicht erfolgreich");
 			return false;
 		}
 		
@@ -74,12 +92,13 @@ public class Einstellungen {
 		try (JsonParser parser = JsonUtil.getUTF8JsonParser(quelle)) {
 			e = parser.readValueAs(Einstellungen.class);
 		} catch (Exception exc) {
-			// TODO: handle exception
+			log.log(Level.WARNING, exc, () -> "Laden der Einstellungen nicht erfolgreich");
 			return Optional.empty();
 		}
 		
 		return Optional.of(e);
 	}
+	
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                                    #
