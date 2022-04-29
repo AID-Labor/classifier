@@ -26,13 +26,7 @@
 
 		<resources>
 			<resource>
-				<directory>src</directory>
-				<excludes>
-					<exclude>**/*.java</exclude>
-				</excludes>
-			</resource>
-			<resource>
-				<directory>ressourcen</directory>
+				<directory>src/main/ressources</directory>
 			</resource>
 		</resources>
 

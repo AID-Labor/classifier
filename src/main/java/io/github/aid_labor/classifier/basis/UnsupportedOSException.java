@@ -5,6 +5,13 @@
  */
 package io.github.aid_labor.classifier.basis;
 
+/**
+ * Zeigt an, dass eine Systemoperation oder das verwendete Betriebssystem nicht unterstuetzt 
+ * wird.
+ * 
+ * @author Tim Muehle
+ *
+ */
 public class UnsupportedOSException extends UnsupportedOperationException {
 
 	private static final long serialVersionUID = -85835558246563414L;
