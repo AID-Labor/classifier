@@ -5,13 +5,19 @@
  */
 
 module classifier {
-	exports io.github.aid_labor.classifier.main;
-	
+//	exports io.github.aid_labor.classifier.main;
+	opens io.github.aid_labor.classifier.main to javafx.graphics;
 	opens io.github.aid_labor.classifier.basis.json to com.fasterxml.jackson.databind;
 	
+	
+	requires java.logging;
+	
 	requires javafx.base;
+	requires javafx.controls;
+	requires transitive javafx.graphics;
+	
 	requires com.fasterxml.jackson.core;
 	requires com.fasterxml.jackson.databind;
 	requires com.fasterxml.jackson.annotation;
-	requires java.logging;
+	requires commons.cli;
 }
