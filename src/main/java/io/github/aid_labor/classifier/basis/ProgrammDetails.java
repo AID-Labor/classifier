@@ -4,7 +4,8 @@ public record ProgrammDetails (
 		String version,
 		String name,
 		String info,
-		String lizenz
+		String lizenz,
+		String homepage
 ) {
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##

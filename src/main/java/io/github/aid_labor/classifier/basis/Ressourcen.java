@@ -62,10 +62,6 @@ public class Ressourcen {
 	
 	public final Ressource NUTZER_EINSTELLUNGEN;
 	
-	public final Ressource LOGGER_DEBUG_CONSOLE;
-	public final Ressource LOGGER_DEBUG_LINUX;
-	public final Ressource LOGGER_DEBUG_MAC;
-	public final Ressource LOGGER_DEBUG_WINDOWS;
 	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -78,10 +74,6 @@ public class Ressourcen {
 		this.DARK_THEME_CSS = builder.css("darkTheme.css");
 		this.NUTZER_THEME_CSS = builder.css("customTheme.css");
 		this.NUTZER_EINSTELLUNGEN = builder.konfigurationsdatei("nutzerEinstellung.json");
-		this.LOGGER_DEBUG_CONSOLE = builder.konfigurationsdatei("logging_debug.properties");
-		this.LOGGER_DEBUG_LINUX = builder.konfigurationsdatei("logging_debug_linux.properties");
-		this.LOGGER_DEBUG_MAC = builder.konfigurationsdatei("logging_debug_mac.properties");
-		this.LOGGER_DEBUG_WINDOWS = builder.konfigurationsdatei("logging_debug_win.properties");
 	}
 	
 }

@@ -17,6 +17,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
+import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 import javafx.beans.property.ObjectProperty;
 
@@ -40,7 +41,7 @@ public class Einstellungen {
 	
 	public static Einstellungen getDefault() {
 		if (defaultInstanz == null) {
-			log.info(() -> "erzeuge Default-Einstellungen");
+			log.config(() -> "erzeuge Default-Einstellungen");
 			defaultInstanz = new Einstellungen();
 		}
 		
@@ -49,7 +50,7 @@ public class Einstellungen {
 	
 	public static Einstellungen getBenutzerdefiniert() {
 		if (benutzerInstanz == null) {
-			log.info(() -> "erzeuge benutzerdefinierte Einstellungen");
+			log.config(() -> "erzeuge benutzerdefinierte Einstellungen");
 			benutzerInstanz = laden(Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath())
 					.orElse(new Einstellungen());
 		}
@@ -62,11 +63,11 @@ public class Einstellungen {
 	}
 	
 	public static boolean resetBenutzerdefiniert() {
-		log.info(() -> "Benutzereinstellungen zuruecksetzen");
+		log.config(() -> "Benutzereinstellungen zuruecksetzen");
 		var benutzerInstanzNeu = laden(Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath());
 		if (benutzerInstanzNeu.isPresent()) {
 			benutzerInstanz = benutzerInstanzNeu.get();
-			log.info(() -> "Reset erfolgreich");
+			log.config(() -> "Reset erfolgreich");
 			return true;
 		} else {
 			log.warning(() -> "Reset nicht erfolgreich");
@@ -110,6 +111,8 @@ public class Einstellungen {
 //  *	Attribute																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	public final ObjectProperty<Level> logLevelDatei;
+	public final ObjectProperty<Level> logLevelKonsole;
 	public final ObjectProperty<Theme> themeEinstellung;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -118,6 +121,8 @@ public class Einstellungen {
 	
 	// Singleton bzw. Multiton-Muster
 	private Einstellungen() {
+		this.logLevelDatei = new JsonObjectProperty<>(Level.INFO);
+		this.logLevelKonsole = new JsonObjectProperty<>(Level.WARNING);
 		this.themeEinstellung = new JsonEnumProperty<Theme>(Theme.SYSTEM);
 	}
 	

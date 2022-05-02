@@ -20,4 +20,5 @@ module classifier {
 	requires com.fasterxml.jackson.databind;
 	requires com.fasterxml.jackson.annotation;
 	requires commons.cli;
+	requires java.base;
 }
