@@ -15,6 +15,9 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,7 +43,7 @@ public class DateiUtil {
 	 * 
 	 * @param jarDatei       Pfad zur Jar-Datei, aus der extrahiert werden soll
 	 * @param jarEintragName Name des Eintrages, der extrahiert werden soll
-	 * @param zielordner           Zielverzeichnis, in das extrahiert wird
+	 * @param zielordner     Zielverzeichnis, in das extrahiert wird
 	 * @throws IOException Wenn beim Extrahieren ein Fehler auftritt oder das Verzeichnis zur
 	 *                     Jar-Datei ungueltig ist
 	 */
@@ -62,7 +65,7 @@ public class DateiUtil {
 									Files.createDirectories(ziel);
 								} catch (IOException e) {
 									log.log(Level.WARNING, e, () -> "Kopieren von "
-											+ eintrag.getName() + " nach " + ziel 
+											+ eintrag.getName() + " nach " + ziel
 											+ " fehlgeschlagen");
 								}
 							} else {
@@ -71,7 +74,7 @@ public class DateiUtil {
 											StandardCopyOption.REPLACE_EXISTING);
 								} catch (IOException e) {
 									log.log(Level.WARNING, e, () -> "Kopieren von "
-											+ eintrag.getName() + " nach " + ziel 
+											+ eintrag.getName() + " nach " + ziel
 											+ " fehlgeschlagen");
 								}
 							}
@@ -116,6 +119,44 @@ public class DateiUtil {
 				return FileVisitResult.CONTINUE;
 			}
 		});
+	}
+	
+	/**
+	 * Loescht alte Logging-Dateien aus dem systemspezifischen Konfigurationsordner des
+	 * Programmes
+	 * 
+	 * @param aufbewahrungsfrist Zeitraum, fuer den Logging-Dateien behalten werden sollen
+	 * @param programm           Programm, fuer das die Logging-Dateien geloescht werden
+	 */
+	public static void loescheVeralteteLogs(Duration aufbewahrungsfrist,
+			ProgrammDetails programm) {
+		Objects.requireNonNull(aufbewahrungsfrist, "Aufbewahrungsfrist darf nicht null sein");
+		Path logOrdner = OS.getDefault().getKonfigurationsOrdnerPath(programm).resolve("log");
+		try (var logs = Files.walk(logOrdner, 1)) {
+			logs.forEach(logdatei -> {
+				try {
+					var bearbeitet = Files.getLastModifiedTime(logdatei).toInstant();
+					var alter = Duration.between(bearbeitet, Instant.now());
+					if (alter.compareTo(aufbewahrungsfrist) > 0
+							&& logdatei.toString().endsWith(".log")
+							&& logdatei.toString().contains("classifier")) {
+						boolean geloescht = Files.deleteIfExists(logdatei);
+						if (geloescht) {
+							log.fine(
+									() -> logdatei.toAbsolutePath().toString() + " geloescht");
+						} else {
+							log.fine(() -> logdatei.toAbsolutePath().toString()
+									+ " konnte nicht geloscht werden");
+						}
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		} catch (IOException e) {
+			log.log(Level.WARNING, e,
+					() -> "Fehler beim loeschen alter Logdateien in " + logOrdner);
+		}
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

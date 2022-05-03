@@ -132,7 +132,7 @@ public class Ressourcen {
 		this.CLASSIFIER_LOGO_M = builder.grafik("Classifier-Logo@1x.png");
 		this.CLASSIFIER_LOGO_L = builder.grafik("Classifier-Logo@2x.png");
 		this.CLASSIFIER_ICON_M = builder.grafik("Classifier-Icon-mittel.png");
-		this.CLASSIFIER_ICON_L = builder.grafik("Classifier-Icon-groß.png");
+		this.CLASSIFIER_ICON_L = builder.grafik("Classifier-Icon-gross.png");
 		erstelleRessourcenOrdner();
 	}
 	
