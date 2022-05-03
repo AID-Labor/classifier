@@ -5,10 +5,11 @@
  */
 package io.github.aid_labor.classifier.basis;
 
-public enum RessourceTyp {
+enum RessourceTyp {
 	
-	CSS(System.getProperty("file.seperator") + "css"), 
-	KONFIGURATIONSDATEI(System.getProperty("file.seperator") + "konfiguration");
+	CSS("css"), 
+	KONFIGURATIONSDATEI("konfiguration"),
+	GRAFIK("grafik");
 	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

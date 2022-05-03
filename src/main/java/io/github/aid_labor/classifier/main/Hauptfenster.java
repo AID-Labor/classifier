@@ -35,7 +35,13 @@ import org.apache.commons.cli.ParseException;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.OS;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.Ressourcen;
+import io.github.aid_labor.classifier.gui.HauptAnsicht;
+import io.github.aid_labor.classifier.gui.View;
+import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 
@@ -47,7 +53,6 @@ public class Hauptfenster extends Application {
 	
 	private static final Logger log = Logger.getLogger(Hauptfenster.class.getName());
 	private static final Properties logProperties = new Properties(10);
-	
 	private static final ProgrammDetails programm = new ProgrammDetails("0.0.1", "Classifier",
 			null, null, "https://github.com/AID-Labor/classifier");
 	
@@ -57,12 +62,8 @@ public class Hauptfenster extends Application {
 	
 	public static void main(String[] args) {
 		initialisiereLogging();
-		setzeLogLevel(Einstellungen.getBenutzerdefiniert().logLevelKonsole.get(),
-				Einstellungen.getBenutzerdefiniert().logLevelDatei.get());
 		CommandLine aufruf = werteArgumenteAus(args);
-		loescheVeralteteLogs(Duration.ofDays(14));
-		
-		log.log(Level.ALL, () -> "%s gestartet  -  OS: %s_%s_%s  -  Java: %s %s".formatted(
+		log.log(Level.SEVERE, () -> "%s gestartet  -  OS: %s_%s_%s  -  Java: %s %s".formatted(
 				programm.getVersionName(),
 				System.getProperty("os.name"),
 				System.getProperty("os.version"),
@@ -71,7 +72,11 @@ public class Hauptfenster extends Application {
 				System.getProperty("java.vm.version")));
 		log.finest(() -> "Args: " + Arrays.toString(aufruf.getArgs()));
 		
+		Ressourcen.setProgrammDetails(programm);
+		loescheVeralteteLogs(Duration.ofDays(14));
+		
 		launch(args);
+		Einstellungen.speicherBenutzerdefiniert();
 	}
 	
 	private static void initialisiereLogging() {
@@ -95,9 +100,10 @@ public class Hauptfenster extends Application {
 		logProperties.setProperty(".level", "INFO");
 		logProperties.setProperty("java.util.logging.FileHandler.level", "INFO");
 		logProperties.setProperty("java.util.logging.ConsoleHandler.level", "WARNING");
+		logProperties.setProperty("javafx.level", "INFO");
 		
 		// Einstellungen Anwenden
-		setzeLoggingEinstellungen(logProperties);
+		setzeLoggingEinstellungen();
 		
 		// Log-Datei einstellen
 		OS os = OS.getDefault();
@@ -112,7 +118,7 @@ public class Hauptfenster extends Application {
 				logdatei.toString());
 		
 		// Einstellungen Anwenden
-		setzeLoggingEinstellungen(logProperties);
+		setzeLoggingEinstellungen();
 		
 		log.config(() -> "Logdatei: " + logdatei);
 	}
@@ -147,7 +153,7 @@ public class Hauptfenster extends Application {
 		}
 	}
 	
-	private static void setzeLoggingEinstellungen(Properties logProperties) {
+	private static void setzeLoggingEinstellungen() {
 		try (var streamOut = new StringWriter()) {
 			logProperties.store(streamOut, "Logging Einstellungen fuer Classifier");
 			streamOut.flush();
@@ -166,10 +172,17 @@ public class Hauptfenster extends Application {
 		Option info = builder("i").longOpt("info").desc("Schlatet Info-Meldungen ein").build();
 		String[] loglevels = { "ALL", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE", "FINER",
 			"FINEST", "OFF" };
-		Option loglevel = builder().longOpt("log-level").argName("level").hasArg().desc("""
+		Option loglevel = builder().longOpt("log").argName("level").hasArg().desc("""
 				Bestimmt, welche Logging-Informationen ausgegeben werden. Moegliche Werte sind:
 				%s
 				Der Standardwert ist WARNING""".formatted(String.join(", ", loglevels)))
+				.type(String.class).build();
+		Option loglevelJavaFX = builder().longOpt("log-javafx").argName("level").hasArg()
+				.desc("""
+						Bestimmt, welche Logging-Informationen von javaFX ausgegeben werden. Moegliche Werte sind:
+						%s
+						Der Standardwert ist WARNING"""
+						.formatted(String.join(", ", loglevels)))
 				.type(String.class).build();
 		Option hilfe = builder("h").longOpt("help").desc("Zeigt diese Hilfe an").build();
 		Option version = builder("v").longOpt("version").desc("Zeigt die Version an").build();
@@ -180,6 +193,7 @@ public class Hauptfenster extends Application {
 		Options optionen = new Options();
 		optionen.addOptionGroup(loggingOptionen)
 				.addOption(loglevel)
+				.addOption(loglevelJavaFX)
 				.addOption(hilfe)
 				.addOption(version);
 		
@@ -214,6 +228,23 @@ public class Hauptfenster extends Application {
 			}
 		}
 		
+		if (aufruf.hasOption(loglevelJavaFX)) {
+			log.config("--log-level-javafx");
+			Set<String> moeglicheLevel = Set.of(loglevels);
+			try {
+				String level = aufruf.getParsedOptionValue(loglevelJavaFX).toString();
+				if (moeglicheLevel.contains(level)) {
+					logProperties.setProperty("javafx.level", level);
+					setzeLoggingEinstellungen();
+				} else {
+					zeigeFehlerUndBeende(optionen, "Fehler beim Auslesen der Option --" +
+							loglevelJavaFX.getLongOpt() + " " + level);
+				}
+			} catch (ParseException e) {
+				zeigeFehlerUndBeende(optionen, loglevelJavaFX);
+			}
+		}
+		
 		if (aufruf.hasOption(hilfe)) {
 			log.config("--help");
 			zeigeHilfeUndBeende(optionen);
@@ -236,10 +267,11 @@ public class Hauptfenster extends Application {
 		Level hoechstes = consoleLevel.intValue() > fileLevel.intValue() ? consoleLevel
 				: fileLevel;
 		logProperties.setProperty(".level", hoechstes.toString());
-		logProperties.setProperty("java.util.logging.FileHandler.level", fileLevel.toString());
+		logProperties.setProperty("java.util.logging.FileHandler.level",
+				fileLevel.toString());
 		logProperties.setProperty("java.util.logging.ConsoleHandler.level",
 				consoleLevel.toString());
-		setzeLoggingEinstellungen(logProperties);
+		setzeLoggingEinstellungen();
 	}
 	
 	private static void zeigeFehlerUndBeende(final Options optionen, final Option fehler) {
@@ -254,8 +286,8 @@ public class Hauptfenster extends Application {
 	
 	private static void zeigeHilfeUndBeende(final Options optionen) {
 		HelpFormatter hilfeFormat = new HelpFormatter();
-		String syntax = "classifier";// [-d | -i] [Optionen] [<Datei_1> [<Datei_2>
-										// [<Datei_3> ...]]]";
+		String syntax = "classifier [-d | -i] [Optionen] [<Datei_1> [<Datei_2> "
+				+ "[<Datei_3> ...]]]";
 		String beschreibung = """
 				UML-Klassendiagramme modellieren
 				
@@ -263,11 +295,11 @@ public class Hauptfenster extends Application {
 				""";
 		String anmerkung = """
 				
-				 <Datei_?>                Optional eine oder mehrere Projektdateien oeffnen
+				 <Datei_?>                 Optional eine oder mehrere Projektdateien oeffnen
 				
 				Weitere Informationen: %s \n
 				""".formatted(programm.homepage());
-		hilfeFormat.printHelp(80, syntax, beschreibung, optionen, anmerkung, true);
+		hilfeFormat.printHelp(80, syntax, beschreibung, optionen, anmerkung);
 		
 		System.exit(0);
 	}
@@ -295,11 +327,21 @@ public class Hauptfenster extends Application {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
-	public void start(Stage primaryStage) throws Exception {
+	public void start(Stage hauptFenster) {
+		View hauptansicht = new HauptAnsicht();
 		
+		Scene szene = new Scene(hauptansicht.getWurzelknoten());
+		FensterUtil.installiereFensterwiederherstellung(hauptFenster, 300, 500,
+				Ressourcen.get().KONFIGURATIONSORDNER.alsPath());
 		
-		primaryStage.setTitle(programm.name());
-		primaryStage.show();
+		hauptFenster.setScene(szene);
+		hauptFenster.setTitle(programm.name());
+		try (var iconStream = Ressourcen.get().CLASSIFIER_ICON_L.oeffneStream()) {
+			hauptFenster.getIcons().add(new Image(iconStream));
+		} catch (IOException | IllegalStateException e) {
+			log.log(Level.WARNING, e, () -> "Icon konnte nicht gesetzt werden");
+		}
+		hauptFenster.show();
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

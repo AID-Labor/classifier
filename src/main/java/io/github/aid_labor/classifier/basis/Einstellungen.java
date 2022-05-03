@@ -17,7 +17,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
-import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 import javafx.beans.property.ObjectProperty;
 
@@ -89,15 +88,15 @@ public class Einstellungen {
 	}
 	
 	private static Optional<Einstellungen> laden(Path quelle) {
-		Einstellungen e;
+		Einstellungen einstellungen;
 		try (JsonParser parser = JsonUtil.getUTF8JsonParser(quelle)) {
-			e = parser.readValueAs(Einstellungen.class);
+			einstellungen = parser.readValueAs(Einstellungen.class);
 		} catch (Exception exc) {
-			log.log(Level.WARNING, exc, () -> "Laden der Einstellungen nicht erfolgreich");
+			log.log(Level.INFO, exc, () -> "Laden der Einstellungen nicht erfolgreich");
 			return Optional.empty();
 		}
 		
-		return Optional.of(e);
+		return Optional.of(einstellungen);
 	}
 	
 	
@@ -111,8 +110,6 @@ public class Einstellungen {
 //  *	Attribute																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public final ObjectProperty<Level> logLevelDatei;
-	public final ObjectProperty<Level> logLevelKonsole;
 	public final ObjectProperty<Theme> themeEinstellung;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -121,8 +118,6 @@ public class Einstellungen {
 	
 	// Singleton bzw. Multiton-Muster
 	private Einstellungen() {
-		this.logLevelDatei = new JsonObjectProperty<>(Level.INFO);
-		this.logLevelKonsole = new JsonObjectProperty<>(Level.WARNING);
 		this.themeEinstellung = new JsonEnumProperty<Theme>(Theme.SYSTEM);
 	}
 	
