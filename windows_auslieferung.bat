@@ -5,8 +5,8 @@ set NAME=Classifier
 set DESCRIPTION=UML-Klassenmodellierung
 rem Version muss groesser gleich 1.0.0 sein!
 set VERSION=1.0.0
-set VENDOR="Tim MÅhle"
-set COPYRIGHT="Copyright © 2022 - Tim MÅhle"
+set VENDOR="Tim MÔøΩhle"
+set COPYRIGHT="Copyright ÔøΩ 2022 - Tim MÔøΩhle"
 set LICENSE_FILE=LICENSE.txt
 
 rem Einstellungen fuer jpackage:
@@ -35,7 +35,8 @@ call mvn clean install
 
 rem ---- Installer erzeugen ---------------------------------------------------------------------------
 rem ---- app-image ----
-echo %NAME%-%VERSION%-win-install.exe wird erstellt
+echo.
+echo App-Image wird erstellt
 echo.
 @echo on
 jpackage ^
