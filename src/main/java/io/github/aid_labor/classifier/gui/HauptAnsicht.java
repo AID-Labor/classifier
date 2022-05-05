@@ -1,27 +1,25 @@
-/* 
+/*
  * Dieser Quellcode steht unter der MIT-License.
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
+
 package io.github.aid_labor.classifier.gui;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.logging.Level;
+import java.io.InputStreamReader;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import io.github.aid_labor.classifier.basis.Ressourcen;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+
 
 public class HauptAnsicht implements View {
 	
 	private static final Logger log = Logger.getLogger(HauptAnsicht.class.getName());
-
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -35,21 +33,14 @@ public class HauptAnsicht implements View {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	
-	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	
-	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private final BorderPane wurzel;
 	private final HauptController controller;
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -61,8 +52,6 @@ public class HauptAnsicht implements View {
 		
 		erstelleAnsicht();
 	}
-	
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
@@ -77,16 +66,9 @@ public class HauptAnsicht implements View {
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	
-	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	
-	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*
@@ -94,20 +76,15 @@ public class HauptAnsicht implements View {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	
-	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	
-	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void erstelleAnsicht() {
-		try (BufferedReader ein = new BufferedReader(new FileReader(Ressourcen.get().LIZENZ_DATEI.alsPath().toFile()))) {
+		try (BufferedReader ein = new BufferedReader(
+				new InputStreamReader(Ressourcen.get().LIZENZ_DATEI.oeffneStream()))) {
 			String lizenz = ein.lines().collect(Collectors.joining("\n"));
 			this.wurzel.setCenter(new Label(lizenz));
 		} catch (IOException e) {
@@ -115,6 +92,5 @@ public class HauptAnsicht implements View {
 			e.printStackTrace();
 		}
 	}
-	
 	
 }

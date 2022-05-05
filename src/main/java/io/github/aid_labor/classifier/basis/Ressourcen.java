@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  */
 public class Ressourcen {
 	
-	private static Logger log = Logger.getLogger(Ressourcen.class.getName());
+	private static final Logger log = Logger.getLogger(Ressourcen.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -123,16 +123,53 @@ public class Ressourcen {
 		log.config(() -> "Erzeuge Ressourcen");
 		RessourceBuilder builder = new RessourceBuilder(programm);
 		this.programm = programm;
-		this.LIGHT_THEME_CSS = builder.css("lightTheme.css");
-		this.DARK_THEME_CSS = builder.css("darkTheme.css");
-		this.NUTZER_THEME_CSS = builder.css("customTheme.css");
-		this.KONFIGURATIONSORDNER = builder.konfigurationsdatei(null);
-		this.NUTZER_EINSTELLUNGEN = builder.konfigurationsdatei("nutzerEinstellung.json");
-		this.LIZENZ_DATEI = builder.erzeuge("LICENSE.txt");
-		this.CLASSIFIER_LOGO_M = builder.grafik("Classifier-Logo@1x.png");
-		this.CLASSIFIER_LOGO_L = builder.grafik("Classifier-Logo@2x.png");
-		this.CLASSIFIER_ICON_M = builder.grafik("Classifier-Icon-mittel.png");
-		this.CLASSIFIER_ICON_L = builder.grafik("Classifier-Icon-gross.png");
+		this.LIGHT_THEME_CSS = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.CSS)
+				.name("lightTheme.css").erzeuge();
+		this.DARK_THEME_CSS = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.CSS)
+				.name("darkTheme.css")
+				.erzeuge();
+		this.NUTZER_THEME_CSS = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.CSS)
+				.name("customTheme.css")
+				.erzeuge();
+		this.KONFIGURATIONSORDNER = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.KONFIGURATIONSDATEI)
+				.erzeuge();
+		this.NUTZER_EINSTELLUNGEN = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.KONFIGURATIONSDATEI)
+				.name("nutzerEinstellung.json")
+				.erzeuge();
+		this.LIZENZ_DATEI = builder
+				.konfigurationsOrdner()
+				.name("LICENSE.txt")
+				.erzeuge();
+		this.CLASSIFIER_LOGO_M = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.GRAFIK)
+				.name("Classifier-Logo@1x.png")
+				.erzeuge();
+		this.CLASSIFIER_LOGO_L = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.GRAFIK)
+				.name("Classifier-Logo@2x.png")
+				.erzeuge();
+		this.CLASSIFIER_ICON_M = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.GRAFIK)
+				.name("Classifier-Icon-mittel.png")
+				.erzeuge();
+		this.CLASSIFIER_ICON_L = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.GRAFIK)
+				.name("Classifier-Icon-gross.png")
+				.erzeuge();
 		erstelleRessourcenOrdner();
 	}
 	
@@ -141,8 +178,17 @@ public class Ressourcen {
 			URI codePfad = Ressourcen.class.getProtectionDomain().getCodeSource()
 					.getLocation().toURI();
 			
-			if (codePfad.toString().endsWith(".jar")) {
-				// Programm wird nicht in einer jar-Datei ausgefuehrt
+			if (codePfad.getPath().contains("classes")) {
+				// Programm wird nicht in einer jar-Datei ausgefuehrt (z.B. Aufruf aus IDE)
+				try {
+					Path von = Path.of(codePfad).resolve("ressourcen");
+					Path nach = OS.getDefault().getKonfigurationsOrdnerPath(programm);
+					DateiUtil.kopiereDateibaum(von, nach);
+				} catch (IOException e) {
+					log.log(Level.WARNING, e, () -> "Kopieren der Ressourcen fehlgeschlagen");
+				}
+			} else if (codePfad.toString().endsWith(".jar")) {
+				// Programm wird in einer jar-Datei ausgefuehrt
 				log.fine(() -> "Aus Jar Extrahieren");
 				try {
 					DateiUtil.extrahiereAusJar(codePfad, "ressourcen",
@@ -151,14 +197,16 @@ public class Ressourcen {
 					log.log(Level.WARNING, e,
 							() -> "Exportieren der Ressourcen aus Jar fehlgeschlagen");
 				}
-			} else {
-				// Programm wird nicht in einer jar-Datei ausgefuehrt (z.B. Aufruf aus IDE)
+			} else if (codePfad.toString().contains("jrt:/")) {
+				// Programm wird aus jmod ausgefuehrt
+				log.fine(() -> "Aus jmod Extrahieren");
 				try {
-					Path von = Path.of(codePfad).resolve("ressourcen");
-					Path nach = OS.getDefault().getKonfigurationsOrdnerPath(programm);
-					DateiUtil.kopiereDateibaum(von, nach);
+					DateiUtil.extrahiereAusJmod(
+							OS.getDefault().getKonfigurationsOrdnerPath(programm),
+							"modules", this.getClass().getModule().getName(), "ressourcen");
 				} catch (IOException e) {
-					log.log(Level.WARNING, e, () -> "Kopieren der Ressourcen fehlgeschlagen");
+					log.log(Level.WARNING, e,
+							() -> "Exportieren der Ressourcen aus Jmod fehlgeschlagen");
 				}
 			}
 		} catch (URISyntaxException e) {

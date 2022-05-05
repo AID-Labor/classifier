@@ -116,7 +116,7 @@ class KommandozeilenAuswertung {
 		}
 		
 		if (aufruf.hasOption(loglevel)) {
-			log.config("--log-level");
+			log.config("--log");
 			Set<String> moeglicheLevel = Set.of(loglevels);
 			try {
 				String level = aufruf.getParsedOptionValue(loglevel).toString();
@@ -132,7 +132,7 @@ class KommandozeilenAuswertung {
 		}
 		
 		if (aufruf.hasOption(loglevelJavaFX)) {
-			log.config("--log-level-javafx");
+			log.config("--log-javafx");
 			Set<String> moeglicheLevel = Set.of(loglevels);
 			try {
 				String level = aufruf.getParsedOptionValue(loglevelJavaFX).toString();

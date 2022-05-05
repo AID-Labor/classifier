@@ -9,6 +9,8 @@ package io.github.aid_labor.classifier.basis;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,6 +39,47 @@ public class DateiUtil {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	public static void extrahiereAusJmod(Path zielordner, String ordner,
+			String... weitererPfad) throws IOException {
+		log.fine(() -> "extrahiere %s aus jmod nach %s"
+				.formatted(ordner + "/" + String.join("/", weitererPfad), zielordner));
+		FileSystem dateisystem = FileSystems.getFileSystem(URI.create("jrt:/"));
+		
+		Path von = Path.of(ordner, weitererPfad);
+		log.finest(() -> "Dateisystem durchlaufen");
+		Files.walkFileTree(dateisystem.getPath(ordner, weitererPfad),
+				new SimpleFileVisitor<Path>() {
+					@Override
+					public FileVisitResult preVisitDirectory(Path verzeichnis,
+							BasicFileAttributes attrs)
+							throws IOException {
+						log.finest(() -> "bearbeite " + verzeichnis);
+						Path ziel = zielordner
+								.resolve(von.relativize(Path.of(verzeichnis.toString())));
+						if (Files.notExists(ziel)) {
+							log.finer(() -> "Erstelle Verzeichnis: "
+									+ ziel);
+							Files.createDirectories(ziel);
+						}
+						return FileVisitResult.CONTINUE;
+					}
+					
+					@Override
+					public FileVisitResult visitFile(Path datei, BasicFileAttributes attrs)
+							throws IOException {
+						log.finest(() -> "bearbeite " + datei);
+						Path ziel = zielordner
+								.resolve(von.relativize(Path.of(datei.toString())));
+						if (Files.notExists(ziel)) {
+							log.finer(() -> "kopiere Datei " + datei.getFileName() + " nach "
+									+ ziel);
+							Files.copy(datei, ziel);
+						}
+						return FileVisitResult.CONTINUE;
+					}
+				});
+	}
 	
 	/**
 	 * Extrahiert einen Eintrag aus einer Jar-Datei in ein angegebenes Verzeichnis

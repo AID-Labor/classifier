@@ -62,7 +62,7 @@ class LoggingEinstellung {
 		// Log-Datei einstellen
 		OS os = OS.getDefault();
 		StringBuilder logdatei = os.pfadAus(os.getKonfigurationsOrdner(programm), "log",
-				"%1$tF_%1$tT".formatted(LocalDateTime.now()) + "_classifier_%u%g.log");
+				"%1$tF_%1$tH-%1$tM-%1$tS".formatted(LocalDateTime.now()) + "_classifier_%u%g.log");
 		try {
 			Files.createDirectories(Path.of(logdatei.toString()).getParent());
 		} catch (IOException e) {
