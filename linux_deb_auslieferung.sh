@@ -12,21 +12,19 @@ COPYRIGHT="Copyright © 2022 - Tim Mühle"
 LICENSE_FILE="LICENSE.txt"
 
 # Einstellungen fuer jpackage:
-INPUT="auslieferung/${VERSION}/macOS/input"
-OUT="auslieferung/${VERSION}/macOS/app"
+INPUT="auslieferung/${VERSION}/Linux/input"
+OUT="auslieferung/${VERSION}/Linux/app/deb"
 MODULE_PATH="${INPUT}/lib"
 MAIN_MODULE="classifier"
 MAIN_CLASS="io.github.aid_labor.classifier.main.Hauptfenster"
 
 # Weitere Befehle fuer jpackage:
 # App Icon aendern: --icon "path/to/icon.png"
-ICON="src/app/ressourcen/Icon.icns"
+ICON="src/app/ressourcen/Icon.png"
 
 # Systemspezifische Optionen
-# Paketname darf maximal 16 Zeichen haben!
-MAC_PACKAGE_NAME="Classifier"
-# weltweit eindeutiger Paketidentifier
-MAC_PACKAGE_ID="io.github.aid-labor.classifier"
+LINUX_MENU_GROUP="Development;Education;"
+LINUX_RPM_LICENSE_TYPE="MIT License"
 
 # ---- Eingabeordner leeren ---------------------------------------------------------------------------
 mkdir -p ${INPUT}
@@ -42,7 +40,7 @@ mvn clean install
 
 # ---- Installer erzeugen -----------------------------------------------------------------------------
 echo ""
-echo "Installer fuer macOS werden erzeugt."
+echo "Installer fuer Linux werden erzeugt."
 echo ""
 
 echo "AppImage wird erstellt"
@@ -60,17 +58,15 @@ jpackage \
 --dest "${OUT}" \
 --module-path "${MODULE_PATH}" \
 --module-path "${INPUT}" \
---module "${MAIN_MODULE}/${MAIN_CLASS}" \
---mac-package-name "${MAC_PACKAGE_NAME}" \
---mac-package-identifier "${MAC_PACKAGE_ID}"
+--module "${MAIN_MODULE}/${MAIN_CLASS}"
 
 echo ""
 
-echo "${NAME}-${VERSION}.pkg wird erstellt"
+echo "${NAME}-${VERSION}.deb wird erstellt"
 echo ""
 
 jpackage \
---type "pkg" \
+--type "deb" \
 --name "${NAME}" \
 --description "${DESCRIPTION}" \
 --app-version "${VERSION}" \
@@ -83,12 +79,13 @@ jpackage \
 --module-path "${MODULE_PATH}" \
 --module-path "${INPUT}/${MAIN_JAR}" \
 --module "${MAIN_MODULE}/${MAIN_CLASS}" \
---mac-package-name "${MAC_PACKAGE_NAME}" \
---mac-package-identifier "${MAC_PACKAGE_ID}"
+--linux-menu-group "${LINUX_MENU_GROUP}" \
+--linux-shortcut \
+--linux-rpm-license-type "${LINUX_RPM_LICENSE_TYPE}"
 
 echo ""
 
-mv "./${OUT}/${NAME}-${VERSION}.pkg" "./${OUT}/${NAME}-${VERSION}-mac-install.pkg"
+mv "./${OUT}/classifier-${VERSION}-1_amd64.deb" "./${OUT}/${NAME}-${VERSION}-linux-deb.deb"
 echo ""
 echo ""
 echo "Der Prozess wurde beendet."
