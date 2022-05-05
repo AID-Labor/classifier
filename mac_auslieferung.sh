@@ -15,7 +15,6 @@ LICENSE_FILE="LICENSE.txt"
 INPUT="auslieferung/${VERSION}/macOS/input"
 OUT="auslieferung/${VERSION}/macOS/app"
 MODULE_PATH="${INPUT}/lib"
-MAIN_JAR=""
 MAIN_MODULE="classifier"
 MAIN_CLASS="io.github.aid_labor.classifier.main.Hauptfenster"
 
@@ -30,8 +29,8 @@ MAC_PACKAGE_NAME="Classifier"
 MAC_PACKAGE_ID="io.github.aid-labor.classifier"
 
 # ---- Eingabeordner leeren ---------------------------------------------------------------------------
-# mkdir -p ${INPUT}
-# rm -rf ${INPUT}/*
+mkdir -p ${INPUT}
+rm -rf ${INPUT}/*
 mkdir -p ${OUT}
 rm -rf ${OUT}/*
 
@@ -60,7 +59,7 @@ jpackage \
 --input "${INPUT}" \
 --dest "${OUT}" \
 --module-path "${MODULE_PATH}" \
---module-path "${INPUT}/${MAIN_JAR}" \
+--module-path "${INPUT}" \
 --module "${MAIN_MODULE}/${MAIN_CLASS}" \
 --mac-package-name "${MAC_PACKAGE_NAME}" \
 --mac-package-identifier "${MAC_PACKAGE_ID}"
