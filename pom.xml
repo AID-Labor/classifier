@@ -67,6 +67,7 @@
 				<version>2.10</version>
 				<configuration>
 					<outputDirectory>${dependenciesDir}</outputDirectory>
+					<includeScope>runtime</includeScope>
 				</configuration>
 				<executions>
 					<execution>
