@@ -12,8 +12,8 @@ COPYRIGHT="Copyright © 2022 - Tim Mühle"
 LICENSE_FILE="LICENSE.txt"
 
 # Einstellungen fuer jpackage:
-INPUT="auslieferung/${VERSION}/Mac OS X/input"
-OUT="auslieferung/${VERSION}/Mac OS X"
+INPUT="auslieferung/${VERSION}/macOS/input"
+OUT="auslieferung/${VERSION}/macOS/app"
 MODULE_PATH="${INPUT}/lib"
 MAIN_JAR=""
 MAIN_MODULE="classifier"
@@ -30,8 +30,10 @@ MAC_PACKAGE_NAME="Classifier"
 MAC_PACKAGE_ID="io.github.aid-labor.classifier"
 
 # ---- Eingabeordner leeren ---------------------------------------------------------------------------
-mkdir -p $INPUT
-rm -r -f $INPUT/*
+# mkdir -p ${INPUT}
+# rm -rf ${INPUT}/*
+mkdir -p ${OUT}
+rm -rf ${OUT}/*
 
 # ---- Maven build ------------------------------------------------------------------------------------
 echo ""

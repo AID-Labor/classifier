@@ -11,7 +11,7 @@ module classifier {
 	opens io.github.aid_labor.classifier.gui.util to com.fasterxml.jackson.databind;
 	
 	requires java.logging;
-	
+
 	requires javafx.base;
 	requires javafx.controls;
 	requires transitive javafx.graphics;
@@ -21,5 +21,5 @@ module classifier {
 	requires com.fasterxml.jackson.annotation;
 	requires commons.cli;
 	requires java.base;
-	requires com.dlsc.gemsfx;
+//	requires com.dlsc.gemsfx;
 }
