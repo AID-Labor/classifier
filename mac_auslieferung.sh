@@ -21,13 +21,13 @@ MAIN_CLASS="io.github.aid_labor.classifier.main.Hauptfenster"
 
 # Weitere Befehle fuer jpackage:
 # App Icon aendern: --icon "path/to/icon.png"
-ICON="src/auslieferung/ressourcen/Icon.icns"
+ICON="src/app/ressourcen/Icon.icns"
 
 # Systemspezifische Optionen
 # Paketname darf maximal 16 Zeichen haben!
 MAC_PACKAGE_NAME="Classifier"
 # weltweit eindeutiger Paketidentifier
-MAC_PACKAGE_ID="io.github.aid_labor.classifier"
+MAC_PACKAGE_ID="io.github.aid-labor.classifier"
 
 # ---- Eingabeordner leeren ---------------------------------------------------------------------------
 mkdir -p $INPUT
