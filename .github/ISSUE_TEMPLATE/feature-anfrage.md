@@ -2,7 +2,7 @@
 name: Feature Anfrage
 about: Vorschlag für eine neue Funktion oder Ausbau einer Funktion
 title: Funktion [...] hinzufügen
-labels: bug
+labels: Verbesserung
 assignees: encrypTimM
 
 ---

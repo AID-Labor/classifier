@@ -2,7 +2,7 @@
 name: Bug-Meldung
 about: Meldung eines Programmfehlers
 title: "[Titel]"
-labels: bug
+labels: Bug
 assignees: encrypTimM
 
 ---
