@@ -7,6 +7,7 @@
 package io.github.aid_labor.classifier.basis;
 
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,6 +18,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
+import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 import javafx.beans.property.ObjectProperty;
 
@@ -74,6 +76,7 @@ public class Einstellungen {
 		}
 	}
 	
+	
 	// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	private static boolean speichern(Einstellungen e, Path ziel) {
 		try (JsonGenerator generator = JsonUtil.getUTF8JsonGenerator(ziel)) {
@@ -91,12 +94,12 @@ public class Einstellungen {
 		Einstellungen einstellungen;
 		try (JsonParser parser = JsonUtil.getUTF8JsonParser(quelle)) {
 			einstellungen = parser.readValueAs(Einstellungen.class);
+			return Optional.of(einstellungen);
 		} catch (Exception exc) {
 			log.log(Level.INFO, exc, () -> "Laden der Einstellungen nicht erfolgreich");
 			return Optional.empty();
 		}
 		
-		return Optional.of(einstellungen);
 	}
 	
 	
@@ -110,7 +113,8 @@ public class Einstellungen {
 //  *	Attribute																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public final ObjectProperty<Theme> themeEinstellung;
+	public final JsonEnumProperty<Theme> themeEinstellung;
+	public final JsonLocaleProperty sprachEinstellung;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -119,6 +123,7 @@ public class Einstellungen {
 	// Singleton bzw. Multiton-Muster
 	private Einstellungen() {
 		this.themeEinstellung = new JsonEnumProperty<Theme>(Theme.SYSTEM);
+		this.sprachEinstellung = new JsonLocaleProperty(Locale.GERMAN);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

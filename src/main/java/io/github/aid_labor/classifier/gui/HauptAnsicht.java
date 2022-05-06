@@ -13,7 +13,11 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import io.github.aid_labor.classifier.basis.Ressourcen;
+import io.github.aid_labor.classifier.basis.SprachUtil;
+import io.github.aid_labor.classifier.basis.Sprache;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.layout.BorderPane;
 
 
@@ -41,6 +45,7 @@ public class HauptAnsicht implements View {
 	
 	private final BorderPane wurzel;
 	private final HauptController controller;
+	private final Sprache sprache;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -49,8 +54,18 @@ public class HauptAnsicht implements View {
 	public HauptAnsicht() {
 		this.wurzel = new BorderPane();
 		this.controller = new HauptController(this);
+		this.sprache = new Sprache();
 		
-		erstelleAnsicht();
+		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
+				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht");
+		if(!spracheGesetzt) {
+			sprache.ignoriereSprachen();
+		}
+		
+		var menue = erstelleMenue();
+		wurzel.setTop(menue);
+		erstelleRibbon();
+		erstelleProjektAnsicht();
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -82,7 +97,20 @@ public class HauptAnsicht implements View {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private void erstelleAnsicht() {
+	private MenuBar erstelleMenue() {
+		Menu dateiMenue = new Menu();
+		dateiMenue.textProperty().bind(sprache.getTextProperty("dateiMenue", "Datei"));
+		MenuBar menuebar = new MenuBar(dateiMenue);
+		
+		return menuebar;
+	}
+	
+	private void erstelleRibbon() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private void erstelleProjektAnsicht() {
 		try (BufferedReader ein = new BufferedReader(
 				new InputStreamReader(Ressourcen.get().LIZENZ_DATEI.oeffneStream()))) {
 			String lizenz = ein.lines().collect(Collectors.joining("\n"));
