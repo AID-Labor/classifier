@@ -93,11 +93,13 @@ public class Hauptfenster extends Application {
 		
 		hauptFenster.setScene(szene);
 		hauptFenster.setTitle(programm.name());
+		
 		try (var iconStream = Ressourcen.get().CLASSIFIER_ICON_L.oeffneStream()) {
 			hauptFenster.getIcons().add(new Image(iconStream));
 		} catch (IOException | IllegalStateException e) {
 			log.log(Level.WARNING, e, () -> "Icon konnte nicht gesetzt werden");
 		}
+		
 		hauptFenster.show();
 	}
 	

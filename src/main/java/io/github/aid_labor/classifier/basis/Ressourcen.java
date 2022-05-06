@@ -107,6 +107,8 @@ public class Ressourcen {
 	public final Ressource NUTZER_EINSTELLUNGEN;
 	public final Ressource LIZENZ_DATEI;
 	
+	public final Ressource SPRACHDATEIEN_ORDNER;
+	
 	public final Ressource CLASSIFIER_LOGO_M;
 	public final Ressource CLASSIFIER_LOGO_L;
 	public final Ressource CLASSIFIER_ICON_M;
@@ -169,6 +171,10 @@ public class Ressourcen {
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("Classifier-Icon-gross.png")
+				.erzeuge();
+		this.SPRACHDATEIEN_ORDNER = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.SPRACHDATEI)
 				.erzeuge();
 		erstelleRessourcenOrdner();
 	}
