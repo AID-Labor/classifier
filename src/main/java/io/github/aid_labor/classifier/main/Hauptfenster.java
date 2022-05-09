@@ -9,7 +9,6 @@ package io.github.aid_labor.classifier.main;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

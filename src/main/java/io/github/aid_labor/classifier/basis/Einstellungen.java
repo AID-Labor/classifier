@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
 import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
-import javafx.beans.property.ObjectProperty;
 
 
 @JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, creatorVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)

@@ -5,16 +5,13 @@
  */
 package io.github.aid_labor.classifier.basis;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 
@@ -67,12 +64,11 @@ class SpracheTest {
 	
 	@Test
 	void testSprachWechsel() {
-		assertDoesNotThrow(() -> sprache = new Sprache(deutsch, englisch));
+		assertDoesNotThrow(() -> sprache = new Sprache(deutsch));
 		assertEquals(textDE, sprache.getText(schluessel));
-		assertThrows(IllegalArgumentException.class, () -> sprache.spracheHinzufuegen(deutsch));
 		assertDoesNotThrow(() -> property = sprache.getTextProperty(schluessel));
 		assertEquals(textDE, property.get());
-		assertDoesNotThrow(() -> sprache.nutzeSprache(englisch.sprache()));
+		assertDoesNotThrow(() -> sprache.nutzeSprache(englisch));
 		assertEquals(textEN, sprache.getText(schluessel));
 		assertEquals(textEN, property.get());
 		assertEquals(property, sprache.getTextProperty(schluessel));
@@ -80,46 +76,9 @@ class SpracheTest {
 	
 	@Test
 	void testSprachHinzufuegen() {
-		assertDoesNotThrow(() -> sprache = new Sprache(deutsch));
-		assertThrows(IllegalArgumentException.class, () -> sprache.spracheHinzufuegen(deutsch));
-		assertThrows(MissingResourceException.class, () -> sprache.nutzeSprache(englisch.sprache()));
-		assertDoesNotThrow(() -> sprache.spracheHinzufuegen(englisch));
-		assertDoesNotThrow(() -> sprache.nutzeSprache(englisch.sprache()));
+		assertDoesNotThrow(() -> sprache = new Sprache());
+		assertDoesNotThrow(() -> sprache.nutzeSprache(deutsch));
+		assertDoesNotThrow(() -> sprache.nutzeSprache(englisch));
 	}
 	
-	@Test
-	void testSprachDatei() throws IOException {
-		Path ordner = Files.createTempDirectory("Sprache");
-		Path de = Files.createDirectory(ordner.resolve("de"));
-		Path en = Files.createDirectory(ordner.resolve("en"));
-		
-		Path dateiDE = Files.createTempFile(de, "test", "_de.properties");
-		try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(dateiDE))) {
-			pw.println(schluessel + " = " + textDE);
-		}
-		
-		Path dateiEN = Files.createTempFile(en, "test", "_en.properties");
-		try (PrintWriter pw = new PrintWriter(Files.newBufferedWriter(dateiEN))) {
-			pw.println(schluessel + " = " + textEN);
-		}
-		
-		List<SprachDatei> dateien = SprachDatei.sucheSprachdateien(ordner, "test");
-		assertEquals(2, dateien.size());
-		SprachDatei spracheDE = null;
-		SprachDatei spracheEN = null;
-		for(SprachDatei datei : dateien) {
-			if(datei.datei().equals(dateiDE)) {
-				spracheDE = datei;
-			} else {
-				spracheEN = datei;
-			}
-		}
-		
-		assertNotNull(spracheDE);
-		assertNotNull(spracheEN);
-		assertEquals(spracheDE.datei(), dateiDE);
-		assertEquals(spracheDE.sprache(), Locale.GERMAN);
-		assertEquals(spracheEN.datei(), dateiEN);
-		assertEquals(spracheEN.sprache(), Locale.ENGLISH);
-	}
 }

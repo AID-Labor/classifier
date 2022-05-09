@@ -6,18 +6,19 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import static io.github.aid_labor.classifier.basis.Umlaute.OE;
+import static io.github.aid_labor.classifier.basis.Umlaute.sz;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Locale;
-import java.util.MissingResourceException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import io.github.aid_labor.classifier.basis.Ressourcen;
 import io.github.aid_labor.classifier.basis.SprachUtil;
 import io.github.aid_labor.classifier.basis.Sprache;
-import static io.github.aid_labor.classifier.basis.Umlaute.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -127,7 +128,7 @@ public class HauptAnsicht implements View {
 				"allesSpeichern", "Alles Speichern");
 		MenuItem dateiSpeichernUnter = SprachUtil.bindText(new MenuItem(), sprache,
 				"speichernUnter", "Speichern unter...");
-		MenuItem dateiUmbenennen = SprachUtil.bindText(new MenuItem(), sprache, "umbennnen",
+		MenuItem dateiUmbenennen = SprachUtil.bindText(new MenuItem(), sprache, "umbenennen",
 				"Umbenennen...");
 		MenuItem dateiImportieren = SprachUtil.bindText(new MenuItem(), sprache, "importieren",
 				"Importieren...");
@@ -147,13 +148,14 @@ public class HauptAnsicht implements View {
 	}
 	
 	private void erstelleProjektAnsicht() {
-		Button b = new Button("Sprache");
+		Button b = new Button("English");
 		l = Locale.ENGLISH;
 		b.setOnAction(e -> {
 			try {
-				sprache.nutzeSprache(l);
+				SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht", l);
 				l = l.equals(Locale.ENGLISH) ? Locale.GERMAN : Locale.ENGLISH;
-			} catch (MissingResourceException | IOException e2) {
+				b.setText(l.getDisplayLanguage(l));
+			} catch (Exception e2) {
 				// TODO Auto-generated catch block
 				e2.printStackTrace();
 			}
