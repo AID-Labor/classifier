@@ -191,7 +191,7 @@ public class Sprache {
 					text));
 			return text;
 		} else {
-			log.finest(
+			log.warning(
 					() -> "kein Text fuer Schluessel \"%s\" gefunden".formatted(schluessel));
 			return alternativ;
 		}

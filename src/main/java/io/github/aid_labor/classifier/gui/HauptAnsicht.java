@@ -6,8 +6,7 @@
 
 package io.github.aid_labor.classifier.gui;
 
-import static io.github.aid_labor.classifier.basis.Umlaute.OE;
-import static io.github.aid_labor.classifier.basis.Umlaute.sz;
+import static io.github.aid_labor.classifier.basis.Umlaute.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,10 +19,12 @@ import io.github.aid_labor.classifier.basis.Ressourcen;
 import io.github.aid_labor.classifier.basis.SprachUtil;
 import io.github.aid_labor.classifier.basis.Sprache;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.layout.BorderPane;
 
 
@@ -107,8 +108,15 @@ public class HauptAnsicht implements View {
 	
 	private MenuBar erstelleMenueLeiste() {
 		Menu dateiMenue = erstelleDateiMenue();
+		Menu bearbeitenMenue = erstelleBearbeitenMenue();
+		Menu einfuegenMenue = erstelleEinfuegenMenue();
+		Menu anordnenMenue = erstelleAnordnenMenue();
+		Menu darstellungMenue = erstelleDarstellungMenue();
+		Menu fensterMenue = erstelleFensterMenue();
+		Menu einstellungenMenue = erstelleEinstellungenMenue();
 		
-		MenuBar menuebar = new MenuBar(dateiMenue);
+		MenuBar menuebar = new MenuBar(dateiMenue, bearbeitenMenue, einfuegenMenue,
+				anordnenMenue, darstellungMenue, fensterMenue, einstellungenMenue);
 		
 		return menuebar;
 	}
@@ -135,11 +143,138 @@ public class HauptAnsicht implements View {
 		Menu dateiExportieren = SprachUtil.bindText(new Menu(), sprache, "exportieren",
 				"Exportieren");
 		
+		MenuItem exportierenBild = SprachUtil.bindText(new MenuItem(), sprache,
+				"exportierenBild", "als Bild...");
+		MenuItem exportierenQuellcode = SprachUtil.bindText(new MenuItem(), sprache,
+				"exportierenQuellcode", "als Quellcode...");
+		dateiExportieren.getItems().addAll(exportierenBild, exportierenQuellcode);
+		
 		dateiMenue.getItems().addAll(dateiNeu, dateiOeffnen, dateiLetzeOeffnen,
-				dateiSchliessen, dateiSpeichern, dateiAlleSpeichern, dateiSpeichernUnter,
-				dateiUmbenennen, dateiImportieren, dateiExportieren);
+				new SeparatorMenuItem(), dateiSchliessen, dateiSpeichern, dateiAlleSpeichern,
+				dateiSpeichernUnter, dateiUmbenennen, new SeparatorMenuItem(),
+				dateiImportieren, dateiExportieren);
 		
 		return dateiMenue;
+	}
+	
+	private Menu erstelleBearbeitenMenue() {
+		Menu bearbeitenMenue = SprachUtil.bindText(new Menu(), sprache, "bearbeitenMenue",
+				"Bearbeiten");
+		
+		MenuItem rueckgaengig = SprachUtil.bindText(new MenuItem(), sprache, "rueckgaengig",
+				"R%ckg%cngig".formatted(ue, ae));
+		MenuItem wiederholen = SprachUtil.bindText(new MenuItem(), sprache, "wiederholen",
+				"Wiederholen");
+		MenuItem kopieren = SprachUtil.bindText(new MenuItem(), sprache, "kopieren",
+				"Kopieren");
+		MenuItem einfuegen = SprachUtil.bindText(new MenuItem(), sprache, "einfuegen",
+				"Einfuegen");
+		MenuItem loeschen = SprachUtil.bindText(new MenuItem(), sprache, "loeschen",
+				"L%cschen".formatted(oe));
+		
+		bearbeitenMenue.getItems().addAll(rueckgaengig, wiederholen, new SeparatorMenuItem(),
+				kopieren, einfuegen, loeschen);
+		
+		return bearbeitenMenue;
+	}
+	
+	private Menu erstelleEinfuegenMenue() {
+		Menu einfuegenMenue = SprachUtil.bindText(new Menu(), sprache, "einfuegenMenue",
+				"Einf%cgen".formatted(ue));
+		MenuItem klasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuKlasse",
+				"Neue Klasse...");
+		MenuItem interfaceEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
+				"neuInterface", "Neues Interface...");
+		MenuItem enumEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuEnum",
+				"Neue Enumeration...");
+		MenuItem vererbungEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
+				"neuVererbung", "Vererbung hinzuf%cgen".formatted(ue));
+		MenuItem assoziationEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
+				"neuAssoziation", "Assoziation hinzuf%cgen".formatted(ue));
+		MenuItem kommentarEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
+				"neuKommentar", "Neuer Kommentar...");
+		
+		einfuegenMenue.getItems().addAll(klasseEinfuegen, interfaceEinfuegen, enumEinfuegen,
+				new SeparatorMenuItem(), vererbungEinfuegen, assoziationEinfuegen,
+				new SeparatorMenuItem(), kommentarEinfuegen);
+		
+		return einfuegenMenue;
+	}
+	
+	private Menu erstelleAnordnenMenue() {
+		Menu anordnenMenue = SprachUtil.bindText(new Menu(), sprache, "anordnenMenue",
+				"Anordnen");
+		MenuItem anordnenNachVorne = SprachUtil.bindText(new MenuItem(), sprache,
+				"nachVorne", "Nach vorne");
+		MenuItem anordnenNachGanzVorne = SprachUtil.bindText(new MenuItem(), sprache,
+				"nachGanzVorne", "Nach ganz vorne");
+		MenuItem anordnenNachHinten = SprachUtil.bindText(new MenuItem(), sprache,
+				"nachHinten", "Nach hinten");
+		MenuItem anordnenNachGanzHinten = SprachUtil.bindText(new MenuItem(), sprache,
+				"nachGanzHinten", "Nach ganz hinten");
+		
+		anordnenMenue.getItems().addAll(anordnenNachVorne, anordnenNachGanzVorne,
+				anordnenNachHinten, anordnenNachGanzHinten);
+		
+		return anordnenMenue;
+	}
+	
+	private Menu erstelleDarstellungMenue() {
+		Menu darstellungMenue = SprachUtil.bindText(new Menu(), sprache, "darstellungMenue",
+				"Darstellung");
+		Menu zoomen = SprachUtil.bindText(new Menu(), sprache, "zoomen", "Zoomen");
+		MenuItem darstellungGroesser = SprachUtil.bindText(new MenuItem(), sprache,
+				"vergroessern", "Vergr%c%cern".formatted(oe, sz));
+		MenuItem darstellungKleiner = SprachUtil.bindText(new MenuItem(), sprache,
+				"verkleinern", "Verkleinern");
+		MenuItem darstellungOriginalgroesse = SprachUtil.bindText(new MenuItem(), sprache,
+				"originalgroesse", "Originalgr%c%ce".formatted(oe, sz));
+		zoomen.getItems().addAll(darstellungGroesser, darstellungKleiner,
+				darstellungOriginalgroesse);
+		
+		MenuItem vollbild = SprachUtil.bindText(new CheckMenuItem(), sprache,
+				"vollbild", "Vollbild");
+		MenuItem symbolleisteAusblenden = SprachUtil.bindText(new MenuItem(), sprache,
+				"symbolleisteAusblenden", "Symbolleiste ausblenden");
+		
+		darstellungMenue.getItems().addAll(zoomen, new SeparatorMenuItem(), vollbild,
+				new SeparatorMenuItem(), symbolleisteAusblenden);
+		
+		return darstellungMenue;
+	}
+	
+	private Menu erstelleFensterMenue() {
+		Menu fensterMenue = SprachUtil.bindText(new Menu(), sprache, "fensterMenue",
+				"Fenster");
+		MenuItem minimieren = SprachUtil.bindText(new MenuItem(), sprache,
+				"minimieren", "Minimieren");
+		MenuItem maximieren = SprachUtil.bindText(new MenuItem(), sprache,
+				"maximieren", "Maximieren");
+		MenuItem vorherigerTab = SprachUtil.bindText(new MenuItem(), sprache,
+				"vorherigerTab", "vorheriger Tab");
+		MenuItem naechsterTab = SprachUtil.bindText(new MenuItem(), sprache,
+				"naechsterTab", "n%cchster Tab".formatted(ae));
+		
+		fensterMenue.getItems().addAll(minimieren, maximieren, new SeparatorMenuItem(),
+				vorherigerTab, naechsterTab);
+		
+		return fensterMenue;
+	}
+	
+	private Menu erstelleEinstellungenMenue() {
+		Menu einstellungenMenue = SprachUtil.bindText(new Menu(), sprache,
+				"einstellungenMenue", "Einstellungen");
+		MenuItem voidAnzeigen = SprachUtil.bindText(new MenuItem(), sprache, "voidAnzeigen",
+				"void Anzeigen");
+		Menu theme = SprachUtil.bindText(new Menu(), sprache, "theme",
+				"Farbschema");
+		MenuItem info = SprachUtil.bindText(new MenuItem(), sprache, "info",
+				"Info");
+		
+		einstellungenMenue.getItems().addAll(voidAnzeigen, new SeparatorMenuItem(), theme,
+				new SeparatorMenuItem(), info);
+		
+		return einstellungenMenue;
 	}
 	
 	private void erstelleRibbon() {
@@ -152,7 +287,8 @@ public class HauptAnsicht implements View {
 		l = Locale.ENGLISH;
 		b.setOnAction(e -> {
 			try {
-				SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht", l);
+				SprachUtil.setUpSprache(sprache,
+						Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht", l);
 				l = l.equals(Locale.ENGLISH) ? Locale.GERMAN : Locale.ENGLISH;
 				b.setText(l.getDisplayLanguage(l));
 			} catch (Exception e2) {

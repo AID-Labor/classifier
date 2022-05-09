@@ -216,7 +216,7 @@ public final class SprachUtil {
 	 * @param textSchluessel Schlussel fuer den zu suchenden Text
 	 * @param alternativText Alternativer Text, falls der Schluessel nicht gefunden wurde
 	 * @return
-	 * @return das uebergebene MenuItem
+	 * @return das uebergebene MenuItem fuer "Fluent-API" Aufrufe
 	 */
 	public static <T extends MenuItem> T bindText(T item, Sprache sprache,
 			String textSchluessel, String alternativText) {
@@ -233,7 +233,7 @@ public final class SprachUtil {
 	 * @param sprache        Sprache, die das textProperty bereitstellt
 	 * @param textSchluessel Schlussel fuer den zu suchenden Text
 	 * @param alternativText Alternativer Text, falls der Schluessel nicht gefunden wurde
-	 * @return das uebergebene Labeled-Objekt
+	 * @return das uebergebene Labeled-Objekt fuer "Fluent-API" Aufrufe
 	 */
 	public static <T extends Labeled> T bindText(T node, Sprache sprache,
 			String textSchluessel, String alternativText) {
