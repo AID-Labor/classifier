@@ -11,10 +11,7 @@ import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -23,6 +20,7 @@ import java.util.PropertyResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -42,7 +40,12 @@ import javafx.beans.property.StringProperty;
  *
  */
 public class Sprache {
+	
 	private static final Logger log = Logger.getLogger(Sprache.class.getName());
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	/**
 	 * Wrapper fuer Sprachdateien mit zugeordneter Sprache
@@ -51,40 +54,7 @@ public class Sprache {
 	 * 
 	 */
 	public static record SprachDatei(Path datei, Locale sprache) {
-		
-		/**
-		 * Sucht in dem vorgegebenen Ordner nach Sprachdateien. Die Dateien muessen in
-		 * Unterordnern liegen, die entsprechend der Sprache nach der Spezifikation des "IETF
-		 * BCP 47 language tag" benannt sein muessen. Es werden alle Sprachdateien der Liste
-		 * hinzugefuegt, deren Dateiname mit dem gegebenen Preafix beginnt. Das
-		 * {@link Locale}-Objekt wird aus dem Ordnernamen erzeugt, in dem die Sprachdatei
-		 * gefunden wurde (siehe {@link Locale#forLanguageTag(String)}).
-		 * 
-		 * @param suchordner   Ordner, in dem nach Sprachdateien gesucht wird
-		 * @param dateiPraefix Praefix, mit dem die gesuchten Dateien beginnen
-		 * @return Liste mit allen gefundenen Sprachdateien, die dem Suchkriterium entsprechen
-		 * @throws IOException
-		 */
-		public static List<SprachDatei> sucheSprachdateien(Path suchordner,
-				String dateiPraefix) throws IOException {
-			log.fine(() -> "Suche nach Sprachdateien mit dem Namen %s* im Ordner %s"
-					.formatted(dateiPraefix, suchordner));
-			
-			List<SprachDatei> dateien = new ArrayList<>();
-			
-			Files.walk(suchordner).forEach(datei -> {
-				log.finer(() -> "Pruefe Datei " + datei);
-				if (Files.isRegularFile(datei)
-						&& datei.getFileName().toString().startsWith(dateiPraefix)) {
-					log.finer(() -> "gefunden: " + datei);
-					dateien.add(new SprachDatei(datei, Locale
-							.forLanguageTag(datei.getParent().getFileName().toString())));
-				}
-			});
-			
-			return dateien;
-		}
-		
+		// keine weiteren Methoden benötigt
 	}
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -106,7 +76,6 @@ public class Sprache {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private PropertyResourceBundle sprachpaket;
-	private Map<Locale, Path> sprachen;
 	private Map<String, StringProperty> textProperties;
 	private Charset codierung;
 	private Locale aktuelleSprache;
@@ -121,19 +90,17 @@ public class Sprache {
 	 * Erzeugt eine neue Instanz, die alle uebergebenen Sprachen kennt. Als genutzte Sprache
 	 * wird der erste Parameter eingestellt.
 	 * 
-	 * @param defaultSprache  Zu benutzende Sprache
+	 * @param sprachdatei     Zu benutzende Sprache
 	 * @param weitereSprachen Weitere Sprachen, die mit {code nutzeSprache} eingestellt werden
 	 *                        koennen
 	 * @throws IOException Falls ein Fehler beim Lesen der default-Sprachdatei auftritt
 	 */
-	public Sprache(SprachDatei defaultSprache, SprachDatei... weitereSprachen)
+	public Sprache(SprachDatei sprachdatei)
 			throws IOException {
 		this();
 		this.sprachpaket = new PropertyResourceBundle(
-				Files.newBufferedReader(defaultSprache.datei(), codierung));
-		this.aktuelleSprache = defaultSprache.sprache();
-		this.sprachen.put(defaultSprache.sprache(), defaultSprache.datei());
-		this.sprachenHinzufuegen(weitereSprachen);
+				Files.newBufferedReader(sprachdatei.datei(), codierung));
+		this.aktuelleSprache = sprachdatei.sprache();
 	}
 	
 	/**
@@ -142,8 +109,7 @@ public class Sprache {
 	 */
 	public Sprache() {
 		this.sprachpaket = null;
-		this.sprachen = new Hashtable<>();
-		this.textProperties = new Hashtable<>();
+		this.textProperties = new HashMap<>();
 		
 		try {
 			codierung = Charset.forName("UTF-8");
@@ -160,6 +126,15 @@ public class Sprache {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	/**
+	 * Gibt die eingestellte Sprache zurück
+	 * 
+	 * @return aktuell eingestellte Sprache
+	 */
+	public Locale getAktuelleSprache() {
+		return aktuelleSprache;
+	}
+	
+	/**
 	 * Gibt den Text zum gegebenen Schluessel in der genutzten Sprache zurueck
 	 * 
 	 * @param schluessel Suchschluessel
@@ -172,13 +147,21 @@ public class Sprache {
 		if (this.sprachpaket == null) {
 			var exception = new IllegalStateException("""
 					Vor der Verwendung muss zuerst die Sprache mit \
-					setSprache(Locale sprache) gesetzt werden
+					nutzeSprache(SprachDatei sprachdatei) gesetzt werden
 					""");
 			log.throwing(Sprache.class.getName(), "getText(String)", exception);
 			throw exception;
 		}
-		
-		return this.sprachpaket.getString(schluessel);
+		try {
+			String text = this.sprachpaket.getString(schluessel);
+			log.finest(() -> "gefundener Text fuer Schluessel \"%s\": %s".formatted(schluessel,
+					text));
+			return text;
+		} catch (Exception e) {
+			log.warning(
+					() -> "Kein Text fuer Schluessel \"%s\" gefunden".formatted(schluessel));
+			throw e;
+		}
 	}
 	
 	/**
@@ -196,15 +179,20 @@ public class Sprache {
 		if (this.sprachpaket == null) {
 			var exception = new IllegalStateException("""
 					Vor der Verwendung muss zuerst die Sprache mit \
-					setSprache(Locale sprache) gesetzt werden
+					nutzeSprache(SprachDatei sprachdatei) gesetzt werden
 					""");
 			log.throwing(Sprache.class.getName(), "getText(String, String)", exception);
 			throw exception;
 		}
 		
 		if (this.sprachpaket.containsKey(schluessel)) {
-			return this.sprachpaket.getString(schluessel);
+			String text = this.sprachpaket.getString(schluessel);
+			log.finest(() -> "gefundener Text fuer Schluessel \"%s\": %s".formatted(schluessel,
+					text));
+			return text;
 		} else {
+			log.warning(
+					() -> "kein Text fuer Schluessel \"%s\" gefunden".formatted(schluessel));
 			return alternativ;
 		}
 	}
@@ -228,7 +216,7 @@ public class Sprache {
 		if (this.sprachpaket == null) {
 			var exception = new IllegalStateException("""
 					Vor der Verwendung muss zuerst die Sprache mit \
-					setSprache(Locale sprache) gesetzt werden
+					nutzeSprache(SprachDatei sprachdatei) gesetzt werden
 					""");
 			log.throwing(Sprache.class.getName(), "getTextProperty(String)", exception);
 			throw exception;
@@ -262,7 +250,7 @@ public class Sprache {
 		if (this.sprachpaket == null) {
 			var exception = new IllegalStateException("""
 					Vor der Verwendung muss zuerst die Sprache mit \
-					setSprache(Locale sprache) gesetzt werden
+					nutzeSprache(SprachDatei sprachdatei) gesetzt werden
 					""");
 			log.throwing(Sprache.class.getName(), "getTextProperty(String, String)",
 					exception);
@@ -296,201 +284,17 @@ public class Sprache {
 	 *                                  mit {@link #spracheHinzufuegen(SprachDatei)} bekannt
 	 *                                  gemacht wurde
 	 */
-	public void nutzeSprache(Locale sprache) throws IOException, MissingResourceException {
-		if (!this.sprachen.containsKey(sprache)) {
-			var exception = new MissingResourceException("""
-					Die gesuchte Sprache %s (Code: "%s") konnte nicht gefunden werden. Bitte \
-					stellen Sie eine passende Sprachdatei mit der Methode \
-					addSprache(SprachDatei sprachdatei) bereit."""
-					.formatted(sprache.getDisplayLanguage(), sprache.toLanguageTag()),
-					"Sprache", sprache.getDisplayName());
-			log.throwing(Sprache.class.getName(), "setSprache", exception);
-			throw exception;
-		}
+	public void nutzeSprache(SprachDatei sprachdatei) throws IOException {
+		this.aktuelleSprache = sprachdatei.sprache();
 		this.sprachpaket = new PropertyResourceBundle(
-				Files.newBufferedReader(this.sprachen.get(sprache), codierung));
-		this.aktuelleSprache = sprache;
-		log.fine(() -> "Neue Sprache: %s [%s]".formatted(sprache.getDisplayLanguage(),
-				sprache.toLanguageTag()));
+				Files.newBufferedReader(sprachdatei.datei(), codierung));
+		log.fine(() -> "Neue Sprache: %s [%s]".formatted(aktuelleSprache.getDisplayLanguage(),
+				aktuelleSprache.toLanguageTag()));
 		updateProperties();
 	}
 	
 	/**
-	 * Stellt die genutzte Sprache ein
-	 * 
-	 * @param hauptsprache      bevorzugte Sprache, die fuer alle Getter verwendet werden soll
-	 * @param rueckfallSprachen weitere Sprachen, die in der Reihenfolge der Uebergabe
-	 *                          versucht werden einzustellen, bis eine Sprache erfolgreich
-	 *                          gesetzt werden konnte
-	 * @throws IllegalStateException Falls keine der Uebergebenen Sprachen bekannt war oder
-	 *                               falls keine der Sprachdateien gelesen und eingestellt
-	 *                               werden konnte. Alle unterdrueckten Exceptions koennen mit
-	 *                               {@code getSupressed()} abgefragt werden.
-	 */
-	public void nutzeSprache(Locale hauptsprache, Locale... rueckfallSprachen)
-			throws IllegalStateException {
-		boolean erfolg = false;
-		Exception exception1 = null;
-		Exception exception2 = null;
-		try {
-			this.nutzeSprache(hauptsprache);
-			erfolg = true;
-		} catch (MissingResourceException | IOException e) {
-			exception1 = e;
-			for (Locale sprache : rueckfallSprachen) {
-				try {
-					this.nutzeSprache(sprache);
-					erfolg = true;
-					break;
-				} catch (MissingResourceException | IOException e2) {
-					if (exception2 == null) {
-						exception2 = e2;
-					} else {
-						e2.addSuppressed(exception2);
-						exception2 = e2;
-					}
-					continue;
-				}
-			}
-		}
-		
-		if (!erfolg) {
-			var ex = new IllegalStateException(
-					"Es konnte keine passende Sprache gesetzt werden");
-			if (exception1 != null) {
-				ex.addSuppressed(exception1);
-			}
-			if (exception2 != null) {
-				ex.addSuppressed(exception2);
-			}
-			throw ex;
-		}
-	}
-	
-	/**
-	 * Stellt die genutzte Sprache ein
-	 * 
-	 * @param hauptsprache      bevorzugte Sprache, die fuer alle Getter verwendet werden soll
-	 * @param rueckfallSprachen weitere Sprachen, die in der Reihenfolge der Uebergabe
-	 *                          versucht werden einzustellen, bis eine Sprache erfolgreich
-	 *                          gesetzt werden konnte
-	 * @throws IllegalStateException Falls keine der Uebergebenen Sprachen bekannt war oder
-	 *                               falls keine der Sprachdateien gelesen und eingestellt
-	 *                               werden konnte. Alle unterdrueckten Exceptions koennen mit
-	 *                               {@code getSupressed()} abgefragt werden.
-	 */
-	public void nutzeSprache(Locale hauptsprache, Iterable<Locale> rueckfallSprachen)
-			throws IllegalStateException {
-		boolean erfolg = false;
-		Exception exception1 = null;
-		Exception exception2 = null;
-		try {
-			this.nutzeSprache(hauptsprache);
-			erfolg = true;
-		} catch (MissingResourceException | IOException e) {
-			exception1 = e;
-			for (Locale sprache : rueckfallSprachen) {
-				try {
-					this.nutzeSprache(sprache);
-					erfolg = true;
-					break;
-				} catch (MissingResourceException | IOException e2) {
-					if (exception2 == null) {
-						exception2 = e2;
-					} else {
-						e2.addSuppressed(exception2);
-						exception2 = e2;
-					}
-					continue;
-				}
-			}
-		}
-		
-		if (!erfolg) {
-			var ex = new IllegalStateException(
-					"Es konnte keine passende Sprache gesetzt werden");
-			if (exception1 != null) {
-				ex.addSuppressed(exception1);
-			}
-			if (exception2 != null) {
-				ex.addSuppressed(exception2);
-			}
-			throw ex;
-		}
-	}
-	
-	/**
-	 * Fuegt eine Sprachdatei zu den bekannten Sprachen hinzu.
-	 * 
-	 * @param sprachdatei Sprachdatei, die hinzugefuegt (bekanntgemacht) wird
-	 * @throws IllegalArgumentException Falls die zugehoerige Sprache bereits existiert
-	 */
-	public void spracheHinzufuegen(SprachDatei sprachdatei) throws IllegalArgumentException {
-		if (this.sprachen.containsKey(sprachdatei.sprache)) {
-			var exception = new IllegalArgumentException("Sprache %s bereits gesetzt!"
-					.formatted(sprachdatei.sprache.getDisplayLanguage()));
-			log.throwing(Sprache.class.getName(), "addSprache", exception);
-			throw exception;
-		}
-		this.sprachen.put(sprachdatei.sprache, sprachdatei.datei());
-	}
-	
-	/**
-	 * Fuegt mehrere Sprachdateien zu den bekannten Sprachen hinzu. Die Sprachen werden nur
-	 * alle zusammen hinzugefuegt. Im Fehlerfall wird keine der uebergebenen Sprachen
-	 * hinzugefuegt.
-	 * 
-	 * @param sprachdateien Sprachdateien, die hinzugefuegt (bekanntgemacht) werden
-	 * @throws IllegalArgumentException Falls eine der Sprachen bereits existiert
-	 */
-	public void sprachenHinzufuegen(SprachDatei... sprachdateien)
-			throws IllegalArgumentException {
-		// Zwischenspeicher verwenden, um sicherzustellen, dass keine Datei hinzugefuegt wird,
-		// falls ein Fehler auftritt
-		Map<Locale, Path> tempSprachen = new Hashtable<>(Objects.requireNonNull(sprachdateien,
-				"Es muss mindestens eine Sprachdatei uebergeben werden").length);
-		for (SprachDatei sprachdatei : sprachdateien) {
-			if (this.sprachen.containsKey(sprachdatei.sprache)) {
-				var exception = new IllegalArgumentException("Sprache %s bereits gesetzt!"
-						.formatted(sprachdatei.sprache.getDisplayLanguage()));
-				log.throwing(Sprache.class.getName(), "addSprache", exception);
-				throw exception;
-			}
-			tempSprachen.put(sprachdatei.sprache, sprachdatei.datei());
-		}
-		
-		this.sprachen.putAll(tempSprachen);
-	}
-	
-	/**
-	 * Fuegt mehrere Sprachdateien zu den bekannten Sprachen hinzu. Die Sprachen werden nur
-	 * alle zusammen hinzugefuegt. Im Fehlerfall wird keine der uebergebenen Sprachen
-	 * hinzugefuegt.
-	 * 
-	 * @param sprachdateien Sprachdateien, die hinzugefuegt (bekanntgemacht) werden
-	 * @throws IllegalArgumentException Falls eine der Sprachen bereits existiert
-	 */
-	public void sprachenHinzufuegen(Collection<SprachDatei> sprachdateien)
-			throws IllegalArgumentException {
-		// Zwischenspeicher verwenden, um sicherzustellen, dass keine Datei hinzugefuegt wird,
-		// falls ein Fehler auftritt
-		Map<Locale, Path> tempSprachen = new Hashtable<>(Objects.requireNonNull(sprachdateien,
-				"Es muss mindestens eine Sprachdatei uebergeben werden").size());
-		for (SprachDatei sprachdatei : sprachdateien) {
-			if (this.sprachen.containsKey(sprachdatei.sprache)) {
-				var exception = new IllegalArgumentException("Sprache %s bereits gesetzt!"
-						.formatted(sprachdatei.sprache.getDisplayLanguage()));
-				log.throwing(Sprache.class.getName(), "addSprache", exception);
-				throw exception;
-			}
-			tempSprachen.put(sprachdatei.sprache, sprachdatei.datei());
-		}
-		
-		this.sprachen.putAll(tempSprachen);
-	}
-	
-	/**
-	 * Setzte die Ueberpruefung, ob eine Sprache gewaehlt wurde ausser Kraft. Eine ggf.
+	 * Setzte die Ueberpruefung, ob eine Sprache gewaehlt wurde, ausser Kraft. Eine ggf.
 	 * eingestellte Sprache wird ueberschrieben. <strong>Achtung: es koennen keine gueltigen
 	 * Schluessel mehr gelesen werden, bis eine neue Sprache eingestellt wird!</strong>
 	 */
@@ -526,8 +330,19 @@ public class Sprache {
 	private void updateProperties() {
 		log.finer(() -> "aktualisiere Sprach-Properties");
 		this.textProperties.entrySet().parallelStream().forEach(eintrag -> {
-			log.finest(() -> "aktualisiere Schluessel " + eintrag.getKey());
-			eintrag.getValue().set(this.sprachpaket.getString(eintrag.getKey()));
+			Platform.runLater(() -> {
+				log.finest(() -> "aktualisiere Schluessel " + eintrag.getKey());
+				try {
+					eintrag.getValue().set(this.sprachpaket.getString(eintrag.getKey()));
+				} catch (Exception e) {
+					log.log(Level.WARNING, e,
+							() -> "Schluessel \"%s\" fuer Sprache %s [%s] nicht gefunden"
+									.formatted(
+											eintrag.getKey(),
+											this.aktuelleSprache.getDisplayLanguage(),
+											this.aktuelleSprache.toLanguageTag()));
+				}
+			});
 		});
 	}
 }

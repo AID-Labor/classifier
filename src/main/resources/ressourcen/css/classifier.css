@@ -1,0 +1,23 @@
+.element-icon {
+    -fx-alignment: center;
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-border-color: black;
+}
+
+.element-icon-linie {
+    -fx-stroke: black;
+    -fx-stroke-width: 3px;
+}
+
+#hinzufuegenIcon {
+    -fx-icon-size: 30px;
+    -fx-icon-color: limegreen;
+    -fx-stroke: black;
+    -fx-stroke-width: 2px;
+}
+
+#assoziationButton {
+    -fx-graphic-text-gap: 25;
+    -fx-label-padding: 25 0 0 0
+}

@@ -22,7 +22,7 @@
 		<jackson.version.databind>2.13.2.2</jackson.version.databind>
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
 		<junit.platform.version>1.5.2</junit.platform.version>
-		<mainClass>io.github.aid_labor.classifier.main.Hauptfenster</mainClass>
+		<mainClass>io.github.aid_labor.${artifactId}.main.Hauptfenster</mainClass>
 		<deploymentDir>${project.basedir}/auslieferung/${project.version}</deploymentDir>
 		<deploymentInput>${deploymentDir}/${os.name}/input</deploymentInput>
 		<dependenciesDir>${deploymentInput}/lib</dependenciesDir>
@@ -125,7 +125,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.moditect</groupId>
 				<artifactId>moditect-maven-plugin</artifactId>
@@ -150,6 +150,25 @@
 									<moduleInfoSource>
 			                            module commons.cli {
 			                                exports org.apache.commons.cli;
+			                            }
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>com.pixelduke</groupId>
+										<artifactId>fxribbon</artifactId>
+										<version>1.2.1</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module fxribbon {
+			                                requires transitive javafx.base;
+										    requires transitive javafx.controls;
+										    requires transitive javafx.graphics;
+										
+										    exports com.pixelduke.control;
+										    exports com.pixelduke.control.ribbon;
+										    exports impl.com.pixelduke.skin;
+										    exports impl.com.pixelduke.skin.ribbon;
 			                            }
 			                        </moduleInfoSource>
 								</module>
@@ -206,6 +225,13 @@
 			<version>${javafx.version}</version>
 		</dependency>
 
+		<!-- FXRibbon -->
+		<dependency>
+			<groupId>com.pixelduke</groupId>
+			<artifactId>fxribbon</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+
 		<!-- GemsFX -->
 		<dependency>
 			<groupId>com.dlsc.gemsfx</groupId>
@@ -217,6 +243,26 @@
 		<dependency>
 			<groupId>org.kordamp.ikonli</groupId>
 			<artifactId>ikonli-javafx</artifactId>
+			<version>12.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-remixicon-pack</artifactId>
+			<version>12.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-carbonicons-pack</artifactId>
+			<version>12.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-typicons-pack</artifactId>
+			<version>12.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-whhg-pack</artifactId>
 			<version>12.3.1</version>
 		</dependency>
 		<dependency>

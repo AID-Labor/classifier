@@ -1,0 +1,11 @@
+{
+    "name" : "Remix Icon (über Ikonli)",
+    "version" : "12.3.1",
+    "beschreibung" : "Remix Icon is a set of open-source neutral-style system symbols for designers and developers.",
+    "github" : "https://github.com/Remix-Design/remixicon",
+    "link" : "https://kordamp.org/ikonli/cheat-sheet-remixicon.html#_a_l_remixiconal",
+    "license" : {
+        "name" : "Apache License 2.0",
+        "link" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+}

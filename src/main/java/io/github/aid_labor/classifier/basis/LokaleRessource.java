@@ -45,7 +45,7 @@ final class LokaleRessource extends Ressource {
 	@Override
 	public Path alsPath() {
 		log.finest(() -> "erzeuge Path fuer " + pfad);
-		return Path.of(pfad);
+		return Path.of(pfad).toAbsolutePath();
 	}
 	
 	@Override

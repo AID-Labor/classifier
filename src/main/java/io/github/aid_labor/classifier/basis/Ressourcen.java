@@ -99,6 +99,7 @@ public class Ressourcen {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	// public ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	public final Ressource BASIS_CSS;
 	public final Ressource LIGHT_THEME_CSS;
 	public final Ressource DARK_THEME_CSS;
 	public final Ressource NUTZER_THEME_CSS;
@@ -113,6 +114,9 @@ public class Ressourcen {
 	public final Ressource CLASSIFIER_LOGO_L;
 	public final Ressource CLASSIFIER_ICON_M;
 	public final Ressource CLASSIFIER_ICON_L;
+	public final Ressource UML_VERERBUNGS_PFEIL;
+	public final Ressource UML_ASSOZIATIONS_PFEIL;
+	public final Ressource UML_KOMMENTAR;
 	
 	// private ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 	private final ProgrammDetails programm;
@@ -125,6 +129,11 @@ public class Ressourcen {
 		log.config(() -> "Erzeuge Ressourcen");
 		RessourceBuilder builder = new RessourceBuilder(programm);
 		this.programm = programm;
+		this.BASIS_CSS = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.CSS)
+				.name("classifier.css")
+				.erzeuge();
 		this.LIGHT_THEME_CSS = builder
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.CSS)
@@ -155,12 +164,12 @@ public class Ressourcen {
 		this.CLASSIFIER_LOGO_M = builder
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
-				.name("Classifier-Logo@1x.png")
+				.name("Classifier-Logo_1x.png")
 				.erzeuge();
 		this.CLASSIFIER_LOGO_L = builder
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
-				.name("Classifier-Logo@2x.png")
+				.name("Classifier-Logo_2x.png")
 				.erzeuge();
 		this.CLASSIFIER_ICON_M = builder
 				.konfigurationsOrdner()
@@ -171,6 +180,21 @@ public class Ressourcen {
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("Classifier-Icon-gross.png")
+				.erzeuge();
+		this.UML_VERERBUNGS_PFEIL = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.GRAFIK)
+				.name("vererbungs_pfeil.png")
+				.erzeuge();
+		this.UML_ASSOZIATIONS_PFEIL = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.GRAFIK)
+				.name("assoziations_pfeil.png")
+				.erzeuge();
+		this.UML_KOMMENTAR = builder
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.GRAFIK)
+				.name("kommentar.png")
 				.erzeuge();
 		this.SPRACHDATEIEN_ORDNER = builder
 				.konfigurationsOrdner()
