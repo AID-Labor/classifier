@@ -9,15 +9,20 @@ package io.github.aid_labor.classifier.gui;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Locale;
+import java.util.MissingResourceException;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import io.github.aid_labor.classifier.basis.Ressourcen;
 import io.github.aid_labor.classifier.basis.SprachUtil;
 import io.github.aid_labor.classifier.basis.Sprache;
+import static io.github.aid_labor.classifier.basis.Umlaute.*;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 
 
@@ -58,11 +63,11 @@ public class HauptAnsicht implements View {
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht");
-		if(!spracheGesetzt) {
+		if (!spracheGesetzt) {
 			sprache.ignoriereSprachen();
 		}
 		
-		var menue = erstelleMenue();
+		var menue = erstelleMenueLeiste();
 		wurzel.setTop(menue);
 		erstelleRibbon();
 		erstelleProjektAnsicht();
@@ -97,12 +102,43 @@ public class HauptAnsicht implements View {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private MenuBar erstelleMenue() {
-		Menu dateiMenue = new Menu();
-		dateiMenue.textProperty().bind(sprache.getTextProperty("dateiMenue", "Datei"));
+	Locale l;
+	
+	private MenuBar erstelleMenueLeiste() {
+		Menu dateiMenue = erstelleDateiMenue();
+		
 		MenuBar menuebar = new MenuBar(dateiMenue);
 		
 		return menuebar;
+	}
+	
+	private Menu erstelleDateiMenue() {
+		Menu dateiMenue = SprachUtil.bindText(new Menu(), sprache, "dateiMenue", "Datei");
+		MenuItem dateiNeu = SprachUtil.bindText(new MenuItem(), sprache, "neu", "Neu...");
+		MenuItem dateiOeffnen = SprachUtil.bindText(new MenuItem(), sprache, "oeffnen",
+				"%cffnen...".formatted(OE));
+		Menu dateiLetzeOeffnen = SprachUtil.bindText(new Menu(), sprache, "letzteOeffnen",
+				"Letzte Dateien");
+		MenuItem dateiSchliessen = SprachUtil.bindText(new MenuItem(), sprache, "schliessen",
+				"Schlie%cen".formatted(sz));
+		MenuItem dateiSpeichern = SprachUtil.bindText(new MenuItem(), sprache, "speichern",
+				"Speichern");
+		MenuItem dateiAlleSpeichern = SprachUtil.bindText(new MenuItem(), sprache,
+				"allesSpeichern", "Alles Speichern");
+		MenuItem dateiSpeichernUnter = SprachUtil.bindText(new MenuItem(), sprache,
+				"speichernUnter", "Speichern unter...");
+		MenuItem dateiUmbenennen = SprachUtil.bindText(new MenuItem(), sprache, "umbennnen",
+				"Umbenennen...");
+		MenuItem dateiImportieren = SprachUtil.bindText(new MenuItem(), sprache, "importieren",
+				"Importieren...");
+		Menu dateiExportieren = SprachUtil.bindText(new Menu(), sprache, "exportieren",
+				"Exportieren");
+		
+		dateiMenue.getItems().addAll(dateiNeu, dateiOeffnen, dateiLetzeOeffnen,
+				dateiSchliessen, dateiSpeichern, dateiAlleSpeichern, dateiSpeichernUnter,
+				dateiUmbenennen, dateiImportieren, dateiExportieren);
+		
+		return dateiMenue;
 	}
 	
 	private void erstelleRibbon() {
@@ -111,6 +147,18 @@ public class HauptAnsicht implements View {
 	}
 	
 	private void erstelleProjektAnsicht() {
+		Button b = new Button("Sprache");
+		l = Locale.ENGLISH;
+		b.setOnAction(e -> {
+			try {
+				sprache.nutzeSprache(l);
+				l = l.equals(Locale.ENGLISH) ? Locale.GERMAN : Locale.ENGLISH;
+			} catch (MissingResourceException | IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+		});
+		this.wurzel.setBottom(b);
 		try (BufferedReader ein = new BufferedReader(
 				new InputStreamReader(Ressourcen.get().LIZENZ_DATEI.oeffneStream()))) {
 			String lizenz = ein.lines().collect(Collectors.joining("\n"));

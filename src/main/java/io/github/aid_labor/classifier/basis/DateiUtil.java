@@ -31,7 +31,7 @@ import java.util.logging.Logger;
  * @author Tim Muehle
  *
  */
-public class DateiUtil {
+public final class DateiUtil {
 	private static final Logger log = Logger.getLogger(DateiUtil.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

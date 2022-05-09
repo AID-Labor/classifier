@@ -12,8 +12,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -22,6 +23,7 @@ import java.util.Objects;
 import java.util.PropertyResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -42,7 +44,12 @@ import javafx.beans.property.StringProperty;
  *
  */
 public class Sprache {
+	
 	private static final Logger log = Logger.getLogger(Sprache.class.getName());
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	/**
 	 * Wrapper fuer Sprachdateien mit zugeordneter Sprache
@@ -76,9 +83,11 @@ public class Sprache {
 				log.finer(() -> "Pruefe Datei " + datei);
 				if (Files.isRegularFile(datei)
 						&& datei.getFileName().toString().startsWith(dateiPraefix)) {
-					log.finer(() -> "gefunden: " + datei);
-					dateien.add(new SprachDatei(datei, Locale
-							.forLanguageTag(datei.getParent().getFileName().toString())));
+					Locale l = Locale
+							.forLanguageTag(datei.getParent().getFileName().toString());
+					log.finer(() -> "gefunden: %s [%s - %s]".formatted(datei,
+							l.getDisplayLanguage(), l.toLanguageTag()));
+					dateien.add(new SprachDatei(datei, l));
 				}
 			});
 			
@@ -142,8 +151,8 @@ public class Sprache {
 	 */
 	public Sprache() {
 		this.sprachpaket = null;
-		this.sprachen = new Hashtable<>();
-		this.textProperties = new Hashtable<>();
+		this.sprachen = new HashMap<>();
+		this.textProperties = new HashMap<>();
 		
 		try {
 			codierung = Charset.forName("UTF-8");
@@ -177,8 +186,16 @@ public class Sprache {
 			log.throwing(Sprache.class.getName(), "getText(String)", exception);
 			throw exception;
 		}
-		
-		return this.sprachpaket.getString(schluessel);
+		try {
+			String text = this.sprachpaket.getString(schluessel);
+			log.finest(() -> "gefundener Text fuer Schluessel \"%s\": %s".formatted(schluessel,
+					text));
+			return text;
+		} catch (Exception e) {
+			log.warning(
+					() -> "Kein Text fuer Schluessel \"%s\" gefunden".formatted(schluessel));
+			throw e;
+		}
 	}
 	
 	/**
@@ -203,8 +220,13 @@ public class Sprache {
 		}
 		
 		if (this.sprachpaket.containsKey(schluessel)) {
-			return this.sprachpaket.getString(schluessel);
+			String text = this.sprachpaket.getString(schluessel);
+			log.finest(() -> "gefundener Text fuer Schluessel \"%s\": %s".formatted(schluessel,
+					text));
+			return text;
 		} else {
+			log.finest(
+					() -> "kein Text fuer Schluessel \"%s\" gefunden".formatted(schluessel));
 			return alternativ;
 		}
 	}
@@ -337,7 +359,15 @@ public class Sprache {
 			erfolg = true;
 		} catch (MissingResourceException | IOException e) {
 			exception1 = e;
+			log.finest(() -> "Hauptsprache %s [%s] nicht gefunden. Pruefe weitere Sprachen: %s"
+					.formatted(hauptsprache.getDisplayLanguage(), hauptsprache.toLanguageTag(),
+							Arrays.stream(rueckfallSprachen).map(sp -> {
+								return sp.getDisplayLanguage() + " [" + sp.toLanguageTag()
+										+ "]";
+							}).collect(Collectors.joining(", "))));
 			for (Locale sprache : rueckfallSprachen) {
+				log.finest(() -> "pruefe Sprache %s [%s]"
+						.formatted(sprache.getDisplayLanguage(), sprache.toLanguageTag()));
 				try {
 					this.nutzeSprache(sprache);
 					erfolg = true;
@@ -447,7 +477,7 @@ public class Sprache {
 			throws IllegalArgumentException {
 		// Zwischenspeicher verwenden, um sicherzustellen, dass keine Datei hinzugefuegt wird,
 		// falls ein Fehler auftritt
-		Map<Locale, Path> tempSprachen = new Hashtable<>(Objects.requireNonNull(sprachdateien,
+		Map<Locale, Path> tempSprachen = new HashMap<>(Objects.requireNonNull(sprachdateien,
 				"Es muss mindestens eine Sprachdatei uebergeben werden").length);
 		for (SprachDatei sprachdatei : sprachdateien) {
 			if (this.sprachen.containsKey(sprachdatei.sprache)) {
@@ -474,19 +504,29 @@ public class Sprache {
 			throws IllegalArgumentException {
 		// Zwischenspeicher verwenden, um sicherzustellen, dass keine Datei hinzugefuegt wird,
 		// falls ein Fehler auftritt
-		Map<Locale, Path> tempSprachen = new Hashtable<>(Objects.requireNonNull(sprachdateien,
+		Map<Locale, Path> tempSprachen = new HashMap<>(Objects.requireNonNull(sprachdateien,
 				"Es muss mindestens eine Sprachdatei uebergeben werden").size());
 		for (SprachDatei sprachdatei : sprachdateien) {
-			if (this.sprachen.containsKey(sprachdatei.sprache)) {
+			if (this.sprachen.containsKey(sprachdatei.sprache())) {
 				var exception = new IllegalArgumentException("Sprache %s bereits gesetzt!"
 						.formatted(sprachdatei.sprache.getDisplayLanguage()));
 				log.throwing(Sprache.class.getName(), "addSprache", exception);
 				throw exception;
 			}
-			tempSprachen.put(sprachdatei.sprache, sprachdatei.datei());
+			tempSprachen.put(sprachdatei.sprache(), sprachdatei.datei());
 		}
 		
+		log.finest(() -> "Sprachen hinzufuegen: " + sprachdateien.stream().map(datei -> {
+			return datei.sprache().getDisplayLanguage() + " ["
+					+ datei.sprache().toLanguageTag() + "] (" + datei.datei() + ")";
+		}).collect(Collectors.joining("; ")));
+		
 		this.sprachen.putAll(tempSprachen);
+		
+		log.finest(() -> "Sprachen: " + this.sprachen.entrySet().stream().map(eintrag -> {
+			return eintrag.getKey().getDisplayLanguage() + " ["
+					+ eintrag.getKey().toLanguageTag() + "] (" + eintrag.getValue() + ")";
+		}).collect(Collectors.joining("; ")));
 	}
 	
 	/**
@@ -527,7 +567,14 @@ public class Sprache {
 		log.finer(() -> "aktualisiere Sprach-Properties");
 		this.textProperties.entrySet().parallelStream().forEach(eintrag -> {
 			log.finest(() -> "aktualisiere Schluessel " + eintrag.getKey());
-			eintrag.getValue().set(this.sprachpaket.getString(eintrag.getKey()));
+			try {
+				eintrag.getValue().set(this.sprachpaket.getString(eintrag.getKey()));
+			} catch (Exception e) {
+				log.log(Level.WARNING, e,
+						() -> "Schluessel %s fuer Sprache %s [%s] nicht gefunden".formatted(
+								eintrag.getKey(), this.aktuelleSprache.getDisplayLanguage(),
+								this.aktuelleSprache.toLanguageTag()));
+			}
 		});
 	}
 }

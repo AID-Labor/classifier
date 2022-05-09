@@ -14,6 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.basis.Sprache.SprachDatei;
+import javafx.scene.control.Labeled;
+import javafx.scene.control.MenuItem;
 
 
 /**
@@ -22,14 +24,26 @@ import io.github.aid_labor.classifier.basis.Sprache.SprachDatei;
  * @author Tim Muehle
  *
  */
-public class SprachUtil {
+public final class SprachUtil {
 	private static final Logger log = Logger.getLogger(SprachUtil.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	// public ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	
+	// protected ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	
+	// package ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	
+	// private ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenmethoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	// public ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 	
 	/**
 	 * Stellt default-Werte fuer ein Sprachobjekt ein
@@ -71,23 +85,46 @@ public class SprachUtil {
 		return erfolg;
 	}
 	
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	/**
+	 * Bindet die textProperty eines MenuItem an das textProperty der uebergebenen Sprache
+	 * zu dem textSchluessel. Falls der Schluessel nicht existiert wird der alternative Text
+	 * gesetzt.
+	 * 
+	 * @param item           Item, dessen textProperty gebunden wird.
+	 * @param sprache        Sprache, die das textProperty bereitstellt
+	 * @param textSchluessel Schlussel fuer den zu suchenden Text
+	 * @param alternativText Alternativer Text, falls der Schluessel nicht gefunden wurde
+	 * @return
+	 * @return das uebergebene MenuItem
+	 */
+	public static <T extends MenuItem> T bindText(T item, Sprache sprache,
+			String textSchluessel, String alternativText) {
+		item.textProperty().bind(sprache.getTextProperty(textSchluessel, alternativText));
+		return item;
+	}
 	
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	/**
+	 * Bindet die textProperty eines Labeled-Node an das textProperty der uebergebenen Sprache
+	 * zu dem textSchluessel. Falls der Schluessel nicht existiert wird der alternative Text
+	 * gesetzt.
+	 * 
+	 * @param node           Node, dessen textProperty gebunden wird.
+	 * @param sprache        Sprache, die das textProperty bereitstellt
+	 * @param textSchluessel Schlussel fuer den zu suchenden Text
+	 * @param alternativText Alternativer Text, falls der Schluessel nicht gefunden wurde
+	 * @return das uebergebene Labeled-Objekt
+	 */
+	public static <T extends Labeled> T bindText(T node, Sprache sprache,
+			String textSchluessel, String alternativText) {
+		node.textProperty().bind(sprache.getTextProperty(textSchluessel, alternativText));
+		return node;
+	}
 	
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	// protected ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 	
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenmethoden																		*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	// package ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 	
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	// private ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
