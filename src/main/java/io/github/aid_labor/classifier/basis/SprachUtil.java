@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 import io.github.aid_labor.classifier.basis.Sprache.SprachDatei;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Tab;
 
 
 /**
@@ -215,10 +216,26 @@ public final class SprachUtil {
 	 * @param sprache        Sprache, die das textProperty bereitstellt
 	 * @param textSchluessel Schlussel fuer den zu suchenden Text
 	 * @param alternativText Alternativer Text, falls der Schluessel nicht gefunden wurde
-	 * @return
 	 * @return das uebergebene MenuItem fuer "Fluent-API" Aufrufe
 	 */
 	public static <T extends MenuItem> T bindText(T item, Sprache sprache,
+			String textSchluessel, String alternativText) {
+		item.textProperty().bind(sprache.getTextProperty(textSchluessel, alternativText));
+		return item;
+	}
+	
+	/**
+	 * Bindet die textProperty eines Tab-Objektes an das textProperty der uebergebenen Sprache
+	 * zu dem textSchluessel. Falls der Schluessel nicht existiert wird der alternative Text
+	 * gesetzt.
+	 * 
+	 * @param item           Item, dessen textProperty gebunden wird.
+	 * @param sprache        Sprache, die das textProperty bereitstellt
+	 * @param textSchluessel Schlussel fuer den zu suchenden Text
+	 * @param alternativText Alternativer Text, falls der Schluessel nicht gefunden wurde
+	 * @return das uebergebene Tab-Objekt fuer "Fluent-API" Aufrufe
+	 */
+	public static <T extends Tab> T bindText(T item, Sprache sprache,
 			String textSchluessel, String alternativText) {
 		item.textProperty().bind(sprache.getTextProperty(textSchluessel, alternativText));
 		return item;

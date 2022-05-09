@@ -6,7 +6,11 @@
 
 package io.github.aid_labor.classifier.gui;
 
-import static io.github.aid_labor.classifier.basis.Umlaute.*;
+import static io.github.aid_labor.classifier.basis.Umlaute.OE;
+import static io.github.aid_labor.classifier.basis.Umlaute.ae;
+import static io.github.aid_labor.classifier.basis.Umlaute.oe;
+import static io.github.aid_labor.classifier.basis.Umlaute.sz;
+import static io.github.aid_labor.classifier.basis.Umlaute.ue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,7 +29,12 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.control.TabPane.TabDragPolicy;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
 
 
 public class HauptAnsicht implements View {
@@ -70,7 +79,8 @@ public class HauptAnsicht implements View {
 		}
 		
 		var menue = erstelleMenueLeiste();
-		wurzel.setTop(menue);
+		var ribbon = erstelleRibbon();
+		wurzel.setTop(new VBox(menue, ribbon));
 		erstelleRibbon();
 		erstelleProjektAnsicht();
 	}
@@ -277,9 +287,15 @@ public class HauptAnsicht implements View {
 		return einstellungenMenue;
 	}
 	
-	private void erstelleRibbon() {
-		// TODO Auto-generated method stub
+	private TabPane erstelleRibbon() {
+		Tab startTab = SprachUtil.bindText(new Tab(), sprache, "startTab", "Start");
 		
+		Tab diagrammTab = SprachUtil.bindText(new Tab(), sprache, "diagrammTab", "Diagramm");
+		
+		TabPane ribbon = new TabPane(startTab, diagrammTab);
+		ribbon.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+		ribbon.setTabDragPolicy(TabDragPolicy.FIXED);
+		return ribbon;
 	}
 	
 	private void erstelleProjektAnsicht() {

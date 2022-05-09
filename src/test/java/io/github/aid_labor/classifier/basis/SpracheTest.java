@@ -66,12 +66,8 @@ class SpracheTest {
 	void testSprachWechsel() {
 		assertDoesNotThrow(() -> sprache = new Sprache(deutsch));
 		assertEquals(textDE, sprache.getText(schluessel));
-		assertDoesNotThrow(() -> property = sprache.getTextProperty(schluessel));
-		assertEquals(textDE, property.get());
 		assertDoesNotThrow(() -> sprache.nutzeSprache(englisch));
 		assertEquals(textEN, sprache.getText(schluessel));
-		assertEquals(textEN, property.get());
-		assertEquals(property, sprache.getTextProperty(schluessel));
 	}
 	
 	@Test

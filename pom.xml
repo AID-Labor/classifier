@@ -22,7 +22,7 @@
 		<jackson.version.databind>2.13.2.2</jackson.version.databind>
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
 		<junit.platform.version>1.5.2</junit.platform.version>
-		<mainClass>${groupId}.${artifactId}.main.Hauptfenster</mainClass>
+		<mainClass>io.github.aid_labor.${artifactId}.main.Hauptfenster</mainClass>
 		<deploymentDir>${project.basedir}/auslieferung/${project.version}</deploymentDir>
 		<deploymentInput>${deploymentDir}/${os.name}/input</deploymentInput>
 		<dependenciesDir>${deploymentInput}/lib</dependenciesDir>
