@@ -1,5 +1,0 @@
-FXRibbon
-Ribbon control for Java, using JavaFX framework, based on Microsoft Ribbon.
-GitHub: https://github.com/dukke/FXRibbon
-Website: http://www.pixelduke.com/fxribbon
-License: new BSD license [https://choosealicense.com/licenses/bsd-3-clause/]

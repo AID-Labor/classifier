@@ -1,0 +1,11 @@
+{
+    "name" : "FXRibbon",
+    "version" : "1.2.1",
+    "beschreibung" : "Ribbon control for Java, using JavaFX framework, based on Microsoft Ribbon.",
+    "github" : "https://github.com/dukke/FXRibbon",
+    "link" : "http://www.pixelduke.com/fxribbon",
+    "license" : {
+        "name" : "new BSD license",
+        "link" : "https://choosealicense.com/licenses/bsd-3-clause/"
+    }
+}

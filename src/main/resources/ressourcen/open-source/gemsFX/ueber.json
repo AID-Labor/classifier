@@ -1,0 +1,11 @@
+{
+    "name" : "GemsFX",
+    "version" : "1.45.2",
+    "beschreibung" : "A collection of JavaFX controls and utilities.",
+    "github" : "https://github.com/dlsc-software-consulting-gmbh/GemsFX",
+    "link" : "https://github.com/dlsc-software-consulting-gmbh/GemsFX",
+    "license" : {
+        "name" : "Apache License 2.0",
+        "link" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+}

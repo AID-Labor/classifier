@@ -125,7 +125,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.moditect</groupId>
 				<artifactId>moditect-maven-plugin</artifactId>
@@ -224,14 +224,14 @@
 			<artifactId>javafx-graphics</artifactId>
 			<version>${javafx.version}</version>
 		</dependency>
-		
+
 		<!-- FXRibbon -->
 		<dependency>
 			<groupId>com.pixelduke</groupId>
 			<artifactId>fxribbon</artifactId>
 			<version>1.2.1</version>
 		</dependency>
-		
+
 		<!-- GemsFX -->
 		<dependency>
 			<groupId>com.dlsc.gemsfx</groupId>
@@ -247,7 +247,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.kordamp.ikonli</groupId>
-			<artifactId>ikonli-bootstrapicons-pack</artifactId>
+			<artifactId>ikonli-remixicon-pack</artifactId>
 			<version>12.3.1</version>
 		</dependency>
 
