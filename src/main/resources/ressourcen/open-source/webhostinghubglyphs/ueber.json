@@ -1,0 +1,11 @@
+{
+    "name" : "Glyph Icon Font from WebHostingHub (über Ikonli)",
+    "version" : "12.3.1",
+    "beschreibung" : "High quality icons that are easy to use with Bootstrap, other CSS frameworks and in any web projects. They also work in desktop software such as Adobe Photoshop or Microsoft Word. They are perfect for use in mobile developement on Android or iOS devices.",
+    "github" : "",
+    "link" : "https://www.webhostinghub.com/glyphs/",
+    "license" : {
+        "name" : "SIL Open Font License",
+        "link" : ""
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "name" : "Carbon-Icons (über Ikonli)",
+    "version": "12.3.1",
+    "beschreibung": "Icons for digital and software products using the Carbon Design System",
+    "github" : "https://github.com/carbon-design-system/carbon",
+    "link" : "https://kordamp.org/ikonli/cheat-sheet-carbonicons.html",
+    "license" : {
+        "name" : "Apache License 2.0",
+        "link" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+}

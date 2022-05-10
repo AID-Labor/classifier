@@ -22,5 +22,12 @@ module classifier {
 	requires commons.cli;
 	requires java.base;
 	requires fxribbon;
+	requires org.kordamp.ikonli.javafx;
+	requires org.kordamp.ikonli.core;
+	requires org.kordamp.ikonli.remixicon;
+	requires org.kordamp.ikonli.carbonicons;
+	requires org.kordamp.ikonli.typicons;
+	requires org.kordamp.ikonli.whhg;
+	requires org.kordamp.ikonli.bootstrapicons;
 //	requires com.dlsc.gemsfx;
 }

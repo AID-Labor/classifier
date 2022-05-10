@@ -88,7 +88,7 @@ public class Hauptfenster extends Application {
 		View hauptansicht = new HauptAnsicht();
 		
 		Scene szene = new Scene(hauptansicht.getWurzelknoten());
-		FensterUtil.installiereFensterwiederherstellung(hauptFenster, 300, 500,
+		FensterUtil.installiereFensterwiederherstellung(hauptFenster, 720, 1090,
 				Ressourcen.get().KONFIGURATIONSORDNER.alsPath());
 		
 		hauptFenster.setScene(szene);

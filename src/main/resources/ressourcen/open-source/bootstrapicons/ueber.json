@@ -1,0 +1,11 @@
+{
+    "name" : "Bootstrap-Icons (über Ikonli)",
+    "version": "12.3.1",
+    "beschreibung": "Official open source SVG icon library for Bootstrap.",
+    "github" : "https://github.com/twbs/icons",
+    "link" : "https://icons.getbootstrap.com/",
+    "license" : {
+        "name" : "MIT License (MIT)",
+        "link" : "https://choosealicense.com/licenses/mit/"
+    }
+}
