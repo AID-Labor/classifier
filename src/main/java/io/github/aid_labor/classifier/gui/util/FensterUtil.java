@@ -99,7 +99,7 @@ public class FensterUtil {
 				this.fenster.setWidth(position.breite);
 				
 				if (Screen.getScreensForRectangle(position.alsRectangle2D()).isEmpty()) {
-					log.finest(() -> "Position konnte nicht hergestellt werden, da sich die "
+					log.fine(() -> "Position konnte nicht hergestellt werden, da sich die "
 							+ "Positon ausserhalb der Monitore befand");
 					fenster.centerOnScreen();
 				} else {
@@ -107,7 +107,7 @@ public class FensterUtil {
 					this.fenster.setY(position.positionY);
 				}
 			} catch (IOException e) {
-				log.log(Level.FINEST, e, () -> "Fensterposititon konnte nicht geladen werden");
+				log.log(Level.FINER, e, () -> "Fensterposititon konnte nicht geladen werden");
 				this.fenster.setHeight(this.fenster.getMinHeight());
 				this.fenster.setWidth(this.fenster.getMinWidth());
 				this.fenster.centerOnScreen();
@@ -126,9 +126,9 @@ public class FensterUtil {
 					this.fenster.getHeight(), this.fenster.getWidth());
 			try (var generator = JsonUtil.getUTF8JsonGenerator(this.speicherort)) {
 				generator.writePOJO(position);
-				log.fine(() -> "Gespeicherte Fensterposition: " + position);
+				log.finest(() -> "Gespeicherte Fensterposition: " + position);
 			} catch (IOException e) {
-				log.log(Level.FINE, e,
+				log.log(Level.WARNING, e,
 						() -> "Fensterposititon konnte nicht gespeichert werden");
 			}
 		}

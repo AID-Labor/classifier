@@ -155,12 +155,12 @@ public class Ressourcen {
 		this.CLASSIFIER_LOGO_M = builder
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
-				.name("Classifier-Logo@1x.png")
+				.name("Classifier-Logo_1x.png")
 				.erzeuge();
 		this.CLASSIFIER_LOGO_L = builder
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
-				.name("Classifier-Logo@2x.png")
+				.name("Classifier-Logo_2x.png")
 				.erzeuge();
 		this.CLASSIFIER_ICON_M = builder
 				.konfigurationsOrdner()

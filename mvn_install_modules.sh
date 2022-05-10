@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile="src/modules/fxribbon-1.2.1.jar" -DgroupId="com.pixelduke" -DartifactId=fxribbon -Dversion="1.2.1" -Dpackaging=jar

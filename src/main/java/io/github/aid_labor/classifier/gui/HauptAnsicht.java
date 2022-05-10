@@ -15,13 +15,22 @@ import static io.github.aid_labor.classifier.basis.Umlaute.ue;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Locale;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import com.pixelduke.control.Ribbon;
+import com.pixelduke.control.ribbon.Column;
+import com.pixelduke.control.ribbon.QuickAccessBar;
+import com.pixelduke.control.ribbon.RibbonGroup;
+import com.pixelduke.control.ribbon.RibbonTab;
 
 import io.github.aid_labor.classifier.basis.Ressourcen;
 import io.github.aid_labor.classifier.basis.SprachUtil;
 import io.github.aid_labor.classifier.basis.Sprache;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
@@ -29,11 +38,11 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TabPane.TabClosingPolicy;
-import javafx.scene.control.TabPane.TabDragPolicy;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 
@@ -81,7 +90,6 @@ public class HauptAnsicht implements View {
 		var menue = erstelleMenueLeiste();
 		var ribbon = erstelleRibbon();
 		wurzel.setTop(new VBox(menue, ribbon));
-		erstelleRibbon();
 		erstelleProjektAnsicht();
 	}
 	
@@ -113,8 +121,6 @@ public class HauptAnsicht implements View {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	Locale l;
 	
 	private MenuBar erstelleMenueLeiste() {
 		Menu dateiMenue = erstelleDateiMenue();
@@ -287,32 +293,115 @@ public class HauptAnsicht implements View {
 		return einstellungenMenue;
 	}
 	
-	private TabPane erstelleRibbon() {
-		Tab startTab = SprachUtil.bindText(new Tab(), sprache, "startTab", "Start");
+	private Node erstelleRibbon() {
+		RibbonTab startTab = erstelleStartTab();
+		RibbonTab diagrammTab = erstelleDiagrammTab();
 		
-		Tab diagrammTab = SprachUtil.bindText(new Tab(), sprache, "diagrammTab", "Diagramm");
+		QuickAccessBar schnellzugriff = new QuickAccessBar();
+		Button speichernSchnellzugriff = SprachUtil.bindText(new Button(), sprache,
+				"speichern", "Speichern");
+		Button rueckgaengigSchnellzugriff = SprachUtil.bindText(new Button(), sprache,
+				"rueckgaengig", "R%cckg%cngig".formatted(ue, ae));
+		Button wiederholenSchnellzugriff = SprachUtil.bindText(new Button(), sprache,
+				"wiederholen", "Wiederholen");
+		schnellzugriff.getButtons().addAll(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
+				wiederholenSchnellzugriff);
 		
-		TabPane ribbon = new TabPane(startTab, diagrammTab);
-		ribbon.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
-		ribbon.setTabDragPolicy(TabDragPolicy.FIXED);
+		Ribbon ribbon = new Ribbon();
+		
+		ribbon.setQuickAccessBar(schnellzugriff);
+		ribbon.getTabs().addAll(startTab, diagrammTab);
+		
 		return ribbon;
 	}
 	
+	private RibbonTab erstelleStartTab() {
+		Button oeffnen = SprachUtil.bindText(new Button(), sprache, "oeffnen",
+				"%cffnen".formatted(OE));
+		Button neu = SprachUtil.bindText(new Button(), sprache, "neu",
+				"Neu...");
+		Button importieren = SprachUtil.bindText(new Button(), sprache, "importieren",
+				"Importieren");
+		Column ersteSpalte = new Column();
+		ersteSpalte.getChildren().addAll(oeffnen, neu, importieren);
+		
+		Button speichern = SprachUtil.bindText(new Button(), sprache, "speichern",
+				"Speichern");
+		Button screenshot = SprachUtil.bindText(new Button(), sprache, "screenshot",
+				"Screenshot...");
+		Button exportieren = SprachUtil.bindText(new Button(), sprache, "exportieren",
+				"Exportieren...");
+		Column zweiteSpalte = new Column();
+		zweiteSpalte.getChildren().addAll(speichern, screenshot, exportieren);
+		
+		RibbonGroup erstellen = new RibbonGroup();
+		erstellen.titleProperty().bind(sprache.getTextProperty("projekt", "Projekt"));
+		erstellen.getNodes().addAll(ersteSpalte, zweiteSpalte);
+		
+		RibbonTab startTab = SprachUtil.bindText(new RibbonTab(), sprache, "startTab",
+				"Start");
+		startTab.getRibbonGroups().add(erstellen);
+		
+		fuegeLogoHinzu(startTab);
+		
+		return startTab;
+	}
+	
+	private RibbonTab erstelleDiagrammTab() {
+		Button neueKlasse = SprachUtil.bindText(new Button(), sprache, "klasse", "Klasse +");
+		Button neuesInterface = SprachUtil.bindText(new Button(), sprache, "interface",
+				"Interface");
+		Button neueEnumeration = SprachUtil.bindText(new Button(), sprache, "enumeration",
+				"Enumeration +");
+		RibbonGroup diagrammElemente = new RibbonGroup();
+		diagrammElemente.titleProperty().bind(sprache.getTextProperty("diagrammElemente",
+				"Diagramm Elemente"));
+		diagrammElemente.getNodes().addAll(neueKlasse, neuesInterface, neueEnumeration);
+		
+		Button vererbung = SprachUtil.bindText(new Button(), sprache, "vererbung",
+				"Vererbung +");
+		Button assoziation = SprachUtil.bindText(new Button(), sprache, "assoziation",
+				"Assoziation +");
+		RibbonGroup verbindungen = new RibbonGroup();
+		verbindungen.titleProperty().bind(sprache.getTextProperty("verbindungen",
+				"Verbindungen"));
+		verbindungen.getNodes().addAll(vererbung, assoziation);
+		
+		Button kommentar = SprachUtil.bindText(new Button(), sprache, "kommentar",
+				"Kommentar +");
+		RibbonGroup sonstiges = new RibbonGroup();
+		sonstiges.getNodes().add(kommentar);
+		
+		RibbonTab diagrammTab = SprachUtil.bindText(new RibbonTab(), sprache, "diagrammTab",
+				"Diagramm");
+		diagrammTab.getRibbonGroups().addAll(diagrammElemente, verbindungen, sonstiges);
+		
+		fuegeLogoHinzu(diagrammTab);
+		
+		return diagrammTab;
+	}
+	
+	private void fuegeLogoHinzu(RibbonTab tab) {
+		try {
+			ImageView classifierLogo = new ImageView(
+					new Image(Ressourcen.get().CLASSIFIER_LOGO_M.oeffneStream()));
+			classifierLogo.setPreserveRatio(true);
+			classifierLogo.setSmooth(true);
+			classifierLogo.setCache(true);
+			classifierLogo.setFitHeight(134);
+			
+			var logoContainer = new HBox(classifierLogo);
+			logoContainer.setMaxHeight(134);
+			logoContainer.setAlignment(Pos.CENTER_RIGHT);
+			HBox.setHgrow(logoContainer, Priority.ALWAYS);
+			HBox.setMargin(logoContainer, new Insets(5));
+			((HBox) tab.getContent()).getChildren().add(logoContainer);
+		} catch (IllegalStateException | IOException e) {
+			log.log(Level.WARNING, e, () -> "Logo konnte nicht geladen werden");
+		}
+	}
+	
 	private void erstelleProjektAnsicht() {
-		Button b = new Button("English");
-		l = Locale.ENGLISH;
-		b.setOnAction(e -> {
-			try {
-				SprachUtil.setUpSprache(sprache,
-						Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht", l);
-				l = l.equals(Locale.ENGLISH) ? Locale.GERMAN : Locale.ENGLISH;
-				b.setText(l.getDisplayLanguage(l));
-			} catch (Exception e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-		});
-		this.wurzel.setBottom(b);
 		try (BufferedReader ein = new BufferedReader(
 				new InputStreamReader(Ressourcen.get().LIZENZ_DATEI.oeffneStream()))) {
 			String lizenz = ein.lines().collect(Collectors.joining("\n"));

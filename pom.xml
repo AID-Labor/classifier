@@ -153,6 +153,25 @@
 			                            }
 			                        </moduleInfoSource>
 								</module>
+								<module>
+									<artifact>
+										<groupId>com.pixelduke</groupId>
+										<artifactId>fxribbon</artifactId>
+										<version>1.2.1</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module fxribbon {
+			                                requires transitive javafx.base;
+										    requires transitive javafx.controls;
+										    requires transitive javafx.graphics;
+										
+										    exports com.pixelduke.control;
+										    exports com.pixelduke.control.ribbon;
+										    exports impl.com.pixelduke.skin;
+										    exports impl.com.pixelduke.skin.ribbon;
+			                            }
+			                        </moduleInfoSource>
+								</module>
 							</modules>
 						</configuration>
 					</execution>
@@ -205,7 +224,14 @@
 			<artifactId>javafx-graphics</artifactId>
 			<version>${javafx.version}</version>
 		</dependency>
-
+		
+		<!-- FXRibbon -->
+		<dependency>
+			<groupId>com.pixelduke</groupId>
+			<artifactId>fxribbon</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+		
 		<!-- GemsFX -->
 		<dependency>
 			<groupId>com.dlsc.gemsfx</groupId>

@@ -21,5 +21,6 @@ module classifier {
 	requires com.fasterxml.jackson.annotation;
 	requires commons.cli;
 	requires java.base;
+	requires fxribbon;
 //	requires com.dlsc.gemsfx;
 }
