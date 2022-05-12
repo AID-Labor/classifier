@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.basis.Sprache.SprachDatei;
+import javafx.beans.property.StringProperty;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
@@ -209,7 +210,7 @@ public final class SprachUtil {
 	
 	/**
 	 * Bindet die textProperty eines MenuItem an das textProperty der uebergebenen Sprache
-	 * zu dem textSchluessel. Falls der Schluessel nicht existiert wird der alternative Text
+	 * zu dem textSchluessel. Falls der Schluessel nicht existiert, wird der alternative Text
 	 * gesetzt.
 	 * 
 	 * @param item           Item, dessen textProperty gebunden wird.
@@ -226,7 +227,7 @@ public final class SprachUtil {
 	
 	/**
 	 * Bindet die textProperty eines Tab-Objektes an das textProperty der uebergebenen Sprache
-	 * zu dem textSchluessel. Falls der Schluessel nicht existiert wird der alternative Text
+	 * zu dem textSchluessel. Falls der Schluessel nicht existiert, wird der alternative Text
 	 * gesetzt.
 	 * 
 	 * @param item           Item, dessen textProperty gebunden wird.
@@ -243,7 +244,7 @@ public final class SprachUtil {
 	
 	/**
 	 * Bindet die textProperty eines Labeled-Node an das textProperty der uebergebenen Sprache
-	 * zu dem textSchluessel. Falls der Schluessel nicht existiert wird der alternative Text
+	 * zu dem textSchluessel. Falls der Schluessel nicht existiert, wird der alternative Text
 	 * gesetzt.
 	 * 
 	 * @param node           Node, dessen textProperty gebunden wird.
@@ -256,6 +257,22 @@ public final class SprachUtil {
 			String textSchluessel, String alternativText) {
 		node.textProperty().bind(sprache.getTextProperty(textSchluessel, alternativText));
 		return node;
+	}
+	
+
+	/**
+	 * Bindet die uebergebene textProperty an das textProperty der uebergebenen Sprache
+	 * zu dem textSchluessel. Falls der Schluessel nicht existiert, wird der alternative Text
+	 * gesetzt.
+	 * 
+	 * @param textProperty   textEigenschaft, die gebunden wird.
+	 * @param sprache        Sprache, die das textProperty bereitstellt
+	 * @param textSchluessel Schlussel fuer den zu suchenden Text
+	 * @param alternativText Alternativer Text, falls der Schluessel nicht gefunden wurde
+	 */
+	public static void bindText(StringProperty textProperty, Sprache sprache,
+			String textSchluessel, String alternativText) {
+		textProperty.bind(sprache.getTextProperty(textSchluessel, alternativText));
 	}
 	
 	// protected ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##

@@ -12,12 +12,9 @@ import static io.github.aid_labor.classifier.basis.Umlaute.oe;
 import static io.github.aid_labor.classifier.basis.Umlaute.sz;
 import static io.github.aid_labor.classifier.basis.Umlaute.ue;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
@@ -35,6 +32,7 @@ import com.pixelduke.control.ribbon.RibbonTab;
 import io.github.aid_labor.classifier.basis.Ressourcen;
 import io.github.aid_labor.classifier.basis.SprachUtil;
 import io.github.aid_labor.classifier.basis.Sprache;
+import io.github.aid_labor.classifier.gui.elemente.ElementIcon;
 import io.github.aid_labor.classifier.gui.util.ButtonTyp;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import javafx.geometry.Insets;
@@ -42,12 +40,13 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -81,6 +80,7 @@ public class HauptAnsicht implements View {
 	private final BorderPane wurzel;
 	private final HauptController controller;
 	private final Sprache sprache;
+	private final TabPane projektAnsicht;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -100,7 +100,9 @@ public class HauptAnsicht implements View {
 		var menue = erstelleMenueLeiste();
 		var ribbon = erstelleRibbon();
 		wurzel.setTop(new VBox(menue, ribbon));
-		erstelleProjektAnsicht();
+		
+		this.projektAnsicht = new TabPane();
+		wurzel.setCenter(projektAnsicht);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -132,6 +134,9 @@ public class HauptAnsicht implements View {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	// =====================================================================================
+	// Beginn Menue
+	
 	private MenuBar erstelleMenueLeiste() {
 		Menu dateiMenue = erstelleDateiMenue();
 		Menu bearbeitenMenue = erstelleBearbeitenMenue();
@@ -143,6 +148,7 @@ public class HauptAnsicht implements View {
 		
 		MenuBar menuebar = new MenuBar(dateiMenue, bearbeitenMenue, einfuegenMenue,
 				anordnenMenue, darstellungMenue, fensterMenue, einstellungenMenue);
+//		menuebar.setUseSystemMenuBar(true);
 		
 		return menuebar;
 	}
@@ -303,7 +309,11 @@ public class HauptAnsicht implements View {
 		return einstellungenMenue;
 	}
 	
-	private Node erstelleRibbon() {
+	// Ende Menue
+	// =====================================================================================
+	// Beginn Ribbon
+	
+	private Ribbon erstelleRibbon() {
 		RibbonTab startTab = erstelleStartTab();
 		RibbonTab diagrammTab = erstelleDiagrammTab();
 		
@@ -311,8 +321,9 @@ public class HauptAnsicht implements View {
 		Button speichernSchnellzugriff = neuerButton(ButtonTyp.SPEICHERN);
 		Button rueckgaengigSchnellzugriff = neuerButton(ButtonTyp.RUECKGAENGIG);
 		Button wiederholenSchnellzugriff = neuerButton(ButtonTyp.WIEDERHOLEN);
-		((FontIcon) rueckgaengigSchnellzugriff.getGraphic()).setIconSize(20);
-		((FontIcon) wiederholenSchnellzugriff.getGraphic()).setIconSize(20);
+		((FontIcon) speichernSchnellzugriff.getGraphic()).setIconSize(18);
+		((FontIcon) rueckgaengigSchnellzugriff.getGraphic()).setIconSize(18);
+		((FontIcon) wiederholenSchnellzugriff.getGraphic()).setIconSize(18);
 		NodeUtil.macheUnfokussierbar(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
 				wiederholenSchnellzugriff);
 		
@@ -470,11 +481,14 @@ public class HauptAnsicht implements View {
 	}
 	
 	private RibbonGroup erstelleDiagrammElementeGruppe() {
-		Button neueKlasse = SprachUtil.bindText(new Button(), sprache, "klasse", "Klasse +");
-		Button neuesInterface = SprachUtil.bindText(new Button(), sprache, "interface",
-				"Interface");
-		Button neueEnumeration = SprachUtil.bindText(new Button(), sprache, "enumeration",
-				"Enumeration +");
+		Button neueKlasse = new Button();
+		setzeElementGrafik(neueKlasse, "klassenBezeichnung", "Klasse");
+		Button neuesInterface = new Button();
+		setzeElementGrafik(neuesInterface, "interfaceBezeichnung", "Interface",
+				"interfaceStereotyp", "<<interface>>");
+		Button neueEnumeration = new Button();
+		setzeElementGrafik(neueEnumeration, "enumerationBezeichnung", "Enumeration",
+				"enumerationStereotyp", "<<enumeration>>");
 		RibbonGroup diagrammElemente = new RibbonGroup();
 		diagrammElemente.titleProperty().bind(sprache.getTextProperty("diagrammElemente",
 				"Diagramm Elemente"));
@@ -485,11 +499,30 @@ public class HauptAnsicht implements View {
 		return diagrammElemente;
 	}
 	
+	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
+			String alternativBezeichnung) {
+		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, null,
+				null);
+	}
+	
+	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
+			String alternativBezeichnung, String stereotypSchluessel,
+			String alternativStereotyp) {
+		var icon = new ElementIcon(sprache, bezeichnungSchluessel, alternativBezeichnung,
+				stereotypSchluessel, alternativStereotyp);
+		Node container = NodeUtil.plusIconHinzufuegen(icon);
+		node.setGraphic(container);
+	}
+	
 	private RibbonGroup erstelleVerbindungenGruppe() {
 		Button vererbung = SprachUtil.bindText(new Button(), sprache, "vererbung",
-				"Vererbung +");
+				"Vererbung");
+		NodeUtil.fuegeGrafikHinzu(vererbung, Ressourcen.get().UML_VERERBUNGS_PFEIL, 70);
 		Button assoziation = SprachUtil.bindText(new Button(), sprache, "assoziation",
-				"Assoziation +");
+				"Assoziation");
+		assoziation.setId("assoziationButton");
+		NodeUtil.fuegeGrafikHinzu(assoziation,
+				Ressourcen.get().UML_ASSOZIATIONS_PFEIL, 25);
 		RibbonGroup verbindungen = new RibbonGroup();
 		verbindungen.titleProperty().bind(sprache.getTextProperty("verbindungen",
 				"Verbindungen"));
@@ -501,9 +534,13 @@ public class HauptAnsicht implements View {
 	}
 	
 	private RibbonGroup erstelleSonstigeGruppe() {
-		Button kommentar = SprachUtil.bindText(new Button(), sprache, "kommentar",
-				"Kommentar +");
+		Button kommentar = new Button();
+		var kommentarGrafik = NodeUtil.fuegeGrafikHinzu(kommentar, Ressourcen.get().UML_KOMMENTAR, 90);
+		var kommentarContainer = NodeUtil.plusIconHinzufuegen(kommentarGrafik);
+		kommentar.setGraphic(kommentarContainer);
+		kommentar.setGraphicTextGap(-30);
 		RibbonGroup sonstiges = new RibbonGroup();
+		sonstiges.titleProperty().bind(sprache.getTextProperty("kommentar", "Kommentar"));
 		sonstiges.getNodes().add(kommentar);
 		
 		NodeUtil.macheUnfokussierbar(sonstiges.getNodes());
@@ -543,7 +580,7 @@ public class HauptAnsicht implements View {
 			classifierLogo.setPreserveRatio(true);
 			classifierLogo.setSmooth(true);
 			classifierLogo.setCache(true);
-			classifierLogo.setFitHeight(134);
+			classifierLogo.setFitHeight(128);
 			
 			var logoContainer = new HBox(classifierLogo);
 			logoContainer.setMaxHeight(134);
@@ -556,15 +593,20 @@ public class HauptAnsicht implements View {
 		}
 	}
 	
-	private void erstelleProjektAnsicht() {
-		try (BufferedReader ein = new BufferedReader(
-				new InputStreamReader(Ressourcen.get().LIZENZ_DATEI.oeffneStream()))) {
-			String lizenz = ein.lines().collect(Collectors.joining("\n"));
-			this.wurzel.setCenter(new Label(lizenz));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	// Ende Ribbon
+	// =====================================================================================
+	// Beginn Projektansicht
+	
+	
+	/**
+	 * eindeutige ID, mit der Projekte in einer Map fuer spaeteren Zugriff gespeichert werden
+	 */
+	private int naechsteProjektID = 0;
+	
+	private void erzeugeProjekt() {
+		Tab tab = new Tab();
+		tab.setUserData(naechsteProjektID);	// Tab merkt sich die ID des zugehoerigen Projektes
+		naechsteProjektID++;
 	}
 	
 }
