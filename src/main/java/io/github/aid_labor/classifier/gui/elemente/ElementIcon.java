@@ -18,7 +18,12 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Line;
 
-
+/**
+ * Icon-Ansicht fuer UML-Diagramm-Elemente (speziell: UML Classifier aus dem Klassendiagramm)
+ * 
+ * @author Tim Muehle
+ *
+ */
 public class ElementIcon extends StackPane {
 	
 //	private static final Logger log = Logger.getLogger(ElementIcon.class.getName());

@@ -296,7 +296,8 @@ public final class SprachUtil {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private SprachUtil() {
-		// Hilfsklasse, nicht instanziierbar
+		// Hilfsklasse, nicht instanziierbar!
+		throw new UnsupportedOperationException("Hilfsklasse darf nicht instanziiert werden!");
 	}
 	
 }

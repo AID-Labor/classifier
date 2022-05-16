@@ -88,6 +88,7 @@ public final class JsonUtil {
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 	
 	private JsonUtil() {
-		// statische Hilfsklasse, keine Instanzen erlaubt!
+		// Hilfsklasse, nicht instanziierbar!
+		throw new UnsupportedOperationException("Hilfsklasse darf nicht instanziiert werden!");
 	}
 }

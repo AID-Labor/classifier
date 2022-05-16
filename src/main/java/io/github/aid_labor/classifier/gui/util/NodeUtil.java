@@ -211,7 +211,8 @@ public final class NodeUtil {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private NodeUtil() {
-		// Hilfsklasse, nicht instanziierbar
+		// Hilfsklasse, nicht instanziierbar!
+		throw new UnsupportedOperationException("Hilfsklasse darf nicht instanziiert werden!");
 	}
 	
 }
