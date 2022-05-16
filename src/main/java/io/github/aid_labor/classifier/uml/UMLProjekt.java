@@ -23,13 +23,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize.Typing;
 
-import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
+import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -75,11 +74,11 @@ public class UMLProjekt implements Projekt {
 	private Programmiersprache programmiersprache;
 	
 	@JsonIgnore
-	private StringProperty nameProperty;
+	private ReadOnlyStringWrapper nameProperty;
 	@JsonIgnore
 	private Path speicherort;
 	@JsonIgnore
-	private final JsonBooleanProperty istGespeichertProperty;
+	private final JsonReadOnlyBooleanPropertyWrapper istGespeichertProperty;
 	
 	// -------------------------------------------------------------------------------------
 	// final
@@ -90,12 +89,24 @@ public class UMLProjekt implements Projekt {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	/**
+	 * Hauptkonstruktor. Anwendungen sollten nur diesen Konstruktor nutzen, um ein neues
+	 * Projekt zu erzeugen. Zum oeffnen eines vorhandenen Projektes steht die Fabrikmethode
+	 * {@link #ausDateiOeffnen(Path)} zur Verfuegung.
+	 * 
+	 * @param name                 Name des Projektes
+	 * @param programmiersprache   genutzte Programmiersprache (wird fuer sprachspezifische
+	 *                             Eigenschaften benoetigt)
+	 * @param automatischSpeichern {@code true}, wenn dises Projekt regelmaessig im
+	 *                             Hintergrund gespeichert werden soll, sonst {@code false}
+	 * @throws NullPointerException falls einer der Parameter {@code null} ist
+	 */
 	public UMLProjekt(String name, Programmiersprache programmiersprache,
-			boolean automatischSpeichern) {
-		this.name = name;
-		this.programmiersprache = programmiersprache;
+			boolean automatischSpeichern) throws NullPointerException {
+		this.name = Objects.requireNonNull(name);
+		this.programmiersprache = Objects.requireNonNull(programmiersprache);
 		this.diagrammElemente = FXCollections.observableArrayList();
-		this.istGespeichertProperty = new JsonBooleanProperty(false);
+		this.istGespeichertProperty = new JsonReadOnlyBooleanPropertyWrapper(false);
 		this.setAutomatischSpeichern(automatischSpeichern);
 		
 		this.diagrammElemente.addListener(
@@ -103,15 +114,30 @@ public class UMLProjekt implements Projekt {
 		
 	}
 	
+	/**
+	 * Laedt eine Projektdatei (im json-Format) und rekonstruiert das gespeicherte Projekt.
+	 * 
+	 * @param datei Datei mit gespeichertem Projekt im json-Format
+	 * @return gespeichertes Projekt als neue Instanz
+	 * @throws IOException
+	 */
 	public static UMLProjekt ausDateiOeffnen(Path datei) throws IOException {
 		try (JsonParser json = JsonUtil.getUTF8JsonParser(datei)) {
-			UMLProjekt projekt =  json.readValueAs(UMLProjekt.class);
+			UMLProjekt projekt = json.readValueAs(UMLProjekt.class);
 			projekt.setSpeicherort(datei);
 			projekt.istGespeichertProperty.set(true);
 			return projekt;
 		}
 	}
 	
+	/**
+	 * Konstruktor, den jackson verwendet, um eine Instanz aus einer json-Datei zu erzeugen
+	 * 
+	 * @param name                 JsonProperty "name"
+	 * @param programmiersprache   JsonProperty "programmiersprache"
+	 * @param automatischSpeichern JsonProperty "automatischSpeichern"
+	 * @param diagrammElemente     JsonProperty "diagrammElemente"
+	 */
 	@JsonCreator
 	protected UMLProjekt(
 			@JsonProperty("name") String name,
@@ -128,11 +154,17 @@ public class UMLProjekt implements Projekt {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public String getName() {
 		return this.name;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void setName(String name) {
 		this.name = Objects.requireNonNull(name);
@@ -142,45 +174,69 @@ public class UMLProjekt implements Projekt {
 		}
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public ReadOnlyStringProperty nameProperty() {
 		if (nameProperty == null) {
-			this.nameProperty = new SimpleStringProperty(this.name);
+			this.nameProperty = new ReadOnlyStringWrapper(this.name);
 		}
-		return this.nameProperty;
+		return this.nameProperty.getReadOnlyProperty();
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Path getSpeicherort() {
 		return this.speicherort;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void setSpeicherort(Path speicherort) {
 		this.speicherort = speicherort;
 		this.istGespeichertProperty.set(false);
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public Programmiersprache getProgrammiersprache() {
 		return this.programmiersprache;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public ObservableList<UMLDiagrammElement> getDiagrammElemente() {
 		return this.diagrammElemente;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public ReadOnlyBooleanProperty istGespeichertProperty() {
-		return this.istGespeichertProperty;
+		return this.istGespeichertProperty.getReadOnlyProperty();
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public boolean automatischSpeichern() {
 		return this.automatischSpeichern;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public void setAutomatischSpeichern(boolean automatischSpeichern) {
 		this.automatischSpeichern = automatischSpeichern;
@@ -199,6 +255,11 @@ public class UMLProjekt implements Projekt {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @implNote Zum Serialisieren wird das json-Format verwendet.
+	 */
 	@Override
 	public boolean speichern() {
 		if (this.speicherort == null) {
