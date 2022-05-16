@@ -5,27 +5,14 @@
  */
 package io.github.aid_labor.classifier.uml;
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.logging.Logger;
-
-/**
- * Projektverwaltung für ein UML-Klassendiagramm
- * 
- * @author Tim Muehle
- *
- */
-public class UMLDiagramm {
-	private static final Logger log = Logger.getLogger(UMLDiagramm.class.getName());
+public enum Programmiersprache {
+//	private static final Logger log = Logger.getLogger(Programmiersprache.class.getName());
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenattribute																	*
+//  *	Enum-Konstanten																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenmethoden																		*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	Java;
 	
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -52,19 +39,28 @@ public class UMLDiagramm {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private String projektname;
-	private Path speicherort;
-	private boolean istGespeichert;
-	private List<UMLDiagrammElement> diagrammElemente;
+	
 	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public UMLDiagramm(String projektname, boolean automatischSpeichern) {
-		
-	}
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
+	
+// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
+	
+// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
+	
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
 	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

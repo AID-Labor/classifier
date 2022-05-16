@@ -219,7 +219,8 @@ public final class DateiUtil {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private DateiUtil() {
-		// Hilfsklasse, nicht instanziierbar
+		// Hilfsklasse, nicht instanziierbar!
+		throw new UnsupportedOperationException("Hilfsklasse darf nicht instanziiert werden!");
 	}
 	
 }

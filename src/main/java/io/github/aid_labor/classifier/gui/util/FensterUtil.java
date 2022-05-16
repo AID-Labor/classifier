@@ -151,9 +151,8 @@ public class FensterUtil {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private FensterUtil() {
-		// Util-Klasse, nicht instanziierbar!
-		throw new UnsupportedOperationException(
-				"Utility-Klasse darf nicht instanziiert werden!");
+		// Hilfsklasse, nicht instanziierbar!
+		throw new UnsupportedOperationException("Hilfsklasse darf nicht instanziiert werden!");
 	}
 	
 }

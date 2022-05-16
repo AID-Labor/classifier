@@ -9,6 +9,7 @@ module classifier {
 	opens io.github.aid_labor.classifier.basis to com.fasterxml.jackson.databind;
 	opens io.github.aid_labor.classifier.basis.json to com.fasterxml.jackson.databind;
 	opens io.github.aid_labor.classifier.gui.util to com.fasterxml.jackson.databind;
+	opens io.github.aid_labor.classifier.uml to com.fasterxml.jackson.databind;
 	
 	requires java.logging;
 
@@ -30,5 +31,4 @@ module classifier {
 	requires org.kordamp.ikonli.whhg;
 	requires org.kordamp.ikonli.bootstrapicons;
 	requires com.dlsc.gemsfx;
-//	requires com.dlsc.gemsfx;
 }
