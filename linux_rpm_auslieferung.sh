@@ -73,6 +73,7 @@ jpackage \
 --vendor "${VENDOR}" \
 --copyright "${COPYRIGHT}" \
 --license-file "${LICENSE_FILE}" \
+--file-associations classifier_linux.association \
 --icon "${ICON}" \
 --input "${INPUT}" \
 --dest "${OUT}" \

@@ -15,9 +15,13 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-
-@JsonSerialize(contentAs = String.class, converter = JsonStringProperty.PropertyZuStringConverter.class)
+// @formatter:off
+@JsonSerialize(
+		contentAs = String.class,
+		converter = JsonStringProperty.PropertyZuStringConverter.class
+)
 @JsonDeserialize(converter = JsonStringProperty.StringZuPropertyConverter.class)
+// @formatter:on
 public class JsonStringProperty extends SimpleStringProperty {
 	
 	private static final String NULL_STRING = "::nullstring::";

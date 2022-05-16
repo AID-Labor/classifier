@@ -16,8 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import io.github.aid_labor.classifier.basis.OS;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.io.system.OS;
 
 class LoggingEinstellung {
 	private static final Logger log = Logger.getLogger(LoggingEinstellung.class.getName());

@@ -35,19 +35,20 @@ class KommandozeilenAuswertung {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	public final Option debug;
+	public final Option debugCSS;
+	public final Option info;
+	public final Option loglevel;
+	public final Option loglevelJavaFX;
+	public final Option hilfe;
+	public final Option version;
+	
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	private final ProgrammDetails programm;
 	private final String[] args;
-	
 	private final String[] loglevels = { "ALL", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE", 
 		"FINER", "FINEST", "OFF" };
-	
-	private final Option debug;
-	private final Option info;
-	private final Option loglevel;
-	private final Option loglevelJavaFX;
-	private final Option hilfe;
-	private final Option version;
-	
 	private final Options optionen;
 	
 	
@@ -59,6 +60,8 @@ class KommandozeilenAuswertung {
 		this.args = args;
 		this.programm = programm;
 		debug = builder("d").longOpt("debug").desc("Schlatet Debug-Meldungen ein")
+				.build();
+		debugCSS = builder().longOpt("debug-css").desc("Schlatet CSS-Auto-Update ein")
 				.build();
 		info = builder("i").longOpt("info").desc("Schlatet Info-Meldungen ein").build();
 		
@@ -169,6 +172,7 @@ class KommandozeilenAuswertung {
 		loggingOptionen.addOption(debug).addOption(info);
 		
 		optionen.addOptionGroup(loggingOptionen)
+				.addOption(debugCSS)
 				.addOption(loglevel)
 				.addOption(loglevelJavaFX)
 				.addOption(hilfe)

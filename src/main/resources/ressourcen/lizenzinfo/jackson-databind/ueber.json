@@ -1,0 +1,11 @@
+{
+    "name" : "Jackson-Databind",
+    "version" : "2.13.3",
+    "beschreibung" : "General data-binding package for Jackson (2.x): works on streaming API (core) implementation(s)",
+    "github" : "https://github.com/FasterXML/jackson-databind",
+    "link" : "https://github.com/FasterXML/jackson-databind",
+    "license" : {
+        "name" : "Apache License 2.0",
+        "link" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+}

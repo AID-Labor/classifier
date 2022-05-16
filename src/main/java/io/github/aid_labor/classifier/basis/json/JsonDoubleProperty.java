@@ -13,9 +13,13 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
-
-@JsonSerialize(contentAs = Double.class, converter = JsonDoubleProperty.PropertyZuDoubleKonverter.class)
+// @formatter:off
+@JsonSerialize(
+		contentAs = Double.class,
+		converter = JsonDoubleProperty.PropertyZuDoubleKonverter.class
+)
 @JsonDeserialize(converter = JsonDoubleProperty.DoubleZuPropertyKonverter.class)
+// @formatter:on
 public class JsonDoubleProperty extends SimpleDoubleProperty {
 	public static class PropertyZuDoubleKonverter
 			extends StdConverter<DoubleProperty, Double> {

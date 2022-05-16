@@ -44,6 +44,7 @@ public final class JsonUtil {
 					.enable(JsonReadFeature.ALLOW_MISSING_VALUES)
 					.enable(SerializationFeature.INDENT_OUTPUT)
 					.build();
+			mapper.findAndRegisterModules();
 			fabrik = new JsonFactory(mapper);
 		}
 		

@@ -18,7 +18,8 @@ import java.util.MissingResourceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.github.aid_labor.classifier.basis.Sprache.SprachDatei;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache.SprachDatei;
 import javafx.beans.property.ReadOnlyStringProperty;
 
 class SpracheTest {

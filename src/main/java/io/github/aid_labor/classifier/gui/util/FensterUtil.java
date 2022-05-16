@@ -13,9 +13,14 @@ import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 import javafx.beans.Observable;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Dialog;
+import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 
 /**
@@ -56,6 +61,61 @@ public class FensterUtil {
 	public static void installiereFensterwiederherstellung(Stage fenster, int minHoehe,
 			int minBreite, Path speicherort) {
 		new Fensterwiederherstellung(fenster, minHoehe, minBreite, speicherort);
+	}
+	
+	/**
+	 * Setzt das Elternfenster fuer einen Dialog und Positioniert den Dialog mittig ueber dem
+	 * Elternfenster. Beim Anzeigen des Dialogs wird das Elternfenster blockiert. Der Dialog
+	 * bekommt alle Stylesheets des Elternfensters zugewiesen.
+	 * 
+	 * @param elternFenster Elternfenster, an das der Dialog gebunden wird
+	 * @param dialog        Dialog, der initialisiert wird
+	 */
+	public static void initialisiereElternFenster(Window elternFenster, Dialog<?> dialog) {
+		new DialogPositionierung(elternFenster, dialog);
+	}
+	
+	private static class DialogPositionierung {
+		
+		private boolean positioniert = false;
+		
+		private DialogPositionierung(Window elternFenster, Dialog<?> dialog) {
+			Bounds position = new BoundingBox(elternFenster.getX(), elternFenster.getY(),
+					elternFenster.getWidth(), elternFenster.getHeight());
+			
+			dialog.widthProperty().addListener((breite, alt, neueBreite) -> {
+				if(!positioniert) {
+					dialog.setX(position.getCenterX() - neueBreite.doubleValue() / 2);
+				}
+				
+				log.finest(() -> "Dialog %s: x=%f y=%f hoehe=%f breite=%f".formatted(
+						dialog.getTitle(), dialog.getX(), dialog.getY(), dialog.getHeight(),
+						dialog.getWidth()));
+			});
+			dialog.heightProperty().addListener((hoehe, alt, neueHoehe) -> {
+				if(!positioniert) {
+					dialog.setY(position.getCenterY() - neueHoehe.doubleValue() / 2);
+				}
+				
+				log.finest(() -> "Dialog %s: x=%f y=%f hoehe=%f breite=%f".formatted(
+						dialog.getTitle(), dialog.getX(), dialog.getY(), dialog.getHeight(),
+						dialog.getWidth()));
+			});
+			
+			dialog.setOnShown(e -> {
+				positioniert = true;
+			});
+			
+			dialog.initOwner(elternFenster);
+			dialog.initModality(Modality.WINDOW_MODAL);
+			
+			dialog.setX(position.getCenterX() - dialog.getWidth() / 2);
+			dialog.setY(position.getCenterY() - dialog.getHeight() / 2);
+			
+			dialog.getDialogPane().getStylesheets()
+					.addAll(elternFenster.getScene().getStylesheets());
+		}
+		
 	}
 	
 	private static class Fensterwiederherstellung {
