@@ -22,7 +22,7 @@
 		<jackson.version.databind>2.13.2.2</jackson.version.databind>
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
 		<junit.platform.version>1.5.2</junit.platform.version>
-		<mainClass>io.github.aid_labor.${artifactId}.main.Hauptfenster</mainClass>
+		<mainClass>io.github.aid_labor.${project.artifactId}.main.Hauptfenster</mainClass>
 		<deploymentDir>${project.basedir}/auslieferung/${project.version}</deploymentDir>
 		<deploymentInput>${deploymentDir}/${os.name}/input</deploymentInput>
 		<dependenciesDir>${deploymentInput}/lib</dependenciesDir>
@@ -118,6 +118,7 @@
 						</goals>
 						<configuration>
 							<outputDirectory>${dependenciesDir}</outputDirectory>
+							<includeScope>runtime</includeScope>
 							<overWriteReleases>true</overWriteReleases>
 							<overWriteSnapshots>true</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
@@ -125,7 +126,7 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			
 			<plugin>
 				<groupId>org.moditect</groupId>
 				<artifactId>moditect-maven-plugin</artifactId>
@@ -143,14 +144,160 @@
 							<modules>
 								<module>
 									<artifact>
+										<groupId>commons-beanutils</groupId>
+										<artifactId>commons-beanutils</artifactId>
+										<version>1.9.4</version>
+									</artifact>
+									<moduleInfoSource>
+			                        	module commons.beanutils {
+										    requires commons.logging;
+										
+										    requires transitive commons.collections;
+										    requires transitive java.desktop;
+										    requires transitive java.sql;
+										
+										    exports org.apache.commons.beanutils;
+										    exports org.apache.commons.beanutils.converters;
+										    exports org.apache.commons.beanutils.expression;
+										    exports org.apache.commons.beanutils.locale;
+										    exports org.apache.commons.beanutils.locale.converters;
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
 										<groupId>commons-cli</groupId>
 										<artifactId>commons-cli</artifactId>
 										<version>1.5.0</version>
 									</artifact>
 									<moduleInfoSource>
-			                            module commons.cli {
+			                        	module commons.cli {
 			                                exports org.apache.commons.cli;
 			                            }
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>commons-collections</groupId>
+										<artifactId>commons-collections</artifactId>
+										<version>3.2.2</version>
+									</artifact>
+									<moduleInfoSource>
+			                        	module commons.collections {
+										    requires java.desktop;
+										
+										    exports org.apache.commons.collections;
+										    exports org.apache.commons.collections.bag;
+										    exports org.apache.commons.collections.bidimap;
+										    exports org.apache.commons.collections.buffer;
+										    exports org.apache.commons.collections.collection;
+										    exports org.apache.commons.collections.comparators;
+										    exports org.apache.commons.collections.functors;
+										    exports org.apache.commons.collections.iterators;
+										    exports org.apache.commons.collections.keyvalue;
+										    exports org.apache.commons.collections.list;
+										    exports org.apache.commons.collections.map;
+										    exports org.apache.commons.collections.set;
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>commons-digester</groupId>
+										<artifactId>commons-digester</artifactId>
+										<version>2.1</version>
+									</artifact>
+									<moduleInfoSource>
+			                        	module commons.digester {
+										    requires commons.beanutils;
+										    requires java.desktop;
+										
+										    requires transitive commons.logging;
+										    requires transitive java.xml;
+										
+										    exports org.apache.commons.digester;
+										    exports org.apache.commons.digester.annotations;
+										    exports org.apache.commons.digester.annotations.handlers;
+										    exports org.apache.commons.digester.annotations.internal;
+										    exports org.apache.commons.digester.annotations.providers;
+										    exports org.apache.commons.digester.annotations.reflect;
+										    exports org.apache.commons.digester.annotations.rules;
+										    exports org.apache.commons.digester.annotations.spi;
+										    exports org.apache.commons.digester.annotations.utils;
+										    exports org.apache.commons.digester.parser;
+										    exports org.apache.commons.digester.plugins;
+										    exports org.apache.commons.digester.plugins.strategies;
+										    exports org.apache.commons.digester.substitution;
+										    exports org.apache.commons.digester.xmlrules;
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>org.apache.commons</groupId>
+										<artifactId>commons-lang3</artifactId>
+										<version>3.11</version>
+									</artifact>
+									<moduleInfoSource>
+			                        	module org.apache.commons.lang3 {
+										    requires transitive java.desktop;
+										
+										    exports org.apache.commons.lang3;
+										    exports org.apache.commons.lang3.arch;
+										    exports org.apache.commons.lang3.builder;
+										    exports org.apache.commons.lang3.compare;
+										    exports org.apache.commons.lang3.concurrent;
+										    exports org.apache.commons.lang3.concurrent.locks;
+										    exports org.apache.commons.lang3.event;
+										    exports org.apache.commons.lang3.exception;
+										    exports org.apache.commons.lang3.function;
+										    exports org.apache.commons.lang3.math;
+										    exports org.apache.commons.lang3.mutable;
+										    exports org.apache.commons.lang3.reflect;
+										    exports org.apache.commons.lang3.stream;
+										    exports org.apache.commons.lang3.text;
+										    exports org.apache.commons.lang3.text.translate;
+										    exports org.apache.commons.lang3.time;
+										    exports org.apache.commons.lang3.tuple;
+										
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>commons-logging</groupId>
+										<artifactId>commons-logging</artifactId>
+										<version>1.2</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module commons.logging {
+										    requires transitive java.logging;
+										
+										    exports org.apache.commons.logging;
+										    exports org.apache.commons.logging.impl;
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>commons-validator</groupId>
+										<artifactId>commons-validator</artifactId>
+										<version>1.7</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module commons.validator {
+										    requires commons.beanutils;
+										    requires commons.logging;
+										
+										    requires transitive commons.collections;
+										    requires transitive commons.digester;
+										    requires transitive java.xml;
+										
+										    exports org.apache.commons.validator;
+										    exports org.apache.commons.validator.routines;
+										    exports org.apache.commons.validator.routines.checkdigit;
+										    exports org.apache.commons.validator.util;
+										}
 			                        </moduleInfoSource>
 								</module>
 								<module>
@@ -170,6 +317,80 @@
 										    exports impl.com.pixelduke.skin;
 										    exports impl.com.pixelduke.skin.ribbon;
 			                            }
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>javax.inject</groupId>
+										<artifactId>javax.inject</artifactId>
+										<version>1</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module javax.inject {
+										    exports javax.inject;
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>com.squareup.okhttp3</groupId>
+										<artifactId>okhttp</artifactId>
+										<version>3.12.0</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module okhttp3 {
+										    requires java.logging;
+										
+										    requires transitive okio;
+										
+										    exports okhttp3;
+										    exports okhttp3.internal;
+										    exports okhttp3.internal.annotations;
+										    exports okhttp3.internal.cache;
+										    exports okhttp3.internal.cache2;
+										    exports okhttp3.internal.connection;
+										    exports okhttp3.internal.http;
+										    exports okhttp3.internal.http1;
+										    exports okhttp3.internal.http2;
+										    exports okhttp3.internal.io;
+										    exports okhttp3.internal.platform;
+										    exports okhttp3.internal.proxy;
+										    exports okhttp3.internal.publicsuffix;
+										    exports okhttp3.internal.tls;
+										    exports okhttp3.internal.ws;
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>com.squareup.okio</groupId>
+										<artifactId>okio</artifactId>
+										<version>1.15.0</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module okio {
+										    requires java.logging;
+										
+										    exports okio;
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>com.squareup.retrofit2</groupId>
+										<artifactId>retrofit</artifactId>
+										<version>2.6.1</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module retrofit2 {
+										    requires okio;
+										
+										    requires transitive okhttp3;
+										
+										    exports retrofit2;
+										    exports retrofit2.http;
+										    exports retrofit2.internal;
+										}
 			                        </moduleInfoSource>
 								</module>
 							</modules>
@@ -222,6 +443,11 @@
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-graphics</artifactId>
+			<version>${javafx.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-swing</artifactId>
 			<version>${javafx.version}</version>
 		</dependency>
 

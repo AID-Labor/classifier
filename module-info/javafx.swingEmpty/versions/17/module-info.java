@@ -1,0 +1,2 @@
+module javafx.swingEmpty {
+}
