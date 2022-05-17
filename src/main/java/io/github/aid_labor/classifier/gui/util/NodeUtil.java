@@ -16,6 +16,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 
@@ -188,6 +189,18 @@ public final class NodeUtil {
 		container.getChildren().add(plus);
 		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
 		return container;
+	}
+	
+	public static void disable(Node... knoten) {
+		for (Node node : knoten) {
+			node.setDisable(true);
+		}
+	}
+	
+	public static void disable(MenuItem... knoten) {
+		for (MenuItem node : knoten) {
+			node.setDisable(true);
+		}
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

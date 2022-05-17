@@ -1,0 +1,11 @@
+{
+    "name" : "cssfx",
+    "version" : "11.5.1",
+    "beschreibung" : "CSSFX enhances developer productivity by providing CSS reloading functionality in your running application.",
+    "github" : "https://github.com/McFoggy/cssfx",
+    "link" : "https://github.com/McFoggy/cssfx",
+    "license" : {
+        "name" : "Apache License 2.0",
+        "link" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+}

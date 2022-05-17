@@ -1,6 +1,6 @@
 {
     "name" : "OpenJFX",
-    "version" : "17.0.1",
+    "version" : "17.0.2",
     "beschreibung" : "OpenJFX is an open source, next generation client application platform for desktop, mobile and embedded systems based on JavaSE. It is a collaborative effort by many individuals and companies with the goal of producing a modern, efficient, and fully featured toolkit for developing rich client applications. This is the open source project where we develop JavaFX. \nOpenJFX is free software, licensed under GPL v2 with the Classpath exception, just like the JDK. Anybody is welcome to contribute to this project, port it to other platforms or devices, or do anything else that a free software license allows you to do!\nOpenJFX is a project under the charter of the OpenJDK. The OpenJDK Bylaws and License govern our work. The OpenJFX project membership can be found on the OpenJDK Census. We welcome patches and involvement from individual contributors or companies. If this is your first time contributing to an OpenJDK project, you will need to review the rules on becoming a Contributor, and sign the Oracle Contributor Agreement (OCA).",
     "github" : "https://github.com/openjdk/jfx",
     "link" : "https://openjdk.java.net/projects/openjfx/",

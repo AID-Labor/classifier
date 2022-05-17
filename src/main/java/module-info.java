@@ -31,4 +31,5 @@ module classifier {
 	requires org.kordamp.ikonli.whhg;
 	requires org.kordamp.ikonli.bootstrapicons;
 	requires com.dlsc.gemsfx;
+	requires fr.brouillard.oss.cssfx;
 }

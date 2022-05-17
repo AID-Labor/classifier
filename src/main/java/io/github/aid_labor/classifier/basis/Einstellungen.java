@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
 import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
+import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 
 
@@ -28,12 +29,11 @@ public class Einstellungen {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 	private static Logger log = Logger.getLogger(Einstellungen.class.getName());
 	
 	private static Einstellungen defaultInstanz;
 	private static Einstellungen benutzerInstanz;
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																	*
@@ -75,8 +75,7 @@ public class Einstellungen {
 		}
 	}
 	
-	
-	// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	// private ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 	private static boolean speichern(Einstellungen e, Path ziel) {
 		try (JsonGenerator generator = JsonUtil.getUTF8JsonGenerator(ziel)) {
 			generator.writePOJO(e);
@@ -101,7 +100,6 @@ public class Einstellungen {
 		
 	}
 	
-	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                                    #
 // #	Instanzen																		#
@@ -114,6 +112,7 @@ public class Einstellungen {
 	
 	public final JsonEnumProperty<Theme> themeEinstellung;
 	public final JsonLocaleProperty sprachEinstellung;
+	public final JsonStringProperty letzterSpeicherortEinstellung;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -123,6 +122,8 @@ public class Einstellungen {
 	private Einstellungen() {
 		this.themeEinstellung = new JsonEnumProperty<Theme>(Theme.SYSTEM);
 		this.sprachEinstellung = new JsonLocaleProperty(Locale.GERMAN);
+		this.letzterSpeicherortEinstellung = new JsonStringProperty(
+				OS.getDefault().getNutzerOrdner());
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

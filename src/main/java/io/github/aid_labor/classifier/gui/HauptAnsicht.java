@@ -23,21 +23,25 @@ import org.kordamp.ikonli.remixicon.RemixiconMZ;
 import org.kordamp.ikonli.typicons.Typicons;
 import org.kordamp.ikonli.whhg.WhhgAL;
 
+import com.dlsc.gemsfx.DialogPane;
 import com.pixelduke.control.Ribbon;
 import com.pixelduke.control.ribbon.Column;
 import com.pixelduke.control.ribbon.QuickAccessBar;
 import com.pixelduke.control.ribbon.RibbonGroup;
 import com.pixelduke.control.ribbon.RibbonTab;
 
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.Ressourcen;
 import io.github.aid_labor.classifier.basis.SprachUtil;
 import io.github.aid_labor.classifier.basis.Sprache;
 import io.github.aid_labor.classifier.gui.elemente.ElementIcon;
 import io.github.aid_labor.classifier.gui.util.ButtonTyp;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
+import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Labeled;
@@ -45,13 +49,13 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 
@@ -77,19 +81,23 @@ public class HauptAnsicht implements View {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private final BorderPane wurzel;
-	private final HauptController controller;
+	private final Pane wurzel;
+	private final HauptKontrolle controller;
 	private final Sprache sprache;
-	private final TabPane projektAnsicht;
+	private final ProjekteAnsicht projektAnsicht;
+	private final DialogPane overlayDialog;
+	private final ProgrammDetails programm;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public HauptAnsicht() {
-		this.wurzel = new BorderPane();
-		this.controller = new HauptController(this);
+	public HauptAnsicht(ProgrammDetails programm) {
+		this.wurzel = new StackPane();
 		this.sprache = new Sprache();
+		this.overlayDialog = new DialogPane();
+		this.programm = programm;
+		this.controller = new HauptKontrolle(this, sprache);
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht");
@@ -99,10 +107,23 @@ public class HauptAnsicht implements View {
 		
 		var menue = erstelleMenueLeiste();
 		var ribbon = erstelleRibbon();
-		wurzel.setTop(new VBox(menue, ribbon));
 		
-		this.projektAnsicht = new TabPane();
-		wurzel.setCenter(projektAnsicht);
+		var hauptInhalt = new BorderPane();
+		hauptInhalt.setTop(new VBox(menue, ribbon));
+		
+		this.projektAnsicht = new ProjekteAnsicht(overlayDialog, programm);
+		hauptInhalt.setCenter(projektAnsicht.getAnsicht());
+		
+		this.projektAnsicht.getAngezeigtesProjektProperty()
+				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
+					// TODO update speichersymbol Bindung
+					if(gezeigtesProjekt != null) {
+						
+					}
+				});
+		
+		wurzel.getChildren().add(hauptInhalt);
+		wurzel.getChildren().add(overlayDialog);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -112,13 +133,20 @@ public class HauptAnsicht implements View {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	@Override
-	public BorderPane getWurzelknoten() {
+	public Parent getWurzelknoten() {
 		return wurzel;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	protected DialogPane getOverlayDialog() {
+		return this.overlayDialog;
+	}
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	ProjekteAnsicht getProjektAnsicht() {
+		return projektAnsicht;
+	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -186,6 +214,12 @@ public class HauptAnsicht implements View {
 				dateiSpeichernUnter, dateiUmbenennen, new SeparatorMenuItem(),
 				dateiImportieren, dateiExportieren);
 		
+		NodeUtil.disable(dateiOeffnen, dateiLetzeOeffnen, dateiSchliessen,
+				dateiSpeichern, dateiAlleSpeichern, dateiSpeichernUnter, dateiUmbenennen,
+				dateiImportieren, dateiExportieren);
+		
+		dateiNeu.setOnAction(this.controller::neuesProjektErzeugen);
+		
 		return dateiMenue;
 	}
 	
@@ -206,6 +240,8 @@ public class HauptAnsicht implements View {
 		
 		bearbeitenMenue.getItems().addAll(rueckgaengig, wiederholen, new SeparatorMenuItem(),
 				kopieren, einfuegen, loeschen);
+		
+		NodeUtil.disable(rueckgaengig, wiederholen, kopieren, einfuegen, loeschen);
 		
 		return bearbeitenMenue;
 	}
@@ -230,6 +266,9 @@ public class HauptAnsicht implements View {
 				new SeparatorMenuItem(), vererbungEinfuegen, assoziationEinfuegen,
 				new SeparatorMenuItem(), kommentarEinfuegen);
 		
+		NodeUtil.disable(klasseEinfuegen, interfaceEinfuegen, enumEinfuegen,
+				vererbungEinfuegen, assoziationEinfuegen, kommentarEinfuegen);
+		
 		return einfuegenMenue;
 	}
 	
@@ -247,6 +286,9 @@ public class HauptAnsicht implements View {
 		
 		anordnenMenue.getItems().addAll(anordnenNachVorne, anordnenNachGanzVorne,
 				anordnenNachHinten, anordnenNachGanzHinten);
+		
+		NodeUtil.disable(anordnenNachVorne, anordnenNachGanzVorne, anordnenNachHinten,
+				anordnenNachGanzHinten);
 		
 		return anordnenMenue;
 	}
@@ -272,6 +314,8 @@ public class HauptAnsicht implements View {
 		darstellungMenue.getItems().addAll(zoomen, new SeparatorMenuItem(), vollbild,
 				new SeparatorMenuItem(), symbolleisteAusblenden);
 		
+		NodeUtil.disable(zoomen, vollbild, symbolleisteAusblenden);
+		
 		return darstellungMenue;
 	}
 	
@@ -290,6 +334,8 @@ public class HauptAnsicht implements View {
 		fensterMenue.getItems().addAll(minimieren, maximieren, new SeparatorMenuItem(),
 				vorherigerTab, naechsterTab);
 		
+		NodeUtil.disable(minimieren, maximieren, vorherigerTab, naechsterTab);
+		
 		return fensterMenue;
 	}
 	
@@ -305,6 +351,8 @@ public class HauptAnsicht implements View {
 		
 		einstellungenMenue.getItems().addAll(voidAnzeigen, new SeparatorMenuItem(), theme,
 				new SeparatorMenuItem(), info);
+		
+		NodeUtil.disable(voidAnzeigen, theme, info);
 		
 		return einstellungenMenue;
 	}
@@ -334,6 +382,9 @@ public class HauptAnsicht implements View {
 		
 		ribbon.setQuickAccessBar(schnellzugriff);
 		ribbon.getTabs().addAll(startTab, diagrammTab);
+		
+		NodeUtil.disable(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
+				wiederholenSchnellzugriff);
 		
 		return ribbon;
 	}
@@ -406,6 +457,11 @@ public class HauptAnsicht implements View {
 		NodeUtil.macheUnfokussierbar(ersteSpalte.getChildren());
 		NodeUtil.macheUnfokussierbar(zweiteSpalte.getChildren());
 		
+		NodeUtil.disable(oeffnen, importieren, screenshot, exportieren);
+		
+		neu.setOnAction(controller::neuesProjektErzeugen);
+		speichern.setOnAction(controller::projektSpeichern);
+		
 		return projekt;
 	}
 	
@@ -431,6 +487,8 @@ public class HauptAnsicht implements View {
 		
 		NodeUtil.macheUnfokussierbar(bearbeiten.getNodes());
 		NodeUtil.macheUnfokussierbar(spalte.getChildren());
+		
+		NodeUtil.disable(kopieren, einfuegen, loeschen, rueckgaengig, wiederholen);
 		
 		return bearbeiten;
 	}
@@ -461,6 +519,9 @@ public class HauptAnsicht implements View {
 		NodeUtil.macheUnfokussierbar(anordnen.getNodes());
 		NodeUtil.macheUnfokussierbar(ersteSpalte.getChildren());
 		NodeUtil.macheUnfokussierbar(zweiteSpalte.getChildren());
+		
+		NodeUtil.disable(anordnenNachVorne, anordnenNachGanzVorne, anordnenNachHinten,
+				anordnenNachGanzHinten);
 		
 		return anordnen;
 	}
@@ -496,6 +557,8 @@ public class HauptAnsicht implements View {
 		
 		NodeUtil.macheUnfokussierbar(diagrammElemente.getNodes());
 		
+		NodeUtil.disable(neueKlasse, neuesInterface, neueEnumeration);
+		
 		return diagrammElemente;
 	}
 	
@@ -530,12 +593,15 @@ public class HauptAnsicht implements View {
 		
 		NodeUtil.macheUnfokussierbar(verbindungen.getNodes());
 		
+		NodeUtil.disable(vererbung, assoziation);
+		
 		return verbindungen;
 	}
 	
 	private RibbonGroup erstelleSonstigeGruppe() {
 		Button kommentar = new Button();
-		var kommentarGrafik = NodeUtil.fuegeGrafikHinzu(kommentar, Ressourcen.get().UML_KOMMENTAR, 90);
+		var kommentarGrafik = NodeUtil.fuegeGrafikHinzu(kommentar,
+				Ressourcen.get().UML_KOMMENTAR, 90);
 		var kommentarContainer = NodeUtil.plusIconHinzufuegen(kommentarGrafik);
 		kommentar.setGraphic(kommentarContainer);
 		kommentar.setGraphicTextGap(-30);
@@ -544,6 +610,8 @@ public class HauptAnsicht implements View {
 		sonstiges.getNodes().add(kommentar);
 		
 		NodeUtil.macheUnfokussierbar(sonstiges.getNodes());
+		
+		NodeUtil.disable(kommentar);
 		
 		return sonstiges;
 	}
@@ -569,6 +637,8 @@ public class HauptAnsicht implements View {
 		
 		NodeUtil.macheUnfokussierbar(zoom.getNodes());
 		NodeUtil.macheUnfokussierbar(spalte.getChildren());
+		
+		NodeUtil.disable(zoomGroesser, zoomKleiner, zoomOriginalgroesse);
 		
 		return zoom;
 	}
@@ -597,16 +667,8 @@ public class HauptAnsicht implements View {
 	// =====================================================================================
 	// Beginn Projektansicht
 	
-	
-	/**
-	 * eindeutige ID, mit der Projekte in einer Map fuer spaeteren Zugriff gespeichert werden
-	 */
-	private int naechsteProjektID = 0;
-	
-	private void erzeugeProjekt() {
-		Tab tab = new Tab();
-		tab.setUserData(naechsteProjektID);	// Tab merkt sich die ID des zugehoerigen Projektes
-		naechsteProjektID++;
+	void zeigeProjekt(UMLProjekt projekt) {
+		this.projektAnsicht.zeigeProjekt(projekt);
 	}
 	
 }

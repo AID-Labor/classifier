@@ -17,7 +17,7 @@
 	<packaging>jar</packaging>
 
 	<properties>
-		<javafx.version>17.0.1</javafx.version>
+		<javafx.version>17.0.2</javafx.version>
 		<jackson.version.core>2.13.2</jackson.version.core>
 		<jackson.version.databind>2.13.2.2</jackson.version.databind>
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
@@ -126,7 +126,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.moditect</groupId>
 				<artifactId>moditect-maven-plugin</artifactId>
@@ -297,6 +297,29 @@
 										    exports org.apache.commons.validator.routines;
 										    exports org.apache.commons.validator.routines.checkdigit;
 										    exports org.apache.commons.validator.util;
+										}
+			                        </moduleInfoSource>
+								</module>
+								<module>
+									<artifact>
+										<groupId>fr.brouillard.oss</groupId>
+										<artifactId>cssfx</artifactId>
+										<version>11.5.1</version>
+									</artifact>
+									<moduleInfoSource>
+			                            module fr.brouillard.oss.cssfx {
+										    requires java.logging;
+										    requires jdk.unsupported;
+										
+										    requires transitive javafx.base;
+										    requires transitive javafx.graphics;
+										
+										    exports fr.brouillard.oss.cssfx;
+										    exports fr.brouillard.oss.cssfx.api;
+										    exports fr.brouillard.oss.cssfx.impl;
+										    exports fr.brouillard.oss.cssfx.impl.events;
+										    exports fr.brouillard.oss.cssfx.impl.log;
+										    exports fr.brouillard.oss.cssfx.impl.monitoring;
 										}
 			                        </moduleInfoSource>
 								</module>
@@ -521,6 +544,13 @@
 			<artifactId>hamcrest-library</artifactId>
 			<version>2.2</version>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- Auto-Reload CSS -->
+		<dependency>
+			<groupId>fr.brouillard.oss</groupId>
+			<artifactId>cssfx</artifactId>
+			<version>11.5.1</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -7,49 +7,11 @@ package io.github.aid_labor.classifier.gui;
 
 import java.util.logging.Logger;
 
-public class HauptController {
-	private static final Logger log = Logger.getLogger(HauptController.class.getName());
+import io.github.aid_labor.classifier.uml.UMLProjekt;
+import javafx.event.Event;
 
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenattribute																	*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
-	
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
-	
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
-	
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
-	
-	
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenmethoden																		*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
-	
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
-	
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
-	
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	
+class ProjekteKontrolle {
+	private static final Logger log = Logger.getLogger(ProjekteKontrolle.class.getName());
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -75,15 +37,15 @@ public class HauptController {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private HauptAnsicht view;
+	private final ProjekteAnsicht ansicht;
 	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	HauptController(HauptAnsicht view) {
-		this.view = view;
+	ProjekteKontrolle(ProjekteAnsicht ansicht) {
+		this.ansicht = ansicht;
 	}
 	
 	

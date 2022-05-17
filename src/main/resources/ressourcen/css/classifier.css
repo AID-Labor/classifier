@@ -1,3 +1,7 @@
+.root {
+    -fx-font: normal 1em sans-serif;
+}
+
 .element-icon {
     -fx-alignment: center;
     -fx-border-width: 4px;
@@ -20,4 +24,13 @@
 #assoziationButton {
     -fx-graphic-text-gap: 25;
     -fx-label-padding: 25 0 0 0
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-padding: 0 5 0 0;
+}
+
+.tab-ungespeichert > .tab-container > .tab-label {
+    -fx-text-fill: red;
+    -fx-font-style: italic;
 }

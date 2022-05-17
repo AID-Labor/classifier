@@ -7,8 +7,6 @@
 package io.github.aid_labor.classifier.basis;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -203,32 +201,41 @@ public class Ressourcen {
 		erstelleRessourcenOrdner();
 	}
 	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Getter und Setter																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Methoden																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
 	private void erstelleRessourcenOrdner() {
-		try {
-			URI codePfad = Ressourcen.class.getProtectionDomain().getCodeSource()
-					.getLocation().toURI();
-			
-			if (codePfad.getPath().contains("classes")) {
-				// Programm wird nicht in einer jar-Datei ausgefuehrt (z.B. Aufruf aus IDE)
+		var umgebung = AusfuehrUmgebung.getFuerKlasse(programm.hauptklasse());
+		switch (umgebung) {
+			case IDE -> {
 				try {
-					Path von = Path.of(codePfad).resolve("ressourcen");
+					Path von = Path
+							.of(AusfuehrUmgebung.getAusfuehrPfad(programm.hauptklasse()))
+							.resolve("ressourcen");
 					Path nach = OS.getDefault().getKonfigurationsOrdnerPath(programm);
 					DateiUtil.kopiereDateibaum(von, nach);
 				} catch (IOException e) {
 					log.log(Level.WARNING, e, () -> "Kopieren der Ressourcen fehlgeschlagen");
 				}
-			} else if (codePfad.toString().endsWith(".jar")) {
-				// Programm wird in einer jar-Datei ausgefuehrt
+			}
+			case JAR -> {
 				log.fine(() -> "Aus Jar Extrahieren");
 				try {
-					DateiUtil.extrahiereAusJar(codePfad, "ressourcen",
+					DateiUtil.extrahiereAusJar(
+							AusfuehrUmgebung.getAusfuehrPfad(programm.hauptklasse()),
+							"ressourcen",
 							OS.getDefault().getKonfigurationsOrdnerPath(programm));
 				} catch (IOException e) {
 					log.log(Level.WARNING, e,
 							() -> "Exportieren der Ressourcen aus Jar fehlgeschlagen");
 				}
-			} else if (codePfad.toString().contains("jrt:/")) {
-				// Programm wird aus jmod ausgefuehrt
+			}
+			case JMOD -> {
 				log.fine(() -> "Aus jmod Extrahieren");
 				try {
 					DateiUtil.extrahiereAusJmod(
@@ -239,9 +246,8 @@ public class Ressourcen {
 							() -> "Exportieren der Ressourcen aus Jmod fehlgeschlagen");
 				}
 			}
-		} catch (URISyntaxException e) {
-			log.log(Level.WARNING, e,
-					() -> "Ausfuehrpfad der Klasse konnte nicht festgestellt werden");
+			default ->
+				log.severe(() -> "Ausfuehrpfad der Klasse konnte nicht festgestellt werden");
 		}
 	}
 	
