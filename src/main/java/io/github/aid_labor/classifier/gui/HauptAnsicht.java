@@ -82,24 +82,6 @@ public class HauptAnsicht {
 		hauptInhalt.setTop(new VBox(menueAnsicht.getMenueleiste(), ribbonAnsicht.getRibbon()));
 		hauptInhalt.setCenter(projektAnsicht.getAnsicht());
 		
-		this.projektAnsicht.getAngezeigtesProjektProperty()
-				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
-					// TODO update speichersymbol Bindung
-					if (gezeigtesProjekt != null) {
-						ribbonAnsicht.getSpeichern().setDisable(false);
-						NodeUtil.setzeHervorhebung(gezeigtesProjekt.istGespeichertProperty(), ribbonAnsicht.getSpeichern());
-						gezeigtesProjekt.istGespeichertProperty().addListener(
-								(gespeichertProperty, alterWert, istGespeichert) -> {
-									NodeUtil.setzeHervorhebung(spracheGesetzt, ribbonAnsicht.getSpeichern());
-								});
-					} else {
-						ribbonAnsicht.getSpeichern().setDisable(true);
-					}
-				});
-		if(projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.disable(ribbonAnsicht.getSpeichern());
-		}
-		
 		wurzel.getChildren().add(hauptInhalt);
 		wurzel.getChildren().add(overlayDialog);
 	}
@@ -145,10 +127,26 @@ public class HauptAnsicht {
 	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
 		// Menue Datei
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
+		menue.getDateiSpeichern().setOnAction(this.controller::projektSpeichern);
+		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
+		
+		// Speichern updaten
+		this.projektAnsicht.getAngezeigtesProjektProperty()
+				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
+					if (gezeigtesProjekt != null) {
+						menue.getDateiSpeichern().setDisable(false);
+						menue.getDateiSpeichernUnter().setDisable(false);
+					} else {
+						menue.getDateiSpeichern().setDisable(true);
+						menue.getDateiSpeichernUnter().setDisable(true);
+					}
+				});
+		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
+			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter());
+		}
 		
 		NodeUtil.disable(menue.getDateiOeffnen(), menue.getDateiLetzeOeffnen(),
-				menue.getDateiSchliessen(), menue.getDateiSpeichern(),
-				menue.getDateiAlleSpeichern(), menue.getDateiSpeichernUnter(),
+				menue.getDateiSchliessen(), menue.getDateiAlleSpeichern(),
 				menue.getDateiUmbenennen(), menue.getDateiImportieren());
 		
 		// Menue Bearbeiten
@@ -180,6 +178,35 @@ public class HauptAnsicht {
 	// Beginn Ribbon
 	
 	private void setzeRibbonAktionen(RibbonKomponente ribbon) {
+		ribbon.getNeu().setOnAction(controller::neuesProjektErzeugen);
+		ribbon.getSpeichern().setOnAction(controller::projektSpeichern);
+		ribbon.getSpeichernSchnellzugriff().setOnAction(controller::projektSpeichern);
+		
+		// Speichersymbol updaten
+		this.projektAnsicht.getAngezeigtesProjektProperty()
+				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
+					if (gezeigtesProjekt != null) {
+						ribbon.getSpeichern().setDisable(false);
+						ribbon.getSpeichernSchnellzugriff().setDisable(false);
+						NodeUtil.setzeHervorhebung(
+								gezeigtesProjekt.istGespeichertProperty().not().get(),
+								ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
+						gezeigtesProjekt.istGespeichertProperty().addListener(
+								(gespeichertProperty, alterWert, istGespeichert) -> {
+									NodeUtil.setzeHervorhebung(!istGespeichert,
+											ribbon.getSpeichern(),
+											ribbon.getSpeichernSchnellzugriff());
+								});
+					} else {
+						NodeUtil.setzeHervorhebung(false, ribbon.getSpeichern(),
+								ribbon.getSpeichernSchnellzugriff());
+						ribbon.getSpeichern().setDisable(true);
+						ribbon.getSpeichernSchnellzugriff().setDisable(true);
+					}
+				});
+		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
+			NodeUtil.disable(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
+		}
 		
 		NodeUtil.disable(ribbon.getOeffnen(), ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
@@ -198,8 +225,6 @@ public class HauptAnsicht {
 				ribbon.getRueckgaengigSchnellzugriff(),
 				ribbon.getWiederholenSchnellzugriff());
 		
-		ribbon.getNeu().setOnAction(controller::neuesProjektErzeugen);
-		ribbon.getSpeichern().setOnAction(controller::projektSpeichern);
 	}
 	
 	// Ende Ribbon

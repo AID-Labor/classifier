@@ -214,9 +214,22 @@ public final class NodeUtil {
 	 */
 	public static void setzeHervorhebung(boolean hervorheben, Node element) {
 		if (hervorheben) {
-			element.setId(null);
-		} else {
 			element.setId("HERVORHEBUNG");
+		} else {
+			element.setId(null);
+		}
+	}
+	
+	/**
+	 * Setzt bei mehreren Elementen die Id {@code "HERVORHEBUNG"} oder entfernt diese.
+	 * 
+	 * @param hervorheben {@code true}, wenn die Id gesetzt werden soll oder {@code false} zum
+	 *                    Aufheben
+	 * @param elemente    Elemente, die die Id erhalten
+	 */
+	public static void setzeHervorhebung(boolean hervorheben, Node... elemente) {
+		for(Node element : elemente) {
+			setzeHervorhebung(hervorheben, element);
 		}
 	}
 	
