@@ -3,7 +3,7 @@
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io.system;
 
 /**
  * Zeigt an, dass eine Systemoperation oder das verwendete Betriebssystem nicht unterstuetzt 

@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.sprachverwaltung;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +18,9 @@ import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.github.aid_labor.classifier.basis.Sprache.SprachDatei;
+import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache.SprachDatei;
 import javafx.beans.property.StringProperty;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
@@ -38,22 +40,15 @@ public final class SprachUtil {
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	// public ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
-	// protected ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
-	// package ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
-	// private ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	// public ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	/**
-	 * Sucht nach Sprachdateien und stellt die erte gefundene Sprache aus der Reihenfolge ein.
+	 * Sucht nach Sprachdateien und stellt die erste gefundene Sprache aus der Reihenfolge
+	 * ein.
 	 * 
 	 * @param sprache         Sprach-Objekt, fuer das die Sprache gesetzt wird
 	 * @param suchordner      Ordner, in dem nach Sprachdateien gesucht wird
@@ -81,16 +76,16 @@ public final class SprachUtil {
 	}
 	
 	/**
-	 * Sucht nach Sprachdateien und stellt die erte gefundene Sprache aus der folgenden
+	 * Sucht nach Sprachdateien und stellt die erste gefundene Sprache aus der folgenden
 	 * Reihenfolge ein:
 	 * <ol>
-	 * <li> {@link Einstellungen#sprachEinstellung aus Einstellungen#getBenutzerdefiniert()}
-	 * <li> {@link Einstellungen#sprachEinstellung aus Einstellungen#getDefault()}
-	 * <li> {@link Locale#GERMAN}
-	 * <li> {@link Locale#GERMANY}
-	 * <li> {@link Locale#ENGLISH}
-	 * <li> {@link Locale#UK}
-	 * <li> {@link Locale#US}
+	 * <li>{@link Einstellungen#sprachEinstellung aus Einstellungen#getBenutzerdefiniert()}
+	 * <li>{@link Einstellungen#sprachEinstellung aus Einstellungen#getDefault()}
+	 * <li>{@link Locale#GERMAN}
+	 * <li>{@link Locale#GERMANY}
+	 * <li>{@link Locale#ENGLISH}
+	 * <li>{@link Locale#UK}
+	 * <li>{@link Locale#US}
 	 * </ol>
 	 * 
 	 * @param sprache         Sprach-Objekt, fuer das die Sprache gesetzt wird
@@ -103,7 +98,7 @@ public final class SprachUtil {
 	 */
 	public static boolean setUpSprache(Sprache sprache, Path suchordner, String dateiPraefix) {
 		return setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
-				"HauptAnsicht", Einstellungen.getBenutzerdefiniert().sprachEinstellung.get(),
+				dateiPraefix, Einstellungen.getBenutzerdefiniert().sprachEinstellung.get(),
 				Einstellungen.getDefault().sprachEinstellung.get(), Locale.GERMAN,
 				Locale.GERMANY, Locale.ENGLISH, Locale.UK, Locale.US);
 	}
@@ -147,7 +142,7 @@ public final class SprachUtil {
 	 */
 	public static Map<Locale, SprachDatei> sucheSprachdateien(Path suchordner,
 			String dateiPraefix) throws IOException {
-		log.finer(() -> "Suche nach Sprachdateien mit dem Namen %s* im Ordner %s"
+		log.config(() -> "Suche nach Sprachdateien mit dem Namen %s* im Ordner %s"
 				.formatted(dateiPraefix, suchordner));
 		
 		Map<Locale, SprachDatei> dateien = new HashMap<>();
@@ -158,7 +153,7 @@ public final class SprachUtil {
 					&& datei.getFileName().toString().startsWith(dateiPraefix)) {
 				Locale l = Locale
 						.forLanguageTag(datei.getParent().getFileName().toString());
-				log.finest(() -> "gefunden: %s [%s - %s]".formatted(datei,
+				log.config(() -> "gefunden: %s [%s - %s]".formatted(datei,
 						l.getDisplayLanguage(), l.toLanguageTag()));
 				dateien.put(l, new SprachDatei(datei, l));
 			}
@@ -259,7 +254,6 @@ public final class SprachUtil {
 		return node;
 	}
 	
-
 	/**
 	 * Bindet die uebergebene textProperty an das textProperty der uebergebenen Sprache
 	 * zu dem textSchluessel. Falls der Schluessel nicht existiert, wird der alternative Text
@@ -275,11 +269,11 @@ public final class SprachUtil {
 		textProperty.bind(sprache.getTextProperty(textSchluessel, alternativText));
 	}
 	
-	// protected ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	// package ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	// private ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #

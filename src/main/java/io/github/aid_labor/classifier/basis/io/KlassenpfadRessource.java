@@ -1,19 +1,19 @@
-/* 
+/*
  * Dieser Quellcode steht unter der MIT-License.
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
-package io.github.aid_labor.classifier.basis;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+package io.github.aid_labor.classifier.basis.io;
+
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
-final class LokaleRessource extends Ressource {
+
+final class KlassenpfadRessource extends Ressource {
 	
-	private static final Logger log = Logger.getLogger(LokaleRessource.class.getName());
+	private static final Logger log = Logger.getLogger(KlassenpfadRessource.class.getName());
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -29,14 +29,13 @@ final class LokaleRessource extends Ressource {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public LokaleRessource(String ordner, String name) {
+	public KlassenpfadRessource(String ordner, String name) {
 		super(ordner, name);
 	}
-
-	public LokaleRessource(String pfad) {
+	
+	public KlassenpfadRessource(String pfad) {
 		super(pfad);
 	}
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
@@ -45,13 +44,14 @@ final class LokaleRessource extends Ressource {
 	@Override
 	public Path alsPath() {
 		log.finest(() -> "erzeuge Path fuer " + pfad);
-		return Path.of(pfad).toAbsolutePath();
+		return Path.of(this.getClass().getResource(pfad).toExternalForm());
 	}
 	
 	@Override
-	public InputStream oeffneStream() throws FileNotFoundException {
+	public InputStream oeffneStream() {
 		log.finest(() -> "oeffneStream fuer " + pfad);
-		return new FileInputStream(pfad);
+		System.out.println(this.getClass().getResourceAsStream("LICENSE.txt"));
+		return this.getClass().getResourceAsStream(pfad);
 	}
 	
 }

@@ -4,13 +4,15 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import io.github.aid_labor.classifier.basis.io.system.OS;
 
 
 /**
@@ -96,7 +98,7 @@ public class Ressourcen {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	// public ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	public final Ressource BASIS_CSS;
 	public final Ressource LIGHT_THEME_CSS;
 	public final Ressource DARK_THEME_CSS;
@@ -116,7 +118,7 @@ public class Ressourcen {
 	public final Ressource UML_ASSOZIATIONS_PFEIL;
 	public final Ressource UML_KOMMENTAR;
 	
-	// private ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	private final ProgrammDetails programm;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

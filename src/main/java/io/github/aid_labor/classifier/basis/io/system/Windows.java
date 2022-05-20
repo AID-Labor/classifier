@@ -4,17 +4,19 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io.system;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
 
-non-sealed class Linux extends Unix {
+
+non-sealed class Windows extends OS {
 	
-	private static Logger log = Logger.getLogger(Linux.class.getName());
+	private static Logger log = Logger.getLogger(Windows.class.getName());
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -31,7 +33,7 @@ non-sealed class Linux extends Unix {
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	// Sichtbarkeit des Konstruktors auf package beschraenken
-	Linux() {
+	Windows() {
 		super();
 	}
 	
@@ -39,16 +41,32 @@ non-sealed class Linux extends Unix {
 //  *	Getter und Setter																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @implNote Als Konfigurationsordner wird {@code %LOCALAPPDATA%\{programm.name()}}
+	 *           eingestellt
+	 */
 	@Override
-	public boolean istLinux() {
-		return true;
+	public String getKonfigurationsOrdner(ProgrammDetails programm) {
+		return this.pfadAus(new StringBuilder(System.getenv("LocalAppData")), programm.name())
+			.toString();
 	}
 	
-	private boolean istDark = false;
 	
+	private boolean istDark = false;
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * @implNote Nutzt zum ermitteln den nativen Befehl {@code REG}, um den Registry-Schluessel
+	 *           HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme
+	 *           auszulesen.
+	 */
 	@Override
 	public boolean systemNutztDarkTheme() {
-		String[] befehl = {"gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"};
+		String[] befehl = { "REG", "QUERY",
+			"HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
+			"/v", "AppsUseLightTheme" };
 		String ausgabeExceptionStr = "<noch nicht gesetzt>";
 		this.istDark = false;
 		Process prozess;
@@ -62,12 +80,19 @@ non-sealed class Linux extends Unix {
 				.reduce((zeile1, zeile2) -> zeile1 + "\n" + zeile2);
 			ausgabeExceptionStr = zeilen.orElse("null <Optional leer>");
 			zeilen.ifPresentOrElse(inhalt -> {
-				log.finest(() -> "nativer befehl: _> " + String.join(" ", befehl) + "\n" + inhalt);
-				String ausgabeKlein = inhalt.toLowerCase();
-				if (ausgabeKlein.contains("dark") 
-					|| ausgabeKlein.contains("black")
-					|| ausgabeKlein.contains("grey")) {
-					this.istDark = true;
+				final String inhaltKopie = inhalt;
+				log.finest(() -> "nativer befehl: _> " + String.join(" ", befehl) + "\n"
+					+ inhaltKopie);
+				if (prozess.exitValue() == 0) {
+					inhalt = inhalt.strip();
+					if (inhalt.endsWith("0x0")) {
+						this.istDark = true;
+					}
+				} else {
+					log.fine(
+						() -> "Schluessel HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\"
+							+ "CurrentVersion\\Themes\\Personalize\\AppsUseLightTheme wurde "
+							+ "nicht gefunden");
 				}
 			}, () -> {
 				log.warning(() -> """
@@ -77,14 +102,20 @@ non-sealed class Linux extends Unix {
 					""".formatted(String.join(" ", befehl)));
 			});
 		} catch (Exception e) {
-			final String exceptionAusgabe = ausgabeExceptionStr;
+			final String exeptionAusgabe = ausgabeExceptionStr;
 			log.log(Level.WARNING, e, () -> """
 				Darkmode konnte nicht nativ ermittelt werden!
 				Systembefehl: %s
 				Ausgabe: %s
-				""".formatted(String.join(" ", befehl), exceptionAusgabe));
+				""".formatted(String.join(" ", befehl), exeptionAusgabe));
 		}
 		
 		return this.istDark;
 	}
+	
+	@Override
+	public boolean istWindows() {
+		return true;
+	}
+	
 }

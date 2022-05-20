@@ -4,13 +4,15 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io.system;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
 
 
 /**

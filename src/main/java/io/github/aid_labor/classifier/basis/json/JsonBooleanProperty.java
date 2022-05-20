@@ -13,9 +13,13 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 
-
-@JsonSerialize(contentAs = Boolean.class, converter = JsonBooleanProperty.PropertyZuBooleanKonverter.class)
+// @formatter:off
+@JsonSerialize(
+		contentAs = Boolean.class,
+		converter = JsonBooleanProperty.PropertyZuBooleanKonverter.class
+)
 @JsonDeserialize(converter = JsonBooleanProperty.BooleanZuPropertyKonverter.class)
+// @formatter:on
 public class JsonBooleanProperty extends SimpleBooleanProperty {
 	
 	public static class PropertyZuBooleanKonverter

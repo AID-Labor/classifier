@@ -10,7 +10,9 @@ import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import io.github.aid_labor.classifier.basis.Ressource;
+import io.github.aid_labor.classifier.basis.io.Ressource;
+import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -200,6 +202,46 @@ public final class NodeUtil {
 	public static void disable(MenuItem... knoten) {
 		for (MenuItem node : knoten) {
 			node.setDisable(true);
+		}
+	}
+	
+	/**
+	 * Setzt bei dem Element die Id {@code "HERVORHEBUNG"} oder entfernt diese.
+	 * 
+	 * @param hervorheben {@code true}, wenn die Id gesetzt werden soll oder {@code false} zum
+	 *                    Aufheben
+	 * @param element     Element, das die Id erhaelt
+	 */
+	public static void setzeHervorhebung(boolean hervorheben, Node element) {
+		if (hervorheben) {
+			element.setId(null);
+		} else {
+			element.setId("HERVORHEBUNG");
+		}
+	}
+	
+	/**
+	 * Setzt bei dem Element die Id {@code "HERVORHEBUNG"} oder entfernt diese.
+	 * 
+	 * @param hervorheben {@code true}, wenn die Id gesetzt werden soll oder {@code false} zum
+	 *                    Aufheben
+	 * @param element     Element, das die Id erhaelt
+	 */
+	public static void setzeHervorhebung(ReadOnlyBooleanProperty hervorheben, Node element) {
+		setzeHervorhebung(hervorheben.get(), element);
+	}
+	
+	/**
+	 * Setzt bei mehreren Elementen die Id {@code "HERVORHEBUNG"} oder entfernt diese.
+	 * 
+	 * @param hervorheben {@code true}, wenn die Id gesetzt werden soll oder {@code false} zum
+	 *                    Aufheben
+	 * @param elemente    Elemente, die die Id erhalten
+	 */
+	public static void setzeHervorhebung(ReadOnlyBooleanProperty hervorheben,
+			Node... elemente) {
+		for(Node element : elemente) {
+			setzeHervorhebung(hervorheben.get(), element);
 		}
 	}
 	

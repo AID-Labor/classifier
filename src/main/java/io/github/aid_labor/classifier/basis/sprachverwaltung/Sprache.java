@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.sprachverwaltung;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -79,6 +79,7 @@ public class Sprache {
 	private Map<String, StringProperty> textProperties;
 	private Charset codierung;
 	private Locale aktuelleSprache;
+	private String datei;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -101,6 +102,7 @@ public class Sprache {
 		this.sprachpaket = new PropertyResourceBundle(
 				Files.newBufferedReader(sprachdatei.datei(), codierung));
 		this.aktuelleSprache = sprachdatei.sprache();
+		this.datei = sprachdatei.datei.toString();
 	}
 	
 	/**
@@ -159,7 +161,8 @@ public class Sprache {
 			return text;
 		} catch (Exception e) {
 			log.warning(
-					() -> "Kein Text fuer Schluessel \"%s\" gefunden".formatted(schluessel));
+					() -> "Kein Text fuer Schluessel \"%s\" gefunden [%s]"
+							.formatted(schluessel, this.datei));
 			throw e;
 		}
 	}
@@ -192,7 +195,8 @@ public class Sprache {
 			return text;
 		} else {
 			log.warning(
-					() -> "kein Text fuer Schluessel \"%s\" gefunden".formatted(schluessel));
+					() -> "kein Text fuer Schluessel \"%s\" gefunden [%s]"
+							.formatted(schluessel, this.datei));
 			return alternativ;
 		}
 	}
@@ -278,7 +282,7 @@ public class Sprache {
 	/**
 	 * Stellt die genutzte Sprache ein
 	 * 
-	 * @param sprache Sprache, die fuer alle Getter verwendet werden soll
+	 * @param sprachdatei Sprache, die fuer alle Getter verwendet werden soll
 	 * @throws IOException              Falls beim Lesen der Sprachdatei ein Fehler auftritt
 	 * @throws MissingResourceException Falls die Sprachdatei zur uebergebenen Sprache nicht
 	 *                                  mit {@link #spracheHinzufuegen(SprachDatei)} bekannt
@@ -286,6 +290,7 @@ public class Sprache {
 	 */
 	public void nutzeSprache(SprachDatei sprachdatei) throws IOException {
 		this.aktuelleSprache = sprachdatei.sprache();
+		this.datei = sprachdatei.datei.toString();
 		this.sprachpaket = new PropertyResourceBundle(
 				Files.newBufferedReader(sprachdatei.datei(), codierung));
 		log.fine(() -> "Neue Sprache: %s [%s]".formatted(aktuelleSprache.getDisplayLanguage(),
@@ -300,6 +305,7 @@ public class Sprache {
 	 */
 	public void ignoriereSprachen() {
 		this.aktuelleSprache = new Locale("unbekannt");
+		this.datei = "null";
 		try {
 			this.sprachpaket = new PropertyResourceBundle(new StringReader(""));
 		} catch (IOException e) {

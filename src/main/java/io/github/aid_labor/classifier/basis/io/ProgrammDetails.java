@@ -1,4 +1,4 @@
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io;
 
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -30,9 +30,9 @@ public record ProgrammDetails (
 	
 	// impliziter Konstruktor fuer die Record-Komponenten
 	
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Methoden																		*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Methoden																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public String getVersionName() {
 		return this.name  + " V-" + this.version;

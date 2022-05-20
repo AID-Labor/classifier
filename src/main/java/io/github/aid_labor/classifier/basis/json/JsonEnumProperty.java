@@ -15,9 +15,13 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
-
-@JsonSerialize(contentAs = String.class, converter = JsonEnumProperty.PropertyZuTypKonverter.class)
+// @formatter:off
+@JsonSerialize(
+		contentAs = String.class,
+		converter = JsonEnumProperty.PropertyZuTypKonverter.class
+)
 @JsonDeserialize(converter = JsonEnumProperty.EnumZuPropertyKonverter.class)
+// @formatter:on
 public class JsonEnumProperty<T extends Enum<T>> extends SimpleObjectProperty<T> {
 	
 	public static class PropertyZuTypKonverter<T extends Enum<T>>

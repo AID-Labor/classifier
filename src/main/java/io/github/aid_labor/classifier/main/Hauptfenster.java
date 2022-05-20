@@ -6,6 +6,8 @@
 
 package io.github.aid_labor.classifier.main;
 
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.*;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -18,15 +20,13 @@ import org.apache.commons.cli.CommandLine;
 
 import fr.brouillard.oss.cssfx.CSSFX;
 import fr.brouillard.oss.cssfx.api.URIToPathConverter;
-import io.github.aid_labor.classifier.basis.AusfuehrUmgebung;
-import io.github.aid_labor.classifier.basis.DateiUtil;
 import io.github.aid_labor.classifier.basis.Einstellungen;
-import io.github.aid_labor.classifier.basis.OS;
-import io.github.aid_labor.classifier.basis.ProgrammDetails;
-import io.github.aid_labor.classifier.basis.Ressourcen;
-import static io.github.aid_labor.classifier.basis.Umlaute.*;
+import io.github.aid_labor.classifier.basis.io.AusfuehrUmgebung;
+import io.github.aid_labor.classifier.basis.io.DateiUtil;
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.gui.HauptAnsicht;
-import io.github.aid_labor.classifier.gui.View;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -43,10 +43,18 @@ public class Hauptfenster extends Application {
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private static final ProgrammDetails programm = new ProgrammDetails("0.0.1", "Classifier",
-			null, null, "https://github.com/AID-Labor/classifier", Hauptfenster.class,
-			new ExtensionFilter[] {
-				new ExtensionFilter("Classifier Projektdatei", "*.classifile") });
+	// @formatter:off
+	private static final ProgrammDetails programm = new ProgrammDetails(
+		"1.0.0-SNAPSHOT_001",
+		"Classifier",
+		null,
+		null,
+		"https://github.com/AID-Labor/classifier", Hauptfenster.class,
+		new ExtensionFilter[] {
+			new ExtensionFilter("Classifier Projektdatei", "*.classifile")
+		}
+	);
+	// @formatter:on
 	
 	private static CommandLine kommandoZeile;
 	private static KommandozeilenAuswertung auswertung;
@@ -99,7 +107,7 @@ public class Hauptfenster extends Application {
 	
 	@Override
 	public void start(Stage hauptFenster) {
-		View hauptansicht = new HauptAnsicht(programm);
+		HauptAnsicht hauptansicht = new HauptAnsicht(programm);
 		
 		Scene szene = new Scene(hauptansicht.getWurzelknoten());
 		FensterUtil.installiereFensterwiederherstellung(hauptFenster, 720, 1120,

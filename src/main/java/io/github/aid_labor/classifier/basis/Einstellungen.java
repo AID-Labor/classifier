@@ -17,28 +17,39 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.io.Theme;
+import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
 import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 
-
-@JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, creatorVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
+// @formatter:off
+@JsonAutoDetect(
+		getterVisibility = Visibility.NONE,
+		isGetterVisibility = Visibility.NONE,
+		setterVisibility = Visibility.NONE,
+		creatorVisibility = Visibility.NONE,
+		fieldVisibility = Visibility.ANY
+)
+// @formatter:on
 public class Einstellungen {
 	
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenattribute																*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private static Logger log = Logger.getLogger(Einstellungen.class.getName());
 	
 	private static Einstellungen defaultInstanz;
 	private static Einstellungen benutzerInstanz;
 	
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenmethoden																	*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenmethoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	public static Einstellungen getDefault() {
 		if (defaultInstanz == null) {
 			log.config(() -> "erzeuge Default-Einstellungen");
@@ -75,7 +86,7 @@ public class Einstellungen {
 		}
 	}
 	
-	// private ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	private static boolean speichern(Einstellungen e, Path ziel) {
 		try (JsonGenerator generator = JsonUtil.getUTF8JsonGenerator(ziel)) {
 			generator.writePOJO(e);

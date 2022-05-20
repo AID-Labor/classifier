@@ -12,11 +12,23 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
-@JsonTypeInfo(use = Id.NAME, include = As.PROPERTY, property = "klasse")
+// @formatter:off
+@JsonTypeInfo(
+		use = Id.NAME,
+		include = As.PROPERTY,
+		property = "klasse"
+)
 @JsonSubTypes({
 	@JsonSubTypes.Type(value = TestElement.class)
 })
-@JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, creatorVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
+@JsonAutoDetect(
+		getterVisibility = Visibility.NONE,
+		isGetterVisibility = Visibility.NONE,
+		setterVisibility = Visibility.NONE,
+		creatorVisibility = Visibility.NONE,
+		fieldVisibility = Visibility.ANY
+)
+// @formatter:on
 public interface UMLDiagrammElement {
 	
 	String getName();

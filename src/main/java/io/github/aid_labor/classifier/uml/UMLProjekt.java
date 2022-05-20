@@ -39,7 +39,15 @@ import javafx.collections.ObservableList;
  * @author Tim Muehle
  *
  */
-@JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE, creatorVisibility = Visibility.NONE, fieldVisibility = Visibility.ANY)
+// @formatter:off
+@JsonAutoDetect(
+		getterVisibility = Visibility.NONE,
+		isGetterVisibility = Visibility.NONE,
+		setterVisibility = Visibility.NONE,
+		creatorVisibility = Visibility.NONE,
+		fieldVisibility = Visibility.ANY
+)
+// @formatter:on
 public class UMLProjekt implements Projekt {
 	private static final Logger log = Logger.getLogger(UMLProjekt.class.getName());
 	

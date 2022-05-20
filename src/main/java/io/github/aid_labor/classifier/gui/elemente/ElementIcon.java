@@ -6,8 +6,8 @@
 
 package io.github.aid_labor.classifier.gui.elemente;
 
-import io.github.aid_labor.classifier.basis.SprachUtil;
-import io.github.aid_labor.classifier.basis.Sprache;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;

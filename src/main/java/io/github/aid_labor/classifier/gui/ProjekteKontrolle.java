@@ -5,13 +5,8 @@
  */
 package io.github.aid_labor.classifier.gui;
 
-import java.util.logging.Logger;
-
-import io.github.aid_labor.classifier.uml.UMLProjekt;
-import javafx.event.Event;
-
 class ProjekteKontrolle {
-	private static final Logger log = Logger.getLogger(ProjekteKontrolle.class.getName());
+//	private static final Logger log = Logger.getLogger(ProjekteKontrolle.class.getName());
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #

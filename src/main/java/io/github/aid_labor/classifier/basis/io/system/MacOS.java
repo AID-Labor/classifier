@@ -4,17 +4,19 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io.system;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
 
-non-sealed class Windows extends OS {
+
+non-sealed class MacOS extends Unix {
 	
-	private static Logger log = Logger.getLogger(Windows.class.getName());
+	private static Logger log = Logger.getLogger(MacOS.class.getName());
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -31,41 +33,43 @@ non-sealed class Windows extends OS {
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	// Sichtbarkeit des Konstruktors auf package beschraenken
-	Windows() {
+	MacOS() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	@Override
+	public boolean istMacOS() {
+		return true;
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * @implNote Als Konfigurationsordner wird {@code %LOCALAPPDATA%\{programm.name()}}
+	 * @implNote Als Konfigurationsordner wird {@code $HOME/Library/{programm.name()}}
 	 *           eingestellt
 	 */
 	@Override
 	public String getKonfigurationsOrdner(ProgrammDetails programm) {
-		return this.pfadAus(new StringBuilder(System.getenv("LocalAppData")), programm.name())
+		return this.pfadAus(new StringBuilder(this.nutzerOrdner), "Library", programm.name())
 			.toString();
 	}
 	
 	
 	private boolean istDark = false;
+	
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * @implNote Nutzt zum ermitteln den nativen Befehl {@code REG}, um den Registry-Schluessel
-	 *           HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme
-	 *           auszulesen.
+	 * @implNote Nutzt zum ermitteln den nativen Befehl {@code defaults}, um die 
+	 *           Systemeinstellungen auszulesen.
 	 */
 	@Override
 	public boolean systemNutztDarkTheme() {
-		String[] befehl = { "REG", "QUERY",
-			"HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize",
-			"/v", "AppsUseLightTheme" };
+		String[] befehl = {"defaults", "read", "-g", "AppleInterfaceStyle"};
 		String ausgabeExceptionStr = "<noch nicht gesetzt>";
 		this.istDark = false;
 		Process prozess;
@@ -79,18 +83,10 @@ non-sealed class Windows extends OS {
 				.reduce((zeile1, zeile2) -> zeile1 + "\n" + zeile2);
 			ausgabeExceptionStr = zeilen.orElse("null <Optional leer>");
 			zeilen.ifPresentOrElse(inhalt -> {
-				final String inhaltKopie = inhalt;
-				log.finest(() -> "nativer befehl: _> " + String.join(" ", befehl) + "\n"
-					+ inhaltKopie);
-				if (prozess.exitValue() == 0) {
-					inhalt = inhalt.strip();
-					if (inhalt.endsWith("0x0")) {
-						this.istDark = true;
-					}
-				} else {
-					log.fine(
-						() -> "Schluessel HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\"
-							+ "CurrentVersion\\Themes\\Personalize\\AppsUseLightTheme wurde nicht gefunden");
+				log.finest(() -> "nativer befehl: _> " + String.join(" ", befehl) + "\n" + inhalt);
+				String ausgabeKlein = inhalt.toLowerCase();
+				if(ausgabeKlein.contains("dark")) {
+					this.istDark = true;
 				}
 			}, () -> {
 				log.warning(() -> """
@@ -100,20 +96,14 @@ non-sealed class Windows extends OS {
 					""".formatted(String.join(" ", befehl)));
 			});
 		} catch (Exception e) {
-			final String exeptionAusgabe = ausgabeExceptionStr;
+			final String exceptionAusgabe = ausgabeExceptionStr;
 			log.log(Level.WARNING, e, () -> """
 				Darkmode konnte nicht nativ ermittelt werden!
 				Systembefehl: %s
 				Ausgabe: %s
-				""".formatted(String.join(" ", befehl), exeptionAusgabe));
+				""".formatted(String.join(" ", befehl), exceptionAusgabe));
 		}
 		
 		return this.istDark;
 	}
-	
-	@Override
-	public boolean istWindows() {
-		return true;
-	}
-	
 }

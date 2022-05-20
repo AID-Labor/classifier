@@ -4,7 +4,9 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io.system;
+
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
 
 sealed class Unix extends OS permits Linux, MacOS {
 	

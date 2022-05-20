@@ -6,60 +6,26 @@
 
 package io.github.aid_labor.classifier.gui;
 
-import static io.github.aid_labor.classifier.basis.Umlaute.OE;
-import static io.github.aid_labor.classifier.basis.Umlaute.ae;
-import static io.github.aid_labor.classifier.basis.Umlaute.oe;
-import static io.github.aid_labor.classifier.basis.Umlaute.sz;
-import static io.github.aid_labor.classifier.basis.Umlaute.ue;
-
-import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.carbonicons.CarbonIcons;
-import org.kordamp.ikonli.javafx.FontIcon;
-import org.kordamp.ikonli.remixicon.RemixiconMZ;
-import org.kordamp.ikonli.typicons.Typicons;
-import org.kordamp.ikonli.whhg.WhhgAL;
-
 import com.dlsc.gemsfx.DialogPane;
-import com.pixelduke.control.Ribbon;
-import com.pixelduke.control.ribbon.Column;
-import com.pixelduke.control.ribbon.QuickAccessBar;
-import com.pixelduke.control.ribbon.RibbonGroup;
-import com.pixelduke.control.ribbon.RibbonTab;
 
-import io.github.aid_labor.classifier.basis.ProgrammDetails;
-import io.github.aid_labor.classifier.basis.Ressourcen;
-import io.github.aid_labor.classifier.basis.SprachUtil;
-import io.github.aid_labor.classifier.basis.Sprache;
-import io.github.aid_labor.classifier.gui.elemente.ElementIcon;
-import io.github.aid_labor.classifier.gui.util.ButtonTyp;
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.gui.elemente.MenueLeisteKomponente;
+import io.github.aid_labor.classifier.gui.elemente.RibbonKomponente;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.Labeled;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 
-public class HauptAnsicht implements View {
+public class HauptAnsicht {
 	
 	private static final Logger log = Logger.getLogger(HauptAnsicht.class.getName());
 	
@@ -98,6 +64,7 @@ public class HauptAnsicht implements View {
 		this.overlayDialog = new DialogPane();
 		this.programm = programm;
 		this.controller = new HauptKontrolle(this, sprache);
+		this.projektAnsicht = new ProjekteAnsicht(overlayDialog, programm);
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht");
@@ -105,22 +72,33 @@ public class HauptAnsicht implements View {
 			sprache.ignoriereSprachen();
 		}
 		
-		var menue = erstelleMenueLeiste();
-		var ribbon = erstelleRibbon();
+		var menueAnsicht = new MenueLeisteKomponente();
+		setzeMenueAktionen(menueAnsicht);
+		
+		var ribbonAnsicht = new RibbonKomponente();
+		setzeRibbonAktionen(ribbonAnsicht);
 		
 		var hauptInhalt = new BorderPane();
-		hauptInhalt.setTop(new VBox(menue, ribbon));
-		
-		this.projektAnsicht = new ProjekteAnsicht(overlayDialog, programm);
+		hauptInhalt.setTop(new VBox(menueAnsicht.getMenueleiste(), ribbonAnsicht.getRibbon()));
 		hauptInhalt.setCenter(projektAnsicht.getAnsicht());
 		
 		this.projektAnsicht.getAngezeigtesProjektProperty()
 				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
 					// TODO update speichersymbol Bindung
-					if(gezeigtesProjekt != null) {
-						
+					if (gezeigtesProjekt != null) {
+						ribbonAnsicht.getSpeichern().setDisable(false);
+						NodeUtil.setzeHervorhebung(gezeigtesProjekt.istGespeichertProperty(), ribbonAnsicht.getSpeichern());
+						gezeigtesProjekt.istGespeichertProperty().addListener(
+								(gespeichertProperty, alterWert, istGespeichert) -> {
+									NodeUtil.setzeHervorhebung(spracheGesetzt, ribbonAnsicht.getSpeichern());
+								});
+					} else {
+						ribbonAnsicht.getSpeichern().setDisable(true);
 					}
 				});
+		if(projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
+			NodeUtil.disable(ribbonAnsicht.getSpeichern());
+		}
 		
 		wurzel.getChildren().add(hauptInhalt);
 		wurzel.getChildren().add(overlayDialog);
@@ -132,7 +110,6 @@ public class HauptAnsicht implements View {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	@Override
 	public Parent getWurzelknoten() {
 		return wurzel;
 	}
@@ -165,502 +142,64 @@ public class HauptAnsicht implements View {
 	// =====================================================================================
 	// Beginn Menue
 	
-	private MenuBar erstelleMenueLeiste() {
-		Menu dateiMenue = erstelleDateiMenue();
-		Menu bearbeitenMenue = erstelleBearbeitenMenue();
-		Menu einfuegenMenue = erstelleEinfuegenMenue();
-		Menu anordnenMenue = erstelleAnordnenMenue();
-		Menu darstellungMenue = erstelleDarstellungMenue();
-		Menu fensterMenue = erstelleFensterMenue();
-		Menu einstellungenMenue = erstelleEinstellungenMenue();
+	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
+		// Menue Datei
+		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
 		
-		MenuBar menuebar = new MenuBar(dateiMenue, bearbeitenMenue, einfuegenMenue,
-				anordnenMenue, darstellungMenue, fensterMenue, einstellungenMenue);
-//		menuebar.setUseSystemMenuBar(true);
+		NodeUtil.disable(menue.getDateiOeffnen(), menue.getDateiLetzeOeffnen(),
+				menue.getDateiSchliessen(), menue.getDateiSpeichern(),
+				menue.getDateiAlleSpeichern(), menue.getDateiSpeichernUnter(),
+				menue.getDateiUmbenennen(), menue.getDateiImportieren());
 		
-		return menuebar;
-	}
-	
-	private Menu erstelleDateiMenue() {
-		Menu dateiMenue = SprachUtil.bindText(new Menu(), sprache, "dateiMenue", "Datei");
-		MenuItem dateiNeu = SprachUtil.bindText(new MenuItem(), sprache, "neu", "Neu...");
-		MenuItem dateiOeffnen = SprachUtil.bindText(new MenuItem(), sprache, "oeffnen",
-				"%cffnen...".formatted(OE));
-		Menu dateiLetzeOeffnen = SprachUtil.bindText(new Menu(), sprache, "letzteOeffnen",
-				"Letzte Dateien");
-		MenuItem dateiSchliessen = SprachUtil.bindText(new MenuItem(), sprache, "schliessen",
-				"Schlie%cen".formatted(sz));
-		MenuItem dateiSpeichern = SprachUtil.bindText(new MenuItem(), sprache, "speichern",
-				"Speichern");
-		MenuItem dateiAlleSpeichern = SprachUtil.bindText(new MenuItem(), sprache,
-				"allesSpeichern", "Alles Speichern");
-		MenuItem dateiSpeichernUnter = SprachUtil.bindText(new MenuItem(), sprache,
-				"speichernUnter", "Speichern unter...");
-		MenuItem dateiUmbenennen = SprachUtil.bindText(new MenuItem(), sprache, "umbenennen",
-				"Umbenennen...");
-		MenuItem dateiImportieren = SprachUtil.bindText(new MenuItem(), sprache, "importieren",
-				"Importieren...");
-		Menu dateiExportieren = SprachUtil.bindText(new Menu(), sprache, "exportieren",
-				"Exportieren");
+		// Menue Bearbeiten
+		NodeUtil.disable(menue.getRueckgaengig(), menue.getWiederholen(), menue.getKopieren(),
+				menue.getEinfuegen(), menue.getLoeschen());
 		
-		MenuItem exportierenBild = SprachUtil.bindText(new MenuItem(), sprache,
-				"exportierenBild", "als Bild...");
-		MenuItem exportierenQuellcode = SprachUtil.bindText(new MenuItem(), sprache,
-				"exportierenQuellcode", "als Quellcode...");
-		dateiExportieren.getItems().addAll(exportierenBild, exportierenQuellcode);
+		// Menue Einfuegen
+		NodeUtil.disable(menue.getKlasseEinfuegen(), menue.getInterfaceEinfuegen(),
+				menue.getEnumEinfuegen(), menue.getVererbungEinfuegen(),
+				menue.getAssoziationEinfuegen(), menue.getKommentarEinfuegen());
 		
-		dateiMenue.getItems().addAll(dateiNeu, dateiOeffnen, dateiLetzeOeffnen,
-				new SeparatorMenuItem(), dateiSchliessen, dateiSpeichern, dateiAlleSpeichern,
-				dateiSpeichernUnter, dateiUmbenennen, new SeparatorMenuItem(),
-				dateiImportieren, dateiExportieren);
+		// Menue Anordnen
+		NodeUtil.disable(menue.getAnordnenNachVorne(), menue.getAnordnenNachGanzVorne(),
+				menue.getAnordnenNachHinten(), menue.getAnordnenNachGanzHinten());
 		
-		NodeUtil.disable(dateiOeffnen, dateiLetzeOeffnen, dateiSchliessen,
-				dateiSpeichern, dateiAlleSpeichern, dateiSpeichernUnter, dateiUmbenennen,
-				dateiImportieren, dateiExportieren);
+		// Menue Darstellung
+		NodeUtil.disable(menue.getVollbild(), menue.getSymbolleisteAusblenden());
 		
-		dateiNeu.setOnAction(this.controller::neuesProjektErzeugen);
+		// Menue Fenster
+		NodeUtil.disable(menue.getMinimieren(), menue.getMaximieren(),
+				menue.getVorherigerTab(), menue.getNaechsterTab());
 		
-		return dateiMenue;
-	}
-	
-	private Menu erstelleBearbeitenMenue() {
-		Menu bearbeitenMenue = SprachUtil.bindText(new Menu(), sprache, "bearbeitenMenue",
-				"Bearbeiten");
-		
-		MenuItem rueckgaengig = SprachUtil.bindText(new MenuItem(), sprache, "rueckgaengig",
-				"R%ckg%cngig".formatted(ue, ae));
-		MenuItem wiederholen = SprachUtil.bindText(new MenuItem(), sprache, "wiederholen",
-				"Wiederholen");
-		MenuItem kopieren = SprachUtil.bindText(new MenuItem(), sprache, "kopieren",
-				"Kopieren");
-		MenuItem einfuegen = SprachUtil.bindText(new MenuItem(), sprache, "einfuegen",
-				"Einfuegen");
-		MenuItem loeschen = SprachUtil.bindText(new MenuItem(), sprache, "loeschen",
-				"L%cschen".formatted(oe));
-		
-		bearbeitenMenue.getItems().addAll(rueckgaengig, wiederholen, new SeparatorMenuItem(),
-				kopieren, einfuegen, loeschen);
-		
-		NodeUtil.disable(rueckgaengig, wiederholen, kopieren, einfuegen, loeschen);
-		
-		return bearbeitenMenue;
-	}
-	
-	private Menu erstelleEinfuegenMenue() {
-		Menu einfuegenMenue = SprachUtil.bindText(new Menu(), sprache, "einfuegenMenue",
-				"Einf%cgen".formatted(ue));
-		MenuItem klasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuKlasse",
-				"Neue Klasse...");
-		MenuItem interfaceEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuInterface", "Neues Interface...");
-		MenuItem enumEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuEnum",
-				"Neue Enumeration...");
-		MenuItem vererbungEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuVererbung", "Vererbung hinzuf%cgen".formatted(ue));
-		MenuItem assoziationEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuAssoziation", "Assoziation hinzuf%cgen".formatted(ue));
-		MenuItem kommentarEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuKommentar", "Neuer Kommentar...");
-		
-		einfuegenMenue.getItems().addAll(klasseEinfuegen, interfaceEinfuegen, enumEinfuegen,
-				new SeparatorMenuItem(), vererbungEinfuegen, assoziationEinfuegen,
-				new SeparatorMenuItem(), kommentarEinfuegen);
-		
-		NodeUtil.disable(klasseEinfuegen, interfaceEinfuegen, enumEinfuegen,
-				vererbungEinfuegen, assoziationEinfuegen, kommentarEinfuegen);
-		
-		return einfuegenMenue;
-	}
-	
-	private Menu erstelleAnordnenMenue() {
-		Menu anordnenMenue = SprachUtil.bindText(new Menu(), sprache, "anordnenMenue",
-				"Anordnen");
-		MenuItem anordnenNachVorne = SprachUtil.bindText(new MenuItem(), sprache,
-				"nachVorne", "Eine Ebene nach vorne");
-		MenuItem anordnenNachGanzVorne = SprachUtil.bindText(new MenuItem(), sprache,
-				"nachGanzVorne", "In den Vordergrund");
-		MenuItem anordnenNachHinten = SprachUtil.bindText(new MenuItem(), sprache,
-				"nachHinten", "Eine Ebene nach vorne");
-		MenuItem anordnenNachGanzHinten = SprachUtil.bindText(new MenuItem(), sprache,
-				"nachGanzHinten", "In den Hintergrund");
-		
-		anordnenMenue.getItems().addAll(anordnenNachVorne, anordnenNachGanzVorne,
-				anordnenNachHinten, anordnenNachGanzHinten);
-		
-		NodeUtil.disable(anordnenNachVorne, anordnenNachGanzVorne, anordnenNachHinten,
-				anordnenNachGanzHinten);
-		
-		return anordnenMenue;
-	}
-	
-	private Menu erstelleDarstellungMenue() {
-		Menu darstellungMenue = SprachUtil.bindText(new Menu(), sprache, "darstellungMenue",
-				"Darstellung");
-		Menu zoomen = SprachUtil.bindText(new Menu(), sprache, "zoomen", "Zoomen");
-		MenuItem darstellungGroesser = SprachUtil.bindText(new MenuItem(), sprache,
-				"vergroessern", "Vergr%c%cern".formatted(oe, sz));
-		MenuItem darstellungKleiner = SprachUtil.bindText(new MenuItem(), sprache,
-				"verkleinern", "Verkleinern");
-		MenuItem darstellungOriginalgroesse = SprachUtil.bindText(new MenuItem(), sprache,
-				"originalgroesse", "Originalgr%c%ce".formatted(oe, sz));
-		zoomen.getItems().addAll(darstellungGroesser, darstellungKleiner,
-				darstellungOriginalgroesse);
-		
-		MenuItem vollbild = SprachUtil.bindText(new CheckMenuItem(), sprache,
-				"vollbild", "Vollbild");
-		MenuItem symbolleisteAusblenden = SprachUtil.bindText(new MenuItem(), sprache,
-				"symbolleisteAusblenden", "Symbolleiste ausblenden");
-		
-		darstellungMenue.getItems().addAll(zoomen, new SeparatorMenuItem(), vollbild,
-				new SeparatorMenuItem(), symbolleisteAusblenden);
-		
-		NodeUtil.disable(zoomen, vollbild, symbolleisteAusblenden);
-		
-		return darstellungMenue;
-	}
-	
-	private Menu erstelleFensterMenue() {
-		Menu fensterMenue = SprachUtil.bindText(new Menu(), sprache, "fensterMenue",
-				"Fenster");
-		MenuItem minimieren = SprachUtil.bindText(new MenuItem(), sprache,
-				"minimieren", "Minimieren");
-		MenuItem maximieren = SprachUtil.bindText(new MenuItem(), sprache,
-				"maximieren", "Maximieren");
-		MenuItem vorherigerTab = SprachUtil.bindText(new MenuItem(), sprache,
-				"vorherigerTab", "vorheriger Tab");
-		MenuItem naechsterTab = SprachUtil.bindText(new MenuItem(), sprache,
-				"naechsterTab", "n%cchster Tab".formatted(ae));
-		
-		fensterMenue.getItems().addAll(minimieren, maximieren, new SeparatorMenuItem(),
-				vorherigerTab, naechsterTab);
-		
-		NodeUtil.disable(minimieren, maximieren, vorherigerTab, naechsterTab);
-		
-		return fensterMenue;
-	}
-	
-	private Menu erstelleEinstellungenMenue() {
-		Menu einstellungenMenue = SprachUtil.bindText(new Menu(), sprache,
-				"einstellungenMenue", "Einstellungen");
-		MenuItem voidAnzeigen = SprachUtil.bindText(new MenuItem(), sprache, "voidAnzeigen",
-				"void Anzeigen");
-		Menu theme = SprachUtil.bindText(new Menu(), sprache, "theme",
-				"Farbschema");
-		MenuItem info = SprachUtil.bindText(new MenuItem(), sprache, "info",
-				"Info");
-		
-		einstellungenMenue.getItems().addAll(voidAnzeigen, new SeparatorMenuItem(), theme,
-				new SeparatorMenuItem(), info);
-		
-		NodeUtil.disable(voidAnzeigen, theme, info);
-		
-		return einstellungenMenue;
+		// Menue Einstellungen
+		NodeUtil.disable(menue.getVoidAnzeigen(), menue.getTheme(), menue.getInfo());
 	}
 	
 	// Ende Menue
 	// =====================================================================================
 	// Beginn Ribbon
 	
-	private Ribbon erstelleRibbon() {
-		RibbonTab startTab = erstelleStartTab();
-		RibbonTab diagrammTab = erstelleDiagrammTab();
+	private void setzeRibbonAktionen(RibbonKomponente ribbon) {
 		
-		QuickAccessBar schnellzugriff = new QuickAccessBar();
-		Button speichernSchnellzugriff = neuerButton(ButtonTyp.SPEICHERN);
-		Button rueckgaengigSchnellzugriff = neuerButton(ButtonTyp.RUECKGAENGIG);
-		Button wiederholenSchnellzugriff = neuerButton(ButtonTyp.WIEDERHOLEN);
-		((FontIcon) speichernSchnellzugriff.getGraphic()).setIconSize(18);
-		((FontIcon) rueckgaengigSchnellzugriff.getGraphic()).setIconSize(18);
-		((FontIcon) wiederholenSchnellzugriff.getGraphic()).setIconSize(18);
-		NodeUtil.macheUnfokussierbar(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
-				wiederholenSchnellzugriff);
+		NodeUtil.disable(ribbon.getOeffnen(), ribbon.getImportieren(), ribbon.getScreenshot(),
+				ribbon.getExportieren());
+		NodeUtil.disable(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen(),
+				ribbon.getRueckgaengig(), ribbon.getWiederholen());
+		NodeUtil.disable(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
+				ribbon.getAnordnenNachHinten(),
+				ribbon.getAnordnenNachGanzHinten());
+		NodeUtil.disable(ribbon.getNeueKlasse(), ribbon.getNeuesInterface(),
+				ribbon.getNeueEnumeration());
+		NodeUtil.disable(ribbon.getVererbung(), ribbon.getAssoziation());
+		NodeUtil.disable(ribbon.getKommentar());
+		NodeUtil.disable(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),
+				ribbon.getZoomOriginalgroesse());
+		NodeUtil.disable(ribbon.getSpeichernSchnellzugriff(),
+				ribbon.getRueckgaengigSchnellzugriff(),
+				ribbon.getWiederholenSchnellzugriff());
 		
-		schnellzugriff.getButtons().addAll(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
-				wiederholenSchnellzugriff);
-		
-		Ribbon ribbon = new Ribbon();
-		
-		ribbon.setQuickAccessBar(schnellzugriff);
-		ribbon.getTabs().addAll(startTab, diagrammTab);
-		
-		NodeUtil.disable(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
-				wiederholenSchnellzugriff);
-		
-		return ribbon;
-	}
-	
-	private Button neuerButton(ButtonTyp typ) {
-		return switch (typ) {
-			case RUECKGAENGIG: {
-				Button rueckgaengig = SprachUtil.bindText(new Button(), sprache,
-						"rueckgaengig", "R%cckg%cngig".formatted(ue, ae));
-				NodeUtil.erzeugeIconNode(rueckgaengig, CarbonIcons.UNDO);
-				yield rueckgaengig;
-			}
-			case SPEICHERN: {
-				Button speichern = SprachUtil.bindText(new Button(), sprache,
-						"speichern", "Speichern");
-				NodeUtil.fuegeIconHinzu(speichern, RemixiconMZ.SAVE_3_FILL, 20);
-				yield speichern;
-			}
-			case WIEDERHOLEN: {
-				Button wiederholen = SprachUtil.bindText(new Button(), sprache,
-						"wiederholen", "Wiederholen");
-				NodeUtil.erzeugeIconNode(wiederholen, CarbonIcons.REDO);
-				yield wiederholen;
-			}
-		};
-	}
-	
-	private RibbonTab erstelleStartTab() {
-		RibbonTab startTab = SprachUtil.bindText(new RibbonTab(), sprache, "startTab",
-				"START");
-		
-		RibbonGroup projektGruppe = erstelleProjektGruppe();
-		RibbonGroup bearbeitenGruppe = erstelleBearbeitenGruppe();
-		RibbonGroup anordnenGruppe = erstelleAnordnenGruppe();
-		
-		startTab.getRibbonGroups().addAll(projektGruppe, bearbeitenGruppe, anordnenGruppe);
-		fuegeLogoHinzu(startTab);
-		
-		return startTab;
-	}
-	
-	private RibbonGroup erstelleProjektGruppe() {
-		Button oeffnen = SprachUtil.bindText(new Button(), sprache, "oeffnen",
-				"%cffnen".formatted(OE));
-		Button neu = SprachUtil.bindText(new Button(), sprache, "neu",
-				"Neu...");
-		Button importieren = SprachUtil.bindText(new Button(), sprache, "importieren",
-				"Importieren");
-		NodeUtil.fuegeIconHinzu(oeffnen, Typicons.FOLDER_OPEN);
-		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS);
-		NodeUtil.fuegeIconHinzu(importieren, CarbonIcons.DOWNLOAD);
-		Column ersteSpalte = new Column();
-		ersteSpalte.getChildren().addAll(oeffnen, neu, importieren);
-		
-		Button speichern = neuerButton(ButtonTyp.SPEICHERN);
-		Button screenshot = SprachUtil.bindText(new Button(), sprache, "screenshot",
-				"Screenshot...");
-		Button exportieren = SprachUtil.bindText(new Button(), sprache, "exportieren",
-				"Exportieren...");
-		NodeUtil.fuegeIconHinzu(screenshot, Typicons.IMAGE);
-		NodeUtil.fuegeIconHinzu(exportieren, CarbonIcons.SCRIPT_REFERENCE);
-		Column zweiteSpalte = new Column();
-		zweiteSpalte.getChildren().addAll(speichern, screenshot, exportieren);
-		
-		RibbonGroup projekt = new RibbonGroup();
-		projekt.titleProperty().bind(sprache.getTextProperty("projekt", "Projekt"));
-		projekt.getNodes().addAll(ersteSpalte, zweiteSpalte);
-		
-		NodeUtil.macheUnfokussierbar(projekt.getNodes());
-		NodeUtil.macheUnfokussierbar(ersteSpalte.getChildren());
-		NodeUtil.macheUnfokussierbar(zweiteSpalte.getChildren());
-		
-		NodeUtil.disable(oeffnen, importieren, screenshot, exportieren);
-		
-		neu.setOnAction(controller::neuesProjektErzeugen);
-		speichern.setOnAction(controller::projektSpeichern);
-		
-		return projekt;
-	}
-	
-	private RibbonGroup erstelleBearbeitenGruppe() {
-		Button kopieren = SprachUtil.bindText(new Button(), sprache, "kopieren",
-				"Kopieren");
-		Button einfuegen = SprachUtil.bindText(new Button(), sprache, "einfuegen",
-				"Einf%cgen".formatted(ue));
-		Button loeschen = SprachUtil.bindText(new Button(), sprache, "loeschen",
-				"L%cschen".formatted(oe));
-		NodeUtil.fuegeIconHinzu(kopieren, CarbonIcons.COPY_FILE);
-		NodeUtil.fuegeIconHinzu(einfuegen, CarbonIcons.PASTE);
-		NodeUtil.fuegeIconHinzu(loeschen, CarbonIcons.DELETE);
-		Column spalte = new Column();
-		spalte.getChildren().addAll(kopieren, einfuegen, loeschen);
-		
-		Button rueckgaengig = neuerButton(ButtonTyp.RUECKGAENGIG);
-		Button wiederholen = neuerButton(ButtonTyp.WIEDERHOLEN);
-		
-		RibbonGroup bearbeiten = new RibbonGroup();
-		bearbeiten.titleProperty().bind(sprache.getTextProperty("bearbeiten", "Bearbeiten"));
-		bearbeiten.getNodes().addAll(spalte, rueckgaengig, wiederholen);
-		
-		NodeUtil.macheUnfokussierbar(bearbeiten.getNodes());
-		NodeUtil.macheUnfokussierbar(spalte.getChildren());
-		
-		NodeUtil.disable(kopieren, einfuegen, loeschen, rueckgaengig, wiederholen);
-		
-		return bearbeiten;
-	}
-	
-	private RibbonGroup erstelleAnordnenGruppe() {
-		Button anordnenNachVorne = SprachUtil.bindText(new Button(), sprache,
-				"nachVorne", "Eine Ebene nach vorne");
-		Button anordnenNachGanzVorne = SprachUtil.bindText(new Button(), sprache,
-				"nachGanzVorne", "In den Vordergrund");
-		NodeUtil.fuegeIconHinzu(anordnenNachVorne, BootstrapIcons.LAYER_FORWARD);
-		NodeUtil.fuegeIconHinzu(anordnenNachGanzVorne, WhhgAL.LAYERORDERUP);
-		Column ersteSpalte = new Column();
-		ersteSpalte.getChildren().addAll(anordnenNachVorne, anordnenNachGanzVorne);
-		
-		Button anordnenNachHinten = SprachUtil.bindText(new Button(), sprache,
-				"nachHinten", "Eine Ebene nach vorne");
-		Button anordnenNachGanzHinten = SprachUtil.bindText(new Button(), sprache,
-				"nachGanzHinten", "In den Hintergrund");
-		NodeUtil.fuegeIconHinzu(anordnenNachHinten, BootstrapIcons.LAYER_BACKWARD);
-		NodeUtil.fuegeIconHinzu(anordnenNachGanzHinten, WhhgAL.LAYERORDERDOWN);
-		Column zweiteSpalte = new Column();
-		zweiteSpalte.getChildren().addAll(anordnenNachHinten, anordnenNachGanzHinten);
-		
-		RibbonGroup anordnen = new RibbonGroup();
-		anordnen.titleProperty().bind(sprache.getTextProperty("anordnen", "Anordnen"));
-		anordnen.getNodes().addAll(ersteSpalte, zweiteSpalte);
-		
-		NodeUtil.macheUnfokussierbar(anordnen.getNodes());
-		NodeUtil.macheUnfokussierbar(ersteSpalte.getChildren());
-		NodeUtil.macheUnfokussierbar(zweiteSpalte.getChildren());
-		
-		NodeUtil.disable(anordnenNachVorne, anordnenNachGanzVorne, anordnenNachHinten,
-				anordnenNachGanzHinten);
-		
-		return anordnen;
-	}
-	
-	private RibbonTab erstelleDiagrammTab() {
-		RibbonGroup diagrammElemente = erstelleDiagrammElementeGruppe();
-		RibbonGroup verbindungen = erstelleVerbindungenGruppe();
-		RibbonGroup sonstiges = erstelleSonstigeGruppe();
-		RibbonGroup zoom = erstelleZoomGruppe();
-		
-		RibbonTab diagrammTab = SprachUtil.bindText(new RibbonTab(), sprache, "diagrammTab",
-				"DIAGRAMM");
-		diagrammTab.getRibbonGroups().addAll(diagrammElemente, verbindungen, sonstiges, zoom);
-		
-		fuegeLogoHinzu(diagrammTab);
-		
-		return diagrammTab;
-	}
-	
-	private RibbonGroup erstelleDiagrammElementeGruppe() {
-		Button neueKlasse = new Button();
-		setzeElementGrafik(neueKlasse, "klassenBezeichnung", "Klasse");
-		Button neuesInterface = new Button();
-		setzeElementGrafik(neuesInterface, "interfaceBezeichnung", "Interface",
-				"interfaceStereotyp", "<<interface>>");
-		Button neueEnumeration = new Button();
-		setzeElementGrafik(neueEnumeration, "enumerationBezeichnung", "Enumeration",
-				"enumerationStereotyp", "<<enumeration>>");
-		RibbonGroup diagrammElemente = new RibbonGroup();
-		diagrammElemente.titleProperty().bind(sprache.getTextProperty("diagrammElemente",
-				"Diagramm Elemente"));
-		diagrammElemente.getNodes().addAll(neueKlasse, neuesInterface, neueEnumeration);
-		
-		NodeUtil.macheUnfokussierbar(diagrammElemente.getNodes());
-		
-		NodeUtil.disable(neueKlasse, neuesInterface, neueEnumeration);
-		
-		return diagrammElemente;
-	}
-	
-	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
-			String alternativBezeichnung) {
-		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, null,
-				null);
-	}
-	
-	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
-			String alternativBezeichnung, String stereotypSchluessel,
-			String alternativStereotyp) {
-		var icon = new ElementIcon(sprache, bezeichnungSchluessel, alternativBezeichnung,
-				stereotypSchluessel, alternativStereotyp);
-		Node container = NodeUtil.plusIconHinzufuegen(icon);
-		node.setGraphic(container);
-	}
-	
-	private RibbonGroup erstelleVerbindungenGruppe() {
-		Button vererbung = SprachUtil.bindText(new Button(), sprache, "vererbung",
-				"Vererbung");
-		NodeUtil.fuegeGrafikHinzu(vererbung, Ressourcen.get().UML_VERERBUNGS_PFEIL, 70);
-		Button assoziation = SprachUtil.bindText(new Button(), sprache, "assoziation",
-				"Assoziation");
-		assoziation.setId("assoziationButton");
-		NodeUtil.fuegeGrafikHinzu(assoziation,
-				Ressourcen.get().UML_ASSOZIATIONS_PFEIL, 25);
-		RibbonGroup verbindungen = new RibbonGroup();
-		verbindungen.titleProperty().bind(sprache.getTextProperty("verbindungen",
-				"Verbindungen"));
-		verbindungen.getNodes().addAll(vererbung, assoziation);
-		
-		NodeUtil.macheUnfokussierbar(verbindungen.getNodes());
-		
-		NodeUtil.disable(vererbung, assoziation);
-		
-		return verbindungen;
-	}
-	
-	private RibbonGroup erstelleSonstigeGruppe() {
-		Button kommentar = new Button();
-		var kommentarGrafik = NodeUtil.fuegeGrafikHinzu(kommentar,
-				Ressourcen.get().UML_KOMMENTAR, 90);
-		var kommentarContainer = NodeUtil.plusIconHinzufuegen(kommentarGrafik);
-		kommentar.setGraphic(kommentarContainer);
-		kommentar.setGraphicTextGap(-30);
-		RibbonGroup sonstiges = new RibbonGroup();
-		sonstiges.titleProperty().bind(sprache.getTextProperty("kommentar", "Kommentar"));
-		sonstiges.getNodes().add(kommentar);
-		
-		NodeUtil.macheUnfokussierbar(sonstiges.getNodes());
-		
-		NodeUtil.disable(kommentar);
-		
-		return sonstiges;
-	}
-	
-	private RibbonGroup erstelleZoomGruppe() {
-		Button zoomGroesser = SprachUtil.bindText(new Button(), sprache, "vergroessern",
-				"Vergr%c%cern".formatted(oe, sz));
-		Button zoomKleiner = SprachUtil.bindText(new Button(), sprache, "verkleinern",
-				"Verkleinern");
-		Button zoomOriginalgroesse = SprachUtil.bindText(new Button(), sprache,
-				"originalgroesse", "Originalgr%c%ce".formatted(oe, sz));
-		NodeUtil.fuegeIconHinzu(zoomGroesser, CarbonIcons.ZOOM_IN);
-		NodeUtil.fuegeIconHinzu(zoomKleiner, CarbonIcons.ZOOM_OUT);
-		NodeUtil.fuegeIconHinzu(zoomOriginalgroesse, CarbonIcons.ICA_2D);
-		
-		Column spalte = new Column();
-		spalte.getChildren().addAll(zoomGroesser, zoomKleiner, zoomOriginalgroesse);
-		
-		RibbonGroup zoom = new RibbonGroup();
-		zoom.titleProperty().bind(sprache.getTextProperty("zoom",
-				"Zoom"));
-		zoom.getNodes().addAll(spalte);
-		
-		NodeUtil.macheUnfokussierbar(zoom.getNodes());
-		NodeUtil.macheUnfokussierbar(spalte.getChildren());
-		
-		NodeUtil.disable(zoomGroesser, zoomKleiner, zoomOriginalgroesse);
-		
-		return zoom;
-	}
-	
-	private void fuegeLogoHinzu(RibbonTab tab) {
-		try {
-			ImageView classifierLogo = new ImageView(
-					new Image(Ressourcen.get().CLASSIFIER_LOGO_M.oeffneStream()));
-			classifierLogo.setPreserveRatio(true);
-			classifierLogo.setSmooth(true);
-			classifierLogo.setCache(true);
-			classifierLogo.setFitHeight(128);
-			
-			var logoContainer = new HBox(classifierLogo);
-			logoContainer.setMaxHeight(134);
-			logoContainer.setAlignment(Pos.CENTER_RIGHT);
-			HBox.setHgrow(logoContainer, Priority.ALWAYS);
-			HBox.setMargin(logoContainer, new Insets(5));
-			((HBox) tab.getContent()).getChildren().add(logoContainer);
-		} catch (IllegalStateException | IOException e) {
-			log.log(Level.WARNING, e, () -> "Logo konnte nicht geladen werden");
-		}
+		ribbon.getNeu().setOnAction(controller::neuesProjektErzeugen);
+		ribbon.getSpeichern().setOnAction(controller::projektSpeichern);
 	}
 	
 	// Ende Ribbon

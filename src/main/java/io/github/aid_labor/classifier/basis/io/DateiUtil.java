@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +23,8 @@ import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import io.github.aid_labor.classifier.basis.io.system.OS;
 
 
 /**

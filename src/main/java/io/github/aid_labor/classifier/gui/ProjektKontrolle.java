@@ -6,16 +6,15 @@
 
 package io.github.aid_labor.classifier.gui;
 
-import static io.github.aid_labor.classifier.basis.Umlaute.AE;
-import static io.github.aid_labor.classifier.basis.Umlaute.sz;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.basis.Einstellungen;
-import io.github.aid_labor.classifier.basis.Sprache;
-import io.github.aid_labor.classifier.main.Hauptfenster;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import javafx.event.Event;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
@@ -24,7 +23,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 

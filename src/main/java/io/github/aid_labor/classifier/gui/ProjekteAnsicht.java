@@ -10,17 +10,16 @@ import java.util.logging.Logger;
 
 import com.dlsc.gemsfx.DialogPane;
 
-import io.github.aid_labor.classifier.basis.ProgrammDetails;
-import io.github.aid_labor.classifier.basis.Ressourcen;
-import io.github.aid_labor.classifier.basis.SprachUtil;
-import io.github.aid_labor.classifier.basis.Sprache;
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 import javafx.scene.Parent;
-import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 
 
@@ -76,6 +75,8 @@ public class ProjekteAnsicht {
 							.formatted(neueWahl == null ? "null" : neueWahl.getText()));
 					if (neueWahl instanceof ProjektAnsicht tab) {
 						angezeigtesProjekt.set(tab.getProjekt());
+					} else {
+						angezeigtesProjekt.set(null);
 					}
 				});
 		

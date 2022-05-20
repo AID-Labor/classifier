@@ -8,8 +8,8 @@ package io.github.aid_labor.classifier.gui;
 
 import com.dlsc.gemsfx.DialogPane;
 
-import io.github.aid_labor.classifier.basis.ProgrammDetails;
-import io.github.aid_labor.classifier.basis.Sprache;
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.beans.binding.When;
 import javafx.scene.control.Tab;
@@ -37,7 +37,6 @@ public class ProjektAnsicht extends Tab {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private final Sprache sprache;
 	private final UMLProjekt projekt;
 	private final ProjektKontrolle controller;
 	private final DialogPane overlayDialog;
@@ -50,7 +49,6 @@ public class ProjektAnsicht extends Tab {
 	public ProjektAnsicht(UMLProjekt projekt, Sprache sprache, DialogPane overlayDialog, 
 			ProgrammDetails programm) {
 		this.projekt = projekt;
-		this.sprache = sprache;
 		this.overlayDialog = overlayDialog;
 		this.programm = programm;
 		this.controller = new ProjektKontrolle(this, sprache);

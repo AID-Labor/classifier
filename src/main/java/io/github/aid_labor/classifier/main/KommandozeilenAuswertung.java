@@ -19,7 +19,7 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import io.github.aid_labor.classifier.basis.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
 
 class KommandozeilenAuswertung {
 	private static final Logger log = Logger
@@ -35,7 +35,7 @@ class KommandozeilenAuswertung {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	public final Option debug;
 	public final Option debugCSS;
 	public final Option info;
@@ -44,7 +44,7 @@ class KommandozeilenAuswertung {
 	public final Option hilfe;
 	public final Option version;
 	
-	// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	private final ProgrammDetails programm;
 	private final String[] args;
 	private final String[] loglevels = { "ALL", "SEVERE", "WARNING", "INFO", "CONFIG", "FINE", 

@@ -17,25 +17,31 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 
-@JsonSerialize(contentAs = String.class, converter = JsonLocaleProperty.PropertyZuStringKonverter.class)
+// @formatter:off
+@JsonSerialize(
+		contentAs = String.class,
+		converter = JsonLocaleProperty.PropertyZuStringKonverter.class
+)
 @JsonDeserialize(converter = JsonLocaleProperty.StringZuPropertyKonverter.class)
+// @formatter:on
 public class JsonLocaleProperty extends SimpleObjectProperty<Locale> {
 	
-	public static class PropertyZuStringKonverter extends StdConverter<ObjectProperty<Locale>, String> {
+	public static class PropertyZuStringKonverter
+			extends StdConverter<ObjectProperty<Locale>, String> {
 		@Override
 		public String convert(ObjectProperty<Locale> value) {
 			return value.get().toLanguageTag();
 		}
 	}
 	
-	public static class StringZuPropertyKonverter extends StdConverter<String, ObjectProperty<Locale>> {
+	public static class StringZuPropertyKonverter
+			extends StdConverter<String, ObjectProperty<Locale>> {
 		@Override
 		public ObjectProperty<Locale> convert(String value) {
 			Locale l = Locale.forLanguageTag(value);
 			return new JsonLocaleProperty(l);
 		}
 	}
-	
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -66,7 +72,6 @@ public class JsonLocaleProperty extends SimpleObjectProperty<Locale> {
 	public JsonLocaleProperty(Locale initialValue) {
 		super(initialValue);
 	}
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																		*

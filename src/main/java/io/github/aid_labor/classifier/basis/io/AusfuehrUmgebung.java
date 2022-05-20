@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io;
 
 import java.net.URI;
 import java.net.URISyntaxException;

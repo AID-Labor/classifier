@@ -12,11 +12,16 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
 
-
-@JsonSerialize(contentAs = Boolean.class, converter = JsonReadOnlyBooleanPropertyWrapper.PropertyZuBooleanKonverter.class)
-@JsonDeserialize(converter = JsonReadOnlyBooleanPropertyWrapper.BooleanZuPropertyKonverter.class)
+// @formatter:off
+@JsonSerialize(
+		contentAs = Boolean.class,
+		converter = JsonReadOnlyBooleanPropertyWrapper.PropertyZuBooleanKonverter.class
+)
+@JsonDeserialize(
+		converter = JsonReadOnlyBooleanPropertyWrapper.BooleanZuPropertyKonverter.class
+)
+// @formatter:on
 public class JsonReadOnlyBooleanPropertyWrapper extends ReadOnlyBooleanWrapper {
 	
 	public static class PropertyZuBooleanKonverter

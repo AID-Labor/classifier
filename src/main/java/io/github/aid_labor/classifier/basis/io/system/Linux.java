@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io.system;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -12,9 +12,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-non-sealed class MacOS extends Unix {
+non-sealed class Linux extends Unix {
 	
-	private static Logger log = Logger.getLogger(MacOS.class.getName());
+	private static Logger log = Logger.getLogger(Linux.class.getName());
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -31,7 +31,7 @@ non-sealed class MacOS extends Unix {
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	// Sichtbarkeit des Konstruktors auf package beschraenken
-	MacOS() {
+	Linux() {
 		super();
 	}
 	
@@ -40,34 +40,15 @@ non-sealed class MacOS extends Unix {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
-	public boolean istMacOS() {
+	public boolean istLinux() {
 		return true;
 	}
 	
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @implNote Als Konfigurationsordner wird {@code $HOME/Library/{programm.name()}}
-	 *           eingestellt
-	 */
-	@Override
-	public String getKonfigurationsOrdner(ProgrammDetails programm) {
-		return this.pfadAus(new StringBuilder(this.nutzerOrdner), "Library", programm.name())
-			.toString();
-	}
-	
-	
 	private boolean istDark = false;
 	
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @implNote Nutzt zum ermitteln den nativen Befehl {@code defaults}, um die 
-	 *           Systemeinstellungen auszulesen.
-	 */
 	@Override
 	public boolean systemNutztDarkTheme() {
-		String[] befehl = {"defaults", "read", "-g", "AppleInterfaceStyle"};
+		String[] befehl = {"gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"};
 		String ausgabeExceptionStr = "<noch nicht gesetzt>";
 		this.istDark = false;
 		Process prozess;
@@ -83,7 +64,9 @@ non-sealed class MacOS extends Unix {
 			zeilen.ifPresentOrElse(inhalt -> {
 				log.finest(() -> "nativer befehl: _> " + String.join(" ", befehl) + "\n" + inhalt);
 				String ausgabeKlein = inhalt.toLowerCase();
-				if(ausgabeKlein.contains("dark")) {
+				if (ausgabeKlein.contains("dark") 
+					|| ausgabeKlein.contains("black")
+					|| ausgabeKlein.contains("grey")) {
 					this.istDark = true;
 				}
 			}, () -> {

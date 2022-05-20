@@ -6,23 +6,25 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ae;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
+
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.dlsc.gemsfx.EnhancedLabel;
 import com.dlsc.gemsfx.DialogPane.Type;
+import com.dlsc.gemsfx.EnhancedLabel;
 
-import io.github.aid_labor.classifier.basis.Sprache;
-import static io.github.aid_labor.classifier.basis.Umlaute.*;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.uml.Programmiersprache;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.Insets;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 
@@ -86,7 +88,8 @@ class HauptKontrolle {
 		List<ButtonType> buttons = List.of(
 				new ButtonType(sprache.getText("abbrechen", "Abbrechen"),
 						ButtonData.CANCEL_CLOSE),
-				new ButtonType(sprache.getText("ok", "Ok"), ButtonData.OK_DONE));
+				new ButtonType(sprache.getText("ok", "Ok"), ButtonData.OK_DONE)
+		);
 		
 		Platform.runLater(() -> eingabeName.requestFocus());
 		ansicht.getOverlayDialog()

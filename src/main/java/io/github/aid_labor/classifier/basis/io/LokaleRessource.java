@@ -1,19 +1,19 @@
-/*
+/* 
  * Dieser Quellcode steht unter der MIT-License.
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
+package io.github.aid_labor.classifier.basis.io;
 
-package io.github.aid_labor.classifier.basis;
-
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
-
-final class KlassenpfadRessource extends Ressource {
+final class LokaleRessource extends Ressource {
 	
-	private static final Logger log = Logger.getLogger(KlassenpfadRessource.class.getName());
+	private static final Logger log = Logger.getLogger(LokaleRessource.class.getName());
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -29,13 +29,14 @@ final class KlassenpfadRessource extends Ressource {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public KlassenpfadRessource(String ordner, String name) {
+	public LokaleRessource(String ordner, String name) {
 		super(ordner, name);
 	}
-	
-	public KlassenpfadRessource(String pfad) {
+
+	public LokaleRessource(String pfad) {
 		super(pfad);
 	}
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
@@ -44,14 +45,13 @@ final class KlassenpfadRessource extends Ressource {
 	@Override
 	public Path alsPath() {
 		log.finest(() -> "erzeuge Path fuer " + pfad);
-		return Path.of(this.getClass().getResource(pfad).toExternalForm());
+		return Path.of(pfad).toAbsolutePath();
 	}
 	
 	@Override
-	public InputStream oeffneStream() {
+	public InputStream oeffneStream() throws FileNotFoundException {
 		log.finest(() -> "oeffneStream fuer " + pfad);
-		System.out.println(this.getClass().getResourceAsStream("LICENSE.txt"));
-		return this.getClass().getResourceAsStream(pfad);
+		return new FileInputStream(pfad);
 	}
 	
 }

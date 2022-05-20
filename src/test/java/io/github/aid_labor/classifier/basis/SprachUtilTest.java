@@ -20,7 +20,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.github.aid_labor.classifier.basis.Sprache.SprachDatei;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache.SprachDatei;
 
 
 class SprachUtilTest {

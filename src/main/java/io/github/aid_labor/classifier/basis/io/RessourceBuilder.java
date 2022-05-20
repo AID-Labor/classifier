@@ -4,9 +4,11 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io;
 
 import java.util.Objects;
+
+import io.github.aid_labor.classifier.basis.io.system.OS;
 
 
 public class RessourceBuilder {
@@ -69,7 +71,7 @@ public class RessourceBuilder {
 	
 	public RessourceBuilder inOrdner(String ordner) {
 		if(!pfad.isEmpty()) {
-			pfad.append(OS.getDefault().seperator);
+			pfad.append(System.getProperty("file.separator"));
 		}
 		pfad.append(Objects.requireNonNull(ordner));
 		return this;
@@ -94,8 +96,8 @@ public class RessourceBuilder {
 		reset();
 		return r;
 	}
-	
-	// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void reset() {
 		this.pfad = new StringBuilder();

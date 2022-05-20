@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis;
+package io.github.aid_labor.classifier.basis.io;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,9 +24,9 @@ public abstract sealed class Ressource permits KlassenpfadRessource, LokaleResso
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 	
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Attribute																		*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Attribute																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	protected final String pfad;
 	
@@ -39,12 +39,12 @@ public abstract sealed class Ressource permits KlassenpfadRessource, LokaleResso
 	}
 	
 	Ressource(String ordner, String name) {
-		this(ordner + OS.getDefault().seperator + name);
+		this(ordner + System.getProperty("file.separator") + name);
 	}
 	
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Methoden																		*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Methoden																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public abstract Path alsPath();
 	
