@@ -292,6 +292,11 @@ public class UMLProjekt implements Projekt {
 		return erfolg;
 	}
 	
+	@Override
+	public String toString() {
+		return "%s [Datei: %s]".formatted(this.name, this.speicherort);
+	}
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

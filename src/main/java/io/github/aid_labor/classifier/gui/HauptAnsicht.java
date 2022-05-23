@@ -6,14 +6,23 @@
 
 package io.github.aid_labor.classifier.gui;
 
-import java.util.logging.Logger;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.OE;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ae;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
+
+import java.io.File;
+import java.text.MessageFormat;
 
 import com.dlsc.gemsfx.DialogPane;
+import com.dlsc.gemsfx.DialogPane.Type;
+import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.elemente.MenueLeisteKomponente;
 import io.github.aid_labor.classifier.gui.elemente.RibbonKomponente;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
@@ -27,24 +36,24 @@ import javafx.scene.layout.VBox;
 
 public class HauptAnsicht {
 	
-	private static final Logger log = Logger.getLogger(HauptAnsicht.class.getName());
-	
+//	private static final Logger log = Logger.getLogger(HauptAnsicht.class.getName());
+
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private final Pane wurzel;
@@ -107,6 +116,10 @@ public class HauptAnsicht {
 		return projektAnsicht;
 	}
 	
+	public ProgrammDetails getProgrammDetails() {
+		return programm;
+	}
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -129,6 +142,7 @@ public class HauptAnsicht {
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
 		menue.getDateiSpeichern().setOnAction(this.controller::projektSpeichern);
 		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
+		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
 		
 		// Speichern updaten
 		this.projektAnsicht.getAngezeigtesProjektProperty()
@@ -145,7 +159,7 @@ public class HauptAnsicht {
 			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter());
 		}
 		
-		NodeUtil.disable(menue.getDateiOeffnen(), menue.getDateiLetzeOeffnen(),
+		NodeUtil.disable(menue.getDateiLetzeOeffnen(),
 				menue.getDateiSchliessen(), menue.getDateiAlleSpeichern(),
 				menue.getDateiUmbenennen(), menue.getDateiImportieren());
 		
@@ -208,7 +222,9 @@ public class HauptAnsicht {
 			NodeUtil.disable(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
 		}
 		
-		NodeUtil.disable(ribbon.getOeffnen(), ribbon.getImportieren(), ribbon.getScreenshot(),
+		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
+		
+		NodeUtil.disable(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
 		NodeUtil.disable(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen(),
 				ribbon.getRueckgaengig(), ribbon.getWiederholen());
@@ -235,4 +251,40 @@ public class HauptAnsicht {
 		this.projektAnsicht.zeigeProjekt(projekt);
 	}
 	
+	// =====================================================================================
+	// Dialog
+	
+	void zeigeAnlegenFehlerDialog(String beschreibung) {
+		String titel = sprache.getText("anlegenFehlerTitel",
+				"Fehler beim Anlegen eines Projektes");
+		this.overlayDialog.showNode(Type.ERROR, titel,
+				new StackPane(new EnhancedLabel(beschreibung)));
+	}
+	
+	void zeigeOeffnenFehlerDialog(File datei) {
+		String dialogTitel = sprache.getText("oeffnenFehlerTitel",
+				"Fehler beim %cffnen".formatted(Umlaute.OE));
+		MessageFormat nachricht = new MessageFormat(sprache.getText("oeffnenFehler", """
+				Die Datei {0} konnte nicht gelesen werden. M%cglicherweise ist die \
+				Datei besch%cdigt oder keine g%cltige Projektdatei."""
+				.formatted(oe, ae, ue)));
+		String beschreibung = nachricht.format(new Object[] { datei.getName() });
+		
+		this.overlayDialog.showNode(Type.ERROR, dialogTitel,
+				new StackPane(new EnhancedLabel(beschreibung)));
+	}
+	
+	void zeigeOffnenWarnungDialog(File datei) {
+		MessageFormat titelformat = new MessageFormat(sprache.getText(
+				"oeffnenWarnungTitel", "Die Datei {0} wurde nicht ge%cffnet"
+						.formatted(oe)));
+		String dialogTitel = titelformat.format(new Object[] { datei.getName() });
+		String beschreibung = sprache.getText("oeffnenWarnung",
+				"""
+						Die Datei ist bereits ge%cffnet. Das mehrfache %cffnen einer Datei \
+						wird nicht unterst%ctzt."""
+						.formatted(oe, OE, ue));
+		this.overlayDialog.showNode(Type.WARNING, dialogTitel,
+				new StackPane(new EnhancedLabel(beschreibung)));
+	}
 }

@@ -102,11 +102,11 @@ public class ProjektAnsicht extends Tab {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	public boolean projektSpeichern() {
-		return this.controller.projektSpeichern();
+		return this.controller.projektSpeichern(this.projekt);
 	}
 	
 	public boolean projektSpeichernUnter() {
-		return this.controller.projektSpeichernUnter();
+		return this.controller.projektSpeichernUnter(this.projekt);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
