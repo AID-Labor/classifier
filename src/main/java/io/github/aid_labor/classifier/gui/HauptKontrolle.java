@@ -12,10 +12,12 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.dlsc.gemsfx.DialogPane.Dialog;
 import com.dlsc.gemsfx.DialogPane.Type;
 import com.dlsc.gemsfx.EnhancedLabel;
 
@@ -28,6 +30,8 @@ import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
@@ -197,7 +201,7 @@ class HauptKontrolle {
 			try {
 				this.ansicht.zeigeProjekt(projekt);
 				DatumWrapper<Path> dateiEintrag = new DatumWrapper<Path>(datei.toPath());
-				if(!Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag)) {
+				if (!Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag)) {
 					Einstellungen.getBenutzerdefiniert().letzteDateien.remove(dateiEintrag);
 					Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag);
 				}
@@ -209,7 +213,44 @@ class HauptKontrolle {
 		}
 	}
 	
+	void projektUmbenennen(Event event) {
+		UMLProjekt projekt = ansicht.getProjektAnsicht().getAngezeigtesProjektProperty().get();
+		
+		MessageFormat format = new MessageFormat(sprache.getText("umbenennenTitel",
+				"Neuen Namen f%cr Projekt {0} festlegen".formatted(ue)));
+		String titel = format.format(new Object[] { projekt.getName() });
+		
+		Dialog<String> eingabeDialog = this.ansicht.getOverlayDialog().showTextInput(titel, 
+				projekt.getName());
+		
+		TextField eingabe = findeElement(eingabeDialog.getContent(), TextField.class);
+		if(eingabe != null) {
+			eingabeDialog.validProperty().bind(eingabe.textProperty().isNotEmpty());
+		}
+		
+		eingabeDialog.thenAccept(buttonTyp -> {
+			if(buttonTyp.getButtonData().equals(ButtonData.OK_DONE)) {
+				projekt.setName(eingabeDialog.getValue());
+			}
+		});
+	}
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	@SuppressWarnings("unchecked")
+	private <T> T findeElement(Node wurzel, Class<T> klasse) {
+		if (klasse.isAssignableFrom(wurzel.getClass())) {
+			return (T) wurzel;
+		} else if (wurzel instanceof Parent p) {
+			for(Node kind: p.getChildrenUnmodifiable()) {
+				T element = findeElement(kind, klasse);
+				if(element != null) {
+					return element;
+				}
+			}
+		}
+		
+		return null;
+	}
 	
 }

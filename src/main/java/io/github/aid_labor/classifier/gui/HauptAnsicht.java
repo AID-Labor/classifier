@@ -179,46 +179,42 @@ public class HauptAnsicht {
 	
 	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
 		// Menue Datei
-		NodeUtil.disable(
-				menue.getDateiUmbenennen(), menue.getDateiImportieren(),
+		NodeUtil.disable(menue.getDateiImportieren(),
 				menue.getExportierenBild(), menue.getExportierenQuellcode());
 		
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
-		menue.getDateiSpeichern().setOnAction(this.controller::projektSpeichern);
-		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
-		menue.getDateiAlleSpeichern().setOnAction(e -> this.projektAnsicht.allesSpeichern());
 		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
 		
-		menue.getDateiSchliessen()
-				.setOnAction(e -> this.projektAnsicht.angezeigtesProjektSchliessen());
-		
 		updateLetzteDateien(menue.getDateiLetzeOeffnen());
-		
-		// Speichern und Schliessen updaten
-		this.projektAnsicht.getAngezeigtesProjektProperty()
-				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
-					if (gezeigtesProjekt != null) {
-						menue.getDateiSpeichern().setDisable(false);
-						menue.getDateiSpeichernUnter().setDisable(false);
-						menue.getDateiSchliessen().setDisable(false);
-						menue.getDateiAlleSpeichern().setDisable(false);
-					} else {
-						menue.getDateiSpeichern().setDisable(true);
-						menue.getDateiSpeichernUnter().setDisable(true);
-						menue.getDateiSchliessen().setDisable(true);
-						menue.getDateiAlleSpeichern().setDisable(true);
-					}
-				});
-		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter(),
-					menue.getDateiAlleSpeichern(), menue.getDateiSchliessen());
-		}
 		
 		// Letzte Dateien Updaten
 		Einstellungen.getBenutzerdefiniert().letzteDateien
 				.addListener((SetChangeListener<? super DatumWrapper<Path>>) aenderung -> {
 					updateLetzteDateien(menue.getDateiLetzeOeffnen());
 				});
+		
+		menue.getDateiSchliessen()
+				.setOnAction(e -> this.projektAnsicht.angezeigtesProjektSchliessen());
+		menue.getDateiSpeichern().setOnAction(this.controller::projektSpeichern);
+		menue.getDateiAlleSpeichern().setOnAction(e -> this.projektAnsicht.allesSpeichern());
+		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
+		menue.getDateiUmbenennen().setOnAction(this.controller::projektUmbenennen);
+		
+		// Dateimenue updaten
+		this.projektAnsicht.getAngezeigtesProjektProperty()
+				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
+					boolean inaktiv = gezeigtesProjekt == null;
+					menue.getDateiSpeichern().setDisable(inaktiv);
+					menue.getDateiSpeichernUnter().setDisable(inaktiv);
+					menue.getDateiSchliessen().setDisable(inaktiv);
+					menue.getDateiAlleSpeichern().setDisable(inaktiv);
+					menue.getDateiUmbenennen().setDisable(inaktiv);
+				});
+		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
+			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter(),
+					menue.getDateiAlleSpeichern(), menue.getDateiSchliessen(),
+					menue.getDateiUmbenennen());
+		}
 		
 		// Menue Bearbeiten
 		NodeUtil.disable(menue.getRueckgaengig(), menue.getWiederholen(), menue.getKopieren(),
