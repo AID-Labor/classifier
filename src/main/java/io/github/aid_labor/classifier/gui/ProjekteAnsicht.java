@@ -35,7 +35,6 @@ import javafx.stage.WindowEvent;
 public class ProjekteAnsicht {
 	private static final Logger log = Logger.getLogger(ProjekteAnsicht.class.getName());
 	
-	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
@@ -69,7 +68,7 @@ public class ProjekteAnsicht {
 		@Override
 		public void handle(WindowEvent event) {
 			allesSchliessen();
-			if(!tabAnsicht.getTabs().isEmpty()) {
+			if (!tabAnsicht.getTabs().isEmpty()) {
 				event.consume();
 			}
 		}
@@ -165,17 +164,17 @@ public class ProjekteAnsicht {
 		
 		EventType<WindowEvent> eventTyp = WindowEvent.WINDOW_CLOSE_REQUEST;
 		tabAnsicht.sceneProperty().addListener((property, alteSzene, neueSzene) -> {
-			if(alteSzene != null) {
-				if(alteSzene.getWindow() != null) {
+			if (alteSzene != null) {
+				if (alteSzene.getWindow() != null) {
 					alteSzene.getWindow().removeEventHandler(eventTyp, eventAktion);
 				}
 			}
-			if(neueSzene != null) {
+			if (neueSzene != null) {
 				if (neueSzene.getWindow() != null) {
 					neueSzene.getWindow().addEventHandler(eventTyp, eventAktion);
 				}
 				neueSzene.windowProperty().addListener((prop, altesFenster, neuesFenster) -> {
-					if(altesFenster != null) {
+					if (altesFenster != null) {
 						altesFenster.removeEventHandler(eventTyp, eventAktion);
 					}
 					if (neuesFenster != null) {
@@ -255,6 +254,20 @@ public class ProjekteAnsicht {
 				}
 			}
 		});
+	}
+	
+	public void allesSpeichern() {
+		for (Tab tab : this.tabAnsicht.getTabs()) {
+			if (tab instanceof ProjektAnsicht pa) {
+				try {
+					pa.projektSpeichern();
+				} catch (Exception e) {
+					log.log(Level.WARNING, e,
+							() -> "Fehler beim Speichern von Projekt %s aufgetreten"
+									.formatted(pa.getProjekt()));
+				}
+			}
+		}
 	}
 	
 	/**

@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.event.Event;
 import javafx.geometry.BoundingBox;
@@ -74,14 +75,14 @@ class ProjektKontrolle {
 			MessageFormat nachricht = new MessageFormat(sprache.getText("schliessenAbfrage",
 					"Projekt \"{0}\" vor dem Schlie%cen speichern?".formatted(sz)));
 			String abfrage = nachricht.format(new Object[] { ansicht.getProjekt().getName() });
-			ButtonType abbrechenButton =  new ButtonType(sprache.getText("abbrechen", 
+			ButtonType abbrechenButton = new ButtonType(sprache.getText("abbrechen",
 					"Abbrechen"),
 					ButtonData.CANCEL_CLOSE);
 			ButtonType verwerfenButton = new ButtonType(sprache.getText("verwerfen",
-						"%cnderungen verwerfen".formatted(AE)),
+					"%cnderungen verwerfen".formatted(AE)),
 					ButtonData.NO);
 			ButtonType speichernSchliessenButton = new ButtonType(sprache.getText(
-					"speichernSchliessen", "Speichern und Schlie%cen".formatted(sz)), 
+					"speichernSchliessen", "Speichern und Schlie%cen".formatted(sz)),
 					ButtonData.APPLY);
 			
 			// @formatter:off
@@ -161,6 +162,15 @@ class ProjektKontrolle {
 		
 		File speicherOrt = dateiDialog
 				.showSaveDialog(ansicht.getTabPane().getScene().getWindow());
+		if (speicherOrt == null) {
+			// @formatter:off
+			log.info(() -> 
+				"'Speichern Unter' f%cr Projekt %s fehlgeschlagen, da der Speicherort null war"
+					.formatted(Umlaute.ue, projekt));
+			// @formatter:on
+			return false;
+		}
+		
 		Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung
 				.set(speicherOrt.getParentFile().getAbsolutePath());
 		
@@ -168,7 +178,7 @@ class ProjektKontrolle {
 		
 		if (gespeichert) {
 			DatumWrapper<Path> dateiEintrag = new DatumWrapper<Path>(speicherOrt.toPath());
-			if(!Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag)) {
+			if (!Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag)) {
 				Einstellungen.getBenutzerdefiniert().letzteDateien.remove(dateiEintrag);
 				Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag);
 			}
