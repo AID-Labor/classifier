@@ -10,9 +10,11 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
 
+import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
@@ -126,7 +128,6 @@ class ProjektKontrolle {
 				}
 			});
 			// @formatter:on
-			
 		}
 	}
 	
@@ -163,7 +164,17 @@ class ProjektKontrolle {
 		Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung
 				.set(speicherOrt.getParentFile().getAbsolutePath());
 		
-		return ansicht.getProjekt().speichern(speicherOrt.toPath());
+		boolean gespeichert = ansicht.getProjekt().speichern(speicherOrt.toPath());
+		
+		if (gespeichert) {
+			DatumWrapper<Path> dateiEintrag = new DatumWrapper<Path>(speicherOrt.toPath());
+			if(!Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag)) {
+				Einstellungen.getBenutzerdefiniert().letzteDateien.remove(dateiEintrag);
+				Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag);
+			}
+		}
+		
+		return gespeichert;
 	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

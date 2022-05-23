@@ -12,12 +12,16 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.List;
 
 import com.dlsc.gemsfx.DialogPane;
 import com.dlsc.gemsfx.DialogPane.Type;
 import com.dlsc.gemsfx.EnhancedLabel;
 
+import io.github.aid_labor.classifier.basis.DatumWrapper;
+import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
@@ -27,11 +31,16 @@ import io.github.aid_labor.classifier.gui.elemente.MenueLeisteKomponente;
 import io.github.aid_labor.classifier.gui.elemente.RibbonKomponente;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 
 
 public class HauptAnsicht {
@@ -80,6 +89,36 @@ public class HauptAnsicht {
 		if (!spracheGesetzt) {
 			sprache.ignoriereSprachen();
 		}
+		
+		this.overlayDialog.setConverter(new StringConverter<ButtonType>() {
+			@Override
+			public String toString(ButtonType buttonTyp) {
+				return switch (buttonTyp.getButtonData()) {
+					case APPLY -> sprache.getText("APPLY", "Anwenden");
+					case BACK_PREVIOUS -> sprache.getText("BACK_PREVIOUS", "zur%cck".formatted(ue));
+					case CANCEL_CLOSE -> sprache.getText("CANCEL_CLOSE", "Abbrechen");
+					case FINISH -> sprache.getText("FINISH", "Beenden");
+					case HELP -> sprache.getText("HELP", "Hilfe");
+					case HELP_2 -> sprache.getText("HELP_2", "Hilfe");
+					case NEXT_FORWARD -> sprache.getText("NEXT_FORWARD", "Weiter");
+					case NO -> sprache.getText("NO", "Nein");
+					case OK_DONE -> sprache.getText("OK_DONE", "Ok");
+					case YES -> sprache.getText("YES", "Ja");
+					case BIG_GAP -> "";
+					case LEFT -> "";
+					case OTHER -> "";
+					case RIGHT -> "";
+					case SMALL_GAP -> "";
+					default -> null;
+				};
+			}
+			
+			@Override
+			public ButtonType fromString(String string) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		});
 		
 		var menueAnsicht = new MenueLeisteKomponente();
 		setzeMenueAktionen(menueAnsicht);
@@ -144,6 +183,8 @@ public class HauptAnsicht {
 		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
 		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
 		
+		updateLetzteDateien(menue.getDateiLetzeOeffnen());
+		
 		// Speichern updaten
 		this.projektAnsicht.getAngezeigtesProjektProperty()
 				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
@@ -159,8 +200,13 @@ public class HauptAnsicht {
 			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter());
 		}
 		
-		NodeUtil.disable(menue.getDateiLetzeOeffnen(),
-				menue.getDateiSchliessen(), menue.getDateiAlleSpeichern(),
+		// Letzte Dateien Updaten
+		Einstellungen.getBenutzerdefiniert().letzteDateien
+				.addListener((SetChangeListener<? super DatumWrapper<Path>>) aenderung -> {
+					updateLetzteDateien(menue.getDateiLetzeOeffnen());
+				});
+		
+		NodeUtil.disable(menue.getDateiSchliessen(), menue.getDateiAlleSpeichern(),
 				menue.getDateiUmbenennen(), menue.getDateiImportieren());
 		
 		// Menue Bearbeiten
@@ -185,6 +231,18 @@ public class HauptAnsicht {
 		
 		// Menue Einstellungen
 		NodeUtil.disable(menue.getVoidAnzeigen(), menue.getTheme(), menue.getInfo());
+	}
+	
+	private void updateLetzteDateien(Menu menueLetzteDateien) {
+		menueLetzteDateien.getItems().clear();
+		for (DatumWrapper<Path> datei : Einstellungen
+				.getBenutzerdefiniert().letzteDateien) {
+			MenuItem menueEintrag = new MenuItem(datei.getElement().toString());
+			menueEintrag.setOnAction(e -> {
+				this.controller.projektOeffnen(datei.getElement().toFile());
+			});
+			menueLetzteDateien.getItems().add(0, menueEintrag);
+		}
 	}
 	
 	// Ende Menue
@@ -285,6 +343,6 @@ public class HauptAnsicht {
 						wird nicht unterst%ctzt."""
 						.formatted(oe, OE, ue));
 		this.overlayDialog.showNode(Type.WARNING, dialogTitel,
-				new StackPane(new EnhancedLabel(beschreibung)));
+				new StackPane(new EnhancedLabel(beschreibung)), false, List.of(ButtonType.OK));
 	}
 }

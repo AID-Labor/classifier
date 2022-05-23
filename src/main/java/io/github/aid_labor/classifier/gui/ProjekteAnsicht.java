@@ -189,8 +189,8 @@ public class ProjekteAnsicht {
 		boolean hinzugefuegt = this.projekte.add(projekt);
 		
 		if (!hinzugefuegt) {
-			var exc = new UnsupportedOperationException("Projekt %s mit dem Speicherort '%s' "
-					+ "kann nicht angezeigt werden, da dieses Projekt bereits geoeffnet ist"
+			var exc = new UnsupportedOperationException(("Projekt %s mit dem Speicherort '%s' "
+					+ "kann nicht angezeigt werden, da dieses Projekt bereits geoeffnet ist")
 							.formatted(projekt.getName(), projekt.getSpeicherort()));
 			log.log(Level.INFO, exc, () -> "Projekt anzeigen abgebrochen");
 			throw exc;
@@ -202,6 +202,7 @@ public class ProjekteAnsicht {
 		this.tabAnsicht.getSelectionModel().select(tab);
 		
 		tab.setOnClosed(e -> this.projekte.remove(projekt));
+		
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

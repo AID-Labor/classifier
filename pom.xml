@@ -18,8 +18,8 @@
 
 	<properties>
 		<javafx.version>17.0.2</javafx.version>
-		<jackson.version.core>2.13.2</jackson.version.core>
-		<jackson.version.databind>2.13.2.2</jackson.version.databind>
+		<jackson.version.core>2.13.3</jackson.version.core>
+		<jackson.version.databind>2.13.3</jackson.version.databind>
 		<junit.jupiter.version>5.8.1</junit.jupiter.version>
 		<junit.platform.version>1.5.2</junit.platform.version>
 		<mainClass>io.github.aid_labor.${project.artifactId}.main.Hauptfenster</mainClass>
@@ -530,6 +530,12 @@
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version.databind}</version>
+		</dependency>
+		<!--	Java 8 Date/time	-->
+		<dependency>
+		    <groupId>com.fasterxml.jackson.datatype</groupId>
+		    <artifactId>jackson-datatype-jsr310</artifactId>
+		    <version>${jackson.version.databind}</version>
 		</dependency>
 
 		<!-- JUnit -->
