@@ -95,7 +95,8 @@ public class HauptAnsicht {
 			public String toString(ButtonType buttonTyp) {
 				return switch (buttonTyp.getButtonData()) {
 					case APPLY -> sprache.getText("APPLY", "Anwenden");
-					case BACK_PREVIOUS -> sprache.getText("BACK_PREVIOUS", "zur%cck".formatted(ue));
+					case BACK_PREVIOUS ->
+						sprache.getText("BACK_PREVIOUS", "zur%cck".formatted(ue));
 					case CANCEL_CLOSE -> sprache.getText("CANCEL_CLOSE", "Abbrechen");
 					case FINISH -> sprache.getText("FINISH", "Beenden");
 					case HELP -> sprache.getText("HELP", "Hilfe");
@@ -178,26 +179,36 @@ public class HauptAnsicht {
 	
 	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
 		// Menue Datei
+		NodeUtil.disable(menue.getDateiAlleSpeichern(),
+				menue.getDateiUmbenennen(), menue.getDateiImportieren(),
+				menue.getExportierenBild(), menue.getExportierenQuellcode());
+		
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
 		menue.getDateiSpeichern().setOnAction(this.controller::projektSpeichern);
 		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
 		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
 		
+		menue.getDateiSchliessen()
+				.setOnAction(e -> this.projektAnsicht.angezeigtesProjektSchliessen());
+		
 		updateLetzteDateien(menue.getDateiLetzeOeffnen());
 		
-		// Speichern updaten
+		// Speichern und Schliessen updaten
 		this.projektAnsicht.getAngezeigtesProjektProperty()
 				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
 					if (gezeigtesProjekt != null) {
 						menue.getDateiSpeichern().setDisable(false);
 						menue.getDateiSpeichernUnter().setDisable(false);
+						menue.getDateiSchliessen().setDisable(false);
 					} else {
 						menue.getDateiSpeichern().setDisable(true);
 						menue.getDateiSpeichernUnter().setDisable(true);
+						menue.getDateiSchliessen().setDisable(true);
 					}
 				});
 		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter());
+			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter(),
+					menue.getDateiSchliessen());
 		}
 		
 		// Letzte Dateien Updaten
@@ -205,9 +216,6 @@ public class HauptAnsicht {
 				.addListener((SetChangeListener<? super DatumWrapper<Path>>) aenderung -> {
 					updateLetzteDateien(menue.getDateiLetzeOeffnen());
 				});
-		
-		NodeUtil.disable(menue.getDateiSchliessen(), menue.getDateiAlleSpeichern(),
-				menue.getDateiUmbenennen(), menue.getDateiImportieren());
 		
 		// Menue Bearbeiten
 		NodeUtil.disable(menue.getRueckgaengig(), menue.getWiederholen(), menue.getKopieren(),

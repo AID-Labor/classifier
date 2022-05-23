@@ -23,12 +23,18 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener.Change;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.scene.Parent;
+import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.stage.WindowEvent;
 
 
 public class ProjekteAnsicht {
 	private static final Logger log = Logger.getLogger(ProjekteAnsicht.class.getName());
+	
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -59,6 +65,16 @@ public class ProjekteAnsicht {
 	private final Sprache sprache;
 	private final ProgrammDetails programm;
 	
+	private EventHandler<WindowEvent> eventAktion = new EventHandler<WindowEvent>() {
+		@Override
+		public void handle(WindowEvent event) {
+			allesSchliessen();
+			if(!tabAnsicht.getTabs().isEmpty()) {
+				event.consume();
+			}
+		}
+	};
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -66,7 +82,7 @@ public class ProjekteAnsicht {
 	public ProjekteAnsicht(DialogPane overlayDialog, ProgrammDetails programm) {
 		this.projekte = FXCollections.observableSet(
 				new TreeSet<>((p1, p2) -> {
-					if(p1.getSpeicherort() == null) {
+					if (p1.getSpeicherort() == null) {
 						return -1;
 					} else if (p2.getSpeicherort() == null) {
 						return 1;
@@ -146,6 +162,28 @@ public class ProjekteAnsicht {
 			log.fine(() -> "%cnderung der angezeigten Projekte < < < < < < < < < < < < < < <"
 					.formatted(Umlaute.AE));
 		});
+		
+		EventType<WindowEvent> eventTyp = WindowEvent.WINDOW_CLOSE_REQUEST;
+		tabAnsicht.sceneProperty().addListener((property, alteSzene, neueSzene) -> {
+			if(alteSzene != null) {
+				if(alteSzene.getWindow() != null) {
+					alteSzene.getWindow().removeEventHandler(eventTyp, eventAktion);
+				}
+			}
+			if(neueSzene != null) {
+				if (neueSzene.getWindow() != null) {
+					neueSzene.getWindow().addEventHandler(eventTyp, eventAktion);
+				}
+				neueSzene.windowProperty().addListener((prop, altesFenster, neuesFenster) -> {
+					if(altesFenster != null) {
+						altesFenster.removeEventHandler(eventTyp, eventAktion);
+					}
+					if (neuesFenster != null) {
+						neuesFenster.addEventHandler(eventTyp, eventAktion);
+					}
+				});
+			}
+		});
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -172,6 +210,53 @@ public class ProjekteAnsicht {
 		}
 	}
 	
+	public void angezeigtesProjektSchliessen() {
+		projektSchliessen(this.tabAnsicht.getSelectionModel().getSelectedItem());
+	}
+	
+	public void projektSchliessen(Tab tab) {
+		if (tab.isClosable()) {
+			if (tab.getOnCloseRequest() != null) {
+				var event = new Event(Tab.TAB_CLOSE_REQUEST_EVENT);
+				tab.getOnCloseRequest().handle(event);
+				if (!event.isConsumed()) {
+					this.tabAnsicht.getTabs().remove(tab);
+					if (tab.getOnClosed() != null) {
+						tab.getOnClosed().handle(new Event(Tab.CLOSED_EVENT));
+					}
+				}
+			} else {
+				this.tabAnsicht.getTabs().remove(tab);
+				if (tab.getOnClosed() != null) {
+					tab.getOnClosed().handle(new Event(Tab.CLOSED_EVENT));
+				}
+			}
+		}
+	}
+	
+	public void allesSchliessen() {
+		var iterator = this.tabAnsicht.getTabs().listIterator();
+		iterator.forEachRemaining(tab -> {
+			if (tab.isClosable()) {
+				if (tab.getOnCloseRequest() != null) {
+					var event = new Event(Tab.TAB_CLOSE_REQUEST_EVENT);
+					tab.getOnCloseRequest().handle(event);
+					if (!event.isConsumed()) {
+						iterator.remove();
+						if (tab.getOnClosed() != null) {
+							tab.getOnClosed().handle(new Event(Tab.CLOSED_EVENT));
+						}
+					}
+				} else {
+					iterator.remove();
+					if (tab.getOnClosed() != null) {
+						tab.getOnClosed().handle(new Event(Tab.CLOSED_EVENT));
+					}
+				}
+			}
+		});
+	}
+	
 	/**
 	 * Zeigt ein Projekt in einem neuen Tab an.
 	 * 
@@ -180,7 +265,7 @@ public class ProjekteAnsicht {
 	 *                                       bereits geoeffnet ist
 	 */
 	public void zeigeProjekt(UMLProjekt projekt) throws UnsupportedOperationException {
-		if(projekt == null) {
+		if (projekt == null) {
 			var exc = new NullPointerException("Das uebergebene Projekt darf nicht null sein");
 			log.log(Level.SEVERE, exc, () -> "Projekt kann nicht angezeigt werden");
 			throw exc;
@@ -191,7 +276,7 @@ public class ProjekteAnsicht {
 		if (!hinzugefuegt) {
 			var exc = new UnsupportedOperationException(("Projekt %s mit dem Speicherort '%s' "
 					+ "kann nicht angezeigt werden, da dieses Projekt bereits geoeffnet ist")
-							.formatted(projekt.getName(), projekt.getSpeicherort()));
+					.formatted(projekt.getName(), projekt.getSpeicherort()));
 			log.log(Level.INFO, exc, () -> "Projekt anzeigen abgebrochen");
 			throw exc;
 		}
