@@ -96,8 +96,8 @@ public class MenueLeisteKomponente {
 	private MenuItem darstellungGroesser;
 	private MenuItem darstellungKleiner;
 	private MenuItem darstellungOriginalgroesse;
-	private MenuItem vollbild;
-	private MenuItem symbolleisteAusblenden;
+	private CheckMenuItem vollbild;
+	private CheckMenuItem symbolleisteAusblenden;
 	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// Menue Fenster
@@ -264,11 +264,11 @@ public class MenueLeisteKomponente {
 		return darstellungOriginalgroesse;
 	}
 	
-	public MenuItem getVollbild() {
+	public CheckMenuItem getVollbild() {
 		return vollbild;
 	}
 	
-	public MenuItem getSymbolleisteAusblenden() {
+	public CheckMenuItem getSymbolleisteAusblenden() {
 		return symbolleisteAusblenden;
 	}
 	
@@ -439,7 +439,7 @@ public class MenueLeisteKomponente {
 		
 		vollbild = SprachUtil.bindText(new CheckMenuItem(), sprache,
 				"vollbild", "Vollbild");
-		symbolleisteAusblenden = SprachUtil.bindText(new MenuItem(), sprache,
+		symbolleisteAusblenden = SprachUtil.bindText(new CheckMenuItem(), sprache,
 				"symbolleisteAusblenden", "Symbolleiste ausblenden");
 		
 		darstellungMenue.getItems().addAll(zoomen, new SeparatorMenuItem(), vollbild,

@@ -40,6 +40,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
 
@@ -71,6 +72,7 @@ public class HauptAnsicht {
 	private final ProjekteAnsicht projektAnsicht;
 	private final DialogPane overlayDialog;
 	private final ProgrammDetails programm;
+	private final RibbonKomponente ribbonKomponente;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -124,11 +126,12 @@ public class HauptAnsicht {
 		var menueAnsicht = new MenueLeisteKomponente();
 		setzeMenueAktionen(menueAnsicht);
 		
-		var ribbonAnsicht = new RibbonKomponente();
-		setzeRibbonAktionen(ribbonAnsicht);
+		ribbonKomponente = new RibbonKomponente();
+		setzeRibbonAktionen(ribbonKomponente);
 		
 		var hauptInhalt = new BorderPane();
-		hauptInhalt.setTop(new VBox(menueAnsicht.getMenueleiste(), ribbonAnsicht.getRibbon()));
+		hauptInhalt
+				.setTop(new VBox(menueAnsicht.getMenueleiste(), ribbonKomponente.getRibbon()));
 		hauptInhalt.setCenter(projektAnsicht.getAnsicht());
 		
 		// TODO Datei(en) oeffnen!!!
@@ -176,7 +179,7 @@ public class HauptAnsicht {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	public void oeffneDateien (Iterable<File> dateien) {
+	public void oeffneDateien(Iterable<File> dateien) {
 		for (File datei : dateien) {
 			this.controller.projektOeffnen(datei);
 		}
@@ -244,7 +247,26 @@ public class HauptAnsicht {
 				menue.getAnordnenNachHinten(), menue.getAnordnenNachGanzHinten());
 		
 		// Menue Darstellung
-		NodeUtil.disable(menue.getVollbild(), menue.getSymbolleisteAusblenden());
+		NodeUtil.disable(menue.getDarstellungGroesser(), menue.getDarstellungKleiner(),
+				menue.getDarstellungOriginalgroesse());
+		
+		menue.getVollbild().setOnAction(e -> {
+			if (wurzel.getScene().getWindow() instanceof Stage fenster) {
+				fenster.setFullScreen(!fenster.isFullScreen());
+				menue.getVollbild().setSelected(fenster.isFullScreen());
+			}
+		});
+		
+		menue.getSymbolleisteAusblenden().setOnAction(e -> {
+			ribbonKomponente.getRibbon().setVisible(!ribbonKomponente.getRibbon().isVisible());
+			if (!ribbonKomponente.getRibbon().isVisible()) {
+				ribbonKomponente.getRibbon().setMaxHeight(0);
+			} else {
+				ribbonKomponente.getRibbon().setMaxHeight(Double.MAX_VALUE);
+			}
+			menue.getSymbolleisteAusblenden()
+					.setSelected(!ribbonKomponente.getRibbon().isVisible());
+		});
 		
 		// Menue Fenster
 		NodeUtil.disable(menue.getMinimieren(), menue.getMaximieren(),
