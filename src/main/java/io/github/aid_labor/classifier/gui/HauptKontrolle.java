@@ -16,6 +16,7 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.dlsc.gemsfx.DialogPane.Dialog;
 import com.dlsc.gemsfx.DialogPane.Type;
@@ -36,8 +37,12 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 
 class HauptKontrolle {
@@ -181,6 +186,43 @@ class HauptKontrolle {
 		}
 	}
 	
+	void projektOeffnen(DragEvent event) {
+		log.finest(() -> "DragEvent ausgeloest: " + event.getEventType().getName());
+		if (event.getEventType().equals(DragEvent.DRAG_OVER)) {
+			Dragboard db = event.getDragboard();
+			boolean akzeptieren = false;
+			if (db.hasFiles()) {
+				for (ExtensionFilter erweiterungen : this.ansicht.getProgrammDetails()
+						.dateiZuordnung()) {
+					for (String erweiterung : erweiterungen.getExtensions()) {
+						akzeptieren |= db.getFiles().stream()
+								.filter(datei -> datei.getName().endsWith(erweiterung))
+								.toList()
+								.isEmpty();
+					}
+				}
+				String akzeptiert = String.valueOf(akzeptieren);
+				log.finer(() -> """
+						DragOver-Dateien: [%s]
+						         Akzeptieren: %s"""
+						.formatted(db.getFiles().stream().map(datei -> datei.getAbsolutePath())
+								.collect(Collectors.joining("   ")), akzeptiert));
+			}
+			if (akzeptieren) {
+				event.acceptTransferModes(TransferMode.ANY);
+			}
+		}
+		if (event.getEventType().equals(DragEvent.DRAG_DROPPED)) {
+			Dragboard db = event.getDragboard();
+			if (db.hasFiles()) {
+				for (File datei : db.getFiles()) {
+					projektOeffnen(datei);
+				}
+			}
+		}
+		event.consume();
+	}
+	
 	void projektOeffnen(File datei) {
 		UMLProjekt projekt = null;
 		try {
@@ -220,16 +262,16 @@ class HauptKontrolle {
 				"Neuen Namen f%cr Projekt {0} festlegen".formatted(ue)));
 		String titel = format.format(new Object[] { projekt.getName() });
 		
-		Dialog<String> eingabeDialog = this.ansicht.getOverlayDialog().showTextInput(titel, 
+		Dialog<String> eingabeDialog = this.ansicht.getOverlayDialog().showTextInput(titel,
 				projekt.getName());
 		
 		TextField eingabe = findeElement(eingabeDialog.getContent(), TextField.class);
-		if(eingabe != null) {
+		if (eingabe != null) {
 			eingabeDialog.validProperty().bind(eingabe.textProperty().isNotEmpty());
 		}
 		
 		eingabeDialog.thenAccept(buttonTyp -> {
-			if(buttonTyp.getButtonData().equals(ButtonData.OK_DONE)) {
+			if (buttonTyp.getButtonData().equals(ButtonData.OK_DONE)) {
 				projekt.setName(eingabeDialog.getValue());
 			}
 		});
@@ -242,9 +284,9 @@ class HauptKontrolle {
 		if (klasse.isAssignableFrom(wurzel.getClass())) {
 			return (T) wurzel;
 		} else if (wurzel instanceof Parent p) {
-			for(Node kind: p.getChildrenUnmodifiable()) {
+			for (Node kind : p.getChildrenUnmodifiable()) {
 				T element = findeElement(kind, klasse);
-				if(element != null) {
+				if (element != null) {
 					return element;
 				}
 			}

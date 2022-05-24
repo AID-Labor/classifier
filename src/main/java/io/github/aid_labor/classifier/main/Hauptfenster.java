@@ -8,6 +8,7 @@ package io.github.aid_labor.classifier.main;
 
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
@@ -67,6 +68,11 @@ public class Hauptfenster extends Application {
 		LoggingEinstellung.initialisiereLogging(programm);
 		auswertung = new KommandozeilenAuswertung(args, programm);
 		kommandoZeile = auswertung.werteArgumenteAus();
+		if (!kommandoZeile.hasOption(auswertung.debug)
+				&& !kommandoZeile.hasOption(auswertung.loglevel)) {
+			// TODO Debug-Einstellung, entfernen in finaler Version!
+			LoggingEinstellung.setzeLogLevel(Level.FINE, Level.FINER);
+		}
 		log.log(Level.SEVERE, () -> "%s gestartet  -  OS: %s_%s_%s  -  Java: %s %s".formatted(
 				programm.getVersionName(),
 				System.getProperty("os.name"),
@@ -74,7 +80,8 @@ public class Hauptfenster extends Application {
 				System.getProperty("os.arch"),
 				System.getProperty("java.vm.name"),
 				System.getProperty("java.vm.version")));
-		log.finest(() -> "Args: " + Arrays.toString(kommandoZeile.getArgs()));
+		log.fine(() -> "Args [main]: " + Arrays.toString(args));
+		log.fine(() -> "Args [getArgs()]: " + Arrays.toString(kommandoZeile.getArgs()));
 		
 		Ressourcen.setProgrammDetails(programm);
 		DateiUtil.loescheVeralteteLogs(Duration.ofDays(14), programm);
@@ -147,6 +154,13 @@ public class Hauptfenster extends Application {
 		} catch (IOException | IllegalStateException e) {
 			log.log(Level.WARNING, e, () -> "Icon konnte nicht gesetzt werden");
 		}
+		
+		hauptFenster.setOnShown(e -> {
+			var dateien = Arrays.stream(kommandoZeile.getArgs())
+					.map(dateiname -> new File(dateiname))
+					.filter(datei -> datei.exists() && datei.isFile()).toList();
+			hauptansicht.oeffneDateien(dateien);
+		});
 		
 		hauptFenster.show();
 	}

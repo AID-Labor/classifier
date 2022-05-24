@@ -5,8 +5,8 @@ set NAME=Classifier
 set DESCRIPTION=UML-Klassenmodellierung
 rem Version muss groesser gleich 1.0.0 sein!
 set VERSION=1.0.0
-set VENDOR="Tim MÔøΩhle"
-set COPYRIGHT="Copyright ÔøΩ 2022 - Tim MÔøΩhle"
+set VENDOR="Tim MÅhle"
+set COPYRIGHT="Copyright ∏ 2022 - Tim MÅhle"
 set LICENSE_FILE=LICENSE.txt
 
 rem Einstellungen fuer jpackage:
@@ -69,6 +69,7 @@ jpackage ^
 --vendor %VENDOR% ^
 --copyright %COPYRIGHT% ^
 --license-file %LICENSE_FILE% ^
+--file-associations classifier_windows.association ^
 --icon %ICON% ^
 --input %INPUT% ^
 --dest %OUT% ^
@@ -86,7 +87,8 @@ echo.
 echo.
 
 rem ---- msi ----
-echo %NAME%-%VERSION%-win-install.msi wird erstellt echo.
+echo %NAME%-%VERSION%-win-install.msi wird erstellt
+echo.
 @echo on
 jpackage ^
 --type msi ^
@@ -96,6 +98,7 @@ jpackage ^
 --vendor %VENDOR% ^
 --copyright %COPYRIGHT% ^
 --license-file %LICENSE_FILE% ^
+--file-associations classifier_windows.association ^
 --icon %ICON% ^
 --input %INPUT% ^
 --dest %OUT% ^
@@ -109,7 +112,8 @@ jpackage ^
 @echo off
 
 ren %OUT%\%NAME%-%VERSION%.msi %NAME%-%VERSION%-windows.msi
-echo. echo.
+echo.
+echo.
 
 rem ---- Auf Bestaetigung von Benutzer warten --------------------------------------------------------- echo "Zum Abschliessen eine beliebige Taste druecken"
 pause

@@ -131,6 +131,14 @@ public class HauptAnsicht {
 		hauptInhalt.setTop(new VBox(menueAnsicht.getMenueleiste(), ribbonAnsicht.getRibbon()));
 		hauptInhalt.setCenter(projektAnsicht.getAnsicht());
 		
+		// TODO Datei(en) oeffnen!!!
+		hauptInhalt.setOnDragDetected(this.controller::projektOeffnen);
+		hauptInhalt.setOnDragDone(this.controller::projektOeffnen);
+		hauptInhalt.setOnDragEntered(this.controller::projektOeffnen);
+		hauptInhalt.setOnDragExited(this.controller::projektOeffnen);
+		hauptInhalt.setOnDragOver(this.controller::projektOeffnen);
+		hauptInhalt.setOnDragDropped(this.controller::projektOeffnen);
+		
 		wurzel.getChildren().add(hauptInhalt);
 		wurzel.getChildren().add(overlayDialog);
 	}
@@ -167,6 +175,12 @@ public class HauptAnsicht {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	public void oeffneDateien (Iterable<File> dateien) {
+		for (File datei : dateien) {
+			this.controller.projektOeffnen(datei);
+		}
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

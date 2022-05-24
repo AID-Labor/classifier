@@ -22,13 +22,13 @@ public class AutomatischEntfernendesSet<E> extends TreeSet<E> {
 			.getLogger(AutomatischEntfernendesSet.class.getName());
 	
 	private static final long serialVersionUID = -3027636633260070772L;
-
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -41,12 +41,11 @@ public class AutomatischEntfernendesSet<E> extends TreeSet<E> {
 	
 	public AutomatischEntfernendesSet(int maximaleAnzahl) {
 		super();
-		if(maximaleAnzahl < 1) {
+		if (maximaleAnzahl < 1) {
 			throw new IllegalArgumentException("maximaleAnzahl muss groesser als 0 sein");
 		}
 		this.maximaleAnzahl = maximaleAnzahl;
 	}
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
@@ -75,17 +74,18 @@ public class AutomatischEntfernendesSet<E> extends TreeSet<E> {
 		boolean hinzugefuegt = super.add(e);
 		log.finest(() -> """
 				Element %s hinzugefuegt.
-				Aktuelle Groesse: %d
-				Maximale Groesse: %d""".formatted(e, this.size(), this.maximaleAnzahl));
+				          Aktuelle Groesse: %d
+				          Maximale Groesse: %d""".formatted(e, this.size(),
+				this.maximaleAnzahl));
 		
-		if(hinzugefuegt && this.size() > this.maximaleAnzahl) {
+		if (hinzugefuegt && this.size() > this.maximaleAnzahl) {
 			E entfernt = this.pollFirst();
 			log.finer(() -> "Letztes Element [] entfernt".formatted(entfernt));
 		}
 		
 		return hinzugefuegt;
 	}
-
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

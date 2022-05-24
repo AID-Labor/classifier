@@ -73,6 +73,7 @@ jpackage \
 --vendor "${VENDOR}" \
 --copyright "${COPYRIGHT}" \
 --license-file "${LICENSE_FILE}" \
+--file-associations classifier_linux.association \
 --icon "${ICON}" \
 --input "${INPUT}" \
 --dest "${OUT}" \
@@ -85,7 +86,7 @@ jpackage \
 
 echo ""
 
-mv "./${OUT}/classifier-${VERSION}-1_amd64.deb" "./${OUT}/${NAME}-${VERSION}-linux-deb.deb"
+mv "./${OUT}/classifier_${VERSION}-1_amd64.deb" "./${OUT}/${NAME}-${VERSION}-linux-deb.deb"
 echo ""
 echo ""
 echo "Der Prozess wurde beendet."

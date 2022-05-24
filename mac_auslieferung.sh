@@ -77,6 +77,7 @@ jpackage \
 --vendor "${VENDOR}" \
 --copyright "${COPYRIGHT}" \
 --license-file "${LICENSE_FILE}" \
+--file-associations classifier_mac.association \
 --icon "${ICON}" \
 --input "${INPUT}" \
 --dest "${OUT}" \
