@@ -19,7 +19,7 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 
 class KommandozeilenAuswertung {
 	private static final Logger log = Logger

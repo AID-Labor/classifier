@@ -8,7 +8,7 @@ package io.github.aid_labor.classifier.gui;
 
 import com.dlsc.gemsfx.DialogPane;
 
-import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.beans.binding.When;

@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 
 
@@ -107,6 +108,7 @@ public class Ressourcen {
 	public final Ressource KONFIGURATIONSORDNER;
 	public final Ressource NUTZER_EINSTELLUNGEN;
 	public final Ressource LIZENZ_DATEI;
+	public final Ressource LIZENZ_INFO_ORDNER;
 	
 	public final Ressource SPRACHDATEIEN_ORDNER;
 	
@@ -127,76 +129,80 @@ public class Ressourcen {
 	
 	private Ressourcen(ProgrammDetails programm) {
 		log.config(() -> "Erzeuge Ressourcen");
-		RessourceBuilder builder = new RessourceBuilder(programm);
+		RessourceErzeuger erzeuger = new RessourceErzeuger(programm);
 		this.programm = programm;
-		this.BASIS_CSS = builder
+		this.BASIS_CSS = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.CSS)
 				.name("classifier.css")
 				.erzeuge();
-		this.LIGHT_THEME_CSS = builder
+		this.LIGHT_THEME_CSS = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.CSS)
 				.name("lightTheme.css").erzeuge();
-		this.DARK_THEME_CSS = builder
+		this.DARK_THEME_CSS = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.CSS)
 				.name("darkTheme.css")
 				.erzeuge();
-		this.NUTZER_THEME_CSS = builder
+		this.NUTZER_THEME_CSS = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.CSS)
 				.name("customTheme.css")
 				.erzeuge();
-		this.KONFIGURATIONSORDNER = builder
+		this.KONFIGURATIONSORDNER = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.KONFIGURATIONSDATEI)
 				.erzeuge();
-		this.NUTZER_EINSTELLUNGEN = builder
+		this.NUTZER_EINSTELLUNGEN = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.KONFIGURATIONSDATEI)
 				.name("nutzerEinstellung.json")
 				.erzeuge();
-		this.LIZENZ_DATEI = builder
+		this.LIZENZ_DATEI = erzeuger
 				.konfigurationsOrdner()
 				.name("LICENSE.txt")
 				.erzeuge();
-		this.CLASSIFIER_LOGO_M = builder
+		this.LIZENZ_INFO_ORDNER = erzeuger
+				.konfigurationsOrdner()
+				.name("lizenzinfo")
+				.erzeuge();
+		this.CLASSIFIER_LOGO_M = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("Classifier-Logo_1x.png")
 				.erzeuge();
-		this.CLASSIFIER_LOGO_L = builder
+		this.CLASSIFIER_LOGO_L = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("Classifier-Logo_2x.png")
 				.erzeuge();
-		this.CLASSIFIER_ICON_M = builder
+		this.CLASSIFIER_ICON_M = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("Classifier-Icon-mittel.png")
 				.erzeuge();
-		this.CLASSIFIER_ICON_L = builder
+		this.CLASSIFIER_ICON_L = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("Classifier-Icon-gross.png")
 				.erzeuge();
-		this.UML_VERERBUNGS_PFEIL = builder
+		this.UML_VERERBUNGS_PFEIL = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("vererbungs_pfeil.png")
 				.erzeuge();
-		this.UML_ASSOZIATIONS_PFEIL = builder
+		this.UML_ASSOZIATIONS_PFEIL = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("assoziations_pfeil.png")
 				.erzeuge();
-		this.UML_KOMMENTAR = builder
+		this.UML_KOMMENTAR = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.GRAFIK)
 				.name("kommentar.png")
 				.erzeuge();
-		this.SPRACHDATEIEN_ORDNER = builder
+		this.SPRACHDATEIEN_ORDNER = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.SPRACHDATEI)
 				.erzeuge();

@@ -22,9 +22,9 @@ import org.apache.commons.cli.CommandLine;
 import fr.brouillard.oss.cssfx.CSSFX;
 import fr.brouillard.oss.cssfx.api.URIToPathConverter;
 import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.AusfuehrUmgebung;
 import io.github.aid_labor.classifier.basis.io.DateiUtil;
-import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.gui.HauptAnsicht;
@@ -48,9 +48,9 @@ public class Hauptfenster extends Application {
 	private static final ProgrammDetails programm = new ProgrammDetails(
 		"1.0.0-SNAPSHOT_001",
 		"Classifier",
-		null,
-		null,
-		"https://github.com/AID-Labor/classifier", Hauptfenster.class,
+		"Tim M%chle".formatted(ue),
+		"https://github.com/AID-Labor/classifier",
+		Hauptfenster.class,
 		new ExtensionFilter[] {
 			new ExtensionFilter("Classifier Projektdatei", "*.classifile")
 		}

@@ -8,10 +8,11 @@ package io.github.aid_labor.classifier.basis.io;
 
 import java.util.Objects;
 
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 
 
-public class RessourceBuilder {
+public class RessourceErzeuger {
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -33,7 +34,7 @@ public class RessourceBuilder {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public RessourceBuilder(ProgrammDetails programm) {
+	public RessourceErzeuger(ProgrammDetails programm) {
 		this.programm = Objects.requireNonNull(programm);
 		reset();
 	}
@@ -42,7 +43,7 @@ public class RessourceBuilder {
 //  *	Methoden																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public RessourceBuilder konfigurationsOrdner() {
+	public RessourceErzeuger konfigurationsOrdner() {
 		if(nutztKlassenpfad) {
 			throw new IllegalStateException("Es kann nur eine der beiden Optionen Klassenpfad "
 					+ "oder Konfigurationsordner genutzt werden");
@@ -56,7 +57,7 @@ public class RessourceBuilder {
 		return this;
 	}
 	
-	public RessourceBuilder klassenpfad() {
+	public RessourceErzeuger klassenpfad() {
 		if(nutztKonfigurationsordner) {
 			throw new IllegalStateException("Es kann nur eine der beiden Optionen Klassenpfad "
 					+ "oder Konfigurationsordner genutzt werden");
@@ -65,11 +66,11 @@ public class RessourceBuilder {
 		return this;
 	}
 	
-	public RessourceBuilder alsTyp(RessourceTyp typ) {
+	public RessourceErzeuger alsTyp(RessourceTyp typ) {
 		return inOrdner(typ.getOrdner());
 	}
 	
-	public RessourceBuilder inOrdner(String ordner) {
+	public RessourceErzeuger inOrdner(String ordner) {
 		if(!pfad.isEmpty()) {
 			pfad.append(System.getProperty("file.separator"));
 		}
@@ -77,7 +78,7 @@ public class RessourceBuilder {
 		return this;
 	}
 	
-	public RessourceBuilder name(String name) {
+	public RessourceErzeuger name(String name) {
 		if(name.isBlank()) {
 			throw new IllegalStateException("Der Name darf kein leerer String sein");
 		}

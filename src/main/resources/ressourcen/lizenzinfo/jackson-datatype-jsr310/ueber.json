@@ -1,0 +1,11 @@
+{
+    "name" : "jackson-datatype-jsr310",
+    "version" : "2.13.3",
+    "beschreibung" : "Jackson support for Java 8 date/time types (specified in JSR-310 specification)",
+    "github" : "https://github.com/FasterXML/jackson-modules-java8",
+    "link" : "https://github.com/FasterXML/jackson-modules-java8",
+    "license" : {
+        "name" : "Apache License 2.0",
+        "link" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+}

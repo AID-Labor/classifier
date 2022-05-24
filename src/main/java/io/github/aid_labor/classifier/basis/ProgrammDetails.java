@@ -1,4 +1,4 @@
-package io.github.aid_labor.classifier.basis.io;
+package io.github.aid_labor.classifier.basis;
 
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -11,8 +11,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 public record ProgrammDetails (
 		String version,
 		String name,
-		String info,
-		String lizenz,
+		String entwickler,
 		String homepage,
 		Class<?> hauptklasse,
 		ExtensionFilter[] dateiZuordnung

@@ -18,16 +18,14 @@ import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
+import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.event.Event;
-import javafx.geometry.BoundingBox;
-import javafx.geometry.Bounds;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.stage.Window;
 
 
@@ -90,21 +88,7 @@ class ProjektKontrolle {
 					{abbrechenButton, verwerfenButton, speichernSchliessenButton});
 			dialog.setHeaderText(abfrage);
 			Window hauptfenster = ansicht.getTabPane().getScene().getWindow();
-			Bounds position = new BoundingBox(hauptfenster.getX(), hauptfenster.getY(), 
-					hauptfenster.getWidth(), hauptfenster.getHeight());
-			
-			dialog.widthProperty().addListener((breite, alt, neueBreite) -> {
-				dialog.setX(position.getCenterX() - neueBreite.doubleValue()/2);
-			});
-			dialog.heightProperty().addListener((hoehe, alt, neueHoehe) -> {
-				dialog.setY(position.getCenterY() - neueHoehe.doubleValue()/2);
-			});
-			
-			dialog.initOwner(hauptfenster);
-			dialog.initModality(Modality.WINDOW_MODAL);
-			
-			dialog.setX(position.getCenterX() - dialog.getWidth()/2);
-			dialog.setY(position.getCenterY() - dialog.getHeight()/2);
+			FensterUtil.initialisiereElternFenster(hauptfenster, dialog);
 			
 			dialog.setOnShowing(e -> {
 				dialog.getDialogPane().lookupButton(speichernSchliessenButton).requestFocus();

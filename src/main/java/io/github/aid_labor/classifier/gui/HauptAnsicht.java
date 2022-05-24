@@ -22,13 +22,14 @@ import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
-import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.elemente.MenueLeisteKomponente;
 import io.github.aid_labor.classifier.gui.elemente.RibbonKomponente;
+import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.collections.SetChangeListener;
@@ -281,7 +282,12 @@ public class HauptAnsicht {
 		menue.getNaechsterTab().setOnAction(e -> this.projektAnsicht.naechsterTab());
 		
 		// Menue Einstellungen
-		NodeUtil.disable(menue.getVoidAnzeigen(), menue.getTheme(), menue.getInfo());
+		NodeUtil.disable(menue.getVoidAnzeigen(), menue.getTheme());
+		menue.getInfo().setOnAction(e -> {
+			var info = new InfoAnsicht(programm);
+			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
+			info.show();
+		});
 	}
 	
 	private void updateLetzteDateien(Menu menueLetzteDateien) {

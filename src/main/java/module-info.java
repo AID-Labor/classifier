@@ -32,4 +32,6 @@ module classifier {
 	requires org.kordamp.ikonli.bootstrapicons;
 	requires com.dlsc.gemsfx;
 	requires fr.brouillard.oss.cssfx;
+	requires org.controlsfx.controls;
+	requires java.desktop;
 }

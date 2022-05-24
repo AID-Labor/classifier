@@ -6,7 +6,7 @@
 
 package io.github.aid_labor.classifier.basis.io.system;
 
-import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 
 sealed class Unix extends OS permits Linux, MacOS {
 	

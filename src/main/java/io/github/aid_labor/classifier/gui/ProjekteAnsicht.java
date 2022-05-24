@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import com.dlsc.gemsfx.DialogPane;
 
-import io.github.aid_labor.classifier.basis.io.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
@@ -304,7 +304,7 @@ public class ProjekteAnsicht {
 	}
 	
 	public void vorherigerTab() {
-		if(this.tabAnsicht.getSelectionModel().getSelectedIndex() > 0) {
+		if (this.tabAnsicht.getSelectionModel().getSelectedIndex() > 0) {
 			this.tabAnsicht.getSelectionModel().selectPrevious();
 		} else {
 			this.tabAnsicht.getSelectionModel().selectLast();
@@ -312,7 +312,8 @@ public class ProjekteAnsicht {
 	}
 	
 	public void naechsterTab() {
-		if(this.tabAnsicht.getSelectionModel().getSelectedIndex() < this.tabAnsicht.getTabs().size()-1) {
+		if (this.tabAnsicht.getSelectionModel()
+				.getSelectedIndex() < this.tabAnsicht.getTabs().size() - 1) {
 			this.tabAnsicht.getSelectionModel().selectNext();
 		} else {
 			this.tabAnsicht.getSelectionModel().selectFirst();
