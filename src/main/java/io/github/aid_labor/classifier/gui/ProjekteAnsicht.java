@@ -303,6 +303,22 @@ public class ProjekteAnsicht {
 		
 	}
 	
+	public void vorherigerTab() {
+		if(this.tabAnsicht.getSelectionModel().getSelectedIndex() > 0) {
+			this.tabAnsicht.getSelectionModel().selectPrevious();
+		} else {
+			this.tabAnsicht.getSelectionModel().selectLast();
+		}
+	}
+	
+	public void naechsterTab() {
+		if(this.tabAnsicht.getSelectionModel().getSelectedIndex() < this.tabAnsicht.getTabs().size()-1) {
+			this.tabAnsicht.getSelectionModel().selectNext();
+		} else {
+			this.tabAnsicht.getSelectionModel().selectFirst();
+		}
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

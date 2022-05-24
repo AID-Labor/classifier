@@ -257,6 +257,14 @@ public class HauptAnsicht {
 			}
 		});
 		
+		// Szene ueberwachen
+		wurzel.sceneProperty().addListener((property, alteSzene, neueSzene) -> {
+			menue.getVollbild().selectedProperty().unbind();
+			if (neueSzene.getWindow() instanceof Stage fenster) {
+				menue.getVollbild().selectedProperty().bind(fenster.fullScreenProperty());
+			}
+		});
+		
 		menue.getSymbolleisteAusblenden().setOnAction(e -> {
 			ribbonKomponente.getRibbon().setVisible(!ribbonKomponente.getRibbon().isVisible());
 			if (!ribbonKomponente.getRibbon().isVisible()) {
@@ -269,8 +277,8 @@ public class HauptAnsicht {
 		});
 		
 		// Menue Fenster
-		NodeUtil.disable(menue.getMinimieren(), menue.getMaximieren(),
-				menue.getVorherigerTab(), menue.getNaechsterTab());
+		menue.getVorherigerTab().setOnAction(e -> this.projektAnsicht.vorherigerTab());
+		menue.getNaechsterTab().setOnAction(e -> this.projektAnsicht.naechsterTab());
 		
 		// Menue Einstellungen
 		NodeUtil.disable(menue.getVoidAnzeigen(), menue.getTheme(), menue.getInfo());

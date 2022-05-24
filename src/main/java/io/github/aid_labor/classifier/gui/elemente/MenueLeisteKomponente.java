@@ -101,8 +101,6 @@ public class MenueLeisteKomponente {
 	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// Menue Fenster
-	private MenuItem minimieren;
-	private MenuItem maximieren;
 	private MenuItem vorherigerTab;
 	private MenuItem naechsterTab;
 	
@@ -270,14 +268,6 @@ public class MenueLeisteKomponente {
 	
 	public CheckMenuItem getSymbolleisteAusblenden() {
 		return symbolleisteAusblenden;
-	}
-	
-	public MenuItem getMinimieren() {
-		return minimieren;
-	}
-	
-	public MenuItem getMaximieren() {
-		return maximieren;
 	}
 	
 	public MenuItem getVorherigerTab() {
@@ -453,17 +443,12 @@ public class MenueLeisteKomponente {
 	private Menu erstelleFensterMenue() {
 		Menu fensterMenue = SprachUtil.bindText(new Menu(), sprache, "fensterMenue",
 				"Fenster");
-		minimieren = SprachUtil.bindText(new MenuItem(), sprache,
-				"minimieren", "Minimieren");
-		maximieren = SprachUtil.bindText(new MenuItem(), sprache,
-				"maximieren", "Maximieren");
 		vorherigerTab = SprachUtil.bindText(new MenuItem(), sprache,
 				"vorherigerTab", "vorheriger Tab");
 		naechsterTab = SprachUtil.bindText(new MenuItem(), sprache,
 				"naechsterTab", "n%cchster Tab".formatted(ae));
 		
-		fensterMenue.getItems().addAll(minimieren, maximieren, new SeparatorMenuItem(),
-				vorherigerTab, naechsterTab);
+		fensterMenue.getItems().addAll(vorherigerTab, naechsterTab);
 		
 		return fensterMenue;
 	}
