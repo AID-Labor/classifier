@@ -11,7 +11,6 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ae;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
-import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -93,9 +92,9 @@ class HauptKontrolle {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	void konigurationsordnerOeffnen(Event event) {
-		Path ordner = Ressourcen.get().KONFIGURATIONSORDNER.alsPath();
+		Path ordner = OS.getDefault().getKonfigurationsOrdnerPath(ansicht.getProgrammDetails());
 		try {
-			Desktop.getDesktop().browseFileDirectory(ordner.toFile());
+			ansicht.getRechnerService().showDocument(ordner.toUri().toString());
 		} catch (Exception e) {
 			log.log(Level.WARNING, e,
 					() -> "Ordner %s konnte nicht angezeigt werden".formatted(ordner));

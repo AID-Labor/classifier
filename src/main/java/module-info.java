@@ -33,5 +33,4 @@ module classifier {
 	requires com.dlsc.gemsfx;
 	requires fr.brouillard.oss.cssfx;
 	requires org.controlsfx.controls;
-	requires java.desktop;
 }

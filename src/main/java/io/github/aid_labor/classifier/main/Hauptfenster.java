@@ -114,7 +114,7 @@ public class Hauptfenster extends Application {
 	
 	@Override
 	public void start(Stage hauptFenster) {
-		HauptAnsicht hauptansicht = new HauptAnsicht(programm);
+		HauptAnsicht hauptansicht = new HauptAnsicht(programm, this.getHostServices());
 		
 		Scene szene = new Scene(hauptansicht.getWurzelknoten());
 		FensterUtil.installiereFensterwiederherstellung(hauptFenster, 720, 1120,

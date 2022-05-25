@@ -6,7 +6,6 @@
 
 package io.github.aid_labor.classifier.gui;
 
-import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.OE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ae;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
@@ -33,6 +32,7 @@ import io.github.aid_labor.classifier.gui.elemente.RibbonKomponente;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import javafx.application.HostServices;
 import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonType;
@@ -75,18 +75,20 @@ public class HauptAnsicht {
 	private final DialogPane overlayDialog;
 	private final ProgrammDetails programm;
 	private final RibbonKomponente ribbonKomponente;
+	private final HostServices rechnerService;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public HauptAnsicht(ProgrammDetails programm) {
+	public HauptAnsicht(ProgrammDetails programm, HostServices rechnerService) {
 		this.wurzel = new StackPane();
 		this.sprache = new Sprache();
 		this.overlayDialog = new DialogPane();
 		this.programm = programm;
 		this.controller = new HauptKontrolle(this, sprache);
 		this.projektAnsicht = new ProjekteAnsicht(overlayDialog, programm);
+		this.rechnerService = rechnerService;
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht");
@@ -161,6 +163,10 @@ public class HauptAnsicht {
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	protected DialogPane getOverlayDialog() {
 		return this.overlayDialog;
+	}
+	
+	public HostServices getRechnerService() {
+		return rechnerService;
 	}
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -285,7 +291,7 @@ public class HauptAnsicht {
 		// Menue Einstellungen
 		NodeUtil.disable(menue.getVoidAnzeigen(), menue.getTheme());
 		menue.getInfo().setOnAction(e -> {
-			var info = new InfoAnsicht(programm);
+			var info = new InfoAnsicht(programm, rechnerService);
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
 			info.show();
 		});

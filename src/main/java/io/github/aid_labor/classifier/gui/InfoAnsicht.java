@@ -8,12 +8,9 @@ package io.github.aid_labor.classifier.gui;
 
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
-import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -31,6 +28,7 @@ import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import javafx.application.HostServices;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -65,14 +63,16 @@ public class InfoAnsicht extends Alert {
 	private final BorderPane wurzel;
 	private final VBox infobox;
 	private final VBox scrollbox;
+	private final HostServices rechnerService;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public InfoAnsicht(ProgrammDetails programmDetails) {
+	public InfoAnsicht(ProgrammDetails programmDetails, HostServices rechnerService) {
 		super(AlertType.NONE);
 		this.programmDetails = programmDetails;
+		this.rechnerService = rechnerService;
 		this.sprache = new Sprache();
 		this.wurzel = new BorderPane();
 		this.infobox = new VBox();
@@ -160,8 +160,8 @@ public class InfoAnsicht extends Alert {
 				+ ": [%s]".formatted(programmDetails.homepage()));
 		programmLink.setOnAction(event -> {
 			try {
-				Desktop.getDesktop().browse(new URI(programmDetails.homepage()));
-			} catch (IOException | URISyntaxException e) {
+				rechnerService.showDocument(programmDetails.homepage());
+			} catch (Exception e) {
 				log.log(Level.WARNING, e, () -> "Link konnte nicht geoeffnet werden");
 			}
 		});
@@ -257,16 +257,16 @@ public class InfoAnsicht extends Alert {
 			
 			github.setOnAction(event -> {
 				try {
-					Desktop.getDesktop().browse(new URI(bib.github()));
-				} catch (IOException | URISyntaxException e) {
+					rechnerService.showDocument(bib.github());
+				} catch (Exception e) {
 					log.log(Level.WARNING, e, () -> "Link %s kann nicht geoeffnet werden"
 							.formatted(bib.github()));
 				}
 			});
 			link.setOnAction(event -> {
 				try {
-					Desktop.getDesktop().browse(new URI(bib.link()));
-				} catch (IOException | URISyntaxException e) {
+					rechnerService.showDocument(bib.link());
+				} catch (Exception e) {
 					log.log(Level.WARNING, e, () -> "Link %s kann nicht geoeffnet werden"
 							.formatted(bib.link()));
 				}
@@ -277,8 +277,8 @@ public class InfoAnsicht extends Alert {
 			var lizenzLink = new HyperlinkLabel("Link: [%s]".formatted(bib.license().link()));
 			lizenzLink.setOnAction(event -> {
 				try {
-					Desktop.getDesktop().browse(new URI(bib.license().link()));
-				} catch (IOException | URISyntaxException e) {
+					rechnerService.showDocument(bib.license().link());
+				} catch (Exception e) {
 					log.log(Level.WARNING, e, () -> "Link %s kann nicht geoeffnet werden"
 							.formatted(bib.license().link()));
 				}
