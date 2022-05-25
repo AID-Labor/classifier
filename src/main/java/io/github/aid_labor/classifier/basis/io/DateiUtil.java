@@ -168,6 +168,30 @@ public final class DateiUtil {
 	}
 	
 	/**
+	 * Loescht Dateien und Ordner. Ordner werden samt Inhalt geloescht.
+	 * 
+	 * @param pfad Zu loeschender Pfad
+	 */
+	public static void loescheDateiOderOrdner(Path pfad) {
+		log.info(() -> "Loesche " + pfad);
+		if (Files.isDirectory(pfad)) {
+			try (var inhalt = Files.newDirectoryStream(pfad)) {
+				for (var kind : inhalt) {
+					loescheDateiOderOrdner(kind);
+				}
+			} catch (IOException e) {
+				log.log(Level.WARNING, e, () -> "Fehler beim Loeschen von " + pfad);
+			}
+		}
+		
+		try {
+			Files.delete(pfad);
+		} catch (IOException e) {
+			log.log(Level.WARNING, e, () -> "Fehler beim Loeschen von " + pfad);
+		}
+	}
+	
+	/**
 	 * Loescht alte Logging-Dateien aus dem systemspezifischen Konfigurationsordner des
 	 * Programmes
 	 * 

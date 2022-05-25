@@ -6,11 +6,15 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ae;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.List;
@@ -24,6 +28,9 @@ import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.basis.io.DateiUtil;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.uml.Programmiersprache;
@@ -41,6 +48,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -83,6 +91,37 @@ class HauptKontrolle {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	void konigurationsordnerOeffnen(Event event) {
+		Path ordner = Ressourcen.get().KONFIGURATIONSORDNER.alsPath();
+		try {
+			Desktop.getDesktop().browseFileDirectory(ordner.toFile());
+		} catch (Exception e) {
+			log.log(Level.WARNING, e,
+					() -> "Ordner %s konnte nicht angezeigt werden".formatted(ordner));
+		}
+	}
+	
+	void konigurationsordnerBereinigen(Event event) {
+		String dialogTitel = sprache.getText("neustartWarnungTitel", "Achtung:");
+		EnhancedLabel beschreibung = new EnhancedLabel(sprache.getText("neustartWarnung", """
+				Es werden alle Programm-Ressourcen inklusive Log-Dateien gel%cscht! \
+				Nur die Einstellungen bleiben erhalten.
+				
+				Das Programm wird automatisch beendet und muss wieder manuell ge%cffnet werden.
+				Nicht gespeicherte %cnderungen gehen ohne Nachfrage verloren!"""
+				.formatted(oe, oe, AE)));
+		beschreibung.setWrapText(true);
+		beschreibung.setId("NEUSTART_WARNUNG");
+		this.ansicht.getOverlayDialog().showNode(Type.WARNING, dialogTitel,
+				new StackPane(beschreibung), false, List.of(ButtonType.OK, ButtonType.CANCEL))
+				.thenAccept(buttonTyp -> {
+					if (buttonTyp.equals(ButtonType.OK)) {
+						bereinigeKonfigurationsOrdner();
+						Platform.exit();
+					}
+				});
+	}
 	
 	void neuesProjektErzeugen(Event event) {
 		GridPane dialog = new GridPane();
@@ -278,6 +317,24 @@ class HauptKontrolle {
 	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	private void bereinigeKonfigurationsOrdner() {
+		var konfigurationsordner = OS.getDefault()
+				.getKonfigurationsOrdnerPath(ansicht.getProgrammDetails());
+		var ausgeschlossen = Ressourcen.get().KONFIGURATIONSORDNER.alsPath();
+		
+		log.info(() -> "Bereinige Konfigurationsordner " + konfigurationsordner);
+		
+		try (var konfigurationsordnerInhalt = Files.newDirectoryStream(konfigurationsordner,
+				eintrag -> !eintrag.toAbsolutePath().startsWith(ausgeschlossen))) {
+			for (Path inhalt : konfigurationsordnerInhalt) {
+				DateiUtil.loescheDateiOderOrdner(inhalt);
+			}
+		} catch (IOException e) {
+			log.log(Level.WARNING, e,
+					() -> "Fehler beim Bereinigen des Konfigurationsordners");
+		}
+	}
 	
 	@SuppressWarnings("unchecked")
 	private <T> T findeElement(Node wurzel, Class<T> klasse) {

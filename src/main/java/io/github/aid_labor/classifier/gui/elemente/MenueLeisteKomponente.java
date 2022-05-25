@@ -109,6 +109,8 @@ public class MenueLeisteKomponente {
 	private MenuItem voidAnzeigen;
 	private Menu theme;
 	private MenuItem info;
+	private MenuItem konfigurationsordnerOeffnen;
+	private MenuItem konfigurationsordnerBereinigen;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -290,6 +292,14 @@ public class MenueLeisteKomponente {
 		return info;
 	}
 	
+	public MenuItem getKonfigurationsordnerOeffnen() {
+		return konfigurationsordnerOeffnen;
+	}
+	
+	public MenuItem getKonfigurationsordnerBereinigen() {
+		return konfigurationsordnerBereinigen;
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -464,9 +474,14 @@ public class MenueLeisteKomponente {
 				"Farbschema");
 		info = SprachUtil.bindText(new MenuItem(), sprache, "info",
 				"Info");
+		konfigurationsordnerOeffnen = SprachUtil.bindText(new MenuItem(), sprache,
+				"konfigOeffnen", "Konfigurationsordner %cffnen".formatted(oe));
+		konfigurationsordnerBereinigen = SprachUtil.bindText(new MenuItem(), sprache,
+				"konfigBereinigen", "Konfigurationsordner bereinigen".formatted(oe));
 		
 		einstellungenMenue.getItems().addAll(voidAnzeigen, new SeparatorMenuItem(), theme,
-				new SeparatorMenuItem(), info);
+				new SeparatorMenuItem(), info, konfigurationsordnerOeffnen,
+				konfigurationsordnerBereinigen);
 		
 		return einstellungenMenue;
 	}

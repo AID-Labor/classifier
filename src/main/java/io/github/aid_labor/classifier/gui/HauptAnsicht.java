@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.OE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ae;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
@@ -288,6 +289,11 @@ public class HauptAnsicht {
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
 			info.show();
 		});
+		
+		menue.getKonfigurationsordnerOeffnen()
+				.setOnAction(this.controller::konigurationsordnerOeffnen);
+		menue.getKonfigurationsordnerBereinigen()
+				.setOnAction(this.controller::konigurationsordnerBereinigen);
 	}
 	
 	private void updateLetzteDateien(Menu menueLetzteDateien) {
@@ -402,4 +408,5 @@ public class HauptAnsicht {
 		this.overlayDialog.showNode(Type.WARNING, dialogTitel,
 				new StackPane(new EnhancedLabel(beschreibung)), false, List.of(ButtonType.OK));
 	}
+	
 }
