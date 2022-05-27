@@ -25,6 +25,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize.Typing;
 
 import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
+import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;

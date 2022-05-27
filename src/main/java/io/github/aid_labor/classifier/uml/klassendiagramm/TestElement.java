@@ -3,7 +3,7 @@
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
-package io.github.aid_labor.classifier.uml;
+package io.github.aid_labor.classifier.uml.klassendiagramm;
 
 import java.util.Random;
 

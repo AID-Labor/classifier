@@ -3,7 +3,7 @@
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
-package io.github.aid_labor.classifier.uml;
+package io.github.aid_labor.classifier.uml.eigenschaften;
 
 public enum Programmiersprache {
 //	private static final Logger log = Logger.getLogger(Programmiersprache.class.getName());

@@ -8,6 +8,8 @@ package io.github.aid_labor.classifier.uml;
 
 import java.nio.file.Path;
 
+import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;

@@ -148,7 +148,7 @@ public class Einstellungen {
 		this.themeEinstellung = new JsonEnumProperty<Theme>(Theme.SYSTEM);
 		this.sprachEinstellung = new JsonLocaleProperty(Locale.GERMAN);
 		this.letzterSpeicherortEinstellung = new JsonStringProperty(
-				OS.getDefault().getNutzerOrdner());
+				OS.getDefault().getDokumenteOrdner());
 		this.letzteDateien = FXCollections.observableSet(new AutomatischEntfernendesSet<DatumWrapper<Path>>(10) {
 			private static final long serialVersionUID = -7312452108634427547L;
 
