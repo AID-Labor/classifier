@@ -4,22 +4,23 @@
  *
  */
 
-package io.github.aid_labor.classifier.uml;
+package io.github.aid_labor.classifier.basis.projekt;
 
 import java.nio.file.Path;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.collections.ObservableList;
+import javafx.beans.property.StringProperty;
 
 
 /**
- * Basis fuer ein Projekt
+ * Basis fuer ein Projekt. Jedes Projekt braucht einen Namen und kann auf der Festplatte
+ * gespeichert werden. Das Projekt kann Editierungen beobachten, rueckgaengig machen und
+ * diese auch wiederholen.
  * 
  * @author Tim Muehle
  *
  */
-public interface Projekt {
+public interface Projekt extends EditierBeobachter {
 	
 	/**
 	 * Projektname
@@ -42,7 +43,7 @@ public interface Projekt {
 	 * 
 	 * @return Projektname mit automatischer Aktualisierung
 	 */
-	public ReadOnlyStringProperty nameProperty();
+	public StringProperty nameProperty();
 	
 	/**
 	 * Gibt den aktuellen Speicherort zurueck
@@ -94,22 +95,6 @@ public interface Projekt {
 	}
 	
 	/**
-	 * Eingestellte Programmiersprache
-	 * 
-	 * @return eingestellte Programmiersprache
-	 */
-	public Programmiersprache getProgrammiersprache();
-	
-	/**
-	 * Liste, die alle Diagramm-Elemente dieses Projektes beinhaltet. Bei Veraenderung dieser
-	 * Liste wird dieses Projekt als nicht-gespeichert markiert (siehe
-	 * {@link #istGespeichertProperty()}).
-	 * 
-	 * @return Liste, die alle Diagramm-Elemente dieses Projektes beinhaltet
-	 */
-	public ObservableList<UMLDiagrammElement> getDiagrammElemente();
-	
-	/**
 	 * Angabe, ob dieses Projekt am eingestellten Speicherort ({@link #getSpeicherort()} mit
 	 * dem aktuellen Zustand gespeichert ist.
 	 * 
@@ -136,4 +121,80 @@ public interface Projekt {
 	 *                             Hintergrund gespeichert werden soll, sonst {@code false}
 	 */
 	public void setAutomatischSpeichern(boolean automatischSpeichern);
+	
+	/**
+	 * Gibt an, ob eine oder mehrere Aenderungen mit der Methode {@link #macheRueckgaengig()}
+	 * rueckgaengig gemacht werden koennen
+	 * 
+	 * @return {@code true}, wenn es widerrufbare Aenderungen im Verlauf gibt
+	 */
+	public boolean kannRueckgaengigGemachtWerden();
+	
+	/**
+	 * Gibt an, ob eine oder mehrere Aenderungen mit der Methode {@link #macheRueckgaengig()}
+	 * rueckgaengig gemacht werden koennen
+	 * 
+	 * @return {@code true}, wenn es widerrufbare Aenderungen im Verlauf gibt
+	 */
+	public ReadOnlyBooleanProperty kannRueckgaengigGemachtWerdenProperty();
+	
+	/**
+	 * Macht die letzte Aenderung an diesem Projekt Rueckgaengig. Wenn diese Funktion nicht
+	 * zur Verfuegung steht, passiert nichts.
+	 */
+	public void macheRueckgaengig();
+	
+	/**
+	 * Gibt an, ob eine oder mehrere Rueckgaengig gemachte Aenderungen mit der Methode
+	 * {@link #wiederhole()} wiederhergestellt werden koennen
+	 * 
+	 * @return {@code true}, wenn es wiederhergestellt Aenderungen im Verlauf gibt
+	 */
+	public boolean kannWiederholen();
+	
+	/**
+	 * Gibt an, ob eine oder mehrere Rueckgaengig gemachte Aenderungen mit der Methode
+	 * {@link #wiederhole()} wiederhergestellt werden koennen
+	 * 
+	 * @return {@code true}, wenn es wiederhergestellt Aenderungen im Verlauf gibt
+	 */
+	public ReadOnlyBooleanProperty kannWiederholenProperty();
+	
+	/**
+	 * Wiederholt die letzte Rueckgaengig gemachte Aenderung. Wenn diese Funktion nicht zur
+	 * Verfuegung steht, passiert nichts.
+	 */
+	public void wiederhole();
+	
+	/**
+	 * Ueberwachungsstatus zum Sammeln von Rueckgaengig-Befehlen einstellen
+	 * 
+	 * @param status neuer Ueberwachungsstatus
+	 */
+	public void setUeberwachungsStatus(UeberwachungsStatus status);
+	
+
+	/**
+	 * aktueller Ueberwachungsstatus zum Sammeln von Rueckgaengig-Befehlen
+	 * 
+	 * @return eingestellter Ueberwachungsstatus
+	 */
+	public UeberwachungsStatus getUeberwachungsStatus();
+	
+	/**
+	 * Gesammelte Rueckgaengig-Befehle uebernehmen
+	 * 
+	 * @throws IllegalStateException wenn der UeberwachungsStatus
+	 *                               {@link UeberwachungsStatus#IGNORIEREN} ist
+	 */
+	public void uebernehmeEditierungen() throws IllegalStateException;
+	
+	/**
+	 * Gesammelte Rueckgaengig-Befehle rueckgaengig machen und endgueltig verwerfen
+	 * 
+	 * @throws IllegalStateException wenn der UeberwachungsStatus
+	 *                               {@link UeberwachungsStatus#INKREMENTELL_SAMMELN} ist
+	 */
+	public void verwerfeEditierungen() throws IllegalStateException;
+	
 }

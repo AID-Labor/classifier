@@ -144,6 +144,7 @@ class JsonPropertyTest {
 			}
 			
 		} catch (IOException e) {
+			e.printStackTrace();
 			fail(e);
 		}
 	}

@@ -14,10 +14,13 @@ import com.dlsc.gemsfx.DialogPane;
 
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -63,6 +66,8 @@ public class ProjekteAnsicht {
 	private final DialogPane overlayDialog;
 	private final Sprache sprache;
 	private final ProgrammDetails programm;
+	private final ProjekteKontrolle kontroller;
+	private final ReadOnlyObjectWrapper<ProjektAnsicht> anzeige;
 	
 	private EventHandler<WindowEvent> eventAktion = new EventHandler<WindowEvent>() {
 		@Override
@@ -99,9 +104,11 @@ public class ProjekteAnsicht {
 		}
 		
 		this.angezeigtesProjekt = new ReadOnlyObjectWrapper<>();
+		this.anzeige = new ReadOnlyObjectWrapper<>();
 		this.tabAnsicht = new TabPane();
 		
 		setzeListener();
+		this.kontroller = new ProjekteKontrolle(this, sprache);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -116,6 +123,10 @@ public class ProjekteAnsicht {
 	
 	public Parent getAnsicht() {
 		return this.tabAnsicht;
+	}
+	
+	public ReadOnlyObjectProperty<ProjektAnsicht> getAnzeige() {
+		return anzeige.getReadOnlyProperty();
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -135,8 +146,10 @@ public class ProjekteAnsicht {
 							.formatted(neueWahl == null ? "null" : neueWahl.getText()));
 					if (neueWahl instanceof ProjektAnsicht tab) {
 						angezeigtesProjekt.set(tab.getProjekt());
+						anzeige.set(tab);
 					} else {
 						angezeigtesProjekt.set(null);
+						anzeige.set(null);
 					}
 				});
 		
@@ -301,6 +314,9 @@ public class ProjekteAnsicht {
 		
 		tab.setOnClosed(e -> this.projekte.remove(projekt));
 		
+		// Ueberwachung erst nach dem Zeichnen starten
+		Platform.runLater(() -> projekt
+				.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN));
 	}
 	
 	public void vorherigerTab() {
@@ -318,6 +334,10 @@ public class ProjekteAnsicht {
 		} else {
 			this.tabAnsicht.getSelectionModel().selectFirst();
 		}
+	}
+	
+	public void legeNeuenKlassifiziererAn(KlassifiziererTyp typ) {
+		this.kontroller.legeNeuenKlassifiziererAn(typ);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

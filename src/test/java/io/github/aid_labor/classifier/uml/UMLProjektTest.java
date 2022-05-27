@@ -19,9 +19,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
+import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 
@@ -29,9 +36,16 @@ import javafx.beans.property.ReadOnlyStringProperty;
 class UMLProjektTest {
 	private UMLProjekt projekt;
 	
+	@BeforeAll
+	static void setUpClass() {
+		Ressourcen.setProgrammDetails(new ProgrammDetails(null, UMLProjektTest.class.getName(),
+				null, null, UMLProjektTest.class, null));
+	}
+	
 	@BeforeEach
 	void setUp() throws Exception {
 		projekt = new UMLProjekt("Test", Programmiersprache.Java, false);
+		projekt.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
 	}
 	
 	@AfterEach
@@ -89,21 +103,21 @@ class UMLProjektTest {
 			
 			assertTrue(projekt.speichern(datei));
 			assertTrue(gespeichert.get());
-			
-			projekt.getDiagrammElemente().addAll(new TestElement(), new TestElement());
-			
+			projekt.getDiagrammElemente().add(new UMLKommentar());
 			assertFalse(gespeichert.get());
 			assertTrue(projekt.speichern());
 			Files.newBufferedReader(datei).lines().forEach(zeile -> System.out.println(zeile));
 			assertTrue(gespeichert.get());
 			
-			UMLProjekt geoeffnet = UMLProjekt.ausDateiOeffnen(datei);
+			UMLProjekt geoeffnet = ProjektBasis.ausDateiOeffnen(datei, UMLProjekt.class);
 			assertTrue(geoeffnet.istGespeichertProperty().get());
+			geoeffnet.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
 			testName(geoeffnet);
 			assertEquals(datei, geoeffnet.getSpeicherort());
 			testSpeicherOrt(geoeffnet);
 			assertEquals(Programmiersprache.Java, geoeffnet.getProgrammiersprache());
-			assertEquals(projekt.getDiagrammElemente().size(), geoeffnet.getDiagrammElemente().size());
+			assertEquals(projekt.getDiagrammElemente().size(),
+					geoeffnet.getDiagrammElemente().size());
 			for (int i = 0; i < projekt.getDiagrammElemente().size(); i++) {
 				var original = projekt.getDiagrammElemente().get(i);
 				var kopie = geoeffnet.getDiagrammElemente().get(i);
@@ -128,7 +142,7 @@ class UMLProjektTest {
 	@Test
 	void testDiagrammElemente() {
 		assertTrue(projekt.getDiagrammElemente().isEmpty());
-		projekt.getDiagrammElemente().add(new TestElement());
+		projekt.getDiagrammElemente().add(new UMLKommentar());
 		assertEquals(1, projekt.getDiagrammElemente().size());
 		assertFalse(projekt.istGespeichertProperty().get());
 	}

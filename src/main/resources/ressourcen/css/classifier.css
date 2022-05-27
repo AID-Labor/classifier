@@ -47,3 +47,49 @@
     -fx-font: bold 1.2em sans-serif;
     -fx-text-fill: red;
 }
+
+.UML-Klassifizierer-Ansicht {
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-border-color: black;
+    -fx-background-color: white;
+}
+
+.UML-Klassifizierer-Trennlinie > .line {
+    -fx-border-width: 2 1;
+    -fx-border-style: solid;
+    -fx-border-color: black;
+}
+
+#selektiert {
+    -fx-effect: dropshadow(one-pass-box, red, 20, 0.5, 0, 0);
+}
+
+.zeichenflaeche {
+    
+}
+
+.sichtbarkeit-label {
+    -fx-padding: 0 1 0 0;
+}
+
+.attribut-liste {
+    -fx-padding: 5 10 5 10;
+}
+
+.name-label {
+    -fx-font: bold 1.5em sans-serif;
+}
+
+.abstrakt {
+    -fx-font-style: italic;
+}
+
+.klassifizierung {
+    -fx-padding: 10 30 10 30;
+    -fx-alignment: center;
+}
+
+.statisch {
+    -fx-underline: true;
+}

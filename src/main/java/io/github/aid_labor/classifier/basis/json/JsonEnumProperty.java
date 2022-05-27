@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.util.StdConverter;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
+
 // @formatter:off
 @JsonSerialize(
 		contentAs = String.class,
@@ -53,6 +54,20 @@ public class JsonEnumProperty<T extends Enum<T>> extends SimpleObjectProperty<T>
 		}
 	}
 	
+	/**
+	 * Alternativer Konverter, der genutzt werden kann, um nur den Namen der Enumeration zu
+	 * Serialisieren
+	 * @author Tim Muehle
+	 *
+	 * @param <T>
+	 */
+	public static class EnumPropertyZuStringKonverter<T extends Enum<T>>
+			extends StdConverter<ObjectProperty<T>, String> {
+		@Override
+		public String convert(ObjectProperty<T> value) {
+			return value.get().name();
+		}
+	}
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -83,7 +98,6 @@ public class JsonEnumProperty<T extends Enum<T>> extends SimpleObjectProperty<T>
 	public JsonEnumProperty(T initialValue) {
 		super(initialValue);
 	}
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																		*

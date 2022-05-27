@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.basis;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -23,7 +24,9 @@ import com.fasterxml.jackson.core.JsonParser;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.Theme;
 import io.github.aid_labor.classifier.basis.io.system.OS;
+import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
+import io.github.aid_labor.classifier.basis.json.JsonIntegerProperty;
 import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
@@ -138,6 +141,14 @@ public class Einstellungen {
 	 * letzten 10 Dateien behalten.
 	 */
 	public final ObservableSet<DatumWrapper<Path>> letzteDateien;
+	/**
+	 * Anzahl der Elemente, die im Verlauf zum Rueckgaengig machen bzw. Wiederholen
+	 * gespeichert werden
+	 */
+	public final JsonIntegerProperty verlaufAnzahl;
+	public final JsonBooleanProperty zeigePackageModifier;
+	public final JsonBooleanProperty zeigeVoid;
+	public final JsonBooleanProperty zeigeParameterNamen;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -148,52 +159,59 @@ public class Einstellungen {
 		this.themeEinstellung = new JsonEnumProperty<Theme>(Theme.SYSTEM);
 		this.sprachEinstellung = new JsonLocaleProperty(Locale.GERMAN);
 		this.letzterSpeicherortEinstellung = new JsonStringProperty(
-				OS.getDefault().getNutzerOrdner());
-		this.letzteDateien = FXCollections.observableSet(new AutomatischEntfernendesSet<DatumWrapper<Path>>(10) {
-			private static final long serialVersionUID = -7312452108634427547L;
-
-			@Override
-			public boolean add(DatumWrapper<Path> e) {
-				if (this.contains(e)) {
-					return false;
-				}
-				return super.add(e);
-			}
-			
-			@Override
-			public boolean contains(Object o) {
-				var elemente = this.iterator();
-				while (elemente.hasNext()) {
-					if(elemente.next().equals(o)) {
-						return true;
+				OS.getDefault().getDokumenteOrdner());
+		this.letzteDateien = FXCollections
+				.observableSet(new AutomatischEntfernendesSet<DatumWrapper<Path>>(15) {
+					private static final long serialVersionUID = -7312452108634427547L;
+					
+					@Override
+					public boolean add(DatumWrapper<Path> e) {
+						if (this.contains(e)) {
+							return false;
+						}
+						return super.add(e);
 					}
-				}
-				return false;
-			}
-			
-			@Override
-			public boolean remove(Object o) {
-				var elemente = this.iterator();
-				while (elemente.hasNext()) {
-					var element = elemente.next();
-					if(element.equals(o)) {
-						return super.remove(element);
+					
+					@Override
+					public boolean contains(Object o) {
+						var elemente = this.iterator();
+						while (elemente.hasNext()) {
+							if (elemente.next().equals(o)) {
+								return true;
+							}
+						}
+						return false;
 					}
-				}
-				return false;
-			}
-		});
+					
+					@Override
+					public boolean remove(Object o) {
+						var elemente = this.iterator();
+						while (elemente.hasNext()) {
+							var element = elemente.next();
+							if (element.equals(o)) {
+								return super.remove(element);
+							}
+						}
+						return false;
+					}
+				});
+		this.verlaufAnzahl = new JsonIntegerProperty(100);
+		this.zeigePackageModifier = new JsonBooleanProperty(true);
+		this.zeigeVoid = new JsonBooleanProperty(false);
+		this.zeigeParameterNamen = new JsonBooleanProperty(true);
 	}
 	
 	/**
 	 * Konstruktor fuer Jackson, zum Lesen aus json-Datei
+	 * 
 	 * @param letzteDateien
 	 */
 	@JsonCreator
 	private Einstellungen(
 			@JsonProperty("letzteDateien") List<DatumWrapper<Path>> letzteDateien) {
 		this();
-		this.letzteDateien.addAll(letzteDateien);
+		this.letzteDateien.addAll(letzteDateien.stream()
+				.filter(eintrag -> Files.exists(eintrag.getElement())).toList());
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

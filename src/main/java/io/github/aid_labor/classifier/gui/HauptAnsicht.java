@@ -24,6 +24,7 @@ import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.projekt.Projekt;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
@@ -32,6 +33,7 @@ import io.github.aid_labor.classifier.gui.elemente.RibbonKomponente;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import javafx.application.HostServices;
 import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
@@ -122,7 +124,6 @@ public class HauptAnsicht {
 			
 			@Override
 			public ButtonType fromString(String string) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 		});
@@ -204,7 +205,7 @@ public class HauptAnsicht {
 	
 	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
 		// Menue Datei
-		NodeUtil.disable(menue.getDateiImportieren(),
+		NodeUtil.deaktivieren(menue.getDateiImportieren(),
 				menue.getExportierenBild(), menue.getExportierenQuellcode());
 		
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
@@ -236,26 +237,26 @@ public class HauptAnsicht {
 					menue.getDateiUmbenennen().setDisable(inaktiv);
 				});
 		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter(),
+			NodeUtil.deaktivieren(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter(),
 					menue.getDateiAlleSpeichern(), menue.getDateiSchliessen(),
 					menue.getDateiUmbenennen());
 		}
 		
 		// Menue Bearbeiten
-		NodeUtil.disable(menue.getRueckgaengig(), menue.getWiederholen(), menue.getKopieren(),
+		NodeUtil.deaktivieren(menue.getRueckgaengig(), menue.getWiederholen(), menue.getKopieren(),
 				menue.getEinfuegen(), menue.getLoeschen());
 		
 		// Menue Einfuegen
-		NodeUtil.disable(menue.getKlasseEinfuegen(), menue.getInterfaceEinfuegen(),
+		NodeUtil.deaktivieren(menue.getKlasseEinfuegen(), menue.getInterfaceEinfuegen(),
 				menue.getEnumEinfuegen(), menue.getVererbungEinfuegen(),
 				menue.getAssoziationEinfuegen(), menue.getKommentarEinfuegen());
 		
 		// Menue Anordnen
-		NodeUtil.disable(menue.getAnordnenNachVorne(), menue.getAnordnenNachGanzVorne(),
+		NodeUtil.deaktivieren(menue.getAnordnenNachVorne(), menue.getAnordnenNachGanzVorne(),
 				menue.getAnordnenNachHinten(), menue.getAnordnenNachGanzHinten());
 		
 		// Menue Darstellung
-		NodeUtil.disable(menue.getDarstellungGroesser(), menue.getDarstellungKleiner(),
+		NodeUtil.deaktivieren(menue.getDarstellungGroesser(), menue.getDarstellungKleiner(),
 				menue.getDarstellungOriginalgroesse());
 		
 		menue.getVollbild().setOnAction(e -> {
@@ -289,7 +290,7 @@ public class HauptAnsicht {
 		menue.getNaechsterTab().setOnAction(e -> this.projektAnsicht.naechsterTab());
 		
 		// Menue Einstellungen
-		NodeUtil.disable(menue.getVoidAnzeigen(), menue.getTheme());
+		NodeUtil.deaktivieren(menue.getVoidAnzeigen(), menue.getTheme());
 		menue.getInfo().setOnAction(e -> {
 			var info = new InfoAnsicht(programm, rechnerService);
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
@@ -322,13 +323,21 @@ public class HauptAnsicht {
 		ribbon.getNeu().setOnAction(controller::neuesProjektErzeugen);
 		ribbon.getSpeichern().setOnAction(controller::projektSpeichern);
 		ribbon.getSpeichernSchnellzugriff().setOnAction(controller::projektSpeichern);
+		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
 		
-		// Speichersymbol updaten
+		ribbon.getNeueKlasse().setOnAction(
+				e -> this.projektAnsicht.legeNeuenKlassifiziererAn(KlassifiziererTyp.Klasse));
+		ribbon.getNeuesInterface().setOnAction(e -> this.projektAnsicht
+				.legeNeuenKlassifiziererAn(KlassifiziererTyp.Interface));
+		ribbon.getNeueEnumeration().setOnAction(e -> this.projektAnsicht
+				.legeNeuenKlassifiziererAn(KlassifiziererTyp.Enumeration));
+		
+		// Buttons updaten
+		updateRueckgaengigWiederholen(ribbon,
+				projektAnsicht.getAngezeigtesProjektProperty().get());
 		this.projektAnsicht.getAngezeigtesProjektProperty()
 				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
 					if (gezeigtesProjekt != null) {
-						ribbon.getSpeichern().setDisable(false);
-						ribbon.getSpeichernSchnellzugriff().setDisable(false);
 						NodeUtil.setzeHervorhebung(
 								gezeigtesProjekt.istGespeichertProperty().not().get(),
 								ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
@@ -341,33 +350,96 @@ public class HauptAnsicht {
 					} else {
 						NodeUtil.setzeHervorhebung(false, ribbon.getSpeichern(),
 								ribbon.getSpeichernSchnellzugriff());
-						ribbon.getSpeichern().setDisable(true);
-						ribbon.getSpeichernSchnellzugriff().setDisable(true);
 					}
+					ribbon.getSpeichern().setDisable(gezeigtesProjekt == null);
+					ribbon.getSpeichernSchnellzugriff().setDisable(gezeigtesProjekt == null);
+					ribbon.getNeueKlasse().setDisable(gezeigtesProjekt == null);
+					ribbon.getNeuesInterface().setDisable(gezeigtesProjekt == null);
+					ribbon.getNeueEnumeration().setDisable(gezeigtesProjekt == null);
+					updateRueckgaengigWiederholen(ribbon, gezeigtesProjekt);
 				});
 		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.disable(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
+			NodeUtil.deaktivieren(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff(),
+					ribbon.getRueckgaengig(), ribbon.getRueckgaengigSchnellzugriff(),
+					ribbon.getWiederholen(), ribbon.getWiederholenSchnellzugriff(),
+					ribbon.getNeueKlasse(), ribbon.getNeuesInterface(),
+					ribbon.getNeueEnumeration());
 		}
 		
-		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
-		
-		NodeUtil.disable(ribbon.getImportieren(), ribbon.getScreenshot(),
+		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
-		NodeUtil.disable(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen(),
-				ribbon.getRueckgaengig(), ribbon.getWiederholen());
-		NodeUtil.disable(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
+		NodeUtil.deaktivieren(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen());
+		
+		NodeUtil.deaktivieren(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(),
 				ribbon.getAnordnenNachGanzHinten());
-		NodeUtil.disable(ribbon.getNeueKlasse(), ribbon.getNeuesInterface(),
-				ribbon.getNeueEnumeration());
-		NodeUtil.disable(ribbon.getVererbung(), ribbon.getAssoziation());
-		NodeUtil.disable(ribbon.getKommentar());
-		NodeUtil.disable(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),
+		NodeUtil.deaktivieren(ribbon.getVererbung(), ribbon.getAssoziation());
+		NodeUtil.deaktivieren(ribbon.getKommentar());
+		NodeUtil.deaktivieren(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),
 				ribbon.getZoomOriginalgroesse());
-		NodeUtil.disable(ribbon.getSpeichernSchnellzugriff(),
-				ribbon.getRueckgaengigSchnellzugriff(),
-				ribbon.getWiederholenSchnellzugriff());
 		
+		ribbon.getZoomGroesser().setOnAction(e -> {
+			projektAnsicht.getAnzeige().get()
+					.skaliere(projektAnsicht.getAnzeige().get().getSkalierung() + 0.1);
+		});
+		ribbon.getZoomKleiner().setOnAction(e -> {
+			projektAnsicht.getAnzeige().get()
+					.skaliere(projektAnsicht.getAnzeige().get().getSkalierung() - 0.1);
+		});
+		ribbon.getZoomOriginalgroesse().setOnAction(e -> {
+			projektAnsicht.getAnzeige().get()
+					.skaliere(projektAnsicht.getAnzeige().get().getStandardSkalierung());
+		});
+		updateZoomButtons(ribbon, projektAnsicht.getAnzeige().get());
+		
+		this.projektAnsicht.getAnzeige().addListener((property, alteAnzeige, neueAnzeige) -> {
+			updateZoomButtons(ribbon, neueAnzeige);
+		});
+	}
+	
+	private void updateZoomButtons(RibbonKomponente ribbon, ProjektAnsicht projektAnsicht) {
+		boolean ausbleneden = projektAnsicht == null;
+		
+		ribbon.getZoomGroesser().setDisable(ausbleneden);
+		ribbon.getZoomKleiner().disableProperty().unbind();
+		ribbon.getZoomKleiner().setDisable(ausbleneden);
+		ribbon.getZoomOriginalgroesse().setDisable(ausbleneden);
+		if (projektAnsicht != null) {
+			ribbon.getZoomKleiner().disableProperty()
+					.bind(projektAnsicht.kannKleinerZoomenProperty().not());
+		}
+	}
+	
+	private void updateRueckgaengigWiederholen(RibbonKomponente ribbon, Projekt projekt) {
+		ribbon.getRueckgaengig().disableProperty().unbind();
+		ribbon.getRueckgaengigSchnellzugriff().disableProperty().unbind();
+		ribbon.getWiederholen().disableProperty().unbind();
+		ribbon.getWiederholenSchnellzugriff().disableProperty().unbind();
+		
+		if (projekt != null) {
+			ribbon.getRueckgaengig().setOnAction(e -> projekt.macheRueckgaengig());
+			ribbon.getRueckgaengigSchnellzugriff()
+					.setOnAction(e -> projekt.macheRueckgaengig());
+			ribbon.getWiederholen().setOnAction(e -> projekt.wiederhole());
+			ribbon.getWiederholenSchnellzugriff().setOnAction(e -> projekt.wiederhole());
+			ribbon.getRueckgaengig().disableProperty()
+					.bind(projekt.kannRueckgaengigGemachtWerdenProperty().not());
+			ribbon.getRueckgaengigSchnellzugriff().disableProperty().bind(
+					projekt.kannRueckgaengigGemachtWerdenProperty().not());
+			ribbon.getWiederholen().disableProperty()
+					.bind(projekt.kannWiederholenProperty().not());
+			ribbon.getWiederholenSchnellzugriff().disableProperty()
+					.bind(projekt.kannWiederholenProperty().not());
+		} else {
+			ribbon.getRueckgaengig().setOnAction(null);
+			ribbon.getRueckgaengigSchnellzugriff().setOnAction(null);
+			ribbon.getWiederholen().setOnAction(null);
+			ribbon.getWiederholenSchnellzugriff().setOnAction(null);
+			ribbon.getRueckgaengig().disableProperty().set(true);
+			ribbon.getRueckgaengigSchnellzugriff().disableProperty().set(true);
+			ribbon.getWiederholen().disableProperty().set(true);
+			ribbon.getWiederholenSchnellzugriff().disableProperty().set(true);
+		}
 	}
 	
 	// Ende Ribbon

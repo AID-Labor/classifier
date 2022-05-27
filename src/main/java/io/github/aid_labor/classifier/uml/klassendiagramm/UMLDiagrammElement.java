@@ -3,7 +3,7 @@
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
-package io.github.aid_labor.classifier.uml;
+package io.github.aid_labor.classifier.uml.klassendiagramm;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -12,6 +12,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
+import io.github.aid_labor.classifier.basis.projekt.Editierbar;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLBasisElement.Position;
+
 // @formatter:off
 @JsonTypeInfo(
 		use = Id.NAME,
@@ -19,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 		property = "klasse"
 )
 @JsonSubTypes({
-	@JsonSubTypes.Type(value = TestElement.class)
+	@JsonSubTypes.Type(value = UMLBasisElement.class)
 })
 @JsonAutoDetect(
 		getterVisibility = Visibility.NONE,
@@ -29,8 +32,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 		fieldVisibility = Visibility.ANY
 )
 // @formatter:on
-public interface UMLDiagrammElement {
+public interface UMLDiagrammElement extends Editierbar {
 	
 	String getName();
+	
+	Position getPosition();
+
+	int getId();
+	
+	void setId(int id);
 	
 }

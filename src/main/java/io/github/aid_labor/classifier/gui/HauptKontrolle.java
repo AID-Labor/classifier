@@ -32,8 +32,8 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
-import io.github.aid_labor.classifier.uml.Programmiersprache;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.Insets;
@@ -247,7 +247,7 @@ class HauptKontrolle {
 								.collect(Collectors.joining("   ")), akzeptiert));
 			}
 			if (akzeptieren) {
-				event.acceptTransferModes(TransferMode.ANY);
+				event.acceptTransferModes(TransferMode.COPY);
 			}
 		}
 		if (event.getEventType().equals(DragEvent.DRAG_DROPPED)) {

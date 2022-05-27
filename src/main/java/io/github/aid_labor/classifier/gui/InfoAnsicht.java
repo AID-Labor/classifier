@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -217,13 +218,19 @@ public class InfoAnsicht extends Alert {
 	
 	private Collection<TitledPane> erzeugeDrittanbieter() {
 		Collection<TitledPane> drittanbieterListe = new LinkedList<>();
-		
 		try (var stream = Files
 				.newDirectoryStream(Ressourcen.get().LIZENZ_INFO_ORDNER.alsPath())) {
+			var eintraege = new TreeSet<Path>(
+					(pfad1, pfad2) -> pfad1.getFileName().toString().toLowerCase()
+							.compareTo(pfad2.getFileName().toString().toLowerCase()));
 			for (Path unterordner : stream) {
-				TitledPane drittanbieterDetails = erzeugeDrittanbieterDetails(unterordner);
-				drittanbieterListe.add(drittanbieterDetails);
+				eintraege.add(unterordner);
+				
 			}
+			eintraege.forEach(eintrag -> {
+				TitledPane drittanbieterDetails = erzeugeDrittanbieterDetails(eintrag);
+				drittanbieterListe.add(drittanbieterDetails);
+			});
 		} catch (Exception e) {
 			log.log(Level.WARNING, e,
 					() -> "Fehler beim Lesen der Drittanbieter Lizenz-Infos in %s"
