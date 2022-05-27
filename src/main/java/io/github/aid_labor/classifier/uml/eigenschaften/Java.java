@@ -6,17 +6,21 @@
 
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 
 
 class Java implements ProgrammierEigenschaften {
 	
+	private static final Logger log = Logger.getLogger(Java.class.getName());
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private static Java singletonInstanz;
@@ -53,6 +57,14 @@ class Java implements ProgrammierEigenschaften {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	private Modifizierer privateErlaubt = new Modifizierer("private", true);
+	private Modifizierer packagePrivateErlaubt = new Modifizierer("package-private", true);
+	private Modifizierer protectedErlaubt = new Modifizierer("protected", true);
+	private Modifizierer publicErlaubt = new Modifizierer("public", true);
+	
+	private Modifizierer privateNichtErlaubt = new Modifizierer("private", false);
+	private Modifizierer protectedNichtErlaubt = new Modifizierer("protected", false);
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -69,32 +81,50 @@ class Java implements ProgrammierEigenschaften {
 	
 	@Override
 	public List<Modifizierer> getTypModifizierer(KlassifiziererTyp typ) {
-		// TODO Auto-generated method stub
-		return null;
+		return List.of(publicErlaubt, packagePrivateErlaubt, protectedNichtErlaubt,
+				privateNichtErlaubt);
 	}
 	
 	@Override
 	public List<Modifizierer> getAttributModifizierer(KlassifiziererTyp typ) {
-		// TODO Auto-generated method stub
-		return null;
+		return switch (typ) {
+			case Interface -> List.of(publicErlaubt);
+			case Klasse, AbstrakteKlasse, Enumeration -> List.of(publicErlaubt,
+					protectedErlaubt, packagePrivateErlaubt, privateErlaubt);
+			default -> {
+				log.warning(() -> "unbekannter typ: " + typ);
+				yield Collections.emptyList();
+			}
+		};
 	}
 	
 	@Override
 	public List<Modifizierer> getMethodenModifizierer(KlassifiziererTyp typ) {
-		// TODO Auto-generated method stub
-		return null;
+		return switch (typ) {
+			case Interface -> List.of(publicErlaubt);
+			case Klasse, AbstrakteKlasse, Enumeration -> List.of(publicErlaubt,
+					protectedErlaubt, packagePrivateErlaubt, privateErlaubt);
+			default -> {
+				log.warning(() -> "unbekannter typ: " + typ);
+				yield Collections.emptyList();
+			}
+		};
 	}
 	
 	@Override
-	public boolean erlaubtInstanzAttribute() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ) {
+		return switch (typ) {
+			case Interface -> false;
+			default -> true;
+		};
 	}
 	
 	@Override
-	public boolean erlaubtSuperklasse() {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean erlaubtSuperklasse(KlassifiziererTyp typ) {
+		return switch (typ) {
+			case Interface, Enumeration -> false;
+			default -> true;
+		};
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

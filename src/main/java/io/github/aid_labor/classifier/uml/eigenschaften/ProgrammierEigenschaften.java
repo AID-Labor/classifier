@@ -19,8 +19,8 @@ public interface ProgrammierEigenschaften {
 	
 	public List<Modifizierer> getMethodenModifizierer(KlassifiziererTyp typ);
 	
-	public boolean erlaubtInstanzAttribute();
-	public boolean erlaubtSuperklasse();
+	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ);
+	public boolean erlaubtSuperklasse(KlassifiziererTyp typ);
 	
 	/**
 	 * Gibt eine passende Instanz fuer die uebergebene Programmiersprache zurueck
