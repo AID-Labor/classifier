@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize.Typing;
 
+import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
@@ -46,7 +47,6 @@ import javafx.collections.ObservableList;
 		getterVisibility = Visibility.NONE,
 		isGetterVisibility = Visibility.NONE,
 		setterVisibility = Visibility.NONE,
-		creatorVisibility = Visibility.NONE,
 		fieldVisibility = Visibility.ANY
 )
 // @formatter:on
@@ -298,7 +298,49 @@ public class UMLProjekt implements Projekt {
 	public String toString() {
 		return "%s [Datei: %s]".formatted(this.name, this.speicherort);
 	}
-
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(automatischSpeichern, diagrammElemente, name, programmiersprache,
+				speicherort);
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		UMLProjekt proj = (UMLProjekt) obj;
+		
+		boolean automatischSpeichernGleich = automatischSpeichern == proj.automatischSpeichern;
+		boolean diagrammElementeGleich = ClassifierUtil.pruefeGleichheit(this.diagrammElemente,
+				proj.diagrammElemente);
+		boolean nameGleich = Objects.equals(name, proj.name);
+		boolean programmierspracheGleich = programmiersprache == proj.programmiersprache;
+		boolean speicherortGleich = Objects.equals(speicherort, proj.speicherort);
+		
+		boolean istGleich = automatischSpeichernGleich && diagrammElementeGleich && nameGleich
+				&& programmierspracheGleich && speicherortGleich;
+		
+		log.finer(() -> """
+				istGleich: %s
+				   |-- automatischSpeichernGleich: %s
+				   |-- diagrammElementeGleich: %s
+				   |-- nameGleich: %s
+				   |-- programmierspracheGleich: %s
+				   ╰-- speicherortGleich: %s"""
+				.formatted(istGleich, automatischSpeichernGleich, diagrammElementeGleich,
+						nameGleich, programmierspracheGleich, speicherortGleich));
+		
+		return istGleich;
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

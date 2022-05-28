@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
-import io.github.aid_labor.classifier.uml.klassendiagramm.TestElement;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 
@@ -91,9 +91,7 @@ class UMLProjektTest {
 			
 			assertTrue(projekt.speichern(datei));
 			assertTrue(gespeichert.get());
-			
-			projekt.getDiagrammElemente().addAll(new TestElement(), new TestElement());
-			
+			projekt.getDiagrammElemente().add(new UMLKommentar());
 			assertFalse(gespeichert.get());
 			assertTrue(projekt.speichern());
 			Files.newBufferedReader(datei).lines().forEach(zeile -> System.out.println(zeile));
@@ -130,7 +128,7 @@ class UMLProjektTest {
 	@Test
 	void testDiagrammElemente() {
 		assertTrue(projekt.getDiagrammElemente().isEmpty());
-		projekt.getDiagrammElemente().add(new TestElement());
+		projekt.getDiagrammElemente().add(new UMLKommentar());
 		assertEquals(1, projekt.getDiagrammElemente().size());
 		assertFalse(projekt.istGespeichertProperty().get());
 	}

@@ -19,7 +19,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 		property = "klasse"
 )
 @JsonSubTypes({
-	@JsonSubTypes.Type(value = TestElement.class)
+	@JsonSubTypes.Type(value = UMLKlassifizierer.class),
+	@JsonSubTypes.Type(value = UMLKommentar.class)
 })
 @JsonAutoDetect(
 		getterVisibility = Visibility.NONE,

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="14.3.0">
+  <zoom_level>8</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>0</x>
+      <y>272</y>
+      <w>1632</w>
+      <h>360</h>
+    </coordinates>
+    <panel_attributes>io.github.aid_labor.classifier.uml::UMLProjekt
+--
+-log = Logger.getLogger(UMLProjekt.class.getName()): Logger
+-name: String
+-automatischSpeichern: boolean
+-programmiersprache: Programmiersprache
+-nameProperty: ReadOnlyStringWrapper
+-speicherort: Path
+-istGespeichertProperty: JsonReadOnlyBooleanPropertyWrapper
+-diagrammElemente: ObservableList&lt;UMLDiagrammElement&gt;
+--
++UMLProjekt(String name, Programmiersprache programmiersprache, boolean automatischSpeichern): ctor
+#UMLProjekt(@JsonProperty("name") String name, @JsonProperty("programmiersprache") Programmiersprache programmiersprache, @JsonProperty("automatischSpeichern") boolean automatischSpeichern, @JsonProperty("diagrammElemente") List&lt;UMLDiagrammElement&gt; diagrammElemente): ctor
++ausDateiOeffnen(Path datei): UMLProjekt
++getName(): String
++setName(String name): void
++nameProperty(): ReadOnlyStringProperty
++getSpeicherort(): Path
++setSpeicherort(Path speicherort): void
++getProgrammiersprache(): Programmiersprache
++getDiagrammElemente(): ObservableList&lt;UMLDiagrammElement&gt;
++istGespeichertProperty(): ReadOnlyBooleanProperty
++automatischSpeichern(): boolean
++setAutomatischSpeichern(boolean automatischSpeichern): void
++speichern(): boolean
++toString(): String
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>576</x>
+      <y>0</y>
+      <w>384</w>
+      <h>224</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+io.github.aid_labor.classifier.uml::Projekt
+--
+--
++getName(): String
++setName(String name): void
++nameProperty(): ReadOnlyStringProperty
++getSpeicherort(): Path
++setSpeicherort(Path speicherort): void
++speichern(): boolean
++speichern(Path neuerSpeicherort): boolean
++getProgrammiersprache(): Programmiersprache
++getDiagrammElemente(): ObservableList&lt;UMLDiagrammElement&gt;
++istGespeichertProperty(): ReadOnlyBooleanProperty
++automatischSpeichern(): boolean
++setAutomatischSpeichern(boolean automatischSpeichern): void
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>248</x>
+      <y>672</y>
+      <w>656</w>
+      <h>184</h>
+    </coordinates>
+    <panel_attributes>/io.github.aid_labor.classifier.uml.klassendiagramm::UMLKlassifizierer/
+--
+-log = Logger.getLogger(UMLKlassifizierer.class.getName()): Logger
+-typ: KlassifiziererTyp
+-programmiersprache: Programmiersprache
+-paket: String
+-name: String
+-attribute: ObservableList&lt;Attribut&gt;
+-methoden: ObservableList&lt;Methode&gt;
+--
++UMLKlassifizierer(KlassifiziererTyp typ, Programmiersprache programmiersprache, String paket, String name): ctor
++getTypName(): String
++getName(): String
++getStereotyp(): String
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>960</x>
+      <y>672</y>
+      <w>432</w>
+      <h>72</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+io.github.aid_labor.classifier.uml.klassendiagramm::UMLDiagrammElement
+--
+--
+~getName(): String
+--
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>
