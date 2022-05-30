@@ -21,6 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.github.aid_labor.classifier.LoggingEinstellung;
+import io.github.aid_labor.classifier.basis.ProgrammDetails;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
 import io.github.aid_labor.classifier.uml.eigenschaften.Datentyp.BasisDatentyp;
 import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
@@ -36,6 +38,8 @@ class UMLSpeichertest {
 	@BeforeAll
 	static void setUpClass() {
 		LoggingEinstellung.initialisiereTestLogging();
+		Ressourcen.setProgrammDetails(new ProgrammDetails(null, UMLProjektTest.class.getName(),
+				null, null, UMLProjektTest.class, null));
 	}
 	
 	private UMLProjekt projekt;

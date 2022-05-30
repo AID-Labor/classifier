@@ -24,6 +24,7 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.Theme;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
+import io.github.aid_labor.classifier.basis.json.JsonIntegerProperty;
 import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
@@ -138,6 +139,11 @@ public class Einstellungen {
 	 * letzten 10 Dateien behalten.
 	 */
 	public final ObservableSet<DatumWrapper<Path>> letzteDateien;
+	/**
+	 * Anzahl der Elemente, die im Verlauf zum Rueckgaengig machen bzw. Wiederholen
+	 * gespeichert werden
+	 */
+	public final JsonIntegerProperty verlaufAnzahl;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -149,44 +155,47 @@ public class Einstellungen {
 		this.sprachEinstellung = new JsonLocaleProperty(Locale.GERMAN);
 		this.letzterSpeicherortEinstellung = new JsonStringProperty(
 				OS.getDefault().getDokumenteOrdner());
-		this.letzteDateien = FXCollections.observableSet(new AutomatischEntfernendesSet<DatumWrapper<Path>>(10) {
-			private static final long serialVersionUID = -7312452108634427547L;
-
-			@Override
-			public boolean add(DatumWrapper<Path> e) {
-				if (this.contains(e)) {
-					return false;
-				}
-				return super.add(e);
-			}
-			
-			@Override
-			public boolean contains(Object o) {
-				var elemente = this.iterator();
-				while (elemente.hasNext()) {
-					if(elemente.next().equals(o)) {
-						return true;
+		this.letzteDateien = FXCollections
+				.observableSet(new AutomatischEntfernendesSet<DatumWrapper<Path>>(10) {
+					private static final long serialVersionUID = -7312452108634427547L;
+					
+					@Override
+					public boolean add(DatumWrapper<Path> e) {
+						if (this.contains(e)) {
+							return false;
+						}
+						return super.add(e);
 					}
-				}
-				return false;
-			}
-			
-			@Override
-			public boolean remove(Object o) {
-				var elemente = this.iterator();
-				while (elemente.hasNext()) {
-					var element = elemente.next();
-					if(element.equals(o)) {
-						return super.remove(element);
+					
+					@Override
+					public boolean contains(Object o) {
+						var elemente = this.iterator();
+						while (elemente.hasNext()) {
+							if (elemente.next().equals(o)) {
+								return true;
+							}
+						}
+						return false;
 					}
-				}
-				return false;
-			}
-		});
+					
+					@Override
+					public boolean remove(Object o) {
+						var elemente = this.iterator();
+						while (elemente.hasNext()) {
+							var element = elemente.next();
+							if (element.equals(o)) {
+								return super.remove(element);
+							}
+						}
+						return false;
+					}
+				});
+		this.verlaufAnzahl = new JsonIntegerProperty(100);
 	}
 	
 	/**
 	 * Konstruktor fuer Jackson, zum Lesen aus json-Datei
+	 * 
 	 * @param letzteDateien
 	 */
 	@JsonCreator

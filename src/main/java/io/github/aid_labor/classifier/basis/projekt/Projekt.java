@@ -13,12 +13,14 @@ import javafx.beans.property.ReadOnlyStringProperty;
 
 
 /**
- * Basis fuer ein Projekt
+ * Basis fuer ein Projekt. Jedes Projekt braucht einen Namen und kann auf der Festplatte
+ * gespeichert werden. Das Projekt kann Editierungen beobachten, rueckgaengig machen und 
+ * diese auch wiederholen.
  * 
  * @author Tim Muehle
  *
  */
-public interface Projekt {
+public interface Projekt extends EditierBeobachter {
 	
 	/**
 	 * Projektname
@@ -119,4 +121,48 @@ public interface Projekt {
 	 *                             Hintergrund gespeichert werden soll, sonst {@code false}
 	 */
 	public void setAutomatischSpeichern(boolean automatischSpeichern);
+	
+	/**
+	 * Gibt an, ob eine oder mehrere Aenderungen mit der Methode {@link #macheRueckgaengig()}
+	 * rueckgaengig gemacht werden koennen
+	 * 
+	 * @return {@code true}, wenn es widerrufbare Aenderungen im Verlauf gibt
+	 */
+	public boolean kannRueckgaengigGemachtWerden();
+	
+	/**
+	 * Gibt an, ob eine oder mehrere Aenderungen mit der Methode {@link #macheRueckgaengig()}
+	 * rueckgaengig gemacht werden koennen
+	 * 
+	 * @return {@code true}, wenn es widerrufbare Aenderungen im Verlauf gibt
+	 */
+	public ReadOnlyBooleanProperty kannRueckgaengigGemachtWerdenProperty();
+	
+	/**
+	 * Macht die letzte Aenderung an diesem Projekt Rueckgaengig. Wenn diese Funktion nicht
+	 * zur Verfuegung steht, passiert nichts.
+	 */
+	public void macheRueckgaengig();
+	
+	/**
+	 * Gibt an, ob eine oder mehrere Rueckgaengig gemachte Aenderungen mit der Methode
+	 * {@link #wiederhole()} wiederhergestellt werden koennen
+	 * 
+	 * @return {@code true}, wenn es wiederhergestellt Aenderungen im Verlauf gibt
+	 */
+	public boolean kannWiederholen();
+	
+	/**
+	 * Gibt an, ob eine oder mehrere Rueckgaengig gemachte Aenderungen mit der Methode
+	 * {@link #wiederhole()} wiederhergestellt werden koennen
+	 * 
+	 * @return {@code true}, wenn es wiederhergestellt Aenderungen im Verlauf gibt
+	 */
+	public ReadOnlyBooleanProperty kannWiederholenProperty();
+	
+	/**
+	 * Wiederholt die letzte Rueckgaengig gemachte Aenderung. Wenn diese Funktion nicht zur
+	 * Verfuegung steht, passiert nichts.
+	 */
+	public void wiederhole();
 }

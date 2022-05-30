@@ -24,6 +24,7 @@ import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.projekt.Projekt;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
@@ -322,8 +323,11 @@ public class HauptAnsicht {
 		ribbon.getNeu().setOnAction(controller::neuesProjektErzeugen);
 		ribbon.getSpeichern().setOnAction(controller::projektSpeichern);
 		ribbon.getSpeichernSchnellzugriff().setOnAction(controller::projektSpeichern);
+		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
 		
-		// Speichersymbol updaten
+		// Buttons updaten
+		updateRueckgaengigWiederholen(ribbon,
+				projektAnsicht.getAngezeigtesProjektProperty().get());
 		this.projektAnsicht.getAngezeigtesProjektProperty()
 				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
 					if (gezeigtesProjekt != null) {
@@ -338,23 +342,26 @@ public class HauptAnsicht {
 											ribbon.getSpeichern(),
 											ribbon.getSpeichernSchnellzugriff());
 								});
+								
 					} else {
 						NodeUtil.setzeHervorhebung(false, ribbon.getSpeichern(),
 								ribbon.getSpeichernSchnellzugriff());
 						ribbon.getSpeichern().setDisable(true);
 						ribbon.getSpeichernSchnellzugriff().setDisable(true);
 					}
+					updateRueckgaengigWiederholen(ribbon, gezeigtesProjekt);
 				});
 		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.disable(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
+			NodeUtil.disable(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff(),
+					ribbon.getRueckgaengig(), ribbon.getRueckgaengigSchnellzugriff(),
+					ribbon.getWiederholen(), ribbon.getWiederholenSchnellzugriff());
 		}
-		
-		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
 		
 		NodeUtil.disable(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
 		NodeUtil.disable(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen(),
 				ribbon.getRueckgaengig(), ribbon.getWiederholen());
+		
 		NodeUtil.disable(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(),
 				ribbon.getAnordnenNachGanzHinten());
@@ -364,10 +371,39 @@ public class HauptAnsicht {
 		NodeUtil.disable(ribbon.getKommentar());
 		NodeUtil.disable(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),
 				ribbon.getZoomOriginalgroesse());
-		NodeUtil.disable(ribbon.getSpeichernSchnellzugriff(),
-				ribbon.getRueckgaengigSchnellzugriff(),
-				ribbon.getWiederholenSchnellzugriff());
 		
+	}
+	
+	private void updateRueckgaengigWiederholen(RibbonKomponente ribbon, Projekt projekt) {
+		ribbon.getRueckgaengig().disableProperty().unbind();
+		ribbon.getRueckgaengigSchnellzugriff().disableProperty().unbind();
+		ribbon.getWiederholen().disableProperty().unbind();
+		ribbon.getWiederholenSchnellzugriff().disableProperty().unbind();
+		
+		if (projekt != null) {
+			ribbon.getRueckgaengig().setOnAction(e -> projekt.macheRueckgaengig());
+			ribbon.getRueckgaengigSchnellzugriff()
+					.setOnAction(e -> projekt.macheRueckgaengig());
+			ribbon.getWiederholen().setOnAction(e -> projekt.wiederhole());
+			ribbon.getWiederholenSchnellzugriff().setOnAction(e -> projekt.wiederhole());
+			ribbon.getRueckgaengig().disableProperty()
+					.bind(projekt.kannRueckgaengigGemachtWerdenProperty().not());
+			ribbon.getRueckgaengigSchnellzugriff().disableProperty().bind(
+					projekt.kannRueckgaengigGemachtWerdenProperty().not());
+			ribbon.getWiederholen().disableProperty()
+					.bind(projekt.kannWiederholenProperty().not());
+			ribbon.getWiederholenSchnellzugriff().disableProperty()
+					.bind(projekt.kannWiederholenProperty().not());
+		} else {
+			ribbon.getRueckgaengig().setOnAction(null);
+			ribbon.getRueckgaengigSchnellzugriff().setOnAction(null);
+			ribbon.getWiederholen().setOnAction(null);
+			ribbon.getWiederholenSchnellzugriff().setOnAction(null);
+			ribbon.getRueckgaengig().disableProperty().set(true);
+			ribbon.getRueckgaengigSchnellzugriff().disableProperty().set(true);
+			ribbon.getWiederholen().disableProperty().set(true);
+			ribbon.getWiederholenSchnellzugriff().disableProperty().set(true);
+		}
 	}
 	
 	// Ende Ribbon

@@ -18,14 +18,42 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 
+import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
 
+/**
+ * Basis-Implementierung von {@link Projekt}. Die Speicherfunktion sowie die Verwaltung
+ * eines Verlaufs fuer Editierungen, die rueckggaengig gemacht oder wiederholt werden
+ * koennen, sind bereits vollstaendig implementiert.
+ * <p>
+ * Das Speichern ist mit dem Framework Jackson implementiert. Subklassen muessen ggf.
+ * weitere Einstellungen fuer die Serialisierung/Deserialisierung vornehmen.
+ * Standardmaessig werden ausschliesslich alle Attribute serialisiert, die nicht mit der
+ * Annotation {@code @JsonIgnore} gekennzeichnet sind.
+ * </p>
+ * 
+ * <p>
+ * Editierungen muessen von Subklassen mit der Methode
+ * {@link #verarbeiteEditierung(EditierBefehl)} in den Verlauf eingereiht werden.
+ * Die Verarbeitung des Verlaufes erledigt diese Basis-Klasse dann selbststaendig.
+ * </p>
+ * 
+ * <p>
+ * Diese Klasse ueberschreibt die Methoden {@link #hashCode()} und {@link #equals(Object)}
+ * fuer die Attribute {@code name}, {@code automatischSpeichern} und {@code speicherort}.
+ * Subklassen sollten diese Implementierungen ggf. anpassen!
+ * </p>
+ * 
+ * @author Tim Muehle
+ *
+ */
 //@formatter:off
 @JsonAutoDetect(
 		getterVisibility = Visibility.NONE,
@@ -60,6 +88,10 @@ public abstract class ProjektBasis implements Projekt {
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	@JsonIgnore
 	protected final JsonReadOnlyBooleanPropertyWrapper istGespeichertProperty;
+	@JsonIgnore
+	protected final Verlaufspuffer<EditierBefehl> rueckgaengigVerlauf;
+	@JsonIgnore
+	protected final Verlaufspuffer<EditierBefehl> wiederholenVerlauf;
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -72,6 +104,10 @@ public abstract class ProjektBasis implements Projekt {
 	private ReadOnlyStringWrapper nameProperty;
 	@JsonIgnore
 	private Path speicherort;
+	@JsonIgnore
+	private ReadOnlyBooleanWrapper kannRueckgaengigGemachtWerdenProperty;
+	@JsonIgnore
+	private ReadOnlyBooleanWrapper kannWiederholenProperty;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -94,6 +130,10 @@ public abstract class ProjektBasis implements Projekt {
 		this.name = Objects.requireNonNull(name);
 		this.istGespeichertProperty = new JsonReadOnlyBooleanPropertyWrapper(false);
 		this.setAutomatischSpeichern(automatischSpeichern);
+		this.rueckgaengigVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
+				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
+		this.wiederholenVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
+				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
 	}
 	
 	/**
@@ -124,7 +164,7 @@ public abstract class ProjektBasis implements Projekt {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String getName() {
+	public final String getName() {
 		return this.name;
 	}
 	
@@ -132,19 +172,36 @@ public abstract class ProjektBasis implements Projekt {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void setName(String name) {
-		this.name = Objects.requireNonNull(name);
-		this.istGespeichertProperty.set(false);
-		if (nameProperty != null) {
-			this.nameProperty.set(name);
-		}
+	public final void setName(String name) {
+		String alterName = this.name;
+		String neuerName = Objects.requireNonNull(name);
+		var referenz = this;
+		EditierBefehl aenderung = new EditierBefehl() {
+			@Override
+			public void wiederhole() {
+				referenz.name = neuerName;
+				if (referenz.nameProperty != null) {
+					referenz.nameProperty.set(neuerName);
+				}
+			}
+			
+			@Override
+			public void macheRueckgaengig() {
+				referenz.name = alterName;
+				if (nameProperty != null) {
+					referenz.nameProperty.set(alterName);
+				}
+			}
+		};
+		aenderung.wiederhole();
+		this.verarbeiteEditierung(aenderung);
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ReadOnlyStringProperty nameProperty() {
+	public final ReadOnlyStringProperty nameProperty() {
 		if (nameProperty == null) {
 			this.nameProperty = new ReadOnlyStringWrapper(this.name);
 		}
@@ -155,7 +212,7 @@ public abstract class ProjektBasis implements Projekt {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Path getSpeicherort() {
+	public final Path getSpeicherort() {
 		return this.speicherort;
 	}
 	
@@ -163,7 +220,7 @@ public abstract class ProjektBasis implements Projekt {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void setSpeicherort(Path speicherort) {
+	public final void setSpeicherort(Path speicherort) {
 		this.speicherort = speicherort;
 		this.istGespeichertProperty.set(false);
 	}
@@ -172,7 +229,7 @@ public abstract class ProjektBasis implements Projekt {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ReadOnlyBooleanProperty istGespeichertProperty() {
+	public final ReadOnlyBooleanProperty istGespeichertProperty() {
 		return this.istGespeichertProperty.getReadOnlyProperty();
 	}
 	
@@ -180,7 +237,7 @@ public abstract class ProjektBasis implements Projekt {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean automatischSpeichern() {
+	public final boolean automatischSpeichern() {
 		return this.automatischSpeichern;
 	}
 	
@@ -188,9 +245,13 @@ public abstract class ProjektBasis implements Projekt {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void setAutomatischSpeichern(boolean automatischSpeichern) {
+	public final void setAutomatischSpeichern(boolean automatischSpeichern) {
 		this.automatischSpeichern = automatischSpeichern;
 		this.istGespeichertProperty.set(false);
+		
+		log.severe(
+				() -> "Die Funktion >>automatisches Speichern<< ist noch nicht implementiert!");
+		// TODO automatisches Speichern implementieren
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -208,10 +269,10 @@ public abstract class ProjektBasis implements Projekt {
 	/**
 	 * {@inheritDoc}
 	 * 
-	 * @implNote Zum Serialisieren wird das json-Format verwendet.
+	 * @implNote Zum Serialisieren wird das json-Format mit dem Framework Jackson verwendet.
 	 */
 	@Override
-	public boolean speichern() {
+	public final boolean speichern() {
 		if (this.speicherort == null) {
 			var exception = new IllegalStateException(
 					"Vor dem Speichern muss der Speicherort gesetzt werden!");
@@ -233,6 +294,88 @@ public abstract class ProjektBasis implements Projekt {
 		this.istGespeichertProperty.set(erfolg);
 		return erfolg;
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final boolean kannRueckgaengigGemachtWerden() {
+		return !rueckgaengigVerlauf.istLeer();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final ReadOnlyBooleanProperty kannRueckgaengigGemachtWerdenProperty() {
+		if (kannRueckgaengigGemachtWerdenProperty == null) {
+			kannRueckgaengigGemachtWerdenProperty = new ReadOnlyBooleanWrapper(
+					kannRueckgaengigGemachtWerden());
+		}
+		return kannRueckgaengigGemachtWerdenProperty.getReadOnlyProperty();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final void macheRueckgaengig() {
+		if (!rueckgaengigVerlauf.istLeer()) {
+			var befehl = rueckgaengigVerlauf.entfernen();
+			befehl.macheRueckgaengig();
+			wiederholenVerlauf.ablegen(befehl);
+		}
+		updateVerlaufProperties();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final boolean kannWiederholen() {
+		return !wiederholenVerlauf.istLeer();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final ReadOnlyBooleanProperty kannWiederholenProperty() {
+		if (kannWiederholenProperty == null) {
+			kannWiederholenProperty = new ReadOnlyBooleanWrapper(kannWiederholen());
+		}
+		return kannWiederholenProperty.getReadOnlyProperty();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final void wiederhole() {
+		if (!wiederholenVerlauf.istLeer()) {
+			var befehl = wiederholenVerlauf.entfernen();
+			befehl.wiederhole();
+			rueckgaengigVerlauf.ablegen(befehl);
+		}
+		updateVerlaufProperties();
+	}
+	
+	/**
+	 * Reiht die geschehene Editierung in den Verlauf zum ruekgaengig machen ein und markiert
+	 * dieses Projekt als nicht-gespeichert.
+	 * 
+	 * @see #macheRueckgaengig() 
+	 * @see #istGespeichertProperty()
+	 */
+	@Override
+	public final void verarbeiteEditierung(EditierBefehl editierung) {
+		rueckgaengigVerlauf.ablegen(editierung);
+		wiederholenVerlauf.leeren();
+		updateVerlaufProperties();
+		this.istGespeichertProperty.set(false);
+	}
+	
+	
 	
 	@Override
 	public String toString() {
@@ -263,7 +406,7 @@ public abstract class ProjektBasis implements Projekt {
 		
 		boolean istGleich = automatischSpeichernGleich && nameGleich && speicherortGleich;
 		
-		log.finer(() -> """
+		log.finest(() -> """
 				istGleich: %s
 				   |-- automatischSpeichernGleich: %s
 				   |-- nameGleich: %s
@@ -279,5 +422,12 @@ public abstract class ProjektBasis implements Projekt {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+	private void updateVerlaufProperties() {
+		if (kannWiederholenProperty != null) {
+			kannWiederholenProperty.set(!wiederholenVerlauf.istLeer());
+		}
+		if (kannRueckgaengigGemachtWerdenProperty != null) {
+			kannRueckgaengigGemachtWerdenProperty.set(!rueckgaengigVerlauf.istLeer());
+		}
+	}
 }

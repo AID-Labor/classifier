@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -34,14 +32,7 @@ import javafx.collections.ObservableList;
  * @author Tim Muehle
  *
  */
-// @formatter:off
-@JsonAutoDetect(
-		getterVisibility = Visibility.NONE,
-		isGetterVisibility = Visibility.NONE,
-		setterVisibility = Visibility.NONE,
-		fieldVisibility = Visibility.ANY
-)
-// @formatter:on
+
 public class UMLProjekt extends ProjektBasis {
 	private static final Logger log = Logger.getLogger(UMLProjekt.class.getName());
 	
@@ -113,7 +104,6 @@ public class UMLProjekt extends ProjektBasis {
 		
 		this.diagrammElemente.addListener(
 				((InvalidationListener) aenderung -> this.istGespeichertProperty.set(false)));
-		
 	}
 	
 	/**
@@ -202,7 +192,7 @@ public class UMLProjekt extends ProjektBasis {
 		boolean istGleich = automatischSpeichernGleich && diagrammElementeGleich && nameGleich
 				&& programmierspracheGleich && speicherortGleich;
 		
-		log.finer(() -> """
+		log.finest(() -> """
 				istGleich: %s
 				   |-- automatischSpeichernGleich: %s
 				   |-- diagrammElementeGleich: %s
