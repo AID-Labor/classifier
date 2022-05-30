@@ -4,15 +4,12 @@
  *
  */
 
-package io.github.aid_labor.classifier.uml;
+package io.github.aid_labor.classifier.basis.projekt;
 
 import java.nio.file.Path;
 
-import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
-import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.collections.ObservableList;
 
 
 /**
@@ -94,22 +91,6 @@ public interface Projekt {
 		this.setSpeicherort(neuerSpeicherort);
 		return this.speichern();
 	}
-	
-	/**
-	 * Eingestellte Programmiersprache
-	 * 
-	 * @return eingestellte Programmiersprache
-	 */
-	public Programmiersprache getProgrammiersprache();
-	
-	/**
-	 * Liste, die alle Diagramm-Elemente dieses Projektes beinhaltet. Bei Veraenderung dieser
-	 * Liste wird dieses Projekt als nicht-gespeichert markiert (siehe
-	 * {@link #istGespeichertProperty()}).
-	 * 
-	 * @return Liste, die alle Diagramm-Elemente dieses Projektes beinhaltet
-	 */
-	public ObservableList<UMLDiagrammElement> getDiagrammElemente();
 	
 	/**
 	 * Angabe, ob dieses Projekt am eingestellten Speicherort ({@link #getSpeicherort()} mit

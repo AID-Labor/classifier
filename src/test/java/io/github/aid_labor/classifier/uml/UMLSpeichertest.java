@@ -79,6 +79,21 @@ class UMLSpeichertest {
 		element.getMethoden().add(methode);
 		projekt.getDiagrammElemente().add(element);
 		testeSpeichernUndOeffnen();
+		
+		// Aenderungen detektieren
+		element.getAttribute()
+				.add(new Attribut(new Modifizierer("protected", true), BasisDatentyp.DOUBLE));
+		testeSpeichernUndOeffnen();
+		
+		element.getMethoden()
+				.add(new Methode(new Modifizierer("protected", true), BasisDatentyp.DOUBLE));
+		testeSpeichernUndOeffnen();
+		
+		attribut.setName("testAttributNeu");
+		testeSpeichernUndOeffnen();
+		
+		methode.setName("testMethodeNeu");
+		testeSpeichernUndOeffnen();
 	}
 	
 	void testeSpeichernUndOeffnen() {

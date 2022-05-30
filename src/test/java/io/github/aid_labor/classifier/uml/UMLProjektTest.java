@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -97,7 +98,7 @@ class UMLProjektTest {
 			Files.newBufferedReader(datei).lines().forEach(zeile -> System.out.println(zeile));
 			assertTrue(gespeichert.get());
 			
-			UMLProjekt geoeffnet = UMLProjekt.ausDateiOeffnen(datei);
+			UMLProjekt geoeffnet = ProjektBasis.ausDateiOeffnen(datei, UMLProjekt.class);
 			assertTrue(geoeffnet.istGespeichertProperty().get());
 			testName(geoeffnet);
 			assertEquals(datei, geoeffnet.getSpeicherort());

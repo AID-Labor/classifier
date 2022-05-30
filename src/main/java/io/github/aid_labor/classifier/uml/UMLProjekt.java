@@ -10,28 +10,20 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize.Typing;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
-import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
-import io.github.aid_labor.classifier.basis.json.JsonUtil;
+import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.beans.InvalidationListener;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -50,7 +42,7 @@ import javafx.collections.ObservableList;
 		fieldVisibility = Visibility.ANY
 )
 // @formatter:on
-public class UMLProjekt implements Projekt {
+public class UMLProjekt extends ProjektBasis {
 	private static final Logger log = Logger.getLogger(UMLProjekt.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -60,6 +52,17 @@ public class UMLProjekt implements Projekt {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	/**
+	 * Laedt eine Projektdatei (im json-Format) und rekonstruiert das gespeicherte Projekt.
+	 * 
+	 * @param datei Datei mit gespeichertem Projekt im json-Format
+	 * @return gespeichertes Projekt als neue Instanz der spezifizierten Klasse
+	 * @throws IOException
+	 */
+	public static UMLProjekt ausDateiOeffnen(Path datei) throws IOException {
+		return ProjektBasis.ausDateiOeffnen(datei, UMLProjekt.class);
+	}
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -79,16 +82,7 @@ public class UMLProjekt implements Projekt {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private String name;
-	private boolean automatischSpeichern;
 	private Programmiersprache programmiersprache;
-	
-	@JsonIgnore
-	private ReadOnlyStringWrapper nameProperty;
-	@JsonIgnore
-	private Path speicherort;
-	@JsonIgnore
-	private final JsonReadOnlyBooleanPropertyWrapper istGespeichertProperty;
 	
 	// -------------------------------------------------------------------------------------
 	// final
@@ -113,31 +107,13 @@ public class UMLProjekt implements Projekt {
 	 */
 	public UMLProjekt(String name, Programmiersprache programmiersprache,
 			boolean automatischSpeichern) throws NullPointerException {
-		this.name = Objects.requireNonNull(name);
+		super(name, automatischSpeichern);
 		this.programmiersprache = Objects.requireNonNull(programmiersprache);
 		this.diagrammElemente = FXCollections.observableArrayList();
-		this.istGespeichertProperty = new JsonReadOnlyBooleanPropertyWrapper(false);
-		this.setAutomatischSpeichern(automatischSpeichern);
 		
 		this.diagrammElemente.addListener(
 				((InvalidationListener) aenderung -> this.istGespeichertProperty.set(false)));
 		
-	}
-	
-	/**
-	 * Laedt eine Projektdatei (im json-Format) und rekonstruiert das gespeicherte Projekt.
-	 * 
-	 * @param datei Datei mit gespeichertem Projekt im json-Format
-	 * @return gespeichertes Projekt als neue Instanz
-	 * @throws IOException
-	 */
-	public static UMLProjekt ausDateiOeffnen(Path datei) throws IOException {
-		try (JsonParser json = JsonUtil.getUTF8JsonParser(datei)) {
-			UMLProjekt projekt = json.readValueAs(UMLProjekt.class);
-			projekt.setSpeicherort(datei);
-			projekt.istGespeichertProperty.set(true);
-			return projekt;
-		}
 	}
 	
 	/**
@@ -165,92 +141,23 @@ public class UMLProjekt implements Projekt {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	/**
-	 * {@inheritDoc}
+	 * Eingestellte Programmiersprache
+	 * 
+	 * @return eingestellte Programmiersprache
 	 */
-	@Override
-	public String getName() {
-		return this.name;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void setName(String name) {
-		this.name = Objects.requireNonNull(name);
-		this.istGespeichertProperty.set(false);
-		if (nameProperty != null) {
-			this.nameProperty.set(name);
-		}
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public ReadOnlyStringProperty nameProperty() {
-		if (nameProperty == null) {
-			this.nameProperty = new ReadOnlyStringWrapper(this.name);
-		}
-		return this.nameProperty.getReadOnlyProperty();
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Path getSpeicherort() {
-		return this.speicherort;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void setSpeicherort(Path speicherort) {
-		this.speicherort = speicherort;
-		this.istGespeichertProperty.set(false);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public Programmiersprache getProgrammiersprache() {
 		return this.programmiersprache;
 	}
 	
 	/**
-	 * {@inheritDoc}
+	 * Liste, die alle Diagramm-Elemente dieses Projektes beinhaltet. Bei Veraenderung dieser
+	 * Liste wird dieses Projekt als nicht-gespeichert markiert (siehe
+	 * {@link #istGespeichertProperty()}).
+	 * 
+	 * @return Liste, die alle Diagramm-Elemente dieses Projektes beinhaltet
 	 */
-	@Override
 	public ObservableList<UMLDiagrammElement> getDiagrammElemente() {
 		return this.diagrammElemente;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public ReadOnlyBooleanProperty istGespeichertProperty() {
-		return this.istGespeichertProperty.getReadOnlyProperty();
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean automatischSpeichern() {
-		return this.automatischSpeichern;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void setAutomatischSpeichern(boolean automatischSpeichern) {
-		this.automatischSpeichern = automatischSpeichern;
-		this.istGespeichertProperty.set(false);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -265,44 +172,10 @@ public class UMLProjekt implements Projekt {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @implNote Zum Serialisieren wird das json-Format verwendet.
-	 */
-	@Override
-	public boolean speichern() {
-		if (this.speicherort == null) {
-			var exception = new IllegalStateException(
-					"Vor dem Speichern muss der Speicherort gesetzt werden!");
-			log.throwing(UMLProjekt.class.getName(), "speichern", exception);
-			throw exception;
-		}
-		
-		boolean erfolg = false;
-		
-		try (JsonGenerator json = JsonUtil.getUTF8JsonGenerator(speicherort)) {
-			json.writePOJO(this);
-			json.flush();
-			erfolg = true;
-		} catch (IOException e) {
-			log.log(Level.WARNING, e,
-					() -> "Projekt %s konnte nicht gespeichert werden".formatted(this.name));
-		}
-		
-		this.istGespeichertProperty.set(erfolg);
-		return erfolg;
-	}
-	
-	@Override
-	public String toString() {
-		return "%s [Datei: %s]".formatted(this.name, this.speicherort);
-	}
-	
 	@Override
 	public int hashCode() {
-		return Objects.hash(automatischSpeichern, diagrammElemente, name, programmiersprache,
-				speicherort);
+		return Objects.hash(automatischSpeichern(), diagrammElemente, getName(),
+				programmiersprache, getSpeicherort());
 	}
 	
 	@Override
@@ -318,12 +191,13 @@ public class UMLProjekt implements Projekt {
 		}
 		UMLProjekt proj = (UMLProjekt) obj;
 		
-		boolean automatischSpeichernGleich = automatischSpeichern == proj.automatischSpeichern;
+		boolean automatischSpeichernGleich = automatischSpeichern() == proj
+				.automatischSpeichern();
 		boolean diagrammElementeGleich = ClassifierUtil.pruefeGleichheit(this.diagrammElemente,
 				proj.diagrammElemente);
-		boolean nameGleich = Objects.equals(name, proj.name);
+		boolean nameGleich = Objects.equals(getName(), proj.getName());
 		boolean programmierspracheGleich = programmiersprache == proj.programmiersprache;
-		boolean speicherortGleich = Objects.equals(speicherort, proj.speicherort);
+		boolean speicherortGleich = Objects.equals(getSpeicherort(), proj.getSpeicherort());
 		
 		boolean istGleich = automatischSpeichernGleich && diagrammElementeGleich && nameGleich
 				&& programmierspracheGleich && speicherortGleich;

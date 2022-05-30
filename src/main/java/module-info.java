@@ -8,6 +8,7 @@ module classifier {
 	exports io.github.aid_labor.classifier.main;
 	opens io.github.aid_labor.classifier.basis to com.fasterxml.jackson.databind;
 	opens io.github.aid_labor.classifier.basis.json to com.fasterxml.jackson.databind;
+	opens io.github.aid_labor.classifier.basis.projekt to com.fasterxml.jackson.databind;
 	opens io.github.aid_labor.classifier.gui.util to com.fasterxml.jackson.databind;
 	opens io.github.aid_labor.classifier.uml to com.fasterxml.jackson.databind;
 	opens io.github.aid_labor.classifier.uml.eigenschaften to com.fasterxml.jackson.databind;
