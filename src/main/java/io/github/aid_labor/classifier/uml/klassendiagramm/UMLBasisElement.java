@@ -4,18 +4,34 @@
  *
  */
 
-package io.github.aid_labor.classifier.uml.eigenschaften;
+package io.github.aid_labor.classifier.uml.klassendiagramm;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import io.github.aid_labor.classifier.basis.projekt.EditierBefehl;
+import io.github.aid_labor.classifier.basis.projekt.EditierBeobachter;
+import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
 
 
-public class Parameter {
-//	private static final Logger log = Logger.getLogger(Parameter.class.getName());
+/**
+ * Basis-Implementierung fuer UML-Diagrammelemente.
+ * 
+ * Diese Klasse stellt die Funktion zum Registrieren, Entfernen und Informieren von
+ * Beobachtern
+ * bereit. Unterklassen muessen bei Editierung die Methode
+ * {@link #informiere(EditierBefehl)}
+ * aufrufen, um ihre Beobachter zu informieren.
+ * 
+ * @author Tim Muehle
+ *
+ */
+@JsonSubTypes({
+	@JsonSubTypes.Type(value = UMLKlassifizierer.class),
+	@JsonSubTypes.Type(value = UMLKommentar.class)
+})
+abstract class UMLBasisElement extends EditierbarBasis
+		implements UMLDiagrammElement, EditierBeobachter {
+//	private static final Logger log = Logger.getLogger(UMLBasisElement.class.getName());
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -34,26 +50,13 @@ public class Parameter {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	private String name;
-	private Datentyp datentyp;
-	
-	// @formatter:off
-	@JsonIgnore private StringProperty nameProperty;
-	@JsonIgnore private ObjectProperty<Datentyp> datentypProperty;
-	// @formatter:on
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Parameter(Datentyp datentyp, String name) {
-		this.datentyp = datentyp;
-		this.name = name;
-	}
-	
-	public Parameter(Datentyp datentyp) {
-		this(datentyp, "");
+	public UMLBasisElement() {
+		
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -61,44 +64,6 @@ public class Parameter {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	public String getName() {
-		return name;
-	}
-	
-	public void setName(String name) {
-		if (nameProperty != null) {
-			nameProperty.set(name);
-		}
-		this.name = name;
-	}
-	
-	public Datentyp getDatentyp() {
-		return datentyp;
-	}
-	
-	public void setDatentyp(Datentyp datentyp) {
-		if (datentypProperty != null) {
-			datentypProperty.set(datentyp);
-		}
-		this.datentyp = datentyp;
-	}
-	
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	public StringProperty getNameProperty() {
-		if (nameProperty == null) {
-			this.nameProperty = new SimpleStringProperty(name);
-		}
-		return nameProperty;
-	}
-	
-	public ObjectProperty<Datentyp> getDatentypProperty() {
-		if (datentypProperty == null) {
-			this.datentypProperty = new SimpleObjectProperty<>(datentyp);
-		}
-		return datentypProperty;
-	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -111,6 +76,17 @@ public class Parameter {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+
+	/**
+	 * Dieses Objekt leitet alle Informationen zu Editierungen weiter an seine eigenen
+	 * Beobachter
+	 */
+	@Override
+	public void verarbeiteEditierung(EditierBefehl editierung) {
+		log.finest(() -> "verarbeite " + editierung);
+		informiere(editierung);
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

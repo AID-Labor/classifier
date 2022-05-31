@@ -10,6 +10,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 
 /**
@@ -27,7 +28,7 @@ import java.util.Objects;
  * @param <T>
  */
 public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
-//	private static final Logger log = Logger.getLogger(VerketteterVerlauf.class.getName());
+	private static final Logger log = Logger.getLogger(VerketteterVerlauf.class.getName());
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -168,7 +169,9 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	 */
 	@Override
 	public T oben() throws NoSuchElementException {
-		return this.internerStapel.getFirst();
+		var oben = this.internerStapel.getFirst();
+		log.finest(() -> "oben: " + oben);
+		return oben;
 	}
 	
 	/**
@@ -176,7 +179,9 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	 */
 	@Override
 	public int getElementAnzahl() {
-		return this.internerStapel.size();
+		var anzahl = this.internerStapel.size();
+		log.finest(() -> "anzahl: " + anzahl);
+		return anzahl;
 	}
 	
 	/**
@@ -184,7 +189,9 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	 */
 	@Override
 	public boolean istLeer() {
-		return this.internerStapel.isEmpty();
+		var istLeer = this.internerStapel.isEmpty();
+		log.finest(() -> "istLeer: " + istLeer);
+		return istLeer;
 	}
 	
 	/**
@@ -192,6 +199,7 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	 */
 	@Override
 	public int getMaximaleAnzahl() {
+		log.finest(() -> "maximaleAnzahl: " + maximaleAnzahl);
 		return this.maximaleAnzahl;
 	}
 	
@@ -205,6 +213,7 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 					"Die maximale Anzahl darf 1 nicht unterschreiten");
 		}
 		
+		log.finest(() -> "maximaleAnzahl: " + this.maximaleAnzahl + " -> " + maximaleAnzahl);
 		this.maximaleAnzahl = maximaleAnzahl;
 		loescheUeberlauf();
 	}
@@ -226,6 +235,7 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	 */
 	@Override
 	public void ablegen(T element) throws NullPointerException {
+		log.finest(() -> this + " -> ablegen: " + element);
 		this.internerStapel.addFirst(Objects.requireNonNull(element));
 		
 		loescheUeberlauf();
@@ -236,7 +246,9 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	 */
 	@Override
 	public T entfernen() throws NoSuchElementException {
-		return this.internerStapel.removeFirst();
+		var entfernt = this.internerStapel.removeFirst();
+		log.finest(() -> this + " -> entfernen: " + entfernt);
+		return entfernt;
 	}
 	
 	/**
@@ -244,6 +256,7 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	 */
 	@Override
 	public void leeren() {
+		log.finest(() -> this + " -> leeren");
 		this.internerStapel.clear();
 	}
 	
@@ -254,8 +267,12 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void loescheUeberlauf() {
+		log.finest(() -> this + " -> loesche Ueberlauf");
 		while ((long) this.getElementAnzahl() > (long) maximaleAnzahl) {
-			internerStapel.pollLast();
+			var entfernt = internerStapel.pollLast();
+			if (entfernt != null) {
+				log.finest(() -> "    -> " + this + " -> entfernen: " + entfernt);
+			}
 		}
 	}
 	

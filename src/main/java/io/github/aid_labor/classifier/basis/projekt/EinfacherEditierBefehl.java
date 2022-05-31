@@ -4,56 +4,63 @@
  *
  */
 
-package io.github.aid_labor.classifier.uml.eigenschaften;
+package io.github.aid_labor.classifier.basis.projekt;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-
-
-public class Parameter {
-//	private static final Logger log = Logger.getLogger(Parameter.class.getName());
-
+/**
+ * Implementierung eines EditierBefehls fuer einfache Wertaenderung, die mit einem Setter
+ * angewendet und rueckgaengig gemacht werden kann.
+ * 
+ * @author Tim Muehle
+ *
+ * @param <T>
+ */
+public class EinfacherEditierBefehl<T> implements EditierBefehl {
+	private static final Logger log = Logger.getLogger(EinfacherEditierBefehl.class.getName());
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private String name;
-	private Datentyp datentyp;
-	
-	// @formatter:off
-	@JsonIgnore private StringProperty nameProperty;
-	@JsonIgnore private ObjectProperty<Datentyp> datentypProperty;
-	// @formatter:on
+	private String quelle;
+	private final T alterWert;
+	private final T neuerWert;
+	private final Consumer<T> setter;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Parameter(Datentyp datentyp, String name) {
-		this.datentyp = datentyp;
-		this.name = name;
-	}
-	
-	public Parameter(Datentyp datentyp) {
-		this(datentyp, "");
+	public EinfacherEditierBefehl(T alterWert, T neuerWert, Consumer<T> setter) {
+		try {
+			var aufrufer = Thread.currentThread().getStackTrace()[1];
+			quelle = "%s.%s[%d]".formatted(aufrufer.getClassName(), aufrufer.getMethodName(),
+					aufrufer.getLineNumber());
+		} catch (Exception e) {
+			log.log(Level.WARNING, e, () -> "Aufrufer konnte nicht ermittelt werden");
+			quelle = "Unbekannter Aufruf";
+		}
+		
+		this.alterWert = alterWert;
+		this.neuerWert = neuerWert;
+		this.setter = setter;
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -61,44 +68,6 @@ public class Parameter {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	public String getName() {
-		return name;
-	}
-	
-	public void setName(String name) {
-		if (nameProperty != null) {
-			nameProperty.set(name);
-		}
-		this.name = name;
-	}
-	
-	public Datentyp getDatentyp() {
-		return datentyp;
-	}
-	
-	public void setDatentyp(Datentyp datentyp) {
-		if (datentypProperty != null) {
-			datentypProperty.set(datentyp);
-		}
-		this.datentyp = datentyp;
-	}
-	
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	public StringProperty getNameProperty() {
-		if (nameProperty == null) {
-			this.nameProperty = new SimpleStringProperty(name);
-		}
-		return nameProperty;
-	}
-	
-	public ObjectProperty<Datentyp> getDatentypProperty() {
-		if (datentypProperty == null) {
-			this.datentypProperty = new SimpleObjectProperty<>(datentyp);
-		}
-		return datentypProperty;
-	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -111,6 +80,21 @@ public class Parameter {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@Override
+	public void wiederhole() {
+		setter.accept(neuerWert);
+	}
+	
+	@Override
+	public void macheRueckgaengig() {
+		setter.accept(alterWert);
+	}
+	
+	@Override
+	public String toString() {
+		return alterWert + " -> " + neuerWert + "\n    -> Quelle: " + quelle;
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

@@ -12,7 +12,7 @@ import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import javafx.beans.property.StringProperty;
 
 
-public class UMLKommentar implements UMLDiagrammElement {
+public class UMLKommentar extends UMLBasisElement {
 	
 //	private static final Logger log = Logger.getLogger(UMLKommentar.class.getName());
 
@@ -58,6 +58,7 @@ public class UMLKommentar implements UMLDiagrammElement {
 	
 	public UMLKommentar() {
 		this.inhaltProperty = new JsonStringProperty();
+		this.ueberwachePropertyAenderung(this.inhaltProperty);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -99,7 +100,7 @@ public class UMLKommentar implements UMLDiagrammElement {
 	public int hashCode() {
 		return Objects.hash(inhaltProperty);
 	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {

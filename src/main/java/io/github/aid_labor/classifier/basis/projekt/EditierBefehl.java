@@ -18,4 +18,10 @@ public interface EditierBefehl {
 	 */
 	public void wiederhole();
 	
+	/**
+	 * Beschreibung der Editierung
+	 * @return Beschreibung der Editierung
+	 */
+	@Override
+	public String toString();
 }

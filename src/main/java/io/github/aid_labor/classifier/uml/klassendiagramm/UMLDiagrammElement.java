@@ -12,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
+import io.github.aid_labor.classifier.basis.projekt.Editierbar;
+
 // @formatter:off
 @JsonTypeInfo(
 		use = Id.NAME,
@@ -19,8 +21,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 		property = "klasse"
 )
 @JsonSubTypes({
-	@JsonSubTypes.Type(value = UMLKlassifizierer.class),
-	@JsonSubTypes.Type(value = UMLKommentar.class)
+	@JsonSubTypes.Type(value = UMLBasisElement.class)
 })
 @JsonAutoDetect(
 		getterVisibility = Visibility.NONE,
@@ -30,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 		fieldVisibility = Visibility.ANY
 )
 // @formatter:on
-public interface UMLDiagrammElement {
+public interface UMLDiagrammElement extends Editierbar {
 	
 	String getName();
 	

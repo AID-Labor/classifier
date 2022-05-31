@@ -18,10 +18,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize.Typing;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
+import io.github.aid_labor.classifier.basis.projekt.ListenUeberwacher;
 import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
-import javafx.beans.InvalidationListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -102,8 +102,10 @@ public class UMLProjekt extends ProjektBasis {
 		this.programmiersprache = Objects.requireNonNull(programmiersprache);
 		this.diagrammElemente = FXCollections.observableArrayList();
 		
-		this.diagrammElemente.addListener(
-				((InvalidationListener) aenderung -> this.istGespeichertProperty.set(false)));
+		// Diagramm-Elemente auf Aenderung Ueberwachen (sowhol die Liste als auch geaenderte
+		// Objekte in der Liste)
+		this.diagrammElemente
+				.addListener(new ListenUeberwacher<>(this.diagrammElemente, this));
 	}
 	
 	/**
@@ -186,7 +188,8 @@ public class UMLProjekt extends ProjektBasis {
 		boolean diagrammElementeGleich = ClassifierUtil.pruefeGleichheit(this.diagrammElemente,
 				proj.diagrammElemente);
 		boolean nameGleich = Objects.equals(getName(), proj.getName());
-		boolean programmierspracheGleich = programmiersprache == proj.programmiersprache;
+		boolean programmierspracheGleich = getProgrammiersprache()
+				.equals(proj.getProgrammiersprache());
 		boolean speicherortGleich = Objects.equals(getSpeicherort(), proj.getSpeicherort());
 		
 		boolean istGleich = automatischSpeichernGleich && diagrammElementeGleich && nameGleich

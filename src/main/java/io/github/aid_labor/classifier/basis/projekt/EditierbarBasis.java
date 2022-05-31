@@ -4,56 +4,64 @@
  *
  */
 
-package io.github.aid_labor.classifier.uml.eigenschaften;
+package io.github.aid_labor.classifier.basis.projekt;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Logger;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
-
-
-public class Parameter {
-//	private static final Logger log = Logger.getLogger(Parameter.class.getName());
-
+/**
+ * Basis-Implementierung fuer Editierbar-Objekte.
+ * 
+ * Diese Klasse stellt die Funktion zum Registrieren, Entfernen und Informieren von Beobachtern
+ * bereit. Unterklassen muessen bei Editierung die Methode {@link #informiere(EditierBefehl)}
+ * aufrufen, um ihre Beobachter zu informieren.
+ * 
+ * @author Tim Muehle
+ *
+ */
+//@formatter:off
+@JsonAutoDetect(
+		getterVisibility = Visibility.NONE,
+		isGetterVisibility = Visibility.NONE,
+		setterVisibility = Visibility.NONE,
+		fieldVisibility = Visibility.ANY
+)
+//@formatter:on
+public abstract class EditierbarBasis implements Editierbar {
+	private static final Logger log = Logger.getLogger(EditierbarBasis.class.getName());
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private String name;
-	private Datentyp datentyp;
-	
-	// @formatter:off
-	@JsonIgnore private StringProperty nameProperty;
-	@JsonIgnore private ObjectProperty<Datentyp> datentypProperty;
-	// @formatter:on
+	@JsonIgnore
+	private final List<EditierBeobachter> beobachterListe;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Parameter(Datentyp datentyp, String name) {
-		this.datentyp = datentyp;
-		this.name = name;
-	}
-	
-	public Parameter(Datentyp datentyp) {
-		this(datentyp, "");
+	protected EditierbarBasis() {
+		this.beobachterListe = new LinkedList<>();
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -61,44 +69,6 @@ public class Parameter {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	public String getName() {
-		return name;
-	}
-	
-	public void setName(String name) {
-		if (nameProperty != null) {
-			nameProperty.set(name);
-		}
-		this.name = name;
-	}
-	
-	public Datentyp getDatentyp() {
-		return datentyp;
-	}
-	
-	public void setDatentyp(Datentyp datentyp) {
-		if (datentypProperty != null) {
-			datentypProperty.set(datentyp);
-		}
-		this.datentyp = datentyp;
-	}
-	
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	public StringProperty getNameProperty() {
-		if (nameProperty == null) {
-			this.nameProperty = new SimpleStringProperty(name);
-		}
-		return nameProperty;
-	}
-	
-	public ObjectProperty<Datentyp> getDatentypProperty() {
-		if (datentypProperty == null) {
-			this.datentypProperty = new SimpleObjectProperty<>(datentyp);
-		}
-		return datentypProperty;
-	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -111,6 +81,26 @@ public class Parameter {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@Override
+	public final void meldeAn(EditierBeobachter beobachter) {
+		this.beobachterListe.add(beobachter);
+	}
+	
+	@Override
+	public final void meldeAb(EditierBeobachter beobachter) {
+		while (this.beobachterListe.contains(beobachter)) {
+			this.beobachterListe.remove(beobachter);
+		}
+	}
+	
+	@Override
+	public final void informiere(EditierBefehl editierung) {
+		log.finer(() -> "%s: informiere Beobachter ueber [%s]".formatted(this, editierung));
+		for (EditierBeobachter beobachter : this.beobachterListe) {
+			beobachter.verarbeiteEditierung(editierung);
+		}
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

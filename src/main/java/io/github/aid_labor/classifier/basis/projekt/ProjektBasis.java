@@ -20,12 +20,12 @@ import com.fasterxml.jackson.core.JsonParser;
 
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
+import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.property.StringProperty;
 
 
 /**
@@ -97,11 +97,9 @@ public abstract class ProjektBasis implements Projekt {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private String name;
+	private JsonStringProperty name;
 	private boolean automatischSpeichern;
 	
-	@JsonIgnore
-	private ReadOnlyStringWrapper nameProperty;
 	@JsonIgnore
 	private Path speicherort;
 	@JsonIgnore
@@ -127,13 +125,15 @@ public abstract class ProjektBasis implements Projekt {
 	 */
 	public ProjektBasis(String name, boolean automatischSpeichern)
 			throws NullPointerException {
-		this.name = Objects.requireNonNull(name);
+		this.name = new JsonStringProperty(Objects.requireNonNull(name));
 		this.istGespeichertProperty = new JsonReadOnlyBooleanPropertyWrapper(false);
 		this.setAutomatischSpeichern(automatischSpeichern);
 		this.rueckgaengigVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
 				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
 		this.wiederholenVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
 				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
+		
+		this.ueberwachePropertyAenderung(this.name);
 	}
 	
 	/**
@@ -165,7 +165,7 @@ public abstract class ProjektBasis implements Projekt {
 	 */
 	@Override
 	public final String getName() {
-		return this.name;
+		return this.name.get();
 	}
 	
 	/**
@@ -173,39 +173,25 @@ public abstract class ProjektBasis implements Projekt {
 	 */
 	@Override
 	public final void setName(String name) {
-		String alterName = this.name;
-		String neuerName = Objects.requireNonNull(name);
-		var referenz = this;
-		EditierBefehl aenderung = new EditierBefehl() {
-			@Override
-			public void wiederhole() {
-				referenz.name = neuerName;
-				if (referenz.nameProperty != null) {
-					referenz.nameProperty.set(neuerName);
-				}
-			}
-			
-			@Override
-			public void macheRueckgaengig() {
-				referenz.name = alterName;
-				if (nameProperty != null) {
-					referenz.nameProperty.set(alterName);
-				}
-			}
-		};
-		aenderung.wiederhole();
-		this.verarbeiteEditierung(aenderung);
+//		String neuerName = Objects.requireNonNull(name);
+//		var referenz = this;
+//		EditierBefehl aenderung = new EinfacherEditierBefehl<>(this.name, neuerName, n -> {
+//			referenz.name = n;
+//			if (referenz.nameProperty != null) {
+//				referenz.nameProperty.set(n);
+//			}
+//		});
+//		aenderung.wiederhole();
+//		this.verarbeiteEditierung(aenderung);
+		this.name.set(name);
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final ReadOnlyStringProperty nameProperty() {
-		if (nameProperty == null) {
-			this.nameProperty = new ReadOnlyStringWrapper(this.name);
-		}
-		return this.nameProperty.getReadOnlyProperty();
+	public final StringProperty nameProperty() {
+		return this.name;
 	}
 	
 	/**
@@ -287,8 +273,8 @@ public abstract class ProjektBasis implements Projekt {
 			json.flush();
 			erfolg = true;
 		} catch (IOException e) {
-			log.log(Level.WARNING, e,
-					() -> "Projekt %s konnte nicht gespeichert werden".formatted(this.name));
+			log.log(Level.WARNING, e, () -> 
+					"Projekt %s konnte nicht gespeichert werden".formatted(this.getName()));
 		}
 		
 		this.istGespeichertProperty.set(erfolg);
@@ -364,27 +350,26 @@ public abstract class ProjektBasis implements Projekt {
 	 * Reiht die geschehene Editierung in den Verlauf zum ruekgaengig machen ein und markiert
 	 * dieses Projekt als nicht-gespeichert.
 	 * 
-	 * @see #macheRueckgaengig() 
+	 * @see #macheRueckgaengig()
 	 * @see #istGespeichertProperty()
 	 */
 	@Override
 	public final void verarbeiteEditierung(EditierBefehl editierung) {
+		log.finer(() -> "Editierung in den Verlauf legen: " + editierung);
 		rueckgaengigVerlauf.ablegen(editierung);
 		wiederholenVerlauf.leeren();
 		updateVerlaufProperties();
 		this.istGespeichertProperty.set(false);
 	}
 	
-	
-	
 	@Override
 	public String toString() {
-		return "%s [Datei: %s]".formatted(this.name, this.speicherort);
+		return "%s [Datei: %s]".formatted(this.getName(), this.speicherort);
 	}
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(automatischSpeichern, name, speicherort);
+		return Objects.hash(automatischSpeichern, getName(), speicherort);
 	}
 	
 	@Override
@@ -401,7 +386,7 @@ public abstract class ProjektBasis implements Projekt {
 		ProjektBasis proj = (ProjektBasis) obj;
 		
 		boolean automatischSpeichernGleich = automatischSpeichern == proj.automatischSpeichern;
-		boolean nameGleich = Objects.equals(name, proj.name);
+		boolean nameGleich = Objects.equals(getName(), proj.getName());
 		boolean speicherortGleich = Objects.equals(speicherort, proj.speicherort);
 		
 		boolean istGleich = automatischSpeichernGleich && nameGleich && speicherortGleich;

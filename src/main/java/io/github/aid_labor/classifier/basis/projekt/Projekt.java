@@ -9,7 +9,7 @@ package io.github.aid_labor.classifier.basis.projekt;
 import java.nio.file.Path;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.StringProperty;
 
 
 /**
@@ -43,7 +43,7 @@ public interface Projekt extends EditierBeobachter {
 	 * 
 	 * @return Projektname mit automatischer Aktualisierung
 	 */
-	public ReadOnlyStringProperty nameProperty();
+	public StringProperty nameProperty();
 	
 	/**
 	 * Gibt den aktuellen Speicherort zurueck

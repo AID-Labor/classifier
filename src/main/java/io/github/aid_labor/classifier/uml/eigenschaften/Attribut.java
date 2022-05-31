@@ -12,49 +12,48 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
+import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
+import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
+import io.github.aid_labor.classifier.basis.projekt.EditierBefehl;
+import io.github.aid_labor.classifier.basis.projekt.EditierBeobachter;
+import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 
-public class Attribut {
+public class Attribut extends EditierbarBasis implements EditierBeobachter {
 //	private static final Logger log = Logger.getLogger(Attribut.class.getName());
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private Modifizierer sichtbarkeit;
-	private String name;
+	private final JsonObjectProperty<Modifizierer> sichtbarkeit;
+	private final JsonStringProperty name;
 	private Datentyp datentyp;
-	private String initialwert;
-	private boolean hatGetter;
-	private boolean hatSetter;
+	private final JsonStringProperty initialwert;
+	private final JsonBooleanProperty hatGetter;
+	private final JsonBooleanProperty hatSetter;
 	
 	// @formatter:off
-	@JsonIgnore private ObjectProperty<Modifizierer> sichtbarkeitProperty;
-	@JsonIgnore private StringProperty nameProperty;
 	@JsonIgnore private ObjectProperty<Datentyp> datentypProperty;
-	@JsonIgnore private StringProperty initialwertProperty;
-	@JsonIgnore private BooleanProperty hatGetterProperty;
-	@JsonIgnore private BooleanProperty hatSetterProperty;
 	// @formatter:on
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -63,15 +62,21 @@ public class Attribut {
 	
 	@JsonCreator
 	public Attribut(
-			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit, 
+			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
 			@JsonProperty("datentyp") Datentyp datentyp) {
-		this.sichtbarkeit = sichtbarkeit;
+		this.sichtbarkeit = new JsonObjectProperty<>(sichtbarkeit);
 		this.datentyp = datentyp;
-		this.name = "";
-		this.hatGetter = false;
-		this.hatSetter = false;
+		this.name = new JsonStringProperty("");
+		this.initialwert = new JsonStringProperty(null);
+		this.hatGetter = new JsonBooleanProperty(false);
+		this.hatSetter = new JsonBooleanProperty(false);
+		
+		this.ueberwachePropertyAenderung(this.sichtbarkeit);
+		this.ueberwachePropertyAenderung(this.name);
+		this.ueberwachePropertyAenderung(this.initialwert);
+		this.ueberwachePropertyAenderung(this.hatGetter);
+		this.ueberwachePropertyAenderung(this.hatSetter);
 	}
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
@@ -80,25 +85,19 @@ public class Attribut {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	public Modifizierer getSichtbarkeit() {
-		return sichtbarkeit;
+		return sichtbarkeit.get();
 	}
 	
 	public void setSichtbarkeit(Modifizierer sichtbarkeit) {
-		if (sichtbarkeitProperty != null) {
-			sichtbarkeitProperty.set(sichtbarkeit);
-		}
-		this.sichtbarkeit = sichtbarkeit;
+		this.sichtbarkeit.set(sichtbarkeit);
 	}
 	
 	public String getName() {
-		return name;
+		return name.get();
 	}
 	
 	public void setName(String name) {
-		if (nameProperty != null) {
-			nameProperty.set(name);
-		}
-		this.name = name;
+		this.name.set(name);
 	}
 	
 	public Datentyp getDatentyp() {
@@ -113,52 +112,37 @@ public class Attribut {
 	}
 	
 	public String getInitialwert() {
-		return initialwert;
+		return initialwert.get();
 	}
 	
 	public void setInitialwert(String initialwert) {
-		if (initialwertProperty != null) {
-			initialwertProperty.set(initialwert);
-		}
-		this.initialwert = initialwert;
+		this.initialwert.set(initialwert);
 	}
 	
 	public boolean hatGetter() {
-		return hatGetter;
+		return hatGetter.get();
 	}
 	
 	public void nutzeGetter(boolean hatGetter) {
-		if (hatGetterProperty != null) {
-			hatGetterProperty.set(hatGetter);
-		}
-		this.hatGetter = hatGetter;
+		this.hatGetter.set(hatGetter);
 	}
 	
 	public boolean hatSetter() {
-		return hatSetter;
+		return hatSetter.get();
 	}
 	
 	public void nutzeSetter(boolean hatSetter) {
-		if (hatSetterProperty != null) {
-			hatSetterProperty.set(hatSetter);
-		}
-		this.hatSetter = hatSetter;
+		this.hatSetter.set(hatSetter);
 	}
 	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public ObjectProperty<Modifizierer> getSichtbarkeitProperty() {
-		if (sichtbarkeitProperty == null) {
-			this.sichtbarkeitProperty = new SimpleObjectProperty<>(sichtbarkeit);
-		}
-		return sichtbarkeitProperty;
+		return sichtbarkeit;
 	}
 	
 	public StringProperty getNameProperty() {
-		if (nameProperty == null) {
-			this.nameProperty = new SimpleStringProperty(name);
-		}
-		return nameProperty;
+		return name;
 	}
 	
 	public ObjectProperty<Datentyp> getDatentypProperty() {
@@ -169,26 +153,17 @@ public class Attribut {
 	}
 	
 	public StringProperty getInitialwertProperty() {
-		if (initialwertProperty == null) {
-			this.initialwertProperty = new SimpleStringProperty(initialwert);
-		}
-		return initialwertProperty;
+		return initialwert;
 	}
 	
 	public BooleanProperty getHatGetterProperty() {
-		if (hatGetterProperty == null) {
-			this.hatGetterProperty = new SimpleBooleanProperty(hatGetter);
-		}
-		return hatGetterProperty;
+		return hatGetter;
 	}
 	
 	public BooleanProperty getHatSetterProperty() {
-		if (hatSetterProperty == null) {
-			this.hatSetterProperty = new SimpleBooleanProperty(hatSetter);
-		}
-		return hatSetterProperty;
+		return hatSetter;
 	}
-
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -202,10 +177,20 @@ public class Attribut {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	@Override
-	public int hashCode() {
-		return Objects.hash(datentyp, hatGetter, hatSetter, initialwert, name, sichtbarkeit);
+	public String toString() {
+		return "Attribut <%s %s %s%s {%s %s}>".formatted(getSichtbarkeit().bezeichnung(),
+				getDatentyp().getTypName(), getName(),
+				getInitialwert() != null ? "=" + getInitialwert() : "",
+				hatGetter() ? " Getter" : "",
+				hatSetter() ? "Setter " : "");
 	}
-
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(getDatentyp(), hatGetter(), hatSetter(), getInitialwert(),
+				getName(), getSichtbarkeit());
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -218,11 +203,18 @@ public class Attribut {
 			return false;
 		}
 		Attribut other = (Attribut) obj;
-		return Objects.equals(datentyp, other.datentyp) && hatGetter == other.hatGetter
-				&& hatSetter == other.hatSetter
-				&& Objects.equals(initialwert, other.initialwert)
-				&& Objects.equals(name, other.name)
-				&& Objects.equals(sichtbarkeit, other.sichtbarkeit);
+		return Objects.equals(getDatentyp(), other.getDatentyp()) 
+				&& hatGetter() == other.hatGetter()
+				&& hatSetter() == other.hatSetter()
+				&& Objects.equals(getInitialwert(), other.getInitialwert())
+				&& Objects.equals(getName(), other.getName())
+				&& Objects.equals(getSichtbarkeit(), other.getSichtbarkeit());
+	}
+
+	@Override
+	public void verarbeiteEditierung(EditierBefehl editierung) {
+		log.finest(() -> "verarbeite " + editierung);
+		this.informiere(editierung);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

@@ -27,6 +27,7 @@ import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
 import io.github.aid_labor.classifier.uml.eigenschaften.Datentyp.BasisDatentyp;
 import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
+import io.github.aid_labor.classifier.uml.eigenschaften.Parameter;
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
@@ -35,6 +36,14 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 
 class UMLSpeichertest {
 	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenmethoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
 	@BeforeAll
 	static void setUpClass() {
 		LoggingEinstellung.initialisiereTestLogging();
@@ -42,8 +51,22 @@ class UMLSpeichertest {
 				null, null, UMLProjektTest.class, null));
 	}
 	
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+// #                                                                              		      #
+// #	Instanzen																			  #
+// #																						  #
+// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Attribute																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
 	private UMLProjekt projekt;
 	private Path datei;
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Vorbereitung																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@BeforeEach
 	void setUp() throws Exception {
@@ -61,46 +84,133 @@ class UMLSpeichertest {
 		}
 	}
 	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Tests																				*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
 	@Test
-	void test() {
+	void testeDiagrammUeberwachung() {
 		testeSpeichernUndOeffnen();
 		
+		// Teste hinzufuegen
 		projekt.getDiagrammElemente().add(new UMLKommentar());
 		testeSpeichernUndOeffnen();
 		
-		var element = new UMLKlassifizierer(KlassifiziererTyp.Klasse, Programmiersprache.Java,
-				"testPaket", "TestKlasse");
-		projekt.getDiagrammElemente().add(element);
+		projekt.getDiagrammElemente().add(new UMLKlassifizierer(KlassifiziererTyp.Klasse,
+				Programmiersprache.Java, "testPaket", "TestKlasse_1"));
 		testeSpeichernUndOeffnen();
 		
-		element = new UMLKlassifizierer(KlassifiziererTyp.Klasse, Programmiersprache.Java,
-				"testPaket", "TestKlasse2");
+		projekt.getDiagrammElemente().add(new UMLKlassifizierer(KlassifiziererTyp.Klasse,
+				Programmiersprache.Java, "testPaket", "TestKlasse_2"));
+		testeSpeichernUndOeffnen();
+		
+		// Teste Verschiebung
+		projekt.getDiagrammElemente().add(1, new UMLKlassifizierer(KlassifiziererTyp.Klasse,
+				Programmiersprache.Java, "testPaket", "TestKlasse_3"));
+		testeSpeichernUndOeffnen();
+		
+		// Teste Entfernen
+		projekt.getDiagrammElemente().remove(0);
+		testeSpeichernUndOeffnen();
+	}
+	
+	@Test
+	void testeUMLKlassifizierer() {
+		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Interface,
+				Programmiersprache.Java, "testPaket", "TestUMLKlassifizierer_Interface");
+		projekt.getDiagrammElemente().add(umlKlasse);
+		testeSpeichernUndOeffnen();
+		
+		umlKlasse.setName("TestUMLKlassifizierer_Klasse");
+		testeSpeichernUndOeffnen();
+		
+		umlKlasse.setPaket("neuesPaket");
+		testeSpeichernUndOeffnen();
+		
+		umlKlasse.setTyp(KlassifiziererTyp.Klasse);
+		testeSpeichernUndOeffnen();
+	}
+	
+	@Test
+	void testeAttributeUeberwachung() {
+		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse,
+				Programmiersprache.Java, "testPaket", "TestKlasseAttribute");
+		projekt.getDiagrammElemente().add(umlKlasse);
+		
 		var attribut = new Attribut(new Modifizierer("private", true), BasisDatentyp.STRING);
 		attribut.setName("testAttribut");
-		element.getAttribute().add(attribut);
-		var methode = new Methode(new Modifizierer("public", true), BasisDatentyp.INT);
-		methode.setName("testMethode");
-		element.getMethoden().add(methode);
-		projekt.getDiagrammElemente().add(element);
+		umlKlasse.getAttribute().add(attribut);
 		testeSpeichernUndOeffnen();
 		
-		// Aenderungen detektieren
-		element.getAttribute()
+		umlKlasse.getAttribute()
 				.add(new Attribut(new Modifizierer("protected", true), BasisDatentyp.DOUBLE));
-		testeSpeichernUndOeffnen();
-		
-		element.getMethoden()
-				.add(new Methode(new Modifizierer("protected", true), BasisDatentyp.DOUBLE));
 		testeSpeichernUndOeffnen();
 		
 		attribut.setName("testAttributNeu");
 		testeSpeichernUndOeffnen();
 		
-		methode.setName("testMethodeNeu");
+		attribut.setInitialwert("'A'");
+		testeSpeichernUndOeffnen();
+		
+		attribut.nutzeGetter(true);
+		testeSpeichernUndOeffnen();
+		
+		attribut.nutzeSetter(true);
+		testeSpeichernUndOeffnen();
+		
+		attribut.setSichtbarkeit(new Modifizierer("public", true));
+		testeSpeichernUndOeffnen();
+		
+		attribut.setDatentyp(BasisDatentyp.CHAR);
 		testeSpeichernUndOeffnen();
 	}
 	
-	void testeSpeichernUndOeffnen() {
+	@Test
+	void testeMethodenUeberwachung() {
+		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse,
+				Programmiersprache.Java, "testPaket", "TestKlasseMethoden");
+		projekt.getDiagrammElemente().add(umlKlasse);
+		
+		var methode = new Methode(new Modifizierer("public", true), BasisDatentyp.INT);
+		methode.setName("testMethode");
+		umlKlasse.getMethoden().add(methode);
+		testeSpeichernUndOeffnen();
+		
+		umlKlasse.getMethoden()
+				.add(new Methode(new Modifizierer("protected", true), BasisDatentyp.DOUBLE));
+		testeSpeichernUndOeffnen();
+		
+		methode.setName("testMethodeNeu");
+		testeSpeichernUndOeffnen();
+		
+		methode.setSichtbarkeit(new Modifizierer("private", true));
+		testeSpeichernUndOeffnen();
+		
+		var parameter = new Parameter(BasisDatentyp.INT, "arg");
+		methode.getParameterListe().add(parameter);
+		testeSpeichernUndOeffnen();
+		
+		parameter.setName("param");
+		testeSpeichernUndOeffnen();
+		
+		parameter.setDatentyp(BasisDatentyp.STRING);
+		testeSpeichernUndOeffnen();
+		
+		methode.setRueckgabeTyp(BasisDatentyp.CHAR);
+		testeSpeichernUndOeffnen();
+		
+		methode.setzeAbstrakt(true);
+		testeSpeichernUndOeffnen();
+		
+		methode.setzeFinal(true);
+		testeSpeichernUndOeffnen();
+	}
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Methoden																			*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	private void testeSpeichernUndOeffnen() {
 		assertFalse(projekt.istGespeichertProperty().get());
 		assertTrue(projekt.speichern());
 		assertTrue(projekt.istGespeichertProperty().get());
@@ -116,81 +226,3 @@ class UMLSpeichertest {
 		}
 	}
 }
-
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenattribute																	*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Klassenmethoden																		*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-// #                                                                              		      #
-// #	Instanzen																			  #
-// #																						  #
-// ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Attribute																			*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Konstruktoren																		*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Getter und Setter																	*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-//  *	Methoden																			*
-//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

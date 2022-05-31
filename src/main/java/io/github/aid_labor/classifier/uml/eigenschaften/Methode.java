@@ -10,12 +10,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
+import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -26,7 +28,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 
-public class Methode {
+public class Methode extends EditierbarBasis {
 	private static final Logger log = Logger.getLogger(Methode.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -205,6 +207,15 @@ public class Methode {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	@Override
+	public String toString() {
+		return "Methode <%s %s %s(%s) {%s %s}>".formatted(sichtbarkeit.bezeichnung(),
+				rueckgabeTyp.getTypName(), name, parameterListe.stream()
+						.map(p -> String.join(" ", p.getDatentyp().getTypName(), p.getName()))
+						.collect(Collectors.joining(", ")),
+				istAbstrakt ? " abstract" : "", istFinal ? "final " : "");
+	}
+	
+	@Override
 	public int hashCode() {
 		return Objects.hash(istAbstrakt, istFinal, name, parameterListe, rueckgabeTyp,
 				sichtbarkeit);
@@ -234,7 +245,7 @@ public class Methode {
 		boolean istGleich = istAbstraktGleich && istFinalGleich && nameGleich
 				&& parameterListeGleich && rueckgabeTypGleich && sichtbarkeitGleich;
 		
-		log.finer(() -> """
+		log.finest(() -> """
 				istGleich: %s
 				   |-- istAbstraktGleich: %s
 				   |-- istFinalGleich: %s
