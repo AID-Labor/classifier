@@ -10,21 +10,19 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
 import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
-import io.github.aid_labor.classifier.basis.projekt.EditierBefehl;
-import io.github.aid_labor.classifier.basis.projekt.EditierBeobachter;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
+import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 
 
-public class Attribut extends EditierbarBasis implements EditierBeobachter {
+public class Attribut extends EditierbarBasis implements EditierbarerBeobachter {
 //	private static final Logger log = Logger.getLogger(Attribut.class.getName());
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -51,10 +49,6 @@ public class Attribut extends EditierbarBasis implements EditierBeobachter {
 	private final JsonStringProperty initialwert;
 	private final JsonBooleanProperty hatGetter;
 	private final JsonBooleanProperty hatSetter;
-	
-	// @formatter:off
-//	@JsonIgnore private ObjectProperty<Datentyp> datentypProperty;
-	// @formatter:on
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -175,7 +169,7 @@ public class Attribut extends EditierbarBasis implements EditierBeobachter {
 	
 	@Override
 	public String toString() {
-		return "Attribut <%s %s %s%s {%s %s}>".formatted(getSichtbarkeit().bezeichnung(),
+		return "Attribut <%s %s %s%s {%s %s}>".formatted(getSichtbarkeit(),
 				getDatentyp().getTypName(), getName(),
 				getInitialwert() != null ? "=" + getInitialwert() : "",
 				hatGetter() ? " Getter" : "",
@@ -207,13 +201,17 @@ public class Attribut extends EditierbarBasis implements EditierBeobachter {
 				&& Objects.equals(getName(), other.getName())
 				&& Objects.equals(getSichtbarkeit(), other.getSichtbarkeit());
 	}
-
-	@Override
-	public void verarbeiteEditierung(EditierBefehl editierung) {
-		log.finest(() -> "verarbeite " + editierung);
-		this.informiere(editierung);
-	}
 	
+	public Attribut erzeugeTiefeKopie() {
+		var kopie = new Attribut(getSichtbarkeit(), getDatentyp().erzeugeTiefeKopie());
+		kopie.setInitialwert(getInitialwert());
+		kopie.setName(getName());
+		kopie.nutzeGetter(hatGetter());
+		kopie.nutzeSetter(hatSetter());
+		
+		return kopie;
+	}
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

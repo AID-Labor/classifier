@@ -33,6 +33,7 @@ import io.github.aid_labor.classifier.gui.elemente.RibbonKomponente;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import javafx.application.HostServices;
 import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
@@ -325,14 +326,19 @@ public class HauptAnsicht {
 		ribbon.getSpeichernSchnellzugriff().setOnAction(controller::projektSpeichern);
 		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
 		
+		ribbon.getNeueKlasse().setOnAction(
+				e -> this.projektAnsicht.legeNeuenKlassifiziererAn(KlassifiziererTyp.Klasse));
+		ribbon.getNeuesInterface().setOnAction(e -> this.projektAnsicht
+				.legeNeuenKlassifiziererAn(KlassifiziererTyp.Interface));
+		ribbon.getNeueEnumeration().setOnAction(e -> this.projektAnsicht
+				.legeNeuenKlassifiziererAn(KlassifiziererTyp.Enumeration));
+		
 		// Buttons updaten
 		updateRueckgaengigWiederholen(ribbon,
 				projektAnsicht.getAngezeigtesProjektProperty().get());
 		this.projektAnsicht.getAngezeigtesProjektProperty()
 				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
 					if (gezeigtesProjekt != null) {
-						ribbon.getSpeichern().setDisable(false);
-						ribbon.getSpeichernSchnellzugriff().setDisable(false);
 						NodeUtil.setzeHervorhebung(
 								gezeigtesProjekt.istGespeichertProperty().not().get(),
 								ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
@@ -342,19 +348,23 @@ public class HauptAnsicht {
 											ribbon.getSpeichern(),
 											ribbon.getSpeichernSchnellzugriff());
 								});
-								
 					} else {
 						NodeUtil.setzeHervorhebung(false, ribbon.getSpeichern(),
 								ribbon.getSpeichernSchnellzugriff());
-						ribbon.getSpeichern().setDisable(true);
-						ribbon.getSpeichernSchnellzugriff().setDisable(true);
 					}
+					ribbon.getSpeichern().setDisable(gezeigtesProjekt == null);
+					ribbon.getSpeichernSchnellzugriff().setDisable(gezeigtesProjekt == null);
+					ribbon.getNeueKlasse().setDisable(gezeigtesProjekt == null);
+					ribbon.getNeuesInterface().setDisable(gezeigtesProjekt == null);
+					ribbon.getNeueEnumeration().setDisable(gezeigtesProjekt == null);
 					updateRueckgaengigWiederholen(ribbon, gezeigtesProjekt);
 				});
 		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
 			NodeUtil.disable(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff(),
 					ribbon.getRueckgaengig(), ribbon.getRueckgaengigSchnellzugriff(),
-					ribbon.getWiederholen(), ribbon.getWiederholenSchnellzugriff());
+					ribbon.getWiederholen(), ribbon.getWiederholenSchnellzugriff(),
+					ribbon.getNeueKlasse(), ribbon.getNeuesInterface(),
+					ribbon.getNeueEnumeration());
 		}
 		
 		NodeUtil.disable(ribbon.getImportieren(), ribbon.getScreenshot(),
@@ -365,8 +375,6 @@ public class HauptAnsicht {
 		NodeUtil.disable(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(),
 				ribbon.getAnordnenNachGanzHinten());
-		NodeUtil.disable(ribbon.getNeueKlasse(), ribbon.getNeuesInterface(),
-				ribbon.getNeueEnumeration());
 		NodeUtil.disable(ribbon.getVererbung(), ribbon.getAssoziation());
 		NodeUtil.disable(ribbon.getKommentar());
 		NodeUtil.disable(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),

@@ -17,18 +17,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
+import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
+import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
+import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
+import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 
-public class Methode extends EditierbarBasis {
+public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	private static final Logger log = Logger.getLogger(Methode.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -49,32 +50,33 @@ public class Methode extends EditierbarBasis {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private Modifizierer sichtbarkeit;
-	private String name;
+	private final JsonObjectProperty<Modifizierer> sichtbarkeit;
+	private final JsonStringProperty name;
+	@JsonIgnore
+	private final JsonObjectProperty<Datentyp> rueckgabeTyp;
 	private ObservableList<Parameter> parameterListe;
-	private Datentyp rueckgabeTyp;
-	private boolean istAbstrakt;
-	private boolean istFinal;
-	
-	// @formatter:off
-	@JsonIgnore private ObjectProperty<Modifizierer> sichtbarkeitProperty;
-	@JsonIgnore private StringProperty nameProperty;
-	@JsonIgnore private ObjectProperty<Datentyp> rueckgabetypProperty;
-	@JsonIgnore private BooleanProperty istAbstraktProperty;
-	@JsonIgnore private BooleanProperty istFinalProperty;
-	// @formatter:on
+	private final JsonBooleanProperty istAbstrakt;
+	private final JsonBooleanProperty istFinal;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public Methode(Modifizierer sichtbarkeit, Datentyp datentyp) {
-		this.sichtbarkeit = sichtbarkeit;
-		this.rueckgabeTyp = datentyp;
-		this.name = "";
-		this.istAbstrakt = false;
-		this.istFinal = false;
+		this.sichtbarkeit = new JsonObjectProperty<>(sichtbarkeit);
+		this.rueckgabeTyp = new JsonObjectProperty<>(datentyp);
+		this.name = new JsonStringProperty("");
+		this.istAbstrakt = new JsonBooleanProperty(false);
+		this.istFinal = new JsonBooleanProperty(false);
 		this.parameterListe = FXCollections.observableList(new LinkedList<>());
+		
+		this.ueberwachePropertyAenderung(this.sichtbarkeit);
+		this.ueberwachePropertyAenderung(this.rueckgabeTyp);
+		this.ueberwachePropertyAenderung(this.name);
+		this.ueberwachePropertyAenderung(this.name);
+		this.ueberwachePropertyAenderung(this.istAbstrakt);
+		this.ueberwachePropertyAenderung(this.istFinal);
+		this.ueberwacheListenAenderung(this.parameterListe);
 	}
 	
 	@JsonCreator
@@ -95,62 +97,46 @@ public class Methode extends EditierbarBasis {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	public Modifizierer getSichtbarkeit() {
-		return sichtbarkeit;
+		return sichtbarkeit.get();
 	}
 	
 	public void setSichtbarkeit(Modifizierer sichtbarkeit) {
-		if (sichtbarkeitProperty != null) {
-			sichtbarkeitProperty.set(sichtbarkeit);
-		}
-		this.sichtbarkeit = sichtbarkeit;
+		this.sichtbarkeit.set(sichtbarkeit);
 	}
 	
 	public String getName() {
-		return name;
+		return name.get();
 	}
 	
 	public void setName(String name) {
-		if (nameProperty != null) {
-			nameProperty.set(name);
-		}
-		this.name = name;
+		this.name.set(name);
 	}
 	
+	@JsonProperty("rueckgabeTyp")
 	public Datentyp getRueckgabeTyp() {
-		return rueckgabeTyp;
+		return rueckgabeTyp.get();
 	}
 	
+	@JsonProperty("rueckgabeTyp")
 	public void setRueckgabeTyp(Datentyp rueckgabeTyp) {
-		if (rueckgabetypProperty != null) {
-			rueckgabetypProperty.set(rueckgabeTyp);
-		}
-		this.rueckgabeTyp = rueckgabeTyp;
+		this.rueckgabeTyp.set(rueckgabeTyp);
 	}
 	
 	@JsonProperty("istAbstrakt")
 	public boolean istAbstrakt() {
-		return istAbstrakt;
+		return istAbstrakt.get();
 	}
 	
-	@JsonProperty("istAbstrakt")
 	public void setzeAbstrakt(boolean istAbstrakt) {
-		if (istAbstraktProperty != null) {
-			istAbstraktProperty.set(istAbstrakt);
-		}
-		this.istAbstrakt = istAbstrakt;
+		this.istAbstrakt.set(istAbstrakt);
 	}
 	
-	@JsonProperty("istFinal")
 	public boolean istFinal() {
-		return istFinal;
+		return istFinal.get();
 	}
 	
-	@JsonProperty("istFinal")
 	public void setzeFinal(boolean istFinal) {
-		if (istFinalProperty != null) {
-			istFinalProperty.set(istFinal);
-		}
-		this.istFinal = istFinal;
+		this.istFinal.set(istFinal);
 	}
 	
 	public ObservableList<Parameter> getParameterListe() {
@@ -160,38 +146,23 @@ public class Methode extends EditierbarBasis {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public ObjectProperty<Modifizierer> getSichtbarkeitProperty() {
-		if (sichtbarkeitProperty == null) {
-			this.sichtbarkeitProperty = new SimpleObjectProperty<>(sichtbarkeit);
-		}
-		return sichtbarkeitProperty;
+		return sichtbarkeit;
 	}
 	
 	public StringProperty getNameProperty() {
-		if (nameProperty == null) {
-			this.nameProperty = new SimpleStringProperty(name);
-		}
-		return nameProperty;
+		return name;
 	}
 	
 	public ObjectProperty<Datentyp> getRueckgabetypProperty() {
-		if (rueckgabetypProperty == null) {
-			this.rueckgabetypProperty = new SimpleObjectProperty<>(rueckgabeTyp);
-		}
-		return rueckgabetypProperty;
+		return rueckgabeTyp;
 	}
 	
 	public BooleanProperty getIstAbstraktProperty() {
-		if (istAbstraktProperty == null) {
-			this.istAbstraktProperty = new SimpleBooleanProperty(istAbstrakt);
-		}
-		return istAbstraktProperty;
+		return istAbstrakt;
 	}
 	
 	public BooleanProperty getIstFinalProperty() {
-		if (istFinalProperty == null) {
-			this.istFinalProperty = new SimpleBooleanProperty(istFinal);
-		}
-		return istFinalProperty;
+		return istFinal;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -208,17 +179,21 @@ public class Methode extends EditierbarBasis {
 	
 	@Override
 	public String toString() {
-		return "Methode <%s %s %s(%s) {%s %s}>".formatted(sichtbarkeit.bezeichnung(),
-				rueckgabeTyp.getTypName(), name, parameterListe.stream()
+		return "Methode <%s %s %s(%s) {%s %s}>".formatted(
+				getSichtbarkeit(),
+				getRueckgabeTyp().getTypName(),
+				getName(),
+				getParameterListe().stream()
 						.map(p -> String.join(" ", p.getDatentyp().getTypName(), p.getName()))
 						.collect(Collectors.joining(", ")),
-				istAbstrakt ? " abstract" : "", istFinal ? "final " : "");
+				istAbstrakt() ? " abstract" : "",
+				istFinal() ? "final " : "");
 	}
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(istAbstrakt, istFinal, name, parameterListe, rueckgabeTyp,
-				sichtbarkeit);
+		return Objects.hash(istAbstrakt(), istFinal(), getName(), getParameterListe(),
+				getRueckgabeTyp(), getSichtbarkeit());
 	}
 	
 	@Override
@@ -234,13 +209,14 @@ public class Methode extends EditierbarBasis {
 		}
 		Methode m = (Methode) obj;
 		
-		boolean istAbstraktGleich = istAbstrakt == m.istAbstrakt;
-		boolean istFinalGleich = istFinal == m.istFinal;
-		boolean nameGleich = Objects.equals(name, m.name);
-		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(this.parameterListe,
-				m.parameterListe);
-		boolean rueckgabeTypGleich = Objects.equals(rueckgabeTyp, m.rueckgabeTyp);
-		boolean sichtbarkeitGleich = Objects.equals(sichtbarkeit, m.sichtbarkeit);
+		boolean istAbstraktGleich = istAbstrakt() == m.istAbstrakt();
+		boolean istFinalGleich = istFinal() == m.istFinal();
+		boolean nameGleich = Objects.equals(getName(), m.getName());
+		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(
+				this.getParameterListe(),
+				m.getParameterListe());
+		boolean rueckgabeTypGleich = Objects.equals(getRueckgabeTyp(), m.getRueckgabeTyp());
+		boolean sichtbarkeitGleich = Objects.equals(getSichtbarkeit(), m.getSichtbarkeit());
 		
 		boolean istGleich = istAbstraktGleich && istFinalGleich && nameGleich
 				&& parameterListeGleich && rueckgabeTypGleich && sichtbarkeitGleich;
@@ -257,6 +233,19 @@ public class Methode extends EditierbarBasis {
 						parameterListeGleich, rueckgabeTypGleich, sichtbarkeitGleich));
 		
 		return istGleich;
+	}
+
+	public Methode erzeugeTiefeKopie() {
+		var kopie = new Methode(getSichtbarkeit(), getRueckgabeTyp().erzeugeTiefeKopie());
+		kopie.setName(getName());
+		kopie.setzeAbstrakt(istAbstrakt());
+		kopie.setzeFinal(istFinal());
+		
+		for(var parameter : parameterListe) {
+			kopie.parameterListe.add(parameter.erzeugeTiefeKopie());
+		}
+		
+		return kopie;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

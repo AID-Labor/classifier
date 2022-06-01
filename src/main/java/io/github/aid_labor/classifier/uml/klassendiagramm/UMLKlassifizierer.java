@@ -17,12 +17,13 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
+import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty.EnumPropertyZuStringKonverter;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.ListenUeberwacher;
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
-import io.github.aid_labor.classifier.uml.eigenschaften.Datentyp;
 import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
+import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -30,7 +31,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 
-public class UMLKlassifizierer extends UMLBasisElement implements Datentyp {
+public class UMLKlassifizierer extends UMLBasisElement {
 	private static final Logger log = Logger.getLogger(UMLKlassifizierer.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -53,9 +54,12 @@ public class UMLKlassifizierer extends UMLBasisElement implements Datentyp {
 	
 	@JsonSerialize(converter = EnumPropertyZuStringKonverter.class)
 	private final JsonEnumProperty<KlassifiziererTyp> typ;
+	private final JsonObjectProperty<Modifizierer> sichtbarkeit;
 	private final Programmiersprache programmiersprache;
 	private final JsonStringProperty paket;
 	private final JsonStringProperty name;
+	private final JsonStringProperty superklasse;
+	private final JsonStringProperty interfaces;
 	private final ObservableList<Attribut> attribute;
 	private final ObservableList<Methode> methoden;
 	
@@ -64,11 +68,15 @@ public class UMLKlassifizierer extends UMLBasisElement implements Datentyp {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public UMLKlassifizierer(KlassifiziererTyp typ, Programmiersprache programmiersprache,
-			String paket, String name) {
+			String name) {
+		super(new Position());
 		this.typ = new JsonEnumProperty<>(typ);
+		this.sichtbarkeit = new JsonObjectProperty<>(Modifizierer.PUBLIC);
 		this.programmiersprache = programmiersprache;
-		this.paket = new JsonStringProperty(paket);
+		this.paket = new JsonStringProperty("");
 		this.name = new JsonStringProperty(name);
+		this.superklasse = new JsonStringProperty("");
+		this.interfaces = new JsonStringProperty("");
 		this.attribute = FXCollections.observableList(new LinkedList<>());
 		this.methoden = FXCollections.observableList(new LinkedList<>());
 		
@@ -77,17 +85,18 @@ public class UMLKlassifizierer extends UMLBasisElement implements Datentyp {
 		this.ueberwachePropertyAenderung(this.name);
 		this.ueberwachePropertyAenderung(this.paket);
 		this.ueberwachePropertyAenderung(this.typ);
+		this.ueberwachePropertyAenderung(this.superklasse);
+		this.ueberwachePropertyAenderung(this.interfaces);
 	}
 	
 	@JsonCreator
 	protected UMLKlassifizierer(
 			@JsonProperty("typ") KlassifiziererTyp typ,
 			@JsonProperty("programmiersprache") Programmiersprache programmiersprache,
-			@JsonProperty("paket") String paket,
 			@JsonProperty("name") String name,
 			@JsonProperty("attribute") List<Attribut> attribute,
 			@JsonProperty("methoden") List<Methode> methoden) {
-		this(typ, programmiersprache, paket, name);
+		this(typ, programmiersprache, name);
 		this.attribute.addAll(attribute);
 		this.methoden.addAll(methoden);
 	}
@@ -97,11 +106,6 @@ public class UMLKlassifizierer extends UMLBasisElement implements Datentyp {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	@Override
-	public String getTypName() {
-		return name.get();
-	}
 	
 	@Override
 	public String getName() {
@@ -126,6 +130,42 @@ public class UMLKlassifizierer extends UMLBasisElement implements Datentyp {
 	
 	public ObjectProperty<KlassifiziererTyp> getTypProperty() {
 		return typ;
+	}
+	
+	public String getSuperklasse() {
+		return superklasse.get();
+	}
+	
+	public void setSuperklasse(String superklasse) {
+		this.superklasse.set(superklasse);
+	}
+	
+	public StringProperty superklasseProperty() {
+		return superklasse;
+	}
+	
+	public String getInterfaces() {
+		return interfaces.get();
+	}
+	
+	public void setInterfaces(String interfaces) {
+		this.interfaces.set(interfaces);
+	}
+	
+	public StringProperty interfacesProperty() {
+		return interfaces;
+	}
+	
+	public Modifizierer getSichtbarkeit() {
+		return sichtbarkeit.get();
+	}
+	
+	public void setSichtbarkeit(Modifizierer sichtbarkeit) {
+		this.sichtbarkeit.set(sichtbarkeit);
+	}
+	
+	public ObjectProperty<Modifizierer> getSichtbarkeitProperty() {
+		return sichtbarkeit;
 	}
 	
 	public String getStereotyp() {
@@ -183,7 +223,7 @@ public class UMLKlassifizierer extends UMLBasisElement implements Datentyp {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(getAttribute(), getMethoden(), getName(), getPaket(), 
+		return Objects.hash(getAttribute(), getMethoden(), getName(), getPaket(),
 				getProgrammiersprache(), getTyp());
 	}
 	
@@ -225,6 +265,21 @@ public class UMLKlassifizierer extends UMLBasisElement implements Datentyp {
 						programmierspracheGleich, typGleich));
 		
 		return istGleich;
+	}
+	
+	public UMLKlassifizierer erzeugeTiefeKopie() {
+		var kopie = new UMLKlassifizierer(getTyp(), getProgrammiersprache(), getName());
+		kopie.setPaket(getPaket());
+		
+		for (var attribut : attribute) {
+			kopie.attribute.add(attribut.erzeugeTiefeKopie());
+		}
+		
+		for (var methode : methoden) {
+			kopie.methoden.add(methode.erzeugeTiefeKopie());
+		}
+		
+		return kopie;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

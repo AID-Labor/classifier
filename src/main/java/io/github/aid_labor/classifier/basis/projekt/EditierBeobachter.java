@@ -7,18 +7,13 @@
 package io.github.aid_labor.classifier.basis.projekt;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.Consumer;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 
 
 /**
@@ -70,7 +65,7 @@ public interface EditierBeobachter {
 		
 		@Override
 		public void changed(ObservableValue<? extends T> aufrufer, T alterWert, T neuerWert) {
-			if (!wiederhole) {
+			if (!Objects.equals(alterWert, neuerWert) && !wiederhole) {
 				beobachterRef.get().verarbeiteEditierung(new EditierBefehl() {
 					
 					@Override
@@ -89,7 +84,8 @@ public interface EditierBeobachter {
 					
 					@Override
 					public String toString() {
-						return "EditierBefehl: " + beobachterRef.get() + "->" + propertyRef.get()
+						return "EditierBefehl: " + beobachterRef.get() + "->"
+								+ propertyRef.get()
 								+ " { alt: %s neu: %s }".formatted(alterWert, neuerWert);
 					}
 				});
@@ -98,85 +94,13 @@ public interface EditierBeobachter {
 		
 	}
 	
+	public default <E extends Editierbar> void ueberwacheListenAenderung(
+			ObservableList<E> liste) {
+		liste.addListener(new ListenUeberwacher<>(liste, this));
+	}
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public static <E extends Editierbar> ListChangeListener<E> ueberwacheListenAenderung(
-			List<E> liste, EditierBeobachter beobachter,
-			Consumer<EditierBefehl> verarbeitung) {
-		return aenderung -> {
-			List<EditierBefehl> befehle = new LinkedList<>();
-			while (aenderung.next()) {
-				if (aenderung.wasPermutated()) {
-					int[] neueOrdnung = new int[aenderung.getList().size()];
-					for (int i = 0; i < neueOrdnung.length; i++) {
-						neueOrdnung[i] = aenderung.getPermutation(i);
-					}
-					log.finer(() -> "%s: \n    -> Reihenfolge geaendert [%s]"
-							.formatted(beobachter, Arrays.toString(neueOrdnung)));
-					log.severe(() -> "EditierBefehl fuer Permutated implementieren!!!");
-					// TODO EditierBefehl fuer Permutated implementieren!!!
-				}
-				if (aenderung.wasRemoved()) {
-					log.finer(() -> "%s: \n    -> entfernt [%s]".formatted(beobachter,
-							Arrays.toString(aenderung.getRemoved().toArray())));
-					for (E entfernt : aenderung.getRemoved()) {
-						entfernt.meldeAb(beobachter);
-					}
-					var befehl = new EditierBefehl() {
-						
-						int startIndex = aenderung.getFrom();
-						List<E> entfernteAttribute = Collections.unmodifiableList(
-								new ArrayList<>(aenderung.getAddedSubList()));
-						
-						@Override
-						public void wiederhole() {
-							liste.removeAll(entfernteAttribute);
-						}
-						
-						@Override
-						public void macheRueckgaengig() {
-							liste.addAll(startIndex, entfernteAttribute);
-						}
-					};
-					befehle.add(befehl);
-				}
-				if (aenderung.wasAdded()) {
-					log.finer(() -> "%s: \n    -> hinzugefuegt [%s]".formatted(beobachter,
-							Arrays.toString(aenderung.getAddedSubList().toArray())));
-					for (E hinzu : aenderung.getAddedSubList()) {
-						hinzu.meldeAn(beobachter);
-					}
-					var befehl = new EditierBefehl() {
-						
-						int startIndex = aenderung.getFrom();
-						List<E> neueAttribute = Collections.unmodifiableList(
-								new ArrayList<>(aenderung.getAddedSubList()));
-						
-						@Override
-						public void wiederhole() {
-							liste.addAll(startIndex, neueAttribute);
-						}
-						
-						@Override
-						public void macheRueckgaengig() {
-							liste.removeAll(neueAttribute);
-						}
-					};
-					befehle.add(befehl);
-				}
-				if (aenderung.wasUpdated()) {
-					log.finer(() -> "%s: \n    -> Update [%d bis %d]".formatted(beobachter,
-							aenderung.getFrom(), aenderung.getTo()));
-					log.severe(() -> "EditierBefehl fuer Update implementieren!!!");
-					// TODO EditierBefehl fuer Update implementieren!!!
-				}
-			}
-			
-			for (EditierBefehl editierBefehl : befehle) {
-				verarbeitung.accept(editierBefehl);
-			}
-		};
-	}
 }

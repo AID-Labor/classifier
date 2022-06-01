@@ -97,16 +97,16 @@ class UMLSpeichertest {
 		testeSpeichernUndOeffnen();
 		
 		projekt.getDiagrammElemente().add(new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "testPaket", "TestKlasse_1"));
+				Programmiersprache.Java, "TestKlasse_1"));
 		testeSpeichernUndOeffnen();
 		
 		projekt.getDiagrammElemente().add(new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "testPaket", "TestKlasse_2"));
+				Programmiersprache.Java, "TestKlasse_2"));
 		testeSpeichernUndOeffnen();
 		
 		// Teste Verschiebung
 		projekt.getDiagrammElemente().add(1, new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "testPaket", "TestKlasse_3"));
+				Programmiersprache.Java, "TestKlasse_3"));
 		testeSpeichernUndOeffnen();
 		
 		// Teste Entfernen
@@ -117,7 +117,8 @@ class UMLSpeichertest {
 	@Test
 	void testeUMLKlassifizierer() {
 		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Interface,
-				Programmiersprache.Java, "testPaket", "TestUMLKlassifizierer_Interface");
+				Programmiersprache.Java, "TestUMLKlassifizierer_Interface");
+		umlKlasse.setPaket("testPaket");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		testeSpeichernUndOeffnen();
 		
@@ -134,16 +135,16 @@ class UMLSpeichertest {
 	@Test
 	void testeAttributeUeberwachung() {
 		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "testPaket", "TestKlasseAttribute");
+				Programmiersprache.Java, "TestKlasseAttribute");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		
-		var attribut = new Attribut(new Modifizierer("private", true), BasisDatentyp.STRING);
+		var attribut = new Attribut(Modifizierer.PACKAGE, BasisDatentyp.STRING);
 		attribut.setName("testAttribut");
 		umlKlasse.getAttribute().add(attribut);
 		testeSpeichernUndOeffnen();
 		
 		umlKlasse.getAttribute()
-				.add(new Attribut(new Modifizierer("protected", true), BasisDatentyp.DOUBLE));
+				.add(new Attribut(Modifizierer.PROTECTED, BasisDatentyp.DOUBLE));
 		testeSpeichernUndOeffnen();
 		
 		attribut.setName("testAttributNeu");
@@ -158,7 +159,7 @@ class UMLSpeichertest {
 		attribut.nutzeSetter(true);
 		testeSpeichernUndOeffnen();
 		
-		attribut.setSichtbarkeit(new Modifizierer("public", true));
+		attribut.setSichtbarkeit(Modifizierer.PUBLIC);
 		testeSpeichernUndOeffnen();
 		
 		attribut.setDatentyp(BasisDatentyp.CHAR);
@@ -168,22 +169,31 @@ class UMLSpeichertest {
 	@Test
 	void testeMethodenUeberwachung() {
 		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "testPaket", "TestKlasseMethoden");
+				Programmiersprache.Java, "TestKlasseMethoden");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		
-		var methode = new Methode(new Modifizierer("public", true), BasisDatentyp.INT);
+		var methode = new Methode(Modifizierer.PUBLIC, BasisDatentyp.INT);
 		methode.setName("testMethode");
 		umlKlasse.getMethoden().add(methode);
 		testeSpeichernUndOeffnen();
 		
 		umlKlasse.getMethoden()
-				.add(new Methode(new Modifizierer("protected", true), BasisDatentyp.DOUBLE));
+				.add(new Methode(Modifizierer.PROTECTED, BasisDatentyp.DOUBLE));
 		testeSpeichernUndOeffnen();
 		
 		methode.setName("testMethodeNeu");
 		testeSpeichernUndOeffnen();
 		
-		methode.setSichtbarkeit(new Modifizierer("private", true));
+		methode.setSichtbarkeit(Modifizierer.PRIVATE);
+		testeSpeichernUndOeffnen();
+		
+		methode.setRueckgabeTyp(BasisDatentyp.CHAR);
+		testeSpeichernUndOeffnen();
+		
+		methode.setzeAbstrakt(true);
+		testeSpeichernUndOeffnen();
+		
+		methode.setzeFinal(true);
 		testeSpeichernUndOeffnen();
 		
 		var parameter = new Parameter(BasisDatentyp.INT, "arg");
@@ -194,15 +204,6 @@ class UMLSpeichertest {
 		testeSpeichernUndOeffnen();
 		
 		parameter.setDatentyp(BasisDatentyp.STRING);
-		testeSpeichernUndOeffnen();
-		
-		methode.setRueckgabeTyp(BasisDatentyp.CHAR);
-		testeSpeichernUndOeffnen();
-		
-		methode.setzeAbstrakt(true);
-		testeSpeichernUndOeffnen();
-		
-		methode.setzeFinal(true);
 		testeSpeichernUndOeffnen();
 	}
 	

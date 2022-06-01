@@ -5,8 +5,6 @@
  */
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
@@ -45,9 +43,16 @@ public interface Datentyp {
 		public String toString() {
 			return getTypName();
 		}
+		
+		@Override
+		public Datentyp erzeugeTiefeKopie() {
+			return this;
+		}
 	}
 	
 	public String getTypName();
+
+	public Datentyp erzeugeTiefeKopie();
 	
 	
 }

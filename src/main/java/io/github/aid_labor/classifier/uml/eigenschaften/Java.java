@@ -6,8 +6,6 @@
 
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
@@ -57,14 +55,6 @@ class Java implements ProgrammierEigenschaften {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private Modifizierer privateErlaubt = new Modifizierer("private", true);
-	private Modifizierer packagePrivateErlaubt = new Modifizierer("package-private", true);
-	private Modifizierer protectedErlaubt = new Modifizierer("protected", true);
-	private Modifizierer publicErlaubt = new Modifizierer("public", true);
-	
-	private Modifizierer privateNichtErlaubt = new Modifizierer("private", false);
-	private Modifizierer protectedNichtErlaubt = new Modifizierer("protected", false);
-	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -80,33 +70,30 @@ class Java implements ProgrammierEigenschaften {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	@Override
-	public List<Modifizierer> getTypModifizierer(KlassifiziererTyp typ) {
-		return List.of(publicErlaubt, packagePrivateErlaubt, protectedNichtErlaubt,
-				privateNichtErlaubt);
+	public boolean istTypModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m) {
+		return m.equals(Modifizierer.PUBLIC) || m.equals(Modifizierer.PACKAGE);
 	}
 	
 	@Override
-	public List<Modifizierer> getAttributModifizierer(KlassifiziererTyp typ) {
+	public boolean istAttributModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m) {
 		return switch (typ) {
-			case Interface -> List.of(publicErlaubt);
-			case Klasse, AbstrakteKlasse, Enumeration -> List.of(publicErlaubt,
-					protectedErlaubt, packagePrivateErlaubt, privateErlaubt);
+			case Interface -> m.istPublic();
+			case Klasse, AbstrakteKlasse, Enumeration -> m.istPrivate();
 			default -> {
 				log.warning(() -> "unbekannter typ: " + typ);
-				yield Collections.emptyList();
+				yield false;
 			}
 		};
 	}
 	
 	@Override
-	public List<Modifizierer> getMethodenModifizierer(KlassifiziererTyp typ) {
+	public boolean istMethodenModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m) {
 		return switch (typ) {
-			case Interface -> List.of(publicErlaubt);
-			case Klasse, AbstrakteKlasse, Enumeration -> List.of(publicErlaubt,
-					protectedErlaubt, packagePrivateErlaubt, privateErlaubt);
+			case Interface -> m.istPublic();
+			case Klasse, AbstrakteKlasse, Enumeration -> m.istPrivate();
 			default -> {
 				log.warning(() -> "unbekannter typ: " + typ);
-				yield Collections.emptyList();
+				yield false;
 			}
 		};
 	}

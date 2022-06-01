@@ -1,49 +1,58 @@
-/*
+/* 
  * Dieser Quellcode steht unter der MIT-License.
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
+package io.github.aid_labor.classifier.gui.elemente;
 
-package io.github.aid_labor.classifier.gui;
+import java.util.logging.Logger;
 
-import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
-import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
-import javafx.beans.binding.When;
+import javafx.geometry.Insets;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 
+public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifizierer> {
+	private static final Logger log = Logger
+			.getLogger(UMLKlassifiziererAnsicht.class.getName());
 
-class ProjekteKontrolle {
-//	private static final Logger log = Logger.getLogger(ProjekteKontrolle.class.getName());
-
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenmethoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private final ProjekteAnsicht ansicht;
-	private final Sprache sprache;
+	private final Label name;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	ProjekteKontrolle(ProjekteAnsicht ansicht, Sprache sprache) {
-		this.ansicht = ansicht;
-		this.sprache = sprache;
+	public UMLKlassifiziererAnsicht(UMLKlassifizierer klassifizierer) {
+		super(klassifizierer);
+		
+		this.getStyleClass().clear();
+		this.getStyleClass().add("UML-Klassifizierer-Ansicht");
+		
+		this.name = new Label(klassifizierer.getName());
+		this.name.setPadding(new Insets(10, 30, 10, 30));
+		this.name.textProperty().bind(klassifizierer.nameProperty());
 	}
+	
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
@@ -51,11 +60,19 @@ class ProjekteKontrolle {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*
@@ -63,25 +80,19 @@ class ProjekteKontrolle {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	void legeNeuenKlassifiziererAn(KlassifiziererTyp typ) {
-		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
-		var klassifizierer = new UMLKlassifizierer(typ, projekt.getProgrammiersprache(), "");
-		projekt.getDiagrammElemente().add(klassifizierer);
-		
-		var dialog = new UMLKlassifiziererBearbeitenDialog(klassifizierer);
-		dialog.initOwner(this.ansicht.getAnsicht().getScene().getWindow());
-		dialog.titleProperty().bind(
-				projekt.nameProperty().concat(" > ")
-						.concat(new When(klassifizierer.nameProperty().isEmpty())
-								.then(sprache.getText("unbenannt", "Unbenannt"))
-								.otherwise(klassifizierer.nameProperty())));
-		dialog.show();
-	}
+	
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
+	
 	
 }

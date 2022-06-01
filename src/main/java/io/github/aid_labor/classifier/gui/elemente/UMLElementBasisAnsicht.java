@@ -4,66 +4,43 @@
  *
  */
 
-package io.github.aid_labor.classifier.uml.eigenschaften;
+package io.github.aid_labor.classifier.gui.elemente;
 
-import java.util.Objects;
+import java.util.logging.Logger;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
-import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
-import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
-import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.StringProperty;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import javafx.scene.layout.VBox;
 
 
-public class Parameter extends EditierbarBasis implements EditierbarerBeobachter {
-//	private static final Logger log = Logger.getLogger(Parameter.class.getName());
-
+public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends VBox {
+	private static final Logger log = Logger.getLogger(UMLElementBasisAnsicht.class.getName());
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private final JsonStringProperty name;
-	@JsonIgnore
-	private final JsonObjectProperty<Datentyp> datentyp;
+	protected final E umlElement;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Parameter(Datentyp datentyp, String name) {
-		this.datentyp = new JsonObjectProperty<>(datentyp);
-		this.name = new JsonStringProperty(name);
-		
-		this.ueberwachePropertyAenderung(this.datentyp);
-		this.ueberwachePropertyAenderung(this.name);
-	}
-	
-	public Parameter(Datentyp datentyp) {
-		this(datentyp, "");
-	}
-	
-	@JsonCreator
-	protected Parameter() {
-		this(null, "");
+	public UMLElementBasisAnsicht(E umlElement) {
+		this.umlElement = umlElement;
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -72,32 +49,8 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	public String getName() {
-		return name.get();
-	}
-	
-	public void setName(String name) {
-		this.name.set(name);
-	}
-	
-	@JsonProperty("datentyp")
-	public Datentyp getDatentyp() {
-		return datentyp.get();
-	}
-	
-	@JsonProperty("datentyp")
-	public void setDatentyp(Datentyp datentyp) {
-		this.datentyp.set(datentyp);
-	}
-	
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	public StringProperty getNameProperty() {
-		return name;
-	}
-	
-	public ObjectProperty<Datentyp> getDatentypProperty() {
-		return datentyp;
+	public E getUmlElement() {
+		return umlElement;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -111,32 +64,6 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	@Override
-	public int hashCode() {
-		return Objects.hash(getDatentyp(), getName());
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		Parameter other = (Parameter) obj;
-		return Objects.equals(getDatentyp(), other.getDatentyp())
-				&& Objects.equals(getName(), other.getName());
-	}
-
-	public Parameter erzeugeTiefeKopie() {
-		var kopie = new Parameter(getDatentyp().erzeugeTiefeKopie(), getName());
-		return kopie;
-	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

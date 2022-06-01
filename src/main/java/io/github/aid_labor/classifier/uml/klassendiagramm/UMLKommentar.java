@@ -57,6 +57,7 @@ public class UMLKommentar extends UMLBasisElement {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public UMLKommentar() {
+		super(new Position());
 		this.inhaltProperty = new JsonStringProperty();
 		this.ueberwachePropertyAenderung(this.inhaltProperty);
 	}
