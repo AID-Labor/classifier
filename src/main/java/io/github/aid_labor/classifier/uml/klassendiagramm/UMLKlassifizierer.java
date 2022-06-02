@@ -271,6 +271,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	public UMLKlassifizierer erzeugeTiefeKopie() {
 		var kopie = new UMLKlassifizierer(getTyp(), getProgrammiersprache(), getName());
 		kopie.setPaket(getPaket());
+		kopie.getPosition().set(getPosition());
 		
 		for (var attribut : attribute) {
 			kopie.attribute.add(attribut.erzeugeTiefeKopie());

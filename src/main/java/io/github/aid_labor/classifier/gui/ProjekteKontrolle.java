@@ -6,6 +6,8 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.util.logging.Logger;
+
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
@@ -13,7 +15,7 @@ import javafx.beans.binding.When;
 
 
 class ProjekteKontrolle {
-//	private static final Logger log = Logger.getLogger(ProjekteKontrolle.class.getName());
+	private static final Logger log = Logger.getLogger(ProjekteKontrolle.class.getName());
 
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -79,7 +81,20 @@ class ProjekteKontrolle {
 						.concat(new When(klassifizierer.nameProperty().isEmpty())
 								.then(sprache.getText("unbenannt", "Unbenannt"))
 								.otherwise(klassifizierer.nameProperty())));
-		dialog.show();
+		dialog.showAndWait().ifPresent(button -> {
+			switch (button.getButtonData()) {
+				case BACK_PREVIOUS -> {
+					log.fine(() -> "Entferne " + klassifizierer);
+					projekt.getDiagrammElemente().remove(klassifizierer);
+				}
+				case FINISH -> {
+					log.fine(() -> "Aenderungen an " + klassifizierer + " uebernommen");
+				}
+				default -> {
+					log.severe(() -> "Unbekannter Buttontyp: " + button);
+				}
+			}
+		});
 	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

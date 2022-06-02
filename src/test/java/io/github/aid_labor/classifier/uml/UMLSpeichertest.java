@@ -162,7 +162,7 @@ class UMLSpeichertest {
 		attribut.setSichtbarkeit(Modifizierer.PUBLIC);
 		testeSpeichernUndOeffnen();
 		
-		attribut.setDatentyp(Java.CHAR_PRIMITIV);
+		attribut.getDatentyp().set(Java.CHAR_PRIMITIV);
 		testeSpeichernUndOeffnen();
 	}
 	

@@ -13,8 +13,10 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
+import javafx.beans.property.StringProperty;
 
 //@formatter:off
 @JsonAutoDetect(
@@ -27,19 +29,31 @@ import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
 public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter {
 	
 	
-	private final String typName;
+	private final JsonStringProperty typName;
 	
 	@JsonCreator
 	public Datentyp(@JsonProperty("typName") String typName) {
-		this.typName = typName;
+		this.typName = new JsonStringProperty(typName);
+	}
+	
+	public void set(Datentyp datentyp) {
+		this.setTypName(datentyp.getTypName());
 	}
 	
 	public String getTypName() {
+		return typName.get();
+	}
+	
+	public void setTypName(String typName) {
+		this.typName.set(typName);
+	}
+	
+	public StringProperty getTypNameProperty() {
 		return typName;
 	}
 	
 	public Datentyp erzeugeTiefeKopie() {
-		return new Datentyp(typName);
+		return new Datentyp(typName.get());
 	}
 	
 	@Override
@@ -66,6 +80,5 @@ public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter 
 		Datentyp other = (Datentyp) obj;
 		return Objects.equals(typName, other.typName);
 	}
-	
-	
+
 }

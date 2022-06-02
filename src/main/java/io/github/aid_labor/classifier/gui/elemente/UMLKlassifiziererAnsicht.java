@@ -71,6 +71,7 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		
 		eigenschaften = new VBox(attributeTrenner, attribute, methodenTrenner, methoden);
 		inhalt = new VBox(name, eigenschaften);
+		inhalt.setAlignment(Pos.TOP_CENTER);
 		StackPane.setMargin(inhalt, new Insets(0));
 		this.getChildren().add(inhalt);
 		checkeTrenner(null);
@@ -102,7 +103,6 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 	
 	private void formatiere() {
 		this.name.setPadding(new Insets(10, 30, 10, 30));
-		name.setAlignment(Pos.CENTER);
 		this.attribute.setMinHeight(20);
 		this.attribute.setPadding(new Insets(0, 10, 0, 10));
 		this.methoden.setMinHeight(20);

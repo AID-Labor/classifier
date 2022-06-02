@@ -166,12 +166,12 @@ public class Java implements ProgrammierEigenschaften {
 	
 	@Override
 	public Datentyp getLetzerDatentyp() {
-		return letzterDatentyp;
+		return letzterDatentyp.erzeugeTiefeKopie();
 	}
 	
 	@Override
 	public void setLetzerDatentyp(Datentyp letzterDatentyp) {
-		this.letzterDatentyp = letzterDatentyp;
+		this.letzterDatentyp.set(letzterDatentyp);
 	}
 	
 	@Override

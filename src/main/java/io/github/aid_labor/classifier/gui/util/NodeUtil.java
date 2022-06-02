@@ -6,6 +6,8 @@
 
 package io.github.aid_labor.classifier.gui.util;
 
+import java.util.logging.Logger;
+
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -14,11 +16,15 @@ import io.github.aid_labor.classifier.basis.io.Ressource;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.CacheHint;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 
@@ -29,24 +35,24 @@ import javafx.scene.layout.StackPane;
  *
  */
 public final class NodeUtil {
-//	private static final Logger log = Logger.getLogger(NodeUtil.class.getName());
-
+	private static final Logger log = Logger.getLogger(NodeUtil.class.getName());
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
+	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	/**
@@ -227,7 +233,7 @@ public final class NodeUtil {
 	 * @param elemente    Elemente, die die Id erhalten
 	 */
 	public static void setzeHervorhebung(boolean hervorheben, Node... elemente) {
-		for(Node element : elemente) {
+		for (Node element : elemente) {
 			setzeHervorhebung(hervorheben, element);
 		}
 	}
@@ -252,9 +258,58 @@ public final class NodeUtil {
 	 */
 	public static void setzeHervorhebung(ReadOnlyBooleanProperty hervorheben,
 			Node... elemente) {
-		for(Node element : elemente) {
+		for (Node element : elemente) {
 			setzeHervorhebung(hervorheben.get(), element);
 		}
+	}
+	
+	public static <T extends Region> void macheBeweglich(T element) {
+		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung",
+				new BewegungsEinstellungen());
+		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
+			log.warning(() -> "unbekanntes Objekt fuer Schluessel 'bewegungsEinstellung'. "
+					+ " Node " + element + " kann nicht beweglich gemacht werden!");
+			return;
+		}
+		
+		element.getProperties().put("bewegungsEinstellung", bewegung);
+		
+		bewegung.letzterCursor = element.getCursor();
+		
+		element.addEventFilter(MouseEvent.MOUSE_ENTERED, event -> {
+			element.setCursor(Cursor.HAND);
+		});
+		
+		element.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+			log.finer(() -> "Starte Bewegung");
+			element.setCache(true);
+			element.setCacheHint(CacheHint.SPEED);
+			bewegung.letzterCursor = element.getCursor();
+			element.setCursor(Cursor.MOVE);
+			bewegung.wirdBewegt = true;
+			bewegung.mausStartX = event.getSceneX();
+			bewegung.mausStartY = event.getSceneY();
+			bewegung.positionStartX = element.getTranslateX();
+			bewegung.positionStartY = element.getTranslateY();
+		});
+		
+		element.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
+			if (bewegung.wirdBewegt) {
+				log.finer(() -> "Bewege");
+				double deltaX = event.getSceneX() - bewegung.mausStartX;
+				double deltaY = event.getSceneY() - bewegung.mausStartY;
+				element.setTranslateX(bewegung.positionStartX + deltaX);
+				element.setTranslateY(bewegung.positionStartY + deltaY);
+			}
+		});
+		
+		element.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+			log.finer(() -> "Beende Bewegung");
+			element.setCache(false);
+			element.setCacheHint(CacheHint.DEFAULT);
+			element.setCursor(bewegung.letzterCursor);
+			bewegung.wirdBewegt = false;
+		});
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -262,6 +317,64 @@ public final class NodeUtil {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	private static class BewegungsEinstellungen {
+		private boolean wirdBewegt;
+		private double mausStartX;
+		private double mausStartY;
+		private double positionStartX;
+		private double positionStartY;
+		private AktionPosition aktionPosition;
+		private Cursor letzterCursor;
+		
+		public BewegungsEinstellungen() {
+			wirdBewegt = false;
+			mausStartX = 0;
+			mausStartY = 0;
+			aktionPosition = AktionPosition.KEINE;
+		}
+	}
+	
+	private static enum AktionPosition {
+		KEINE(false, false, false, false),
+		OBEN(true, false, false, false),
+		RECHTS(false, true, false, false),
+		UNTEN(false, false, true, false),
+		LINKS(false, false, false, true),
+		OBEN_LINKS(true, false, false, true),
+		OBEN_RECHTS(true, true, false, false),
+		UNTEN_LINKS(false, false, true, true),
+		UNTEN_RECHTS(false, true, true, false);
+		
+		private boolean obenSelektiert;
+		private boolean rechtsSelektiert;
+		private boolean untenSelektiert;
+		private boolean linksSelektiert;
+		
+		private AktionPosition(boolean obenSelektiert, boolean rechtsSelektiert,
+				boolean untenSelektiert, boolean linksSelektiert) {
+			this.obenSelektiert = obenSelektiert;
+			this.rechtsSelektiert = rechtsSelektiert;
+			this.untenSelektiert = untenSelektiert;
+			this.linksSelektiert = linksSelektiert;
+		}
+		
+		public boolean istObenSelektiert() {
+			return obenSelektiert;
+		}
+		
+		public boolean istRechtsSelektiert() {
+			return rechtsSelektiert;
+		}
+		
+		public boolean istUntenSelektiert() {
+			return untenSelektiert;
+		}
+		
+		public boolean istLinksSelektiert() {
+			return linksSelektiert;
+		}
+	}
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #

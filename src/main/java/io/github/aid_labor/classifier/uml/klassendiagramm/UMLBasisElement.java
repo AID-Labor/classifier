@@ -112,6 +112,13 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this.setHoehe(position.getHoehe());
 			this.setBreite(position.getBreite());
 		}
+
+		public void set(Position position) {
+			this.setX(position.getX());
+			this.setY(position.getY());
+			this.setBreite(position.getBreite());
+			this.setHoehe(position.getHoehe());
+		}
 	}
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

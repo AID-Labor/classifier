@@ -6,19 +6,26 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.util.List;
+
 import org.controlsfx.control.SegmentedButton;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
+import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.typicons.Typicons;
+
+import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
-import io.github.aid_labor.classifier.uml.eigenschaften.Datentyp;
 import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
 import io.github.aid_labor.classifier.uml.eigenschaften.ProgrammierEigenschaften;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import javafx.collections.ListChangeListener;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -26,15 +33,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -64,6 +70,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final UMLKlassifizierer klassifizierer;
+	private final UMLKlassifizierer sicherungskopie;
 	private final Sprache sprache;
 	private final SegmentedButton buttonBar;
 	private final ToggleButton allgemein;
@@ -77,6 +84,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	public UMLKlassifiziererBearbeitenDialog(UMLKlassifizierer klassifizierer) {
 		super(AlertType.NONE);
 		this.klassifizierer = klassifizierer;
+		this.sicherungskopie = klassifizierer.erzeugeTiefeKopie();
 		this.sprache = new Sprache();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
@@ -108,6 +116,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	public UMLKlassifizierer getSicherungskopie() {
+		return sicherungskopie;
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -150,6 +162,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		StackPane container = new StackPane(allgemeinAnzeige);
 		container.setPadding(new Insets(0, 20, 10, 20));
+		container.setAlignment(Pos.CENTER);
 		wurzel.setCenter(container);
 		
 		ueberwacheSelektion(this.allgemein, allgemeinAnzeige, container);
@@ -215,12 +228,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	}
 	
 	private Node erzeugeAttributeAnzeige() {
-		TableView<Attribut> tabelle = new TableView<>(this.klassifizierer.getAttribute());
+		GridPane tabelle = new GridPane();
 		fuelleAttributTabelle(tabelle);
-		tabelle.setEditable(true);
+		tabelle.setHgap(5);
+		tabelle.setVgap(10);
 		
 		Button neu = new Button();
-		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS);
+		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20);
 		
 		neu.setOnAction(e -> {
 			this.klassifizierer.getAttribute()
@@ -228,60 +242,106 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							.get(klassifizierer.getProgrammiersprache()).getLetzerDatentyp()));
 		});
 		
-		Button entfernen = new Button();
-		NodeUtil.fuegeIconHinzu(entfernen, Typicons.MINUS);
-		
-		HBox buttonBar = new HBox(neu, entfernen);
+		HBox buttonBar = new HBox(neu);
 		buttonBar.setSpacing(5);
 		buttonBar.setAlignment(Pos.CENTER_LEFT);
 		buttonBar.setPadding(new Insets(5, 0, 0, 0));
 		
 		BorderPane ansicht = new BorderPane();
-		ansicht.setCenter(tabelle);
+		var scrollContainer = new ScrollPane(tabelle);
+		scrollContainer.getStyleClass().add("edge-to-edge");
+		ansicht.setCenter(scrollContainer);
 		ansicht.setBottom(buttonBar);
 		
 		return ansicht;
 	}
 	
-	private void fuelleAttributTabelle(TableView<Attribut> tabelle) {
-		TableColumn<Attribut, Modifizierer> sichtbarkeit = new TableColumn<>();
-		sichtbarkeit.setCellFactory(
-				ComboBoxTableCell.forTableColumn(
-						klassifizierer.getProgrammiersprache().getEigenschaften()
-								.getAttributModifizierer(klassifizierer.getTyp())));
-		sichtbarkeit.setCellValueFactory(
-				zellDaten -> zellDaten.getValue().getSichtbarkeitProperty());
-		SprachUtil.bindText(sichtbarkeit.textProperty(), sprache, "sichtbarkeit",
-				"Sichtbarkeit");
+	private void fuelleAttributTabelle(GridPane tabelle) {
+		String[] labelBezeichnungen = { "Sichtbarkeit", "Attributname", "Datentyp",
+			"Initialwert", "Getter", "Setter" };
 		
-		TableColumn<Attribut, String> attributname = new TableColumn<>();
-		attributname.setCellValueFactory(zellDaten -> zellDaten.getValue().getNameProperty());
-		SprachUtil.bindText(attributname.textProperty(), sprache, "attributname",
-				"Attributname");
+		for (String bezeichnung : labelBezeichnungen) {
+			Label spaltenUeberschrift = SprachUtil.bindText(new EnhancedLabel(), sprache,
+					bezeichnung.toLowerCase(), bezeichnung);
+			tabelle.addRow(0, spaltenUeberschrift);
+		}
 		
-		TableColumn<Attribut, Datentyp> datentyp = new TableColumn<>();
-		datentyp.setCellValueFactory(zellDaten -> zellDaten.getValue().getDatentypProperty());
-		SprachUtil.bindText(datentyp.textProperty(), sprache, "datentyp", "Datentyp");
+		klassifizierer.getAttribute().addListener(new ListChangeListener<Attribut>() {
+			@Override
+			public void onChanged(Change<? extends Attribut> aenderung) {
+				if (aenderung.next()) {
+					fuelleAttributListe(tabelle, aenderung.getList());
+				}
+			}
+		});
+	}
+	
+	private void fuelleAttributListe(GridPane tabelle,
+			List<? extends Attribut> attributListe) {
+		tabelle.getChildren().removeIf(kind -> GridPane.getRowIndex(kind) > 0);
+		int zeile = 1;
+		for (var attribut : attributListe) {
+			var inhalt = erstelleAttributZeile(attribut, zeile-1);
+			tabelle.addRow(zeile, inhalt);
+			zeile++;
+		}
+	}
+	
+	private Node[] erstelleAttributZeile(Attribut attribut, int zeile) {
+		ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
+		sichtbarkeit.getItems().addAll(klassifizierer.getProgrammiersprache()
+				.getEigenschaften().getAttributModifizierer(klassifizierer.getTyp()));
+		sichtbarkeit.getSelectionModel().select(attribut.getSichtbarkeit());
+		sichtbarkeit.getSelectionModel().selectedItemProperty().addListener((o, alt, neu) -> {
+			attribut.setSichtbarkeit(neu);
+		});
 		
-		TableColumn<Attribut, String> initialwert = new TableColumn<>();
-		initialwert.setCellValueFactory(
-				zellDaten -> zellDaten.getValue().getInitialwertProperty());
-		SprachUtil.bindText(initialwert.textProperty(), sprache, "initialwert", "Initialwert");
+		TextField name = new TextField();
+		name.textProperty().bindBidirectional(attribut.getNameProperty());
 		
-		TableColumn<Attribut, Boolean> getter = new TableColumn<>();
-		getter.setCellValueFactory(zellDaten -> zellDaten.getValue().getHatGetterProperty());
-		SprachUtil.bindText(getter.textProperty(), sprache, "getter", "Getter");
+		TextField datentyp = new TextField(attribut.getDatentyp().getTypName());
+		datentyp.textProperty().bindBidirectional(attribut.getDatentyp().getTypNameProperty());
 		
-		TableColumn<Attribut, Boolean> setter = new TableColumn<>();
-		setter.setCellValueFactory(zellDaten -> zellDaten.getValue().getHatSetterProperty());
-		SprachUtil.bindText(setter.textProperty(), sprache, "setter", "Setter");
+		TextField initialwert = new TextField(attribut.getInitialwert());
+		initialwert.textProperty().bindBidirectional(attribut.getInitialwertProperty());
+		initialwert.setPrefWidth(60);
 		
-		tabelle.getColumns().add(sichtbarkeit);
-		tabelle.getColumns().add(attributname);
-		tabelle.getColumns().add(datentyp);
-		tabelle.getColumns().add(initialwert);
-		tabelle.getColumns().add(getter);
-		tabelle.getColumns().add(setter);
+		CheckBox getter = new CheckBox();
+		getter.selectedProperty().bindBidirectional(attribut.getHatGetterProperty());
+		GridPane.setHalignment(getter, HPos.CENTER);
+		
+		CheckBox setter = new CheckBox();
+		setter.selectedProperty().bindBidirectional(attribut.getHatSetterProperty());
+		GridPane.setHalignment(setter, HPos.CENTER);
+		
+		Label loeschen = new Label();
+		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
+		loeschen.setOnMouseClicked(e -> {
+			klassifizierer.getAttribute().remove(attribut);
+		});
+		
+		Label hoch = new Label();
+		NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
+		hoch.setOnMouseClicked(e -> {
+			tausche(klassifizierer.getAttribute(), zeile, zeile-1);
+		});
+		
+		if(zeile == 0) {
+			hoch.setDisable(true);
+		}
+		
+		Label runter = new Label();
+		NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
+		runter.setOnMouseClicked(e -> {
+			tausche(klassifizierer.getAttribute(), zeile, zeile+1);
+		});
+		
+		if (zeile == klassifizierer.getAttribute().size()-1) {
+			runter.setDisable(true);
+		}
+		
+		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter, hoch,
+			runter, loeschen};
 	}
 	
 	private HBox erzeugeSichtbarkeit() {
@@ -317,12 +377,19 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	
 	private void initialisiereButtons() {
 		ButtonType[] buttons = {
-			new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.APPLY),
+			new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.FINISH),
 			new ButtonType(sprache.getText("CANCEL_CLOSE", "Abbrechen"),
-					ButtonData.CANCEL_CLOSE)
+					ButtonData.BACK_PREVIOUS)
 		};
 		this.getDialogPane().getButtonTypes().addAll(buttons);
 		this.getDialogPane().lookupButton(buttons[0]).disableProperty()
 				.bind(klassifizierer.nameProperty().isEmpty());
+	}
+	
+	private <E> void tausche(List<E> liste, int indexA, int indexB) {
+		var a = klassifizierer.getAttribute().get(indexA);
+		var b = klassifizierer.getAttribute().get(indexB);
+		klassifizierer.getAttribute().set(indexA, b);
+		klassifizierer.getAttribute().set(indexB, a);
 	}
 }

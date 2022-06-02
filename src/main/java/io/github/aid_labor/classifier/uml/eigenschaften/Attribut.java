@@ -9,7 +9,6 @@ package io.github.aid_labor.classifier.uml.eigenschaften;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
@@ -45,7 +44,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	
 	private final JsonObjectProperty<Modifizierer> sichtbarkeit;
 	private final JsonStringProperty name;
-	@JsonIgnore private final JsonObjectProperty<Datentyp> datentyp;
+	private final Datentyp datentyp;
 	private final JsonStringProperty initialwert;
 	private final JsonBooleanProperty hatGetter;
 	private final JsonBooleanProperty hatSetter;
@@ -59,14 +58,14 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
 			@JsonProperty("datentyp") Datentyp datentyp) {
 		this.sichtbarkeit = new JsonObjectProperty<>(sichtbarkeit);
-		this.datentyp = new JsonObjectProperty<>(datentyp);
+		this.datentyp = datentyp;
 		this.name = new JsonStringProperty("");
 		this.initialwert = new JsonStringProperty(null);
 		this.hatGetter = new JsonBooleanProperty(false);
 		this.hatSetter = new JsonBooleanProperty(false);
 		
 		this.ueberwachePropertyAenderung(this.sichtbarkeit);
-		this.ueberwachePropertyAenderung(this.datentyp);
+		this.ueberwachePropertyAenderung(this.datentyp.getTypNameProperty());
 		this.ueberwachePropertyAenderung(this.name);
 		this.ueberwachePropertyAenderung(this.initialwert);
 		this.ueberwachePropertyAenderung(this.hatGetter);
@@ -95,17 +94,8 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.name.set(name);
 	}
 	
-	@JsonProperty("datentyp")
 	public Datentyp getDatentyp() {
-		if(datentyp.get() == null) {
-			return new Datentyp(null);
-		}
-		return datentyp.get();
-	}
-	
-	@JsonProperty("datentyp")
-	public void setDatentyp(Datentyp datentyp) {
-		this.datentyp.set(datentyp);
+		return datentyp;
 	}
 	
 	public String getInitialwert() {
@@ -140,10 +130,6 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	
 	public StringProperty getNameProperty() {
 		return name;
-	}
-	
-	public ObjectProperty<Datentyp> getDatentypProperty() {
-		return datentyp;
 	}
 	
 	public StringProperty getInitialwertProperty() {

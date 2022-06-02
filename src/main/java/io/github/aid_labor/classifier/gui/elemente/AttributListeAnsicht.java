@@ -7,10 +7,10 @@
 package io.github.aid_labor.classifier.gui.elemente;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
-import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.When;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -19,88 +19,59 @@ import javafx.scene.layout.GridPane;
 
 
 public class AttributListeAnsicht extends GridPane {
-	private static final Logger log = Logger.getLogger(AttributListeAnsicht.class.getName());
-	
+//	private static final Logger log = Logger.getLogger(AttributListeAnsicht.class.getName());
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	private final ObservableList<Attribut> attributListe;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public AttributListeAnsicht(ObservableList<Attribut> items) {
+	public AttributListeAnsicht(ObservableList<Attribut> attributListe) {
 		this.setMinSize(0, 0);
-		this.setVisible(items.size() > 0);
+		this.setVisible(attributListe.size() > 0);
 		this.setHgap(5);
+		this.attributListe = attributListe;
 		
 		WeakReference<AttributListeAnsicht> ref = new WeakReference<AttributListeAnsicht>(
 				this);
-		items.addListener(new ListChangeListener<Attribut>() {
+		attributListe.addListener(new ListChangeListener<Attribut>() {
 			@Override
 			public void onChanged(Change<? extends Attribut> aenderung) {
-				ref.get().setVisible(items.size() > 0);
+				ref.get().setVisible(attributListe.size() > 0);
 				
-				while (aenderung.next()) {
-					if (aenderung.wasPermutated()) {
-						for (var kind : getChildren()) {
-							GridPane.setRowIndex(kind,
-									aenderung.getPermutation(GridPane.getRowIndex(kind)));
-						}
-					}
-					if (aenderung.wasRemoved()) {
-						entferne(aenderung.getFrom(), aenderung.getTo());
-					}
-					if (aenderung.wasAdded()) {
-						fuelleListe(aenderung.getFrom(), aenderung.getAddedSubList());
-					}
-				}
+				fuelleListe();
 			}
-
-			
 		});
 		
+		fuelleListe();
 	}
 	
-	private void entferne(int von, int bis) {
-		int verschiebung = bis - von;
-		var iterator = this.getChildren().iterator();
-		iterator.forEachRemaining(kind -> {
-			if (GridPane.getRowIndex(kind) >= von && GridPane.getRowIndex(kind) < bis) {
-				iterator.remove();
-			} else if (GridPane.getRowIndex(kind) >= bis) {
-				GridPane.setRowIndex(kind, GridPane.getRowIndex(kind) - verschiebung);
-			}
-		});
-	}
-	
-	private void verschiebe(int von, int bis, int verschiebung) {
-		this.getChildren().forEach(kind -> {
-			if (GridPane.getRowIndex(kind) >= von && GridPane.getRowIndex(kind) < bis) {
-				GridPane.setRowIndex(kind, GridPane.getRowIndex(kind) + verschiebung);
-			}
-		});
-	}
-	
-	private void fuelleListe(int von, List<? extends Attribut> neueAttribute) {
-		verschiebe(von, this.getRowCount(), neueAttribute.size());
-		for (int zeile = von; zeile < neueAttribute.size(); zeile++) {
-			var inhalt = erstelleAttributAnsicht(neueAttribute.get(zeile));
+	private void fuelleListe() {
+		this.getChildren().clear();
+		int zeile = 0;
+		for (var attribut : attributListe) {
+			var inhalt = erstelleAttributAnsicht(attribut);
 			this.addRow(zeile, inhalt);
+			zeile++;
 		}
 	}
 	
@@ -108,20 +79,24 @@ public class AttributListeAnsicht extends GridPane {
 		var sichtbarkeit = new TextField();
 		sichtbarkeit.textProperty()
 				.bind(attribut.getSichtbarkeitProperty().get().getKurzform());
-		attribut.getSichtbarkeitProperty().addListener(o -> {
+		attribut.getSichtbarkeitProperty().addListener((p, alt, neu) -> {
+			sichtbarkeit.textProperty().unbind();
 			sichtbarkeit.textProperty()
 					.bind(attribut.getSichtbarkeitProperty().get().getKurzform());
 		});
 		
 		var beschreibung = new TextField();
-		beschreibung.textProperty().bind(attribut.getNameProperty().concat(": ")
-				.concat(attribut.getDatentypProperty().getName()));
-		attribut.getDatentypProperty().addListener(o -> {
-			beschreibung.textProperty().bind(attribut.getNameProperty().concat(": ")
-					.concat(attribut.getDatentypProperty().getName()));
-		});
+		beschreibung.textProperty().bind(
+				attribut.getNameProperty()
+				.concat(": ")
+				.concat(attribut.getDatentyp().getTypNameProperty())
+				.concat(new When(attribut.getInitialwertProperty().isEmpty())
+						.then("")
+						.otherwise(
+								Bindings.concat(" = ", attribut.getInitialwertProperty()))));
 		
 		sichtbarkeit.setEditable(false);
+		sichtbarkeit.setPrefColumnCount(1);
 		sichtbarkeit.getStyleClass().clear();
 		sichtbarkeit.getStyleClass().add("label");
 		beschreibung.setEditable(false);
