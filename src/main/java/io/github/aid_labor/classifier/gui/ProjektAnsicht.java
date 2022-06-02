@@ -6,22 +6,31 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+
 import com.dlsc.gemsfx.DialogPane;
 
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.elemente.UMLElementBasisAnsicht;
+import io.github.aid_labor.classifier.gui.elemente.UMLKlassifiziererAnsicht;
+import io.github.aid_labor.classifier.gui.elemente.UMLKommentarAnsicht;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.beans.binding.When;
 import javafx.collections.ListChangeListener.Change;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.Pane;
 
 
 public class ProjektAnsicht extends Tab {
-//	private static final Logger log = Logger.getLogger(ProjektAnsicht.class.getName());
+	private static final Logger log = Logger.getLogger(ProjektAnsicht.class.getName());
 	private static String UNGESPEICHERT_CSS_CLASS = "tab-ungespeichert";
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -47,6 +56,7 @@ public class ProjektAnsicht extends Tab {
 	private final DialogPane overlayDialog;
 	private final ProgrammDetails programm;
 	private final Pane zeichenflaeche;
+	private final Map<Integer, Node> ansichten;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -59,6 +69,7 @@ public class ProjektAnsicht extends Tab {
 		this.programm = programm;
 		this.controller = new ProjektKontrolle(this, sprache);
 		this.zeichenflaeche = new Pane();
+		this.ansichten = new HashMap<>();
 		
 		var inhalt = new ScrollPane(zeichenflaeche);
 		this.setContent(inhalt);
@@ -128,12 +139,9 @@ public class ProjektAnsicht extends Tab {
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	void zeigeUMLElement(UMLElementBasisAnsicht<?> umlElement) {
-		throw new UnsupportedOperationException("Noch nicht implementiert");
-	}
-	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	private int idZaehler = 0;
 	private <E extends UMLDiagrammElement> void ueberwacheDiagrammElemente(
 			Change<E> aenderung) {
 		while (aenderung.next()) {
@@ -141,10 +149,28 @@ public class ProjektAnsicht extends Tab {
 				
 			}
 			if (aenderung.wasAdded()) {
-				
+				for (var neu : aenderung.getAddedSubList()) {
+					UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht = null;
+					if (neu instanceof UMLKlassifizierer klassifizierer) {
+						ansicht = new UMLKlassifiziererAnsicht(klassifizierer);
+					} else if (neu instanceof UMLKommentar kommentar) {
+						ansicht = new UMLKommentarAnsicht(kommentar);
+					} else {
+						log.severe(() -> "unbekannter Typ: " + neu.getClass().getName());
+						continue;
+					}
+					
+					this.zeichenflaeche.getChildren().add(ansicht);
+					ansicht.getUmlElement().setId(idZaehler);
+					this.ansichten.put(idZaehler, ansicht);
+					idZaehler++;
+				}
 			}
 			if (aenderung.wasRemoved()) {
-				
+				for (UMLDiagrammElement entfernt : aenderung.getRemoved()) {
+					var ansicht = this.ansichten.remove(entfernt.getId());
+					this.zeichenflaeche.getChildren().remove(ansicht);
+				}
 			}
 		}
 	}

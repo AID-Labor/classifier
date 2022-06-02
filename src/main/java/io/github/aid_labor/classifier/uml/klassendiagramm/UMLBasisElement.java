@@ -6,14 +6,13 @@
 
 package io.github.aid_labor.classifier.uml.klassendiagramm;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 
 import io.github.aid_labor.classifier.basis.json.JsonDoubleProperty;
-import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.projekt.EditierBefehl;
 import io.github.aid_labor.classifier.basis.projekt.EditierBeobachter;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
-import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
 
 
 /**
@@ -36,7 +35,7 @@ abstract class UMLBasisElement extends EditierbarBasis
 		implements UMLDiagrammElement, EditierBeobachter {
 //	private static final Logger log = Logger.getLogger(UMLBasisElement.class.getName());
 	
-	public static class Position extends EditierbarBasis implements EditierbarerBeobachter {
+	public static class Position {
 		
 		private JsonDoubleProperty x;
 		private JsonDoubleProperty y;
@@ -52,11 +51,6 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this.y = new JsonDoubleProperty(y);
 			this.hoehe = new JsonDoubleProperty(hoehe);
 			this.breite = new JsonDoubleProperty(breite);
-			
-			this.ueberwachePropertyAenderung(this.x);
-			this.ueberwachePropertyAenderung(this.y);
-			this.ueberwachePropertyAenderung(this.hoehe);
-			this.ueberwachePropertyAenderung(this.breite);
 		}
 
 		public double getX() {
@@ -91,20 +85,32 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this.breite.set(breite);
 		}
 		
+		@JsonIgnore
 		public JsonDoubleProperty getXProperty() {
 			return x;
 		}
 		
+		@JsonIgnore
 		public JsonDoubleProperty getYProperty() {
 			return y;
 		}
 		
+		@JsonIgnore
 		public JsonDoubleProperty getHoeheProperty() {
 			return hoehe;
 		}
 		
+		@JsonIgnore
 		public JsonDoubleProperty getBreiteProperty() {
 			return breite;
+		}
+
+		@JsonIgnore
+		public void setPosition(Position position) {
+			this.setX(position.getX());
+			this.setY(position.getY());
+			this.setHoehe(position.getHoehe());
+			this.setBreite(position.getBreite());
 		}
 	}
 
@@ -126,15 +132,27 @@ abstract class UMLBasisElement extends EditierbarBasis
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private final JsonObjectProperty<Position> position;
+	private final Position position;
+	@JsonIgnore private int id;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	public UMLBasisElement() {
+		this.position = new Position(10, 10, -1, -1);
+		this.ueberwachePropertyAenderung(this.position.x);
+		this.ueberwachePropertyAenderung(this.position.y);
+		this.ueberwachePropertyAenderung(this.position.hoehe);
+		this.ueberwachePropertyAenderung(this.position.breite);
+	}
+	
 	public UMLBasisElement(Position position) {
-		this.position = new JsonObjectProperty<>(position);
-		this.ueberwachePropertyAenderung(this.position);
+		this.position = position;
+		this.ueberwachePropertyAenderung(this.position.x);
+		this.ueberwachePropertyAenderung(this.position.y);
+		this.ueberwachePropertyAenderung(this.position.hoehe);
+		this.ueberwachePropertyAenderung(this.position.breite);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -142,6 +160,21 @@ abstract class UMLBasisElement extends EditierbarBasis
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@Override
+	public Position getPosition() {
+		return position;
+	}
+	
+	@Override
+	public int getId() {
+		return id;
+	}
+	
+	@Override
+	public void setId(int id) {
+		this.id = id;
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

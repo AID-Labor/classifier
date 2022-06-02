@@ -1,20 +1,22 @@
-/*
+/* 
  * Dieser Quellcode steht unter der MIT-License.
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
-
 package io.github.aid_labor.classifier.gui.elemente;
 
 import java.util.logging.Logger;
 
-import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
-import javafx.scene.layout.StackPane;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
+import javafx.geometry.Insets;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.paint.Color;
 
+public class UMLKommentarAnsicht extends UMLElementBasisAnsicht<UMLKommentar> {
+	private static final Logger log = Logger.getLogger(UMLKommentarAnsicht.class.getName());
 
-public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackPane {
-	private static final Logger log = Logger.getLogger(UMLElementBasisAnsicht.class.getName());
-	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -22,6 +24,7 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -33,18 +36,17 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	protected final E umlElementModel;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public UMLElementBasisAnsicht(E umlElementModel) {
-		this.umlElementModel = umlElementModel;
-		this.translateXProperty().bindBidirectional(umlElementModel.getPosition().getXProperty());
-		this.translateYProperty().bindBidirectional(umlElementModel.getPosition().getYProperty());
-		this.setMinSize(80, 30);
+	public UMLKommentarAnsicht(UMLKommentar kommentar) {
+		super(kommentar);
+		this.setMinSize(50, 50);
+		this.setBackground(new Background(new BackgroundFill(Color.BEIGE, new CornerRadii(0), new Insets(0))));
 	}
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
@@ -52,15 +54,19 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	public E getUmlElement() {
-		return umlElementModel;
-	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	
+	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*
@@ -68,10 +74,19 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	
+	
 	
 }

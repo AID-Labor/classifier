@@ -24,7 +24,7 @@ import io.github.aid_labor.classifier.LoggingEinstellung;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
-import io.github.aid_labor.classifier.uml.eigenschaften.Datentyp.BasisDatentyp;
+import io.github.aid_labor.classifier.uml.eigenschaften.Java;
 import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
 import io.github.aid_labor.classifier.uml.eigenschaften.Parameter;
@@ -138,13 +138,13 @@ class UMLSpeichertest {
 				Programmiersprache.Java, "TestKlasseAttribute");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		
-		var attribut = new Attribut(Modifizierer.PACKAGE, BasisDatentyp.STRING);
+		var attribut = new Attribut(Modifizierer.PACKAGE, Java.STRING);
 		attribut.setName("testAttribut");
 		umlKlasse.getAttribute().add(attribut);
 		testeSpeichernUndOeffnen();
 		
 		umlKlasse.getAttribute()
-				.add(new Attribut(Modifizierer.PROTECTED, BasisDatentyp.DOUBLE));
+				.add(new Attribut(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV));
 		testeSpeichernUndOeffnen();
 		
 		attribut.setName("testAttributNeu");
@@ -162,7 +162,7 @@ class UMLSpeichertest {
 		attribut.setSichtbarkeit(Modifizierer.PUBLIC);
 		testeSpeichernUndOeffnen();
 		
-		attribut.setDatentyp(BasisDatentyp.CHAR);
+		attribut.setDatentyp(Java.CHAR_PRIMITIV);
 		testeSpeichernUndOeffnen();
 	}
 	
@@ -172,13 +172,13 @@ class UMLSpeichertest {
 				Programmiersprache.Java, "TestKlasseMethoden");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		
-		var methode = new Methode(Modifizierer.PUBLIC, BasisDatentyp.INT);
+		var methode = new Methode(Modifizierer.PUBLIC, Java.INT_PRIMITIV);
 		methode.setName("testMethode");
 		umlKlasse.getMethoden().add(methode);
 		testeSpeichernUndOeffnen();
 		
 		umlKlasse.getMethoden()
-				.add(new Methode(Modifizierer.PROTECTED, BasisDatentyp.DOUBLE));
+				.add(new Methode(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV));
 		testeSpeichernUndOeffnen();
 		
 		methode.setName("testMethodeNeu");
@@ -187,7 +187,7 @@ class UMLSpeichertest {
 		methode.setSichtbarkeit(Modifizierer.PRIVATE);
 		testeSpeichernUndOeffnen();
 		
-		methode.setRueckgabeTyp(BasisDatentyp.CHAR);
+		methode.setRueckgabeTyp(Java.CHAR_PRIMITIV);
 		testeSpeichernUndOeffnen();
 		
 		methode.setzeAbstrakt(true);
@@ -196,14 +196,14 @@ class UMLSpeichertest {
 		methode.setzeFinal(true);
 		testeSpeichernUndOeffnen();
 		
-		var parameter = new Parameter(BasisDatentyp.INT, "arg");
+		var parameter = new Parameter(Java.INT_PRIMITIV, "arg");
 		methode.getParameterListe().add(parameter);
 		testeSpeichernUndOeffnen();
 		
 		parameter.setName("param");
 		testeSpeichernUndOeffnen();
 		
-		parameter.setDatentyp(BasisDatentyp.STRING);
+		parameter.setDatentyp(Java.STRING);
 		testeSpeichernUndOeffnen();
 	}
 	

@@ -97,6 +97,9 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	
 	@JsonProperty("datentyp")
 	public Datentyp getDatentyp() {
+		if(datentyp.get() == null) {
+			return new Datentyp(null);
+		}
 		return datentyp.get();
 	}
 	

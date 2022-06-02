@@ -6,20 +6,13 @@
 
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
+import java.util.List;
+
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 
 
 public interface ProgrammierEigenschaften {
-	
-	public boolean istTypModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
-	
-	public boolean istAttributModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
-	
-	public boolean istMethodenModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
-	
-	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ);
-	public boolean erlaubtSuperklasse(KlassifiziererTyp typ);
-	
+
 	/**
 	 * Gibt eine passende Instanz fuer die uebergebene Programmiersprache zurueck
 	 * 
@@ -33,5 +26,26 @@ public interface ProgrammierEigenschaften {
 			default -> null;
 		};
 	}
+	
+	
+	public boolean istTypModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
+	public boolean istAttributModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
+	public boolean istMethodenModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
+	
+	public Modifizierer[] getAttributModifizierer(KlassifiziererTyp typ);
+	public Modifizierer[] getMethodenModifizierer(KlassifiziererTyp typ);
+	
+	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ);
+	public boolean erlaubtSuperklasse(KlassifiziererTyp typ);
+	
+	public Datentyp getLetzerDatentyp();
+	public void setLetzerDatentyp(Datentyp letzterDatentyp);
+	
+	public boolean istVoid(Datentyp datentyp);
+
+	public List<Datentyp> getPrimitiveDatentypen();
+	public Datentyp getVoid();
+	public List<Datentyp> getBekannteDatentypen();
+
 	
 }

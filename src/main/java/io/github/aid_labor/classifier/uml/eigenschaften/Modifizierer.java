@@ -6,9 +6,14 @@
 
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
+import io.github.aid_labor.classifier.basis.Einstellungen;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
+
+
 public enum Modifizierer {
 	
-	PUBLIC, PROTECTED, PACKAGE, PRIVATE;
+	PUBLIC("+"), PROTECTED("#"), PACKAGE("~"), PRIVATE("-");
 
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -19,11 +24,27 @@ public enum Modifizierer {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
+	private final ReadOnlyStringWrapper kurzformProperty;
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
+	private Modifizierer(String kurzform) {
+		this.kurzformProperty = new ReadOnlyStringWrapper(kurzform);
+		Einstellungen.getBenutzerdefiniert().zeigePackageModifier
+				.addListener((property, alt, zeigeModifier) -> {
+					if(this.equals(PACKAGE)) {
+						if (zeigeModifier) {
+							kurzformProperty.set(kurzform);
+						} else {
+							kurzformProperty.set("");
+						}
+					}
+				});
+	}
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -63,6 +84,10 @@ public enum Modifizierer {
 	 */
 	public boolean istPrivate() {
 		return true;
+	}
+	
+	public ReadOnlyStringProperty getKurzform() {
+		return kurzformProperty.getReadOnlyProperty();
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

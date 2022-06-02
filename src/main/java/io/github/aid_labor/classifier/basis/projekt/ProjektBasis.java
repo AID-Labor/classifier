@@ -308,6 +308,7 @@ public abstract class ProjektBasis implements Projekt {
 	public final void macheRueckgaengig() {
 		if (!rueckgaengigVerlauf.istLeer()) {
 			var befehl = rueckgaengigVerlauf.entfernen();
+			log.fine(() -> "%s\n    -> mache rueckgaengig {%s}".formatted(this, befehl));
 			befehl.macheRueckgaengig();
 			wiederholenVerlauf.ablegen(befehl);
 		}
@@ -340,6 +341,7 @@ public abstract class ProjektBasis implements Projekt {
 	public final void wiederhole() {
 		if (!wiederholenVerlauf.istLeer()) {
 			var befehl = wiederholenVerlauf.entfernen();
+			log.fine(() -> "%s\n    -> wiederhole {%s}".formatted(this, befehl));
 			befehl.wiederhole();
 			rueckgaengigVerlauf.ablegen(befehl);
 		}

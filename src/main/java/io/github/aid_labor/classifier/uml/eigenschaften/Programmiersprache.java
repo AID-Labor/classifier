@@ -69,7 +69,9 @@ public enum Programmiersprache {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	
+	public ProgrammierEigenschaften getEigenschaften() {
+		return ProgrammierEigenschaften.get(this);
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

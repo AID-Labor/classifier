@@ -23,6 +23,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.Theme;
 import io.github.aid_labor.classifier.basis.io.system.OS;
+import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
 import io.github.aid_labor.classifier.basis.json.JsonIntegerProperty;
 import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
@@ -144,6 +145,8 @@ public class Einstellungen {
 	 * gespeichert werden
 	 */
 	public final JsonIntegerProperty verlaufAnzahl;
+	public final JsonBooleanProperty zeigePackageModifier;
+	public final JsonBooleanProperty zeigeVoid;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -191,6 +194,8 @@ public class Einstellungen {
 					}
 				});
 		this.verlaufAnzahl = new JsonIntegerProperty(100);
+		this.zeigePackageModifier = new JsonBooleanProperty(true);
+		this.zeigeVoid = new JsonBooleanProperty(false);
 	}
 	
 	/**

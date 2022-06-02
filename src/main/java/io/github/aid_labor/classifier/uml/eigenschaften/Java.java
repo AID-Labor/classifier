@@ -6,18 +6,45 @@
 
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 
 
-class Java implements ProgrammierEigenschaften {
+public class Java implements ProgrammierEigenschaften {
 	
 	private static final Logger log = Logger.getLogger(Java.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	public static Datentyp BOOLEAN_PRIMITIV = new Datentyp("boolean");
+	public static Datentyp BYTE_PRIMITIV = new Datentyp("byte");
+	public static Datentyp SHORT_PRIMITIV = new Datentyp("short");
+	public static Datentyp INT_PRIMITIV = new Datentyp("int");
+	public static Datentyp LONG_PRIMITIV = new Datentyp("long");
+	public static Datentyp FLOAT_PRIMITIV = new Datentyp("float");
+	public static Datentyp DOUBLE_PRIMITIV = new Datentyp("double");
+	public static Datentyp CHAR_PRIMITIV = new Datentyp("char");
+	public static Datentyp VOID_PRIMITIV = new Datentyp("void");
+	
+	public static List<Datentyp> PRIMITIVE_DATENTYPEN = Collections.unmodifiableList(List.of(
+			BOOLEAN_PRIMITIV,
+			BYTE_PRIMITIV,
+			SHORT_PRIMITIV,
+			INT_PRIMITIV,
+			LONG_PRIMITIV,
+			FLOAT_PRIMITIV,
+			DOUBLE_PRIMITIV,
+			CHAR_PRIMITIV,
+			VOID_PRIMITIV));
+	
+	public static Datentyp STRING = new Datentyp("String");
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -47,13 +74,7 @@ class Java implements ProgrammierEigenschaften {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	private Datentyp letzterDatentyp;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -61,6 +82,7 @@ class Java implements ProgrammierEigenschaften {
 	
 	private Java() {
 		// Singleton-Entwurfsmuster
+		letzterDatentyp = STRING;
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -99,6 +121,34 @@ class Java implements ProgrammierEigenschaften {
 	}
 	
 	@Override
+	public Modifizierer[] getAttributModifizierer(KlassifiziererTyp typ) {
+		return switch (typ) {
+			case Interface -> new Modifizierer[] { Modifizierer.PUBLIC };
+			case Klasse, AbstrakteKlasse, Enumeration ->
+				new Modifizierer[] { Modifizierer.PUBLIC, Modifizierer.PROTECTED,
+					Modifizierer.PACKAGE, Modifizierer.PRIVATE };
+			default -> {
+				log.warning(() -> "unbekannter typ: " + typ);
+				yield new Modifizierer[0];
+			}
+		};
+	}
+	
+	@Override
+	public Modifizierer[] getMethodenModifizierer(KlassifiziererTyp typ) {
+		return switch (typ) {
+			case Interface -> new Modifizierer[] { Modifizierer.PUBLIC };
+			case Klasse, AbstrakteKlasse, Enumeration ->
+				new Modifizierer[] { Modifizierer.PUBLIC, Modifizierer.PROTECTED,
+					Modifizierer.PACKAGE, Modifizierer.PRIVATE };
+			default -> {
+				log.warning(() -> "unbekannter typ: " + typ);
+				yield new Modifizierer[0];
+			}
+		};
+	}
+	
+	@Override
 	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ) {
 		return switch (typ) {
 			case Interface -> false;
@@ -112,6 +162,37 @@ class Java implements ProgrammierEigenschaften {
 			case Interface, Enumeration -> false;
 			default -> true;
 		};
+	}
+	
+	@Override
+	public Datentyp getLetzerDatentyp() {
+		return letzterDatentyp;
+	}
+	
+	@Override
+	public void setLetzerDatentyp(Datentyp letzterDatentyp) {
+		this.letzterDatentyp = letzterDatentyp;
+	}
+	
+	@Override
+	public boolean istVoid(Datentyp datentyp) {
+		return datentyp.getTypName().equals("void");
+	}
+	
+	@Override
+	public List<Datentyp> getPrimitiveDatentypen() {
+		return PRIMITIVE_DATENTYPEN;
+	}
+	
+	@Override
+	public Datentyp getVoid() {
+		return VOID_PRIMITIV;
+	}
+	
+	@Override
+	public List<Datentyp> getBekannteDatentypen() {
+		log.severe(() -> "getBekannteDatentypen noch nicht implementiert !!! !!! !!! !!! !!!");
+		return Collections.emptyList();
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

@@ -1,58 +1,71 @@
-/* 
+/*
  * Dieser Quellcode steht unter der MIT-License.
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
+
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import java.util.Objects;
 
-import io.github.aid_labor.classifier.uml.eigenschaften.Datentyp.BasisDatentyp;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
+import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
 
 //@formatter:off
-@JsonTypeInfo(
-		use = Id.NAME,
-		include = As.PROPERTY,
-		property = "klasse"
+@JsonAutoDetect(
+		getterVisibility = Visibility.NONE,
+		isGetterVisibility = Visibility.NONE,
+		setterVisibility = Visibility.NONE,
+		fieldVisibility = Visibility.ANY
 )
-@JsonSubTypes({
-	@JsonSubTypes.Type(value = BasisDatentyp.class)
-})
-// @formatter:on
-public interface Datentyp {
+//@formatter:on
+public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter {
 	
-	public static enum BasisDatentyp implements Datentyp {
-		
-		CHAR("char"), INT("int"), DOUBLE("double"), STRING("String");
-		
-		private String typName;
-		
-		private BasisDatentyp(String typName) {
-			this.typName = typName;
-		}
-		
-		@Override
-		public String getTypName() {
-			return typName;
-		}
-		
-		@Override
-		public String toString() {
-			return getTypName();
-		}
-		
-		@Override
-		public Datentyp erzeugeTiefeKopie() {
-			return this;
-		}
+	
+	private final String typName;
+	
+	@JsonCreator
+	public Datentyp(@JsonProperty("typName") String typName) {
+		this.typName = typName;
 	}
 	
-	public String getTypName();
+	public String getTypName() {
+		return typName;
+	}
+	
+	public Datentyp erzeugeTiefeKopie() {
+		return new Datentyp(typName);
+	}
+	
+	@Override
+	public String toString() {
+		return this.getTypName();
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(typName);
+	}
 
-	public Datentyp erzeugeTiefeKopie();
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Datentyp other = (Datentyp) obj;
+		return Objects.equals(typName, other.typName);
+	}
 	
 	
 }

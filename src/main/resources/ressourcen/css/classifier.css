@@ -47,3 +47,15 @@
     -fx-font: bold 1.2em sans-serif;
     -fx-text-fill: red;
 }
+
+.UML-Klassifizierer-Ansicht {
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-border-color: black;
+}
+
+.UML-Klassifizierer-Trennlinie > .line {
+    -fx-border-width: 2 1;
+    -fx-border-style: solid;
+    -fx-border-color: black;
+}
