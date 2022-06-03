@@ -76,7 +76,9 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 							StringExpression stringExpr = null;
 							@Override
 							protected String computeValue() {
-//								super.unbind(stringExpr);
+								if (stringExpr != null) {
+									super.unbind(stringExpr);
+								}
 								var params = methode.getParameterListe().stream().map(param -> {
 									return Bindings.concat(new When(Einstellungen
 													.getBenutzerdefiniert().zeigeParameterNamen)
@@ -95,8 +97,7 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 									stringExpr = stringExpr.concat(params[i]);
 								}
 								
-								// TODO ?
-//								super.bind(stringExpr);
+								super.bind(stringExpr);
 								return stringExpr.get();
 							}
 						})

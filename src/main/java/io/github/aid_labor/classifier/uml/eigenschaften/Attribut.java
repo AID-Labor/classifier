@@ -8,6 +8,7 @@ package io.github.aid_labor.classifier.uml.eigenschaften;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -48,6 +49,9 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	private final JsonStringProperty initialwert;
 	private final JsonBooleanProperty hatGetter;
 	private final JsonBooleanProperty hatSetter;
+	private final JsonBooleanProperty istStatisch;
+	@JsonBackReference("getterAttribut") private Methode getter;
+	@JsonBackReference("setterAttribut") private Methode setter;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -56,13 +60,17 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	@JsonCreator
 	public Attribut(
 			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
-			@JsonProperty("datentyp") Datentyp datentyp) {
+			@JsonProperty("datentyp") Datentyp datentyp,
+			@JsonProperty("istStatisch") boolean istStatisch,
+			@JsonProperty("getterAttribut") Methode getter,
+			@JsonProperty("setterAttribut") Methode setter) {
 		this.sichtbarkeit = new JsonObjectProperty<>(sichtbarkeit);
 		this.datentyp = datentyp;
 		this.name = new JsonStringProperty("");
 		this.initialwert = new JsonStringProperty(null);
 		this.hatGetter = new JsonBooleanProperty(false);
 		this.hatSetter = new JsonBooleanProperty(false);
+		this.istStatisch = new JsonBooleanProperty(istStatisch);
 		
 		this.ueberwachePropertyAenderung(this.sichtbarkeit);
 		this.ueberwachePropertyAenderung(this.datentyp.getTypNameProperty());
@@ -70,6 +78,29 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.ueberwachePropertyAenderung(this.initialwert);
 		this.ueberwachePropertyAenderung(this.hatGetter);
 		this.ueberwachePropertyAenderung(this.hatSetter);
+		this.ueberwachePropertyAenderung(this.istStatisch);
+	}
+	
+	public Attribut(Modifizierer sichtbarkeit, Datentyp datentyp, boolean istStatisch) {
+		this.sichtbarkeit = new JsonObjectProperty<>(sichtbarkeit);
+		this.datentyp = datentyp;
+		this.name = new JsonStringProperty("");
+		this.initialwert = new JsonStringProperty(null);
+		this.hatGetter = new JsonBooleanProperty(false);
+		this.hatSetter = new JsonBooleanProperty(false);
+		this.istStatisch = new JsonBooleanProperty(istStatisch);
+		
+		this.ueberwachePropertyAenderung(this.sichtbarkeit);
+		this.ueberwachePropertyAenderung(this.datentyp.getTypNameProperty());
+		this.ueberwachePropertyAenderung(this.name);
+		this.ueberwachePropertyAenderung(this.initialwert);
+		this.ueberwachePropertyAenderung(this.hatGetter);
+		this.ueberwachePropertyAenderung(this.hatSetter);
+		this.ueberwachePropertyAenderung(this.istStatisch);
+	}
+	
+	public Attribut(Modifizierer sichtbarkeit, Datentyp datentyp) {
+		this(sichtbarkeit, datentyp, false);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -122,6 +153,30 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.hatSetter.set(hatSetter);
 	}
 	
+	public boolean istStatisch() {
+		return istStatisch.get();
+	}
+	
+	public void setzeStatisch(boolean istStatisch) {
+		this.istStatisch.set(istStatisch);
+	}
+	
+	public Methode getGetter() {
+		return getter;
+	}
+	
+	public void setGetter(Methode getter) {
+		this.getter = getter;
+	}
+	
+	public Methode getSetter() {
+		return setter;
+	}
+	
+	public void setSetter(Methode setter) {
+		this.setter = setter;
+	}
+	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public ObjectProperty<Modifizierer> getSichtbarkeitProperty() {
@@ -142,6 +197,10 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	
 	public BooleanProperty getHatSetterProperty() {
 		return hatSetter;
+	}
+	
+	public BooleanProperty getIstStatischProperty() {
+		return istStatisch;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -168,7 +227,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	@Override
 	public int hashCode() {
 		return Objects.hash(getDatentyp(), hatGetter(), hatSetter(), getInitialwert(),
-				getName(), getSichtbarkeit());
+				getName(), getSichtbarkeit(), istStatisch());
 	}
 	
 	@Override
@@ -183,16 +242,18 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 			return false;
 		}
 		Attribut other = (Attribut) obj;
-		return Objects.equals(getDatentyp(), other.getDatentyp()) 
+		return Objects.equals(getDatentyp(), other.getDatentyp())
 				&& hatGetter() == other.hatGetter()
 				&& hatSetter() == other.hatSetter()
 				&& Objects.equals(getInitialwert(), other.getInitialwert())
 				&& Objects.equals(getName(), other.getName())
-				&& Objects.equals(getSichtbarkeit(), other.getSichtbarkeit());
+				&& Objects.equals(getSichtbarkeit(), other.getSichtbarkeit())
+				&& this.istStatisch() == other.istStatisch();
 	}
 	
 	public Attribut erzeugeTiefeKopie() {
-		var kopie = new Attribut(getSichtbarkeit(), getDatentyp().erzeugeTiefeKopie());
+		var kopie = new Attribut(getSichtbarkeit(), getDatentyp().erzeugeTiefeKopie(),
+				istStatisch());
 		kopie.setInitialwert(getInitialwert());
 		kopie.setName(getName());
 		kopie.nutzeGetter(hatGetter());
@@ -200,7 +261,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		
 		return kopie;
 	}
-
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

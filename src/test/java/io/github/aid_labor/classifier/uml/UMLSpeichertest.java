@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import io.github.aid_labor.classifier.LoggingEinstellung;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
@@ -45,7 +46,7 @@ class UMLSpeichertest {
 	
 	@BeforeAll
 	static void setUpClass() {
-//		LoggingEinstellung.initialisiereTestLogging();
+		LoggingEinstellung.initialisiereTestLogging();
 		Ressourcen.setProgrammDetails(new ProgrammDetails(null, UMLProjektTest.class.getName(),
 				null, null, UMLProjektTest.class, null));
 	}
@@ -163,6 +164,9 @@ class UMLSpeichertest {
 		
 		attribut.getDatentyp().set(Java.CHAR_PRIMITIV());
 		testeSpeichernUndOeffnen();
+		
+		attribut.setzeStatisch(true);
+		testeSpeichernUndOeffnen();
 	}
 	
 	@Test
@@ -171,13 +175,15 @@ class UMLSpeichertest {
 				Programmiersprache.Java, "TestKlasseMethoden");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		
-		var methode = new Methode(Modifizierer.PUBLIC, Java.INT_PRIMITIV());
+		var methode = new Methode(Modifizierer.PUBLIC, Java.INT_PRIMITIV(),
+				umlKlasse.getProgrammiersprache());
 		methode.setName("testMethode");
 		umlKlasse.getMethoden().add(methode);
 		testeSpeichernUndOeffnen();
 		
 		umlKlasse.getMethoden()
-				.add(new Methode(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV()));
+				.add(new Methode(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV(),
+						umlKlasse.getProgrammiersprache()));
 		testeSpeichernUndOeffnen();
 		
 		methode.setName("testMethodeNeu");
@@ -203,6 +209,9 @@ class UMLSpeichertest {
 		testeSpeichernUndOeffnen();
 		
 		parameter.getDatentyp().set(Java.INT_PRIMITIV());
+		testeSpeichernUndOeffnen();
+		
+		methode.setzeStatisch(true);
 		testeSpeichernUndOeffnen();
 	}
 	

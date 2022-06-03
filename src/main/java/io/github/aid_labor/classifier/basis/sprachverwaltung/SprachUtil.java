@@ -63,7 +63,7 @@ public final class SprachUtil {
 		Map<Locale, SprachDatei> gefundeneSprachen = Collections.emptyMap();
 		try {
 			gefundeneSprachen = sucheSprachdateien(suchordner, dateiPraefix);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			log.log(Level.WARNING, e,
 					() -> "Fehler beim Suchen von Sprachdateien im Ordner %s mit dem Praefix %s"
 							.formatted(suchordner, dateiPraefix));

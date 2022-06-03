@@ -9,6 +9,8 @@ package io.github.aid_labor.classifier.gui;
 import java.util.List;
 import java.util.function.BiFunction;
 
+import org.controlsfx.control.PopOver;
+import org.controlsfx.control.PopOver.ArrowLocation;
 import org.controlsfx.control.SegmentedButton;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
@@ -24,6 +26,7 @@ import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
 import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
+import io.github.aid_labor.classifier.uml.eigenschaften.Parameter;
 import io.github.aid_labor.classifier.uml.eigenschaften.ProgrammierEigenschaften;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
@@ -190,7 +193,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					.add(new Methode(
 							programmierEigenschaften
 									.getStandardMethodenModifizierer(klassifizierer.getTyp()),
-							programmierEigenschaften.getLetzerDatentyp()));
+							programmierEigenschaften.getLetzerDatentyp(),
+							klassifizierer.getProgrammiersprache()));
 		});
 		
 		StackPane container = new StackPane(allgemeinAnzeige, attributeAnzeige,
@@ -428,7 +432,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					
 					@Override
 					protected String computeValue() {
-//						super.unbind(stringExpr);
+						if (stringExpr != null) {
+							super.unbind(stringExpr);
+						}
 						var params = methode.getParameterListe().stream().map(param -> {
 							return Bindings.concat(new When(Einstellungen
 									.getBenutzerdefiniert().zeigeParameterNamen)
@@ -447,8 +453,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							stringExpr = stringExpr.concat(params[i]);
 						}
 						
-						// TODO ?
-//						super.bind(stringExpr);
+						super.bind(stringExpr);
 						return stringExpr.get();
 					}
 				})
@@ -459,6 +464,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						.greaterThanOrEqualTo(TextField.DEFAULT_PREF_COLUMN_COUNT))
 						.then(parameter.textProperty().length())
 						.otherwise(TextField.DEFAULT_PREF_COLUMN_COUNT));
+		parameter.setOnMousePressed(e -> bearbeiteParameter(parameter, methode));
 		
 		TextField rueckgabetyp = new TextField(methode.getRueckgabeTyp().getTypName());
 		rueckgabetyp.textProperty()
@@ -501,6 +507,53 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, istFinal,
 			hoch, runter, loeschen };
+	}
+	
+	private void bearbeiteParameter(TextField parameter, Methode methode) {
+		var parameterListe = erzeugeTabellenAnzeige(new String[] {
+			"Parametername", "Datentyp"
+		}, methode.getParameterListe(), (param, zeile) -> {
+			TextField name = new TextField();
+			name.textProperty().bindBidirectional(param.getNameProperty());
+			
+			TextField datentyp = new TextField(param.getDatentyp().getTypName());
+			datentyp.textProperty()
+					.bindBidirectional(param.getDatentyp().getTypNameProperty());
+			
+			Label loeschen = new Label();
+			NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
+			loeschen.setOnMouseClicked(e -> {
+				methode.getParameterListe().remove(param);
+			});
+			
+			Label hoch = new Label();
+			NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
+			hoch.setOnMouseClicked(e -> {
+				tausche(methode.getParameterListe(), zeile, zeile - 1);
+			});
+			
+			if (zeile == 0) {
+				hoch.setDisable(true);
+			}
+			
+			Label runter = new Label();
+			NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
+			runter.setOnMouseClicked(e -> {
+				tausche(methode.getParameterListe(), zeile, zeile + 1);
+			});
+			
+			return new Node[] {name, datentyp, loeschen, hoch, runter};
+		}, event -> {
+			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
+					.getEigenschaften();
+			methode.getParameterListe()
+					.add(new Parameter(programmierEigenschaften.getLetzerDatentyp()));
+		});
+		
+		parameterListe.setPadding(new Insets(15));
+		PopOver parameterDialog = new PopOver(parameterListe);
+		parameterDialog.setArrowLocation(ArrowLocation.TOP_CENTER);
+		parameterDialog.show(parameter);
 	}
 	
 	private void initialisiereButtons() {

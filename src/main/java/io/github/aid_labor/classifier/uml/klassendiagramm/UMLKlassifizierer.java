@@ -12,13 +12,14 @@ import java.util.Objects;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
-import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty.EnumPropertyZuStringKonverter;
+import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.ListenUeberwacher;
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
@@ -28,6 +29,7 @@ import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 
 
@@ -61,6 +63,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	private final JsonStringProperty superklasse;
 	private final JsonStringProperty interfaces;
 	private final ObservableList<Attribut> attribute;
+	@JsonManagedReference
 	private final ObservableList<Methode> methoden;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -86,6 +89,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.ueberwachePropertyAenderung(this.typ);
 		this.ueberwachePropertyAenderung(this.superklasse);
 		this.ueberwachePropertyAenderung(this.interfaces);
+		ueberwacheGetterUndSetter();
 	}
 	
 	@JsonCreator
@@ -99,9 +103,51 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			@JsonProperty("methoden") List<Methode> methoden) {
 		this(typ, programmiersprache, name);
 		this.getPosition().setPosition(position);
+		
+		this.setSichtbarkeit(sichtbarkeit);
+		
+		for (var attribut : attribute) {
+			if (attribut.hatGetter()) {
+				System.out.println(attribut);
+				var mList = methoden.stream()
+						.filter(m -> m.istGetter() && m.getAttribut().equals(attribut))
+						.toList();
+				System.out.println("  -> " + mList.size());
+				if (!mList.isEmpty()) {
+					var methode = mList.get(0);
+					System.out.println("    -> " + methode);
+					var getter = Methode.erstelleGetter(attribut, programmiersprache);
+					getter.setName(methode.getName());
+					getter.setSichtbarkeit(methode.getSichtbarkeit());
+					getter.setzeFinal(methode.istFinal());
+					getter.setzeAbstrakt(methode.istAbstrakt());
+					attribut.setGetter(getter);
+					System.out.println("    -> " + getter);
+					int index = methoden.indexOf(methode);
+					System.out.println(index);
+					System.out.println(methoden.set(index, getter));
+				}
+			}
+			if (attribut.hatSetter()) {
+				var mList = methoden.stream()
+						.filter(m -> m.istSetter() && m.getAttribut().equals(attribut))
+						.toList();
+				if (!mList.isEmpty()) {
+					var methode = mList.get(0);
+					var setter = Methode.erstelleSetter(attribut, programmiersprache);
+					setter.setName(methode.getName());
+					setter.setSichtbarkeit(methode.getSichtbarkeit());
+					setter.setzeFinal(methode.istFinal());
+					setter.setzeAbstrakt(methode.istAbstrakt());
+					attribut.setSetter(setter);
+					int index = methoden.indexOf(methode);
+					methoden.set(index, setter);
+				}
+			}
+		}
+		
 		this.attribute.addAll(attribute);
 		this.methoden.addAll(methoden);
-		this.setSichtbarkeit(sichtbarkeit);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -292,4 +338,52 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	private void ueberwacheGetterUndSetter() {
+		this.attribute.addListener((Change<? extends Attribut> aenderung) -> {
+			while (aenderung.next()) {
+				for (var attribut : aenderung.getRemoved()) {
+					if (attribut.getGetter() != null) {
+						methoden.remove(attribut.getGetter());
+					}
+					if (attribut.getSetter() != null) {
+						methoden.remove(attribut.getSetter());
+					}
+				}
+				for (var attribut : aenderung.getAddedSubList()) {
+					attribut.getHatGetterProperty().addListener((p, hatteGet, hatGetter) -> {
+						if (hatGetter == hatteGet) {
+							return;
+						}
+						
+						if (hatGetter) {
+							if (attribut.getGetter() == null) {
+								attribut.setGetter(Methode.erstelleGetter(attribut,
+										getProgrammiersprache()));
+							}
+							methoden.add(attribut.getGetter());
+						} else {
+							methoden.remove(attribut.getGetter());
+						}
+					});
+					
+					attribut.getHatSetterProperty().addListener((p, hatteSet, hatSetter) -> {
+						if (hatSetter == hatteSet) {
+							return;
+						}
+						
+						if (hatSetter) {
+							if (attribut.getSetter() == null) {
+								attribut.setSetter(
+										Methode.erstelleSetter(attribut,
+												getProgrammiersprache()));
+							}
+							methoden.add(attribut.getSetter());
+						} else {
+							methoden.remove(attribut.getSetter());
+						}
+					});
+				}
+			}
+		});
+	}
 }
