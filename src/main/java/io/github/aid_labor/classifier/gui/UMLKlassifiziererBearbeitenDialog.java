@@ -44,6 +44,8 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 
@@ -159,27 +161,26 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private void erzeugeInhalt(BorderPane wurzel) {
 		var allgemeinAnzeige = erzeugeAllgemeinAnzeige();
 		var attributeAnzeige = erzeugeAttributeAnzeige();
+		var methodenAnzeige = new Label("M");
 		
-		StackPane container = new StackPane(allgemeinAnzeige);
+		StackPane container = new StackPane(allgemeinAnzeige, attributeAnzeige);
 		container.setPadding(new Insets(0, 20, 10, 20));
-		container.setAlignment(Pos.CENTER);
+		container.setMaxWidth(Region.USE_PREF_SIZE);
+		container.setAlignment(Pos.TOP_CENTER);
+		BorderPane.setAlignment(container, Pos.TOP_CENTER);
 		wurzel.setCenter(container);
 		
 		ueberwacheSelektion(this.allgemein, allgemeinAnzeige, container);
 		ueberwacheSelektion(this.attribute, attributeAnzeige, container);
-		ueberwacheSelektion(this.methoden, new Label("M"), container);
+		ueberwacheSelektion(this.methoden, methodenAnzeige, container);
 	}
 	
 	private void ueberwacheSelektion(ToggleButton button, Node anzeige, StackPane container) {
-		button.setOnAction(e -> {
-			if (button.isSelected() && !container.getChildren().contains(anzeige)) {
-				container.getChildren().clear();
-				container.getChildren().add(anzeige);
-			}
-		});
+		anzeige.setVisible(button.isSelected());
+		anzeige.visibleProperty().bind(button.selectedProperty());
 	}
 	
-	private Node erzeugeAllgemeinAnzeige() {
+	private GridPane erzeugeAllgemeinAnzeige() {
 		GridPane tabelle = new GridPane();
 		
 		String[] labelBezeichnungen = {
@@ -223,11 +224,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		tabelle.setHgap(5);
 		tabelle.setVgap(15);
+		tabelle.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 		
 		return tabelle;
 	}
 	
-	private Node erzeugeAttributeAnzeige() {
+	private Pane erzeugeAttributeAnzeige() {
 		GridPane tabelle = new GridPane();
 		fuelleAttributTabelle(tabelle);
 		tabelle.setHgap(5);
@@ -265,6 +267,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					bezeichnung.toLowerCase(), bezeichnung);
 			tabelle.addRow(0, spaltenUeberschrift);
 		}
+		
+		fuelleAttributListe(tabelle, klassifizierer.getAttribute());
 		
 		klassifizierer.getAttribute().addListener(new ListChangeListener<Attribut>() {
 			@Override

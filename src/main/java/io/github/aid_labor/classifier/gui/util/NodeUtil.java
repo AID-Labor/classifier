@@ -15,6 +15,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import io.github.aid_labor.classifier.basis.io.Ressource;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.Cursor;
@@ -264,7 +265,17 @@ public final class NodeUtil {
 		}
 	}
 	
-	public static <T extends Region> void macheBeweglich(T element) {
+	public static boolean wirdBewegt(Node n) {
+		Object obj = n.getProperties().getOrDefault("bewegungsEinstellung",
+				new BewegungsEinstellungen());
+		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
+			return false;
+		}
+		
+		return bewegung.wirdBewegt;
+	}
+	
+	public static <T extends Node> void macheBeweglich(T element) {
 		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung",
 				new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
@@ -287,7 +298,7 @@ public final class NodeUtil {
 				element.setCache(true);
 				element.setCacheHint(CacheHint.SPEED);
 				bewegung.letzterCursor = element.getCursor();
-				element.setCursor(Cursor.MOVE);
+				element.setCursor(Cursor.CLOSED_HAND);
 				bewegung.wirdBewegt = true;
 				bewegung.mausStartX = event.getSceneX();
 				bewegung.mausStartY = event.getSceneY();
@@ -298,11 +309,11 @@ public final class NodeUtil {
 		
 		element.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
 			if (bewegung.wirdBewegt) {
-				log.finer(() -> "Bewege");
+				log.finest(() -> "Bewege");
 				double deltaX = event.getSceneX() - bewegung.mausStartX;
 				double deltaY = event.getSceneY() - bewegung.mausStartY;
-				double x = bewegung.positionStartX + deltaX;
-				double y = bewegung.positionStartY + deltaY;
+				double x = bewegung.positionStartX + deltaX / element.getScaleX();
+				double y = bewegung.positionStartY + deltaY / element.getScaleY();
 				element.setTranslateX(x < 0 ? 0 : x);
 				element.setTranslateY(y < 0 ? 0 : y);
 				

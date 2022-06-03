@@ -26,9 +26,12 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.beans.binding.When;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
@@ -69,6 +72,8 @@ public class ProjektAnsicht extends Tab {
 	private final ObservableList<Node> selektion;
 	private final Sprache sprache;
 	private final ScrollPane inhalt;
+	private final ReadOnlyBooleanWrapper kannKleinerZoomen;
+	private boolean istInhaltBeweglich;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -84,61 +89,28 @@ public class ProjektAnsicht extends Tab {
 		this.zeichenflaeche = new Pane();
 		this.ansichten = new HashMap<>();
 		this.selektion = FXCollections.observableArrayList();
+		this.inhalt = new ScrollPane(new Group(zeichenflaeche));
+		this.kannKleinerZoomen = new ReadOnlyBooleanWrapper(false);
+		this.kannKleinerZoomen.bind(zeichenflaeche.scaleXProperty().greaterThan(0.5));
 		
-		selektion.addListener((Change<? extends Node> aenderung) -> {
-			log.finer(() -> "Selektion geandert: ");
-			while (aenderung.next()) {
-				if (aenderung.wasRemoved()) {
-					log.finer(() -> "deselektiert: "
-							+ Arrays.toString(aenderung.getRemoved().toArray()));
-					for (Node n : aenderung.getRemoved()) {
-						n.setId("");
-					}
-				}
-				if (aenderung.wasAdded()) {
-					log.finer(() -> "selektiert: "
-							+ Arrays.toString(aenderung.getAddedSubList().toArray()));
-					for (Node n : aenderung.getAddedSubList()) {
-						n.setId("selektiert");
-					}
-				}
-			}
-		});
-		
-		inhalt = new ScrollPane(zeichenflaeche);
-		inhalt.setPannable(true);
-		zeichenflaeche.setId("zeichenflaeche");
 		this.setContent(inhalt);
+		
+		initialisiereInhalt();
+		initialisiereProjekt();
+		ueberwacheSelektion();
 		
 		this.textProperty().bind(new When(projekt.istGespeichertProperty()).then("")
 				.otherwise("*").concat(projekt.nameProperty()));
 		
-		if (!projekt.istGespeichertProperty().get()) {
-			this.getStyleClass().add(UNGESPEICHERT_CSS_CLASS);
-		}
-		
-		projekt.istGespeichertProperty().addListener((property, alterWert, istGespeichert) -> {
-			if (!istGespeichert) {
-				this.getStyleClass().add(UNGESPEICHERT_CSS_CLASS);
-			} else {
-				this.getStyleClass().remove(UNGESPEICHERT_CSS_CLASS);
-			}
-		});
-		
 		this.setOnCloseRequest(this.controller::checkSchliessen);
-		
-		projekt.getDiagrammElemente()
-				.addListener((Change<? extends UMLDiagrammElement> aenderung) -> {
-					this.ueberwacheDiagrammElemente(aenderung);
-				});
-		
-		fuegeAlleHinzu(projekt.getDiagrammElemente());
 		
 		this.getContent().addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
 			if (e.getTarget().equals(inhalt) || e.getTarget().equals(zeichenflaeche)) {
 				selektion.clear();
 			}
 		});
+		
+		fuegeAlleHinzu(projekt.getDiagrammElemente());
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -149,6 +121,30 @@ public class ProjektAnsicht extends Tab {
 	
 	public UMLProjekt getProjekt() {
 		return projekt;
+	}
+	
+	public void skaliere(double skalierung) {
+		this.zeichenflaeche.setScaleX(skalierung);
+	}
+	
+	public double getSkalierung() {
+		return this.zeichenflaeche.getScaleX();
+	}
+	
+	public double getStandardSkalierung() {
+		return 1;
+	}
+	
+	public ReadOnlyBooleanProperty kannKleinerZoomenProperty() {
+		return kannKleinerZoomen.getReadOnlyProperty();
+	}
+	
+	public List<UMLDiagrammElement> getSelektion() {
+		return selektion.stream().filter(node -> {
+			return node instanceof UMLDiagrammElement;
+		}).map(node -> {
+			return (UMLDiagrammElement) node;
+		}).toList();
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -184,6 +180,53 @@ public class ProjektAnsicht extends Tab {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	private void initialisiereInhalt() {
+		this.inhalt.setPannable(true);
+		this.zeichenflaeche.getStyleClass().add("zeichenflaeche");
+		this.zeichenflaeche.scaleYProperty().bind(zeichenflaeche.scaleXProperty());
+	}
+	
+	private void initialisiereProjekt() {
+		if (!projekt.istGespeichertProperty().get()) {
+			this.getStyleClass().add(UNGESPEICHERT_CSS_CLASS);
+		}
+		
+		projekt.istGespeichertProperty().addListener((property, alterWert, istGespeichert) -> {
+			if (!istGespeichert) {
+				this.getStyleClass().add(UNGESPEICHERT_CSS_CLASS);
+			} else {
+				this.getStyleClass().remove(UNGESPEICHERT_CSS_CLASS);
+			}
+		});
+		
+		projekt.getDiagrammElemente()
+				.addListener((Change<? extends UMLDiagrammElement> aenderung) -> {
+					this.ueberwacheDiagrammElemente(aenderung);
+				});
+	}
+	
+	private void ueberwacheSelektion() {
+		selektion.addListener((Change<? extends Node> aenderung) -> {
+			log.finer(() -> "Selektion geandert: ");
+			while (aenderung.next()) {
+				if (aenderung.wasRemoved()) {
+					log.finer(() -> "deselektiert: "
+							+ Arrays.toString(aenderung.getRemoved().toArray()));
+					for (Node n : aenderung.getRemoved()) {
+						n.setId("");
+					}
+				}
+				if (aenderung.wasAdded()) {
+					log.finer(() -> "selektiert: "
+							+ Arrays.toString(aenderung.getAddedSubList().toArray()));
+					for (Node n : aenderung.getAddedSubList()) {
+						n.setId("selektiert");
+					}
+				}
+			}
+		});
+	}
 	
 	private int idZaehler = 0;
 	
@@ -254,10 +297,13 @@ public class ProjektAnsicht extends Tab {
 					dialog.showAndWait().ifPresent(button -> {
 						switch (button.getButtonData()) {
 							case BACK_PREVIOUS -> {
-								log.fine(() -> "Setze zurueck " + klassifizierer);
-								int i = projekt.getDiagrammElemente().indexOf(klassifizierer);
-								projekt.getDiagrammElemente().set(i,
-										dialog.getSicherungskopie());
+								if (!klassifizierer.equals(dialog.getSicherungskopie())) {
+									log.fine(() -> "Setze zurueck " + klassifizierer);
+									int i = projekt.getDiagrammElemente()
+											.indexOf(klassifizierer);
+									projekt.getDiagrammElemente().set(i,
+											dialog.getSicherungskopie());
+								}
 							}
 							case FINISH -> {
 								log.fine(() -> "Aenderungen an " + klassifizierer
@@ -275,25 +321,29 @@ public class ProjektAnsicht extends Tab {
 		NodeUtil.macheBeweglich(ansicht);
 		
 		ansicht.addEventFilter(MouseEvent.MOUSE_ENTERED, event -> {
+			istInhaltBeweglich = inhalt.isPannable();
 			inhalt.setPannable(false);
 		});
 		
-		ansicht.addEventFilter(MouseEvent.MOUSE_EXITED, event -> {
-			inhalt.setPannable(true);
+		ansicht.addEventFilter(MouseEvent.MOUSE_EXITED_TARGET, event -> {
+			if (!NodeUtil.wirdBewegt(ansicht)) {
+				inhalt.setPannable(istInhaltBeweglich);
+			}
 		});
 		
+		ansicht.scaleXProperty().bind(zeichenflaeche.scaleXProperty());
+		ansicht.scaleYProperty().bind(zeichenflaeche.scaleYProperty());
+		
 		Parent p = ansicht.getParent();
-		System.out.println(ansicht);
-		System.out.println("Parent: " + p);
 		if (p != null && p instanceof Region container) {
 			var elementLayout = ansicht.getBoundsInParent();
 			double breite = elementLayout.getMaxX() + 300;
-			if(container.getWidth() < breite) {
+			if (container.getWidth() < breite) {
 				container.setMinWidth(breite);
 				container.setPrefWidth(breite);
 			}
 			double hoehe = elementLayout.getMaxY() + 300;
-			if(container.getHeight() < hoehe) {
+			if (container.getHeight() < hoehe) {
 				container.setMinHeight(hoehe);
 				container.setPrefHeight(hoehe);
 			}

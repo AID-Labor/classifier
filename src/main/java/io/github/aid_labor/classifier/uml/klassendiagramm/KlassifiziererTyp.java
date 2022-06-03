@@ -15,10 +15,10 @@ public enum KlassifiziererTyp {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	Interface("interface"),
-	Klasse(null),
-	AbstrakteKlasse(null),
-	Enumeration("enumeration");
+	Interface("interface", false),
+	Klasse(null, false),
+	AbstrakteKlasse(null, true),
+	Enumeration("enumeration", false);
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
@@ -34,14 +34,16 @@ public enum KlassifiziererTyp {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private String stereotyp;
+	private final String stereotyp;
+	private final boolean istAbstrakt;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private KlassifiziererTyp(String stereotyp) {
+	private KlassifiziererTyp(String stereotyp, boolean istAbstrakt) {
 		this.stereotyp = stereotyp;
+		this.istAbstrakt = istAbstrakt;
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -52,6 +54,18 @@ public enum KlassifiziererTyp {
 	
 	public String getStereotyp() {
 		return stereotyp;
+	}
+	
+	public boolean istAbstrakt() {
+		return istAbstrakt;
+	}
+	
+	public boolean hatAbstrakteMethoden() {
+		return this.istAbstrakt || this.equals(Interface);
+	}
+	
+	public boolean hatImplementierteMethoden() {
+		return !this.equals(Interface);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -78,7 +92,7 @@ public enum KlassifiziererTyp {
 		
 		return sprache.getText(this.name(), this.name());
 	}
-	
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

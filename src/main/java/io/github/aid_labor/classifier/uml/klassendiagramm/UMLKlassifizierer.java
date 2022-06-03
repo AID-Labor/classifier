@@ -91,6 +91,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	@JsonCreator
 	protected UMLKlassifizierer(
 			@JsonProperty("typ") KlassifiziererTyp typ,
+			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
 			@JsonProperty("programmiersprache") Programmiersprache programmiersprache,
 			@JsonProperty("name") String name,
 			@JsonProperty("position") Position position,
@@ -100,6 +101,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.getPosition().setPosition(position);
 		this.attribute.addAll(attribute);
 		this.methoden.addAll(methoden);
+		this.setSichtbarkeit(sichtbarkeit);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

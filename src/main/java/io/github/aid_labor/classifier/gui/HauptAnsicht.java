@@ -369,8 +369,7 @@ public class HauptAnsicht {
 		
 		NodeUtil.disable(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
-		NodeUtil.disable(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen(),
-				ribbon.getRueckgaengig(), ribbon.getWiederholen());
+		NodeUtil.disable(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen());
 		
 		NodeUtil.disable(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(),
@@ -380,6 +379,36 @@ public class HauptAnsicht {
 		NodeUtil.disable(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),
 				ribbon.getZoomOriginalgroesse());
 		
+		ribbon.getZoomGroesser().setOnAction(e -> {
+			projektAnsicht.getAnzeige().get()
+					.skaliere(projektAnsicht.getAnzeige().get().getSkalierung() + 0.1);
+		});
+		ribbon.getZoomKleiner().setOnAction(e -> {
+			projektAnsicht.getAnzeige().get()
+					.skaliere(projektAnsicht.getAnzeige().get().getSkalierung() - 0.1);
+		});
+		ribbon.getZoomOriginalgroesse().setOnAction(e -> {
+			projektAnsicht.getAnzeige().get()
+					.skaliere(projektAnsicht.getAnzeige().get().getStandardSkalierung());
+		});
+		updateZoomButtons(ribbon, projektAnsicht.getAnzeige().get());
+		
+		this.projektAnsicht.getAnzeige().addListener((property, alteAnzeige, neueAnzeige) -> {
+			updateZoomButtons(ribbon, neueAnzeige);
+		});
+	}
+	
+	private void updateZoomButtons(RibbonKomponente ribbon, ProjektAnsicht projektAnsicht) {
+		boolean ausbleneden = projektAnsicht == null;
+		
+		ribbon.getZoomGroesser().setDisable(ausbleneden);
+		ribbon.getZoomKleiner().disableProperty().unbind();
+		ribbon.getZoomKleiner().setDisable(ausbleneden);
+		ribbon.getZoomOriginalgroesse().setDisable(ausbleneden);
+		if (projektAnsicht != null) {
+			ribbon.getZoomKleiner().disableProperty()
+					.bind(projektAnsicht.kannKleinerZoomenProperty().not());
+		}
 	}
 	
 	private void updateRueckgaengigWiederholen(RibbonKomponente ribbon, Projekt projekt) {

@@ -65,6 +65,7 @@ public class ProjekteAnsicht {
 	private final Sprache sprache;
 	private final ProgrammDetails programm;
 	private final ProjekteKontrolle kontroller;
+	private final ReadOnlyObjectWrapper<ProjektAnsicht> anzeige;
 	
 	private EventHandler<WindowEvent> eventAktion = new EventHandler<WindowEvent>() {
 		@Override
@@ -101,6 +102,7 @@ public class ProjekteAnsicht {
 		}
 		
 		this.angezeigtesProjekt = new ReadOnlyObjectWrapper<>();
+		this.anzeige = new ReadOnlyObjectWrapper<>();
 		this.tabAnsicht = new TabPane();
 		
 		setzeListener();
@@ -121,6 +123,10 @@ public class ProjekteAnsicht {
 		return this.tabAnsicht;
 	}
 	
+	public ReadOnlyObjectProperty<ProjektAnsicht> getAnzeige() {
+		return anzeige.getReadOnlyProperty();
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	protected DialogPane getOverlayDialog() {
@@ -138,8 +144,10 @@ public class ProjekteAnsicht {
 							.formatted(neueWahl == null ? "null" : neueWahl.getText()));
 					if (neueWahl instanceof ProjektAnsicht tab) {
 						angezeigtesProjekt.set(tab.getProjekt());
+						anzeige.set(tab);
 					} else {
 						angezeigtesProjekt.set(null);
+						anzeige.set(null);
 					}
 				});
 		
