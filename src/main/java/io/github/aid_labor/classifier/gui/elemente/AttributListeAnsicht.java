@@ -8,13 +8,14 @@ package io.github.aid_labor.classifier.gui.elemente;
 
 import java.lang.ref.WeakReference;
 
+import com.dlsc.gemsfx.EnhancedLabel;
+
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.When;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
 
@@ -48,8 +49,8 @@ public class AttributListeAnsicht extends GridPane {
 	public AttributListeAnsicht(ObservableList<Attribut> attributListe) {
 		this.setMinSize(0, 0);
 		this.setVisible(attributListe.size() > 0);
-		this.setHgap(5);
 		this.attributListe = attributListe;
+		this.getStyleClass().add("attribut-liste");
 		
 		WeakReference<AttributListeAnsicht> ref = new WeakReference<AttributListeAnsicht>(
 				this);
@@ -76,7 +77,7 @@ public class AttributListeAnsicht extends GridPane {
 	}
 	
 	private Node[] erstelleAttributAnsicht(Attribut attribut) {
-		var sichtbarkeit = new TextField();
+		var sichtbarkeit = new EnhancedLabel();
 		sichtbarkeit.textProperty()
 				.bind(attribut.getSichtbarkeitProperty().get().getKurzform());
 		attribut.getSichtbarkeitProperty().addListener((p, alt, neu) -> {
@@ -85,7 +86,7 @@ public class AttributListeAnsicht extends GridPane {
 					.bind(attribut.getSichtbarkeitProperty().get().getKurzform());
 		});
 		
-		var beschreibung = new TextField();
+		var beschreibung = new EnhancedLabel();
 		beschreibung.textProperty().bind(
 				attribut.getNameProperty()
 				.concat(": ")
@@ -95,13 +96,8 @@ public class AttributListeAnsicht extends GridPane {
 						.otherwise(
 								Bindings.concat(" = ", attribut.getInitialwertProperty()))));
 		
-		sichtbarkeit.setEditable(false);
-		sichtbarkeit.setPrefColumnCount(1);
-		sichtbarkeit.getStyleClass().clear();
-		sichtbarkeit.getStyleClass().add("label");
-		beschreibung.setEditable(false);
-		beschreibung.getStyleClass().clear();
-		beschreibung.getStyleClass().add("label");
+		
+		sichtbarkeit.getStyleClass().addAll("sichtbarkeit-label");
 		
 		return new Node[] { sichtbarkeit, beschreibung };
 	}

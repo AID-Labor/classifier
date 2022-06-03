@@ -30,12 +30,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Tab;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
 
 
 public class ProjektAnsicht extends Tab {
@@ -68,6 +68,7 @@ public class ProjektAnsicht extends Tab {
 	private final Map<Integer, Node> ansichten;
 	private final ObservableList<Node> selektion;
 	private final Sprache sprache;
+	private final ScrollPane inhalt;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -80,7 +81,7 @@ public class ProjektAnsicht extends Tab {
 		this.overlayDialog = overlayDialog;
 		this.programm = programm;
 		this.controller = new ProjektKontrolle(this, sprache);
-		this.zeichenflaeche = new StackPane();
+		this.zeichenflaeche = new Pane();
 		this.ansichten = new HashMap<>();
 		this.selektion = FXCollections.observableArrayList();
 		
@@ -104,12 +105,8 @@ public class ProjektAnsicht extends Tab {
 			}
 		});
 		
-		var inhalt = new ScrollPane(zeichenflaeche);
-//		inhalt.setFitToHeight(true);
-//		inhalt.setFitToWidth(true);
-//		inhalt.setPannable(true);
-		inhalt.setHbarPolicy(ScrollBarPolicy.ALWAYS);
-		inhalt.setVbarPolicy(ScrollBarPolicy.ALWAYS);
+		inhalt = new ScrollPane(zeichenflaeche);
+		inhalt.setPannable(true);
 		zeichenflaeche.setId("zeichenflaeche");
 		this.setContent(inhalt);
 		
@@ -140,7 +137,6 @@ public class ProjektAnsicht extends Tab {
 		this.getContent().addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
 			if (e.getTarget().equals(inhalt) || e.getTarget().equals(zeichenflaeche)) {
 				selektion.clear();
-				e.consume();
 			}
 		});
 	}
@@ -277,6 +273,31 @@ public class ProjektAnsicht extends Tab {
 		}
 		
 		NodeUtil.macheBeweglich(ansicht);
+		
+		ansicht.addEventFilter(MouseEvent.MOUSE_ENTERED, event -> {
+			inhalt.setPannable(false);
+		});
+		
+		ansicht.addEventFilter(MouseEvent.MOUSE_EXITED, event -> {
+			inhalt.setPannable(true);
+		});
+		
+		Parent p = ansicht.getParent();
+		System.out.println(ansicht);
+		System.out.println("Parent: " + p);
+		if (p != null && p instanceof Region container) {
+			var elementLayout = ansicht.getBoundsInParent();
+			double breite = elementLayout.getMaxX() + 300;
+			if(container.getWidth() < breite) {
+				container.setMinWidth(breite);
+				container.setPrefWidth(breite);
+			}
+			double hoehe = elementLayout.getMaxY() + 300;
+			if(container.getHeight() < hoehe) {
+				container.setMinHeight(hoehe);
+				container.setPrefHeight(hoehe);
+			}
+		}
 	}
 	
 }

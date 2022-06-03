@@ -76,3 +76,15 @@
     -fx-border-style: solid;
     -fx-border-color: blue;
 }
+
+.sichtbarkeit-label {
+    -fx-padding: 0 1 0 0;
+}
+
+.attribut-liste {
+    -fx-padding: 5 10 5 10;
+}
+
+.name-label {
+    -fx-padding: 10 30 10 30;
+}

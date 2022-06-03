@@ -9,6 +9,7 @@ package io.github.aid_labor.classifier.gui.elemente;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 
@@ -44,6 +45,7 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 		this.translateXProperty().bindBidirectional(umlElementModel.getPosition().getXProperty());
 		this.translateYProperty().bindBidirectional(umlElementModel.getPosition().getYProperty());
 		this.setMinSize(80, 30);
+		this.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

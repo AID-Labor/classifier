@@ -19,6 +19,7 @@ import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
@@ -281,16 +282,18 @@ public final class NodeUtil {
 		});
 		
 		element.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-			log.finer(() -> "Starte Bewegung");
-			element.setCache(true);
-			element.setCacheHint(CacheHint.SPEED);
-			bewegung.letzterCursor = element.getCursor();
-			element.setCursor(Cursor.MOVE);
-			bewegung.wirdBewegt = true;
-			bewegung.mausStartX = event.getSceneX();
-			bewegung.mausStartY = event.getSceneY();
-			bewegung.positionStartX = element.getTranslateX();
-			bewegung.positionStartY = element.getTranslateY();
+			if (bewegung.aktionPosition.equals(AktionPosition.KEINE)) {
+				log.finer(() -> "Starte Bewegung");
+				element.setCache(true);
+				element.setCacheHint(CacheHint.SPEED);
+				bewegung.letzterCursor = element.getCursor();
+				element.setCursor(Cursor.MOVE);
+				bewegung.wirdBewegt = true;
+				bewegung.mausStartX = event.getSceneX();
+				bewegung.mausStartY = event.getSceneY();
+				bewegung.positionStartX = element.getTranslateX();
+				bewegung.positionStartY = element.getTranslateY();
+			}
 		});
 		
 		element.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
@@ -298,8 +301,25 @@ public final class NodeUtil {
 				log.finer(() -> "Bewege");
 				double deltaX = event.getSceneX() - bewegung.mausStartX;
 				double deltaY = event.getSceneY() - bewegung.mausStartY;
-				element.setTranslateX(bewegung.positionStartX + deltaX);
-				element.setTranslateY(bewegung.positionStartY + deltaY);
+				double x = bewegung.positionStartX + deltaX;
+				double y = bewegung.positionStartY + deltaY;
+				element.setTranslateX(x < 0 ? 0 : x);
+				element.setTranslateY(y < 0 ? 0 : y);
+				
+				Parent p = element.getParent();
+				if (p != null && p instanceof Region container) {
+					var elementLayout = element.getBoundsInParent();
+					double breite = elementLayout.getMaxX() + 300;
+					if(container.getWidth() < breite) {
+						container.setMinWidth(breite);
+						container.setPrefWidth(breite);
+					}
+					double hoehe = elementLayout.getMaxY() + 300;
+					if(container.getHeight() < hoehe) {
+						container.setMinHeight(hoehe);
+						container.setPrefHeight(hoehe);
+					}
+				}
 			}
 		});
 		

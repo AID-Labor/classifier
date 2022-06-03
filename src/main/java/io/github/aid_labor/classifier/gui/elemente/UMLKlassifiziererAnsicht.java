@@ -6,8 +6,6 @@
 
 package io.github.aid_labor.classifier.gui.elemente;
 
-import java.util.logging.Logger;
-
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.Observable;
 import javafx.beans.binding.When;
@@ -20,8 +18,8 @@ import javafx.scene.layout.VBox;
 
 
 public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifizierer> {
-	private static final Logger log = Logger
-			.getLogger(UMLKlassifiziererAnsicht.class.getName());
+//	private static final Logger log = Logger
+//			.getLogger(UMLKlassifiziererAnsicht.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -102,9 +100,8 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void formatiere() {
-		this.name.setPadding(new Insets(10, 30, 10, 30));
+		this.name.getStyleClass().add("name-label");
 		this.attribute.setMinHeight(20);
-		this.attribute.setPadding(new Insets(0, 10, 0, 10));
 		this.methoden.setMinHeight(20);
 		this.methoden.setPadding(new Insets(0, 10, 0, 10));
 		this.attributeTrenner.getStyleClass().clear();
