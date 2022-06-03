@@ -42,7 +42,7 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final AttributListeAnsicht attribute;
-	private final VBox methoden;
+	private final MethodenListeAnsicht methoden;
 	private final Label stereotyp;
 	private final Label name;
 	private final Separator attributeTrenner;
@@ -65,7 +65,8 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		this.name = new Label(klassifizierer.getName());
 		
 		this.attribute = new AttributListeAnsicht(klassifizierer.getAttribute());
-		this.methoden = new VBox();
+		this.methoden = new MethodenListeAnsicht(klassifizierer.getMethoden(),
+				klassifizierer.getProgrammiersprache());
 		this.attributeTrenner = new Separator();
 		this.methodenTrenner = new Separator();
 		

@@ -147,6 +147,7 @@ public class Einstellungen {
 	public final JsonIntegerProperty verlaufAnzahl;
 	public final JsonBooleanProperty zeigePackageModifier;
 	public final JsonBooleanProperty zeigeVoid;
+	public final JsonBooleanProperty zeigeParameterNamen;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -196,6 +197,7 @@ public class Einstellungen {
 		this.verlaufAnzahl = new JsonIntegerProperty(100);
 		this.zeigePackageModifier = new JsonBooleanProperty(true);
 		this.zeigeVoid = new JsonBooleanProperty(false);
+		this.zeigeParameterNamen = new JsonBooleanProperty(true);
 	}
 	
 	/**

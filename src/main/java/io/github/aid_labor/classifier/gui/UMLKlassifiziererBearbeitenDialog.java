@@ -7,6 +7,7 @@
 package io.github.aid_labor.classifier.gui;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 import org.controlsfx.control.SegmentedButton;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
@@ -15,16 +16,25 @@ import org.kordamp.ikonli.typicons.Typicons;
 
 import com.dlsc.gemsfx.EnhancedLabel;
 
+import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
+import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
 import io.github.aid_labor.classifier.uml.eigenschaften.ProgrammierEigenschaften;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
+import javafx.beans.binding.StringExpression;
+import javafx.beans.binding.When;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -160,10 +170,31 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	
 	private void erzeugeInhalt(BorderPane wurzel) {
 		var allgemeinAnzeige = erzeugeAllgemeinAnzeige();
-		var attributeAnzeige = erzeugeAttributeAnzeige();
-		var methodenAnzeige = new Label("M");
+		var attributeAnzeige = erzeugeTabellenAnzeige(new String[] {
+			"Sichtbarkeit", "Attributname", "Datentyp", "Initialwert", "Getter", "Setter"
+		}, this.klassifizierer.getAttribute(), this::erstelleAttributZeile, event -> {
+			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
+					.getEigenschaften();
+			this.klassifizierer.getAttribute()
+					.add(new Attribut(
+							programmierEigenschaften
+									.getStandardAttributModifizierer(klassifizierer.getTyp()),
+							programmierEigenschaften.getLetzerDatentyp()));
+		});
+		var methodenAnzeige = erzeugeTabellenAnzeige(new String[] {
+			"Sichtbarkeit", "Methodenname", "Parameter", "Rueckgabetyp", "abstrakt", "final"
+		}, this.klassifizierer.getMethoden(), this::erstelleMethodenZeile, event -> {
+			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
+					.getEigenschaften();
+			this.klassifizierer.getMethoden()
+					.add(new Methode(
+							programmierEigenschaften
+									.getStandardMethodenModifizierer(klassifizierer.getTyp()),
+							programmierEigenschaften.getLetzerDatentyp()));
+		});
 		
-		StackPane container = new StackPane(allgemeinAnzeige, attributeAnzeige);
+		StackPane container = new StackPane(allgemeinAnzeige, attributeAnzeige,
+				methodenAnzeige);
 		container.setPadding(new Insets(0, 20, 10, 20));
 		container.setMaxWidth(Region.USE_PREF_SIZE);
 		container.setAlignment(Pos.TOP_CENTER);
@@ -229,20 +260,18 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		return tabelle;
 	}
 	
-	private Pane erzeugeAttributeAnzeige() {
+	private <T> Pane erzeugeTabellenAnzeige(String[] labelBezeichnungen,
+			ObservableList<T> inhalt,
+			BiFunction<T, Integer, Node[]> erzeugeZeile,
+			EventHandler<ActionEvent> neuAktion) {
 		GridPane tabelle = new GridPane();
-		fuelleAttributTabelle(tabelle);
+		fuelleTabelle(tabelle, labelBezeichnungen, inhalt, erzeugeZeile);
 		tabelle.setHgap(5);
 		tabelle.setVgap(10);
 		
 		Button neu = new Button();
 		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20);
-		
-		neu.setOnAction(e -> {
-			this.klassifizierer.getAttribute()
-					.add(new Attribut(Modifizierer.PRIVATE, ProgrammierEigenschaften
-							.get(klassifizierer.getProgrammiersprache()).getLetzerDatentyp()));
-		});
+		neu.setOnAction(neuAktion);
 		
 		HBox buttonBar = new HBox(neu);
 		buttonBar.setSpacing(5);
@@ -258,35 +287,33 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		return ansicht;
 	}
 	
-	private void fuelleAttributTabelle(GridPane tabelle) {
-		String[] labelBezeichnungen = { "Sichtbarkeit", "Attributname", "Datentyp",
-			"Initialwert", "Getter", "Setter" };
-		
+	private <T> void fuelleTabelle(GridPane tabelle, String[] labelBezeichnungen,
+			ObservableList<T> inhalt, BiFunction<T, Integer, Node[]> erzeugeZeile) {
 		for (String bezeichnung : labelBezeichnungen) {
 			Label spaltenUeberschrift = SprachUtil.bindText(new EnhancedLabel(), sprache,
 					bezeichnung.toLowerCase(), bezeichnung);
 			tabelle.addRow(0, spaltenUeberschrift);
 		}
 		
-		fuelleAttributListe(tabelle, klassifizierer.getAttribute());
+		fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
 		
-		klassifizierer.getAttribute().addListener(new ListChangeListener<Attribut>() {
+		inhalt.addListener(new ListChangeListener<T>() {
 			@Override
-			public void onChanged(Change<? extends Attribut> aenderung) {
+			public void onChanged(Change<? extends T> aenderung) {
 				if (aenderung.next()) {
-					fuelleAttributListe(tabelle, aenderung.getList());
+					fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
 				}
 			}
 		});
 	}
 	
-	private void fuelleAttributListe(GridPane tabelle,
-			List<? extends Attribut> attributListe) {
+	private <T> void fuelleListenInhalt(GridPane tabelle, ObservableList<T> inhalt,
+			BiFunction<T, Integer, Node[]> erzeugeZeile) {
 		tabelle.getChildren().removeIf(kind -> GridPane.getRowIndex(kind) > 0);
 		int zeile = 1;
-		for (var attribut : attributListe) {
-			var inhalt = erstelleAttributZeile(attribut, zeile-1);
-			tabelle.addRow(zeile, inhalt);
+		for (var attribut : inhalt) {
+			var zeilenInhalt = erzeugeZeile.apply(attribut, zeile - 1);
+			tabelle.addRow(zeile, zeilenInhalt);
 			zeile++;
 		}
 	}
@@ -327,25 +354,25 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		Label hoch = new Label();
 		NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
 		hoch.setOnMouseClicked(e -> {
-			tausche(klassifizierer.getAttribute(), zeile, zeile-1);
+			tausche(klassifizierer.getAttribute(), zeile, zeile - 1);
 		});
 		
-		if(zeile == 0) {
+		if (zeile == 0) {
 			hoch.setDisable(true);
 		}
 		
 		Label runter = new Label();
 		NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
 		runter.setOnMouseClicked(e -> {
-			tausche(klassifizierer.getAttribute(), zeile, zeile+1);
+			tausche(klassifizierer.getAttribute(), zeile, zeile + 1);
 		});
 		
-		if (zeile == klassifizierer.getAttribute().size()-1) {
+		if (zeile == klassifizierer.getAttribute().size() - 1) {
 			runter.setDisable(true);
 		}
 		
 		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter, hoch,
-			runter, loeschen};
+			runter, loeschen };
 	}
 	
 	private HBox erzeugeSichtbarkeit() {
@@ -379,6 +406,103 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		return sichtbarkeit;
 	}
 	
+	private Node[] erstelleMethodenZeile(Methode methode, int zeile) {
+		ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
+		sichtbarkeit.getItems().addAll(klassifizierer.getProgrammiersprache()
+				.getEigenschaften().getMethodenModifizierer(klassifizierer.getTyp()));
+		sichtbarkeit.getSelectionModel().select(methode.getSichtbarkeit());
+		sichtbarkeit.getSelectionModel().selectedItemProperty().addListener((o, alt, neu) -> {
+			methode.setSichtbarkeit(neu);
+		});
+		
+		TextField name = new TextField();
+		name.textProperty().bindBidirectional(methode.getNameProperty());
+		
+		TextField parameter = new TextField();
+		parameter.textProperty().bind(Bindings.concat("(")
+				.concat(new StringBinding() {
+					{
+						super.bind(methode.getParameterListe());
+					}
+					StringExpression stringExpr = null;
+					
+					@Override
+					protected String computeValue() {
+//						super.unbind(stringExpr);
+						var params = methode.getParameterListe().stream().map(param -> {
+							return Bindings.concat(new When(Einstellungen
+									.getBenutzerdefiniert().zeigeParameterNamen)
+									.then(param.getNameProperty().concat(": "))
+									.otherwise(""),
+									param.getDatentyp().getTypNameProperty());
+						}).toArray();
+						
+						if (params.length < 1) {
+							return "";
+						}
+						
+						stringExpr = Bindings.concat(params[0]);
+						for (int i = 1; i < params.length; i++) {
+							stringExpr = stringExpr.concat(", ");
+							stringExpr = stringExpr.concat(params[i]);
+						}
+						
+						// TODO ?
+//						super.bind(stringExpr);
+						return stringExpr.get();
+					}
+				})
+				.concat(")"));
+		parameter.setEditable(false);
+		parameter.prefColumnCountProperty()
+				.bind(new When(parameter.textProperty().length()
+						.greaterThanOrEqualTo(TextField.DEFAULT_PREF_COLUMN_COUNT))
+						.then(parameter.textProperty().length())
+						.otherwise(TextField.DEFAULT_PREF_COLUMN_COUNT));
+		
+		TextField rueckgabetyp = new TextField(methode.getRueckgabeTyp().getTypName());
+		rueckgabetyp.textProperty()
+				.bindBidirectional(methode.getRueckgabeTyp().getTypNameProperty());
+		rueckgabetyp.setPrefWidth(70);
+		
+		CheckBox abstrakt = new CheckBox();
+		abstrakt.selectedProperty().bindBidirectional(methode.getIstAbstraktProperty());
+		GridPane.setHalignment(abstrakt, HPos.CENTER);
+		
+		CheckBox istFinal = new CheckBox();
+		istFinal.selectedProperty().bindBidirectional(methode.getIstFinalProperty());
+		GridPane.setHalignment(istFinal, HPos.CENTER);
+		
+		Label loeschen = new Label();
+		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
+		loeschen.setOnMouseClicked(e -> {
+			klassifizierer.getMethoden().remove(methode);
+		});
+		
+		Label hoch = new Label();
+		NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
+		hoch.setOnMouseClicked(e -> {
+			tausche(klassifizierer.getMethoden(), zeile, zeile - 1);
+		});
+		
+		if (zeile == 0) {
+			hoch.setDisable(true);
+		}
+		
+		Label runter = new Label();
+		NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
+		runter.setOnMouseClicked(e -> {
+			tausche(klassifizierer.getMethoden(), zeile, zeile + 1);
+		});
+		
+		if (zeile == klassifizierer.getMethoden().size() - 1) {
+			runter.setDisable(true);
+		}
+		
+		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, istFinal,
+			hoch, runter, loeschen };
+	}
+	
 	private void initialisiereButtons() {
 		ButtonType[] buttons = {
 			new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.FINISH),
@@ -391,9 +515,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	}
 	
 	private <E> void tausche(List<E> liste, int indexA, int indexB) {
-		var a = klassifizierer.getAttribute().get(indexA);
-		var b = klassifizierer.getAttribute().get(indexB);
-		klassifizierer.getAttribute().set(indexA, b);
-		klassifizierer.getAttribute().set(indexB, a);
+		var a = liste.get(indexA);
+		var b = liste.get(indexB);
+		liste.set(indexA, b);
+		liste.set(indexB, a);
 	}
 }

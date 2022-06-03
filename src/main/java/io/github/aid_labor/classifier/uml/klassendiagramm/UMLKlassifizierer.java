@@ -71,7 +71,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			String name) {
 		this.typ = new JsonEnumProperty<>(typ);
 		this.sichtbarkeit = new JsonObjectProperty<>(Modifizierer.PUBLIC);
-		this.programmiersprache = programmiersprache;
+		this.programmiersprache = Objects.requireNonNull(programmiersprache);
 		this.paket = new JsonStringProperty("");
 		this.name = new JsonStringProperty(name);
 		this.superklasse = new JsonStringProperty("");

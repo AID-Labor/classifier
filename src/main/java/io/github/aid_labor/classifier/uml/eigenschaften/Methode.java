@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
@@ -52,8 +51,7 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	
 	private final JsonObjectProperty<Modifizierer> sichtbarkeit;
 	private final JsonStringProperty name;
-	@JsonIgnore
-	private final JsonObjectProperty<Datentyp> rueckgabeTyp;
+	private final Datentyp rueckgabeTyp;
 	private ObservableList<Parameter> parameterListe;
 	private final JsonBooleanProperty istAbstrakt;
 	private final JsonBooleanProperty istFinal;
@@ -62,16 +60,16 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Methode(Modifizierer sichtbarkeit, Datentyp datentyp) {
+	public Methode(Modifizierer sichtbarkeit, Datentyp rueckgabeTyp) {
 		this.sichtbarkeit = new JsonObjectProperty<>(sichtbarkeit);
-		this.rueckgabeTyp = new JsonObjectProperty<>(datentyp);
+		this.rueckgabeTyp = Objects.requireNonNull(rueckgabeTyp);
 		this.name = new JsonStringProperty("");
 		this.istAbstrakt = new JsonBooleanProperty(false);
 		this.istFinal = new JsonBooleanProperty(false);
 		this.parameterListe = FXCollections.observableList(new LinkedList<>());
 		
 		this.ueberwachePropertyAenderung(this.sichtbarkeit);
-		this.ueberwachePropertyAenderung(this.rueckgabeTyp);
+		this.ueberwachePropertyAenderung(this.rueckgabeTyp.getTypNameProperty());
 		this.ueberwachePropertyAenderung(this.name);
 		this.ueberwachePropertyAenderung(this.name);
 		this.ueberwachePropertyAenderung(this.istAbstrakt);
@@ -82,9 +80,9 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	@JsonCreator
 	protected Methode(
 			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
-			@JsonProperty("datentyp") Datentyp datentyp,
+			@JsonProperty("rueckgabeTyp") Datentyp rueckgabeTyp,
 			@JsonProperty("parameterListe") List<Parameter> parameterListe) {
-		this(sichtbarkeit, datentyp);
+		this(sichtbarkeit, rueckgabeTyp);
 		if (parameterListe != null) {
 			this.parameterListe.addAll(parameterListe);
 		}
@@ -112,14 +110,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		this.name.set(name);
 	}
 	
-	@JsonProperty("rueckgabeTyp")
 	public Datentyp getRueckgabeTyp() {
-		return rueckgabeTyp.get();
-	}
-	
-	@JsonProperty("rueckgabeTyp")
-	public void setRueckgabeTyp(Datentyp rueckgabeTyp) {
-		this.rueckgabeTyp.set(rueckgabeTyp);
+		return rueckgabeTyp;
 	}
 	
 	@JsonProperty("istAbstrakt")
@@ -151,10 +143,6 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	
 	public StringProperty getNameProperty() {
 		return name;
-	}
-	
-	public ObjectProperty<Datentyp> getRueckgabetypProperty() {
-		return rueckgabeTyp;
 	}
 	
 	public BooleanProperty getIstAbstraktProperty() {

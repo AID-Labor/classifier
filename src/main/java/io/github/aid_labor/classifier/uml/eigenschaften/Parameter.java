@@ -9,14 +9,11 @@ package io.github.aid_labor.classifier.uml.eigenschaften;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 
 
@@ -42,18 +39,18 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final JsonStringProperty name;
-	@JsonIgnore
-	private final JsonObjectProperty<Datentyp> datentyp;
+	private final Datentyp datentyp;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Parameter(Datentyp datentyp, String name) {
-		this.datentyp = new JsonObjectProperty<>(datentyp);
+	@JsonCreator
+	public Parameter(@JsonProperty("datentyp") Datentyp datentyp, @JsonProperty("name") String name) {
+		this.datentyp = Objects.requireNonNull(datentyp);
 		this.name = new JsonStringProperty(name);
 		
-		this.ueberwachePropertyAenderung(this.datentyp);
+		this.ueberwachePropertyAenderung(datentyp.getTypNameProperty());
 		this.ueberwachePropertyAenderung(this.name);
 	}
 	
@@ -61,10 +58,6 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 		this(datentyp, "");
 	}
 	
-	@JsonCreator
-	protected Parameter() {
-		this(null, "");
-	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
@@ -80,24 +73,14 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 		this.name.set(name);
 	}
 	
-	@JsonProperty("datentyp")
 	public Datentyp getDatentyp() {
-		return datentyp.get();
-	}
-	
-	@JsonProperty("datentyp")
-	public void setDatentyp(Datentyp datentyp) {
-		this.datentyp.set(datentyp);
+		return datentyp;
 	}
 	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public StringProperty getNameProperty() {
 		return name;
-	}
-	
-	public ObjectProperty<Datentyp> getDatentypProperty() {
-		return datentyp;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

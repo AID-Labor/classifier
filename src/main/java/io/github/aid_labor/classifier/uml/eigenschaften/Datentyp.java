@@ -34,6 +34,8 @@ public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter 
 	@JsonCreator
 	public Datentyp(@JsonProperty("typName") String typName) {
 		this.typName = new JsonStringProperty(typName);
+		
+		this.ueberwachePropertyAenderung(this.typName);
 	}
 	
 	public void set(Datentyp datentyp) {

@@ -47,5 +47,9 @@ public interface ProgrammierEigenschaften {
 	public Datentyp getVoid();
 	public List<Datentyp> getBekannteDatentypen();
 
+
+	public Modifizierer getStandardAttributModifizierer(KlassifiziererTyp typ);
+	public Modifizierer getStandardMethodenModifizierer(KlassifiziererTyp typ);
+
 	
 }

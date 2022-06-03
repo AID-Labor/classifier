@@ -23,28 +23,58 @@ public class Java implements ProgrammierEigenschaften {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	public static Datentyp BOOLEAN_PRIMITIV = new Datentyp("boolean");
-	public static Datentyp BYTE_PRIMITIV = new Datentyp("byte");
-	public static Datentyp SHORT_PRIMITIV = new Datentyp("short");
-	public static Datentyp INT_PRIMITIV = new Datentyp("int");
-	public static Datentyp LONG_PRIMITIV = new Datentyp("long");
-	public static Datentyp FLOAT_PRIMITIV = new Datentyp("float");
-	public static Datentyp DOUBLE_PRIMITIV = new Datentyp("double");
-	public static Datentyp CHAR_PRIMITIV = new Datentyp("char");
-	public static Datentyp VOID_PRIMITIV = new Datentyp("void");
+	public static Datentyp BOOLEAN_PRIMITIV() {
+		return new Datentyp("boolean");
+	}
 	
-	public static List<Datentyp> PRIMITIVE_DATENTYPEN = Collections.unmodifiableList(List.of(
-			BOOLEAN_PRIMITIV,
-			BYTE_PRIMITIV,
-			SHORT_PRIMITIV,
-			INT_PRIMITIV,
-			LONG_PRIMITIV,
-			FLOAT_PRIMITIV,
-			DOUBLE_PRIMITIV,
-			CHAR_PRIMITIV,
-			VOID_PRIMITIV));
+	public static Datentyp BYTE_PRIMITIV() {
+		return new Datentyp("byte");
+	}
 	
-	public static Datentyp STRING = new Datentyp("String");
+	public static Datentyp SHORT_PRIMITIV() {
+		return new Datentyp("short");
+	}
+	
+	public static Datentyp INT_PRIMITIV() {
+		return new Datentyp("int");
+	}
+	
+	public static Datentyp LONG_PRIMITIV() {
+		return new Datentyp("long");
+	}
+	
+	public static Datentyp FLOAT_PRIMITIV() {
+		return new Datentyp("float");
+	}
+	
+	public static Datentyp DOUBLE_PRIMITIV() {
+		return new Datentyp("double");
+	}
+	
+	public static Datentyp CHAR_PRIMITIV() {
+		return new Datentyp("char");
+	}
+	
+	public static Datentyp VOID_PRIMITIV() {
+		return new Datentyp("void");
+	}
+	
+	public static List<Datentyp> PRIMITIVE_DATENTYPEN() {
+		return Collections.unmodifiableList(List.of(
+				BOOLEAN_PRIMITIV(),
+				BYTE_PRIMITIV(),
+				SHORT_PRIMITIV(),
+				INT_PRIMITIV(),
+				LONG_PRIMITIV(),
+				FLOAT_PRIMITIV(),
+				DOUBLE_PRIMITIV(),
+				CHAR_PRIMITIV(),
+				VOID_PRIMITIV()));
+	}
+	
+	public static Datentyp STRING() {
+		return new Datentyp("String");
+	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -82,7 +112,7 @@ public class Java implements ProgrammierEigenschaften {
 	
 	private Java() {
 		// Singleton-Entwurfsmuster
-		letzterDatentyp = STRING;
+		letzterDatentyp = STRING();
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -135,6 +165,16 @@ public class Java implements ProgrammierEigenschaften {
 	}
 	
 	@Override
+	public Modifizierer getStandardAttributModifizierer(KlassifiziererTyp typ) {
+		return switch (typ) {
+			case Interface, Enumeration -> Modifizierer.PUBLIC;
+			default -> {
+				yield Modifizierer.PRIVATE;
+			}
+		};
+	}
+	
+	@Override
 	public Modifizierer[] getMethodenModifizierer(KlassifiziererTyp typ) {
 		return switch (typ) {
 			case Interface -> new Modifizierer[] { Modifizierer.PUBLIC };
@@ -146,6 +186,11 @@ public class Java implements ProgrammierEigenschaften {
 				yield new Modifizierer[0];
 			}
 		};
+	}
+	
+	@Override
+	public Modifizierer getStandardMethodenModifizierer(KlassifiziererTyp typ) {
+		return Modifizierer.PUBLIC;
 	}
 	
 	@Override
@@ -181,12 +226,12 @@ public class Java implements ProgrammierEigenschaften {
 	
 	@Override
 	public List<Datentyp> getPrimitiveDatentypen() {
-		return PRIMITIVE_DATENTYPEN;
+		return PRIMITIVE_DATENTYPEN();
 	}
 	
 	@Override
 	public Datentyp getVoid() {
-		return VOID_PRIMITIV;
+		return VOID_PRIMITIV();
 	}
 	
 	@Override

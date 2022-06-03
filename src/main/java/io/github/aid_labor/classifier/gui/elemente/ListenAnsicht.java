@@ -6,16 +6,15 @@
 
 package io.github.aid_labor.classifier.gui.elemente;
 
-import com.dlsc.gemsfx.EnhancedLabel;
+import java.lang.ref.WeakReference;
 
-import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.When;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.layout.GridPane;
 
 
-public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
+public abstract class ListenAnsicht<T> extends GridPane {
 //	private static final Logger log = Logger.getLogger(AttributListeAnsicht.class.getName());
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -36,41 +35,28 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	protected final ObservableList<T> inhaltListe;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public AttributListeAnsicht(ObservableList<Attribut> attributListe) {
-		super(attributListe);
-		fuelleListe();
-	}
-	
-	@Override
-	protected Node[] erstelleZeile(Attribut attribut) {
-		var sichtbarkeit = new EnhancedLabel();
-		sichtbarkeit.textProperty()
-				.bind(attribut.getSichtbarkeitProperty().get().getKurzform());
-		attribut.getSichtbarkeitProperty().addListener((p, alt, neu) -> {
-			sichtbarkeit.textProperty().unbind();
-			sichtbarkeit.textProperty()
-					.bind(attribut.getSichtbarkeitProperty().get().getKurzform());
+	public ListenAnsicht(ObservableList<T> inhaltListe) {
+		this.setMinSize(0, 0);
+		this.setVisible(inhaltListe.size() > 0);
+		this.inhaltListe = inhaltListe;
+		this.getStyleClass().add("attribut-liste");
+		
+		WeakReference<ListenAnsicht<T>> ref = new WeakReference<ListenAnsicht<T>>(
+				this);
+		inhaltListe.addListener(new ListChangeListener<T>() {
+			@Override
+			public void onChanged(Change<? extends T> aenderung) {
+				ref.get().setVisible(inhaltListe.size() > 0);
+				
+				fuelleListe();
+			}
 		});
-		
-		var beschreibung = new EnhancedLabel();
-		beschreibung.textProperty().bind(
-				attribut.getNameProperty()
-				.concat(": ")
-				.concat(attribut.getDatentyp().getTypNameProperty())
-				.concat(new When(attribut.getInitialwertProperty().isEmpty())
-						.then("")
-						.otherwise(
-								Bindings.concat(" = ", attribut.getInitialwertProperty()))));
-		
-		
-		sichtbarkeit.getStyleClass().addAll("sichtbarkeit-label");
-		
-		return new Node[] { sichtbarkeit, beschreibung };
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -90,6 +76,18 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	protected final void fuelleListe() {
+		this.getChildren().clear();
+		int zeile = 0;
+		for (var attribut : inhaltListe) {
+			var inhalt = erstelleZeile(attribut);
+			this.addRow(zeile, inhalt);
+			zeile++;
+		}
+	}
+	
+	protected abstract Node[] erstelleZeile(T attribut);
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
