@@ -12,6 +12,8 @@ import java.util.function.BiFunction;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
 import org.controlsfx.control.SegmentedButton;
+import org.controlsfx.validation.ValidationSupport;
+import org.controlsfx.validation.Validator;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.typicons.Typicons;
@@ -91,6 +93,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private final ToggleButton allgemein;
 	private final ToggleButton attribute;
 	private final ToggleButton methoden;
+	private final ValidationSupport eingabeValidierung;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -101,6 +104,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.klassifizierer = klassifizierer;
 		this.sicherungskopie = klassifizierer.erzeugeTiefeKopie();
 		this.sprache = new Sprache();
+		this.eingabeValidierung = new ValidationSupport();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
@@ -261,6 +265,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		tabelle.setVgap(15);
 		tabelle.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 		
+		eingabeValidierung.registerValidator(name, Validator
+				.createEmptyValidator(sprache.getText("namePlatzhalter", "Name eingeben")));
+		
 		return tabelle;
 	}
 	
@@ -374,6 +381,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		if (zeile == klassifizierer.getAttribute().size() - 1) {
 			runter.setDisable(true);
 		}
+		
+		eingabeValidierung.registerValidator(name, Validator
+				.createEmptyValidator(sprache.getText("namePlatzhalter", "Name eingeben")));
+		eingabeValidierung.registerValidator(datentyp, Validator
+				.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
 		
 		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter, hoch,
 			runter, loeschen };
@@ -505,6 +517,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			runter.setDisable(true);
 		}
 		
+		eingabeValidierung.registerValidator(name, Validator
+				.createEmptyValidator(sprache.getText("namePlatzhalter", "Name eingeben")));
+		eingabeValidierung.registerValidator(rueckgabetyp, Validator
+				.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+		
 		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, istFinal,
 			hoch, runter, loeschen };
 	}
@@ -542,7 +559,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				tausche(methode.getParameterListe(), zeile, zeile + 1);
 			});
 			
-			return new Node[] {name, datentyp, loeschen, hoch, runter};
+			eingabeValidierung.registerValidator(name, Validator
+					.createEmptyValidator(sprache.getText("namePlatzhalter", "Name eingeben")));
+			eingabeValidierung.registerValidator(datentyp, Validator
+					.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+			
+			return new Node[] { name, datentyp, loeschen, hoch, runter };
 		}, event -> {
 			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
 					.getEigenschaften();
@@ -564,7 +586,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		};
 		this.getDialogPane().getButtonTypes().addAll(buttons);
 		this.getDialogPane().lookupButton(buttons[0]).disableProperty()
-				.bind(klassifizierer.nameProperty().isEmpty());
+				.bind(eingabeValidierung.invalidProperty());
 	}
 	
 	private <E> void tausche(List<E> liste, int indexA, int indexB) {
