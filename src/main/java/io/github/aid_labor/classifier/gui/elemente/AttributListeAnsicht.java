@@ -21,7 +21,12 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
+	/**
+	 * CSS-Klasse {@code statisch} fuer statische Attribute
+	 */
+	public static String CSS_STATISCH_KLASSE = "statisch";
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -69,6 +74,14 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 		
 		
 		sichtbarkeit.getStyleClass().addAll("sichtbarkeit-label");
+		
+		attribut.getIstStatischProperty().addListener((property, alt, istStatisch) -> {
+			if (istStatisch) {
+				beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);
+			} else {
+				beschreibung.getStyleClass().remove(CSS_STATISCH_KLASSE);
+			}
+		});
 		
 		return new Node[] { sichtbarkeit, beschreibung };
 	}

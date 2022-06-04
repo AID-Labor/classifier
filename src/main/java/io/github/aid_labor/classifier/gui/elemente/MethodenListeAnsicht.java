@@ -27,7 +27,12 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
+	/**
+	 * CSS-Klasse {@code statisch} fuer statische Methoden
+	 */
+	public static String CSS_STATISCH_KLASSE = "statisch";
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -125,6 +130,14 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 						}));
 		
 		sichtbarkeit.getStyleClass().addAll("sichtbarkeit-label");
+		
+		methode.getIstStatischProperty().addListener((property, alt, istStatisch) -> {
+			if (istStatisch) {
+				beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);
+			} else {
+				beschreibung.getStyleClass().remove(CSS_STATISCH_KLASSE);
+			}
+		});
 		
 		return new Node[] { sichtbarkeit, beschreibung };
 	}

@@ -12,6 +12,7 @@ import java.util.function.BiFunction;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
 import org.controlsfx.control.SegmentedButton;
+import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
@@ -51,6 +52,7 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
@@ -179,7 +181,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private void erzeugeInhalt(BorderPane wurzel) {
 		var allgemeinAnzeige = erzeugeAllgemeinAnzeige();
 		var attributeAnzeige = erzeugeTabellenAnzeige(new String[] {
-			"Sichtbarkeit", "Attributname", "Datentyp", "Initialwert", "Getter", "Setter"
+			"Sichtbarkeit", "Attributname", "Datentyp", "Initialwert", "Getter", "Setter",
+			"Statisch"
 		}, this.klassifizierer.getAttribute(), this::erstelleAttributZeile, event -> {
 			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
 					.getEigenschaften();
@@ -190,7 +193,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							programmierEigenschaften.getLetzerDatentyp()));
 		});
 		var methodenAnzeige = erzeugeTabellenAnzeige(new String[] {
-			"Sichtbarkeit", "Methodenname", "Parameter", "Rueckgabetyp", "abstrakt", "final"
+			"Sichtbarkeit", "Methodenname", "Parameter", "Rueckgabetyp", "abstrakt", "final",
+			"Statisch"
 		}, this.klassifizierer.getMethoden(), this::erstelleMethodenZeile, event -> {
 			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
 					.getEigenschaften();
@@ -324,6 +328,15 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	
 	private <T> void fuelleListenInhalt(GridPane tabelle, ObservableList<T> inhalt,
 			BiFunction<T, Integer, Node[]> erzeugeZeile) {
+		var zuEntfernen = tabelle.getChildren().stream()
+				.filter(kind -> GridPane.getRowIndex(kind) > 0).toList();
+		for (var kind : zuEntfernen) {
+			if (kind instanceof Control c) {
+				eingabeValidierung.registerValidator(c, false, (control, wert) -> {
+					return ValidationResult.fromInfoIf(control, "ungenutzt", false);
+				});
+			}
+		}
 		tabelle.getChildren().removeIf(kind -> GridPane.getRowIndex(kind) > 0);
 		int zeile = 1;
 		for (var attribut : inhalt) {
@@ -360,6 +373,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		setter.selectedProperty().bindBidirectional(attribut.getHatSetterProperty());
 		GridPane.setHalignment(setter, HPos.CENTER);
 		
+		CheckBox statisch = new CheckBox();
+		statisch.selectedProperty().bindBidirectional(attribut.getIstStatischProperty());
+		GridPane.setHalignment(statisch, HPos.CENTER);
+		
 		Label loeschen = new Label();
 		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
 		loeschen.setOnMouseClicked(e -> {
@@ -394,8 +411,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
 		});
 		
-		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter, hoch,
-			runter, loeschen };
+		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter,
+			statisch, hoch, runter, loeschen };
 	}
 	
 	private HBox erzeugeSichtbarkeit() {
@@ -498,6 +515,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		istFinal.selectedProperty().bindBidirectional(methode.getIstFinalProperty());
 		GridPane.setHalignment(istFinal, HPos.CENTER);
 		
+		CheckBox statisch = new CheckBox();
+		statisch.selectedProperty().bindBidirectional(methode.getIstStatischProperty());
+		GridPane.setHalignment(statisch, HPos.CENTER);
+		
 		Label loeschen = new Label();
 		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
 		loeschen.setOnMouseClicked(e -> {
@@ -533,7 +554,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		});
 		
 		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, istFinal,
-			hoch, runter, loeschen };
+			statisch, hoch, runter, loeschen };
 	}
 	
 	private void bearbeiteParameter(TextField parameter, Methode methode) {
@@ -574,7 +595,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						.createEmptyValidator(
 								sprache.getText("namePlatzhalter", "Name eingeben")));
 				eingabeValidierung.registerValidator(datentyp, Validator
-						.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+						.createEmptyValidator(
+								sprache.getText("datentypPlatzhalter", "Datentyp")));
 			});
 			
 			return new Node[] { name, datentyp, loeschen, hoch, runter };
