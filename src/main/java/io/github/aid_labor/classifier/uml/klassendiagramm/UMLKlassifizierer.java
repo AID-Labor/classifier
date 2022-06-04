@@ -108,24 +108,19 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		
 		for (var attribut : attribute) {
 			if (attribut.hatGetter()) {
-				System.out.println(attribut);
 				var mList = methoden.stream()
 						.filter(m -> m.istGetter() && m.getAttribut().equals(attribut))
 						.toList();
-				System.out.println("  -> " + mList.size());
 				if (!mList.isEmpty()) {
 					var methode = mList.get(0);
-					System.out.println("    -> " + methode);
 					var getter = Methode.erstelleGetter(attribut, programmiersprache);
 					getter.setName(methode.getName());
 					getter.setSichtbarkeit(methode.getSichtbarkeit());
 					getter.setzeFinal(methode.istFinal());
 					getter.setzeAbstrakt(methode.istAbstrakt());
 					attribut.setGetter(getter);
-					System.out.println("    -> " + getter);
 					int index = methoden.indexOf(methode);
-					System.out.println(index);
-					System.out.println(methoden.set(index, getter));
+					methoden.set(index, getter);
 				}
 			}
 			if (attribut.hatSetter()) {

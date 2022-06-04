@@ -1,0 +1,11 @@
+{
+    "name" : "ControlsFX",
+    "version" : "11.1.1",
+    "beschreibung" : "High quality UI controls to complement the core JavaFX distribution\n\nControlsFX is an open source project for JavaFX that aims to provide really high quality UI controls and other tools to complement the core JavaFX distribution. It has been developed for JavaFX 8.0 and beyond, and has a guiding principle of only accepting new controls / features when all existing code is at an acceptably high level, including thankless jobs like having high quality javadoc documentation. This ensure a high quality release is available at all times, with all experimental work being done in branches of the main code base.",
+    "github" : "https://github.com/controlsfx/controlsfx",
+    "link" : "https://controlsfx.org/",
+    "license" : {
+        "name" : "BSD 3-Clause License",
+        "link" : "https://choosealicense.com/licenses/bsd-3-clause/"
+    }
+}

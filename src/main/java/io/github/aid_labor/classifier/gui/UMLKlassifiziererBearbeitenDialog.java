@@ -32,6 +32,7 @@ import io.github.aid_labor.classifier.uml.eigenschaften.Parameter;
 import io.github.aid_labor.classifier.uml.eigenschaften.ProgrammierEigenschaften;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.binding.StringExpression;
@@ -265,8 +266,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		tabelle.setVgap(15);
 		tabelle.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 		
-		eingabeValidierung.registerValidator(name, Validator
-				.createEmptyValidator(sprache.getText("namePlatzhalter", "Name eingeben")));
+		Platform.runLater(() -> {
+			eingabeValidierung.registerValidator(name, Validator
+					.createEmptyValidator(
+							sprache.getText("namePlatzhalter", "Name eingeben")));
+		});
 		
 		return tabelle;
 	}
@@ -382,10 +386,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			runter.setDisable(true);
 		}
 		
-		eingabeValidierung.registerValidator(name, Validator
-				.createEmptyValidator(sprache.getText("namePlatzhalter", "Name eingeben")));
-		eingabeValidierung.registerValidator(datentyp, Validator
-				.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+		Platform.runLater(() -> {
+			eingabeValidierung.registerValidator(name, Validator
+					.createEmptyValidator(
+							sprache.getText("namePlatzhalter", "Name eingeben")));
+			eingabeValidierung.registerValidator(datentyp, Validator
+					.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+		});
 		
 		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter, hoch,
 			runter, loeschen };
@@ -517,10 +524,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			runter.setDisable(true);
 		}
 		
-		eingabeValidierung.registerValidator(name, Validator
-				.createEmptyValidator(sprache.getText("namePlatzhalter", "Name eingeben")));
-		eingabeValidierung.registerValidator(rueckgabetyp, Validator
-				.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+		Platform.runLater(() -> {
+			eingabeValidierung.registerValidator(name, Validator
+					.createEmptyValidator(
+							sprache.getText("namePlatzhalter", "Name eingeben")));
+			eingabeValidierung.registerValidator(rueckgabetyp, Validator
+					.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+		});
 		
 		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, istFinal,
 			hoch, runter, loeschen };
@@ -559,10 +569,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				tausche(methode.getParameterListe(), zeile, zeile + 1);
 			});
 			
-			eingabeValidierung.registerValidator(name, Validator
-					.createEmptyValidator(sprache.getText("namePlatzhalter", "Name eingeben")));
-			eingabeValidierung.registerValidator(datentyp, Validator
-					.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+			Platform.runLater(() -> {
+				eingabeValidierung.registerValidator(name, Validator
+						.createEmptyValidator(
+								sprache.getText("namePlatzhalter", "Name eingeben")));
+				eingabeValidierung.registerValidator(datentyp, Validator
+						.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+			});
 			
 			return new Node[] { name, datentyp, loeschen, hoch, runter };
 		}, event -> {

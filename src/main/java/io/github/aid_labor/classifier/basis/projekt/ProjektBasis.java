@@ -173,17 +173,7 @@ public abstract class ProjektBasis implements Projekt {
 	 */
 	@Override
 	public final void setName(String name) {
-//		String neuerName = Objects.requireNonNull(name);
-//		var referenz = this;
-//		EditierBefehl aenderung = new EinfacherEditierBefehl<>(this.name, neuerName, n -> {
-//			referenz.name = n;
-//			if (referenz.nameProperty != null) {
-//				referenz.nameProperty.set(n);
-//			}
-//		});
-//		aenderung.wiederhole();
-//		this.verarbeiteEditierung(aenderung);
-		this.name.set(name);
+		this.name.set(Objects.requireNonNull(name));
 	}
 	
 	/**

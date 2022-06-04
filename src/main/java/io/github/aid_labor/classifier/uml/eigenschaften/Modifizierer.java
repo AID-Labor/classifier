@@ -34,15 +34,7 @@ public enum Modifizierer {
 	private Modifizierer(String kurzform) {
 		this.kurzformProperty = new ReadOnlyStringWrapper(kurzform);
 		Einstellungen.getBenutzerdefiniert().zeigePackageModifier
-				.addListener((property, alt, zeigeModifier) -> {
-					if(this.equals(PACKAGE)) {
-						if (zeigeModifier) {
-							kurzformProperty.set(kurzform);
-						} else {
-							kurzformProperty.set("");
-						}
-					}
-				});
+				.addListener((property, alt, zeigePackage) -> update(zeigePackage, kurzform));
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -97,6 +89,16 @@ public enum Modifizierer {
 	@Override
 	public String toString() {
 		return this.name().toLowerCase();
+	}
+	
+	private void update(boolean zeigePackage, String kurzform) {
+		if(this.equals(PACKAGE)) {
+			if (zeigePackage) {
+				kurzformProperty.set(kurzform);
+			} else {
+				kurzformProperty.set("");
+			}
+		}
 	}
 	
 }
