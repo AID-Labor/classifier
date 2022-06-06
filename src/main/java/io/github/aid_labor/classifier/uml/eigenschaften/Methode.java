@@ -98,6 +98,7 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 			this.name.set("get" + Character.toUpperCase(getterAttribut.getName().charAt(0))
 					+ getterAttribut.getName().substring(1));
 			this.parameterListe = FXCollections.emptyObservableList();
+			getterAttribut.setGetter(this);
 		} else if (istSetter) {
 			this.rueckgabeTyp = programmiersprache.getEigenschaften().getVoid();
 			this.istStatisch.bindBidirectional(setterAttribut.getIstStatischProperty());
@@ -110,6 +111,7 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 					.bind(setterAttribut.getDatentyp().getTypNameProperty());
 			this.parameterListe = FXCollections
 					.unmodifiableObservableList(FXCollections.observableArrayList(param));
+			setterAttribut.setSetter(this);
 		} else {
 			this.rueckgabeTyp = Objects.requireNonNull(rueckgabeTyp);
 			this.ueberwachePropertyAenderung(this.rueckgabeTyp.getTypNameProperty());

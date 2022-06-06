@@ -71,6 +71,8 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.hatGetter = new JsonBooleanProperty(false);
 		this.hatSetter = new JsonBooleanProperty(false);
 		this.istStatisch = new JsonBooleanProperty(istStatisch);
+		this.getter = getter;
+		this.setter = setter;
 		
 		this.ueberwachePropertyAenderung(this.sichtbarkeit);
 		this.ueberwachePropertyAenderung(this.datentyp.getTypNameProperty());

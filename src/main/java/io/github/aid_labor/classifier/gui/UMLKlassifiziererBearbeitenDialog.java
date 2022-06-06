@@ -12,6 +12,8 @@ import java.util.function.BiFunction;
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
 import org.controlsfx.control.SegmentedButton;
+import org.controlsfx.validation.Severity;
+import org.controlsfx.validation.ValidationMessage;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
@@ -38,6 +40,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.binding.When;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -57,6 +60,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputControl;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
@@ -78,13 +82,30 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
+	private static ValidationMessage leereValidierungsMeldung = new ValidationMessage() {
+		@Override
+		public String getText() {
+			return null;
+		}
+		
+		@Override
+		public Control getTarget() {
+			return null;
+		}
+		
+		@Override
+		public Severity getSeverity() {
+			return Severity.OK;
+		}
+	};
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -193,8 +214,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							programmierEigenschaften.getLetzerDatentyp()));
 		});
 		var methodenAnzeige = erzeugeTabellenAnzeige(new String[] {
-			"Sichtbarkeit", "Methodenname", "Parameter", "Rueckgabetyp", "abstrakt", "final",
-			"Statisch"
+			"Sichtbarkeit", "Methodenname", "Parameterliste", "Rueckgabetyp", "abstrakt",
+			"final", "Statisch"
 		}, this.klassifizierer.getMethoden(), this::erstelleMethodenZeile, event -> {
 			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
 					.getEigenschaften();
@@ -273,7 +294,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		Platform.runLater(() -> {
 			eingabeValidierung.registerValidator(name, Validator
 					.createEmptyValidator(
-							sprache.getText("namePlatzhalter", "Name eingeben")));
+							sprache.getText("klassennameValidierung",
+									"Der Klassenname muss angegeben werden")));
+			setzePlatzhalter(name);
 		});
 		
 		return tabelle;
@@ -406,14 +429,19 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		Platform.runLater(() -> {
 			eingabeValidierung.registerValidator(name, Validator
 					.createEmptyValidator(
-							sprache.getText("namePlatzhalter", "Name eingeben")));
+							sprache.getText("nameValidierung", "Name angeben")));
 			eingabeValidierung.registerValidator(datentyp, Validator
-					.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+					.createEmptyValidator(
+							sprache.getText("datentypValidierung", "Datentyp angeben")));
+			setzePlatzhalter(name);
+			setzePlatzhalter(datentyp);
 		});
 		
 		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter,
 			statisch, hoch, runter, loeschen };
 	}
+	
+	
 	
 	private HBox erzeugeSichtbarkeit() {
 		HBox sichtbarkeit = new HBox();
@@ -501,6 +529,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						.then(parameter.textProperty().length())
 						.otherwise(TextField.DEFAULT_PREF_COLUMN_COUNT));
 		parameter.setOnMousePressed(e -> bearbeiteParameter(parameter, methode));
+		parameter.setOnAction(e -> bearbeiteParameter(parameter, methode));
 		
 		TextField rueckgabetyp = new TextField(methode.getRueckgabeTyp().getTypName());
 		rueckgabetyp.textProperty()
@@ -548,9 +577,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		Platform.runLater(() -> {
 			eingabeValidierung.registerValidator(name, Validator
 					.createEmptyValidator(
-							sprache.getText("namePlatzhalter", "Name eingeben")));
+							sprache.getText("nameValidierung", "Name angeben")));
 			eingabeValidierung.registerValidator(rueckgabetyp, Validator
-					.createEmptyValidator(sprache.getText("datentypPlatzhalter", "Datentyp")));
+					.createEmptyValidator(
+							sprache.getText("datentypValidierung", "Datentyp angeben")));
+			setzePlatzhalter(name);
+			setzePlatzhalter(rueckgabetyp);
 		});
 		
 		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, istFinal,
@@ -593,10 +625,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			Platform.runLater(() -> {
 				eingabeValidierung.registerValidator(name, Validator
 						.createEmptyValidator(
-								sprache.getText("namePlatzhalter", "Name eingeben")));
+								sprache.getText("nameValidierung", "Name angeben")));
 				eingabeValidierung.registerValidator(datentyp, Validator
 						.createEmptyValidator(
-								sprache.getText("datentypPlatzhalter", "Datentyp")));
+								sprache.getText("datentypValidierung", "Datentyp angeben")));
+				setzePlatzhalter(name);
+				setzePlatzhalter(datentyp);
 			});
 			
 			return new Node[] { name, datentyp, loeschen, hoch, runter };
@@ -622,6 +656,14 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.getDialogPane().getButtonTypes().addAll(buttons);
 		this.getDialogPane().lookupButton(buttons[0]).disableProperty()
 				.bind(eingabeValidierung.invalidProperty());
+	}
+	
+	private void setzePlatzhalter(TextInputControl eingabefeld) {
+		eingabeValidierung.validationResultProperty().addListener(new WeakChangeListener<>((p, alt, neu) -> {
+			eingabefeld.setPromptText(
+					eingabeValidierung.getHighestMessage(eingabefeld)
+							.orElseGet(() -> leereValidierungsMeldung).getText());
+		}));
 	}
 	
 	private <E> void tausche(List<E> liste, int indexA, int indexB) {
