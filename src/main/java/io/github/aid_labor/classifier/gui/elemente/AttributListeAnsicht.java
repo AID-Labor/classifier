@@ -75,6 +75,12 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 		
 		sichtbarkeit.getStyleClass().addAll("sichtbarkeit-label");
 		
+		if (attribut.istStatisch()) {
+			beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);
+		} else {
+			beschreibung.getStyleClass().remove(CSS_STATISCH_KLASSE);
+		}
+		
 		attribut.getIstStatischProperty().addListener((property, alt, istStatisch) -> {
 			if (istStatisch) {
 				beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);

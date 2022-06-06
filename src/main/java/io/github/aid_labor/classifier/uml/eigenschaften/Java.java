@@ -210,6 +210,17 @@ public class Java implements ProgrammierEigenschaften {
 	}
 	
 	@Override
+	public boolean erlaubtAbstrakteMethode(KlassifiziererTyp typ) {
+		return typ.equals(KlassifiziererTyp.Interface)
+				|| typ.equals(KlassifiziererTyp.AbstrakteKlasse);
+	}
+	
+	@Override
+	public boolean erlaubtNichtAbstrakteMethode(KlassifiziererTyp typ) {
+		return true;
+	}
+	
+	@Override
 	public Datentyp getLetzerDatentyp() {
 		return letzterDatentyp.erzeugeTiefeKopie();
 	}

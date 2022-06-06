@@ -150,7 +150,7 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 	private void updateStereotyp(KlassifiziererTyp neuerTyp) {
 		if (neuerTyp.getStereotyp() == null || neuerTyp.getStereotyp().isBlank()) {
 			oben.getChildren().remove(stereotyp);
-		} else {
+		} else if (!oben.getChildren().contains(stereotyp)) {
 			oben.getChildren().add(0, stereotyp);
 		}
 		if (neuerTyp.istAbstrakt()) {

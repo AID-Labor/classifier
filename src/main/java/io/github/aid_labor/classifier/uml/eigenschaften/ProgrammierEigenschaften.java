@@ -37,6 +37,8 @@ public interface ProgrammierEigenschaften {
 	
 	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ);
 	public boolean erlaubtSuperklasse(KlassifiziererTyp typ);
+	public boolean erlaubtAbstrakteMethode(KlassifiziererTyp typ);
+	public boolean erlaubtNichtAbstrakteMethode(KlassifiziererTyp typ);
 	
 	public Datentyp getLetzerDatentyp();
 	public void setLetzerDatentyp(Datentyp letzterDatentyp);

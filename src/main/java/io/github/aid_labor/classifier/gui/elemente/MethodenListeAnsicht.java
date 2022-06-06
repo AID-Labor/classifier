@@ -33,6 +33,11 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 	 */
 	public static String CSS_STATISCH_KLASSE = "statisch";
 	
+	/**
+	 * CSS-Klasse {@code abstrakt} fuer abstrakte Methoden
+	 */
+	public static String CSS_ABSTRAKT_KLASSE = "abstrakt";
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -131,11 +136,31 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 		
 		sichtbarkeit.getStyleClass().addAll("sichtbarkeit-label");
 		
+		if (methode.istStatisch()) {
+			beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);
+		} else {
+			beschreibung.getStyleClass().remove(CSS_STATISCH_KLASSE);
+		}
+		
 		methode.getIstStatischProperty().addListener((property, alt, istStatisch) -> {
 			if (istStatisch) {
 				beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);
 			} else {
 				beschreibung.getStyleClass().remove(CSS_STATISCH_KLASSE);
+			}
+		});
+		
+		if (methode.istAbstrakt()) {
+			beschreibung.getStyleClass().add(CSS_ABSTRAKT_KLASSE);
+		} else {
+			beschreibung.getStyleClass().remove(CSS_ABSTRAKT_KLASSE);
+		}
+		
+		methode.getIstAbstraktProperty().addListener((property, alt, istAbstrakt) -> {
+			if (istAbstrakt) {
+				beschreibung.getStyleClass().add(CSS_ABSTRAKT_KLASSE);
+			} else {
+				beschreibung.getStyleClass().remove(CSS_ABSTRAKT_KLASSE);
 			}
 		});
 		
