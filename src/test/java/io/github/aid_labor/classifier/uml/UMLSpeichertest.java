@@ -89,7 +89,7 @@ class UMLSpeichertest {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Tests																				*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	/*
+	
 	@Test
 	void testeDiagrammUeberwachung() {
 		testeSpeichernUndOeffnen();
@@ -133,7 +133,7 @@ class UMLSpeichertest {
 		umlKlasse.setTyp(KlassifiziererTyp.Klasse);
 		testeSpeichernUndOeffnen();
 	}
-	*/
+	
 	@Test
 	void testeAttributeUeberwachung() {
 		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse,
@@ -170,7 +170,7 @@ class UMLSpeichertest {
 		attribut.setzeStatisch(true);
 		testeSpeichernUndOeffnen();
 	}
-	/*
+	
 	@Test
 	void testeMethodenUeberwachung() {
 		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse,
@@ -216,7 +216,7 @@ class UMLSpeichertest {
 		methode.setzeStatisch(true);
 		testeSpeichernUndOeffnen();
 	}
-	*/
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*
@@ -231,12 +231,6 @@ class UMLSpeichertest {
 			System.out.println("\n\n# # # # # # # # # # # # # # # # # # # # # # #\n\n");
 			UMLProjekt geoeffnet = UMLProjekt.ausDateiOeffnen(datei);
 			assertTrue(geoeffnet.istGespeichertProperty().get());
-			if(!projekt.equals(geoeffnet)) {
-				System.out.println("HIER");
-				System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-				System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-				System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-			}
 			assertEquals(projekt, geoeffnet);
 		} catch (IOException e) {
 			e.printStackTrace();

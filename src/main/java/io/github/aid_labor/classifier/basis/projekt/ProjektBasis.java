@@ -13,8 +13,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -137,9 +137,10 @@ public abstract class ProjektBasis implements Projekt {
 	@JsonCreator
 	public ProjektBasis(String name, boolean automatischSpeichern)
 			throws NullPointerException {
-		this.name = new JsonStringProperty(Objects.requireNonNull(name));
+		this.name = new JsonStringProperty(this, "name", Objects.requireNonNull(name));
 		this.setUeberwachungsStatus(UeberwachungsStatus.IGNORIEREN);
-		this.istGespeichertProperty = new JsonReadOnlyBooleanPropertyWrapper(false);
+		this.istGespeichertProperty = new JsonReadOnlyBooleanPropertyWrapper(this,
+				"istGespeichert", false);
 		this.setAutomatischSpeichern(automatischSpeichern);
 		this.rueckgaengigVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
 				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
@@ -480,7 +481,8 @@ public abstract class ProjektBasis implements Projekt {
 		if (this.istGespeichertProperty.get()) {
 			SammelEditierung sammelEditierung = new SammelEditierung();
 			sammelEditierung.speicherEditierung(editierung);
-			sammelEditierung.speicherEditierung(new EinfacherEditierBefehl<>(true, false, istGespeichertProperty::set));
+			sammelEditierung.speicherEditierung(
+					new EinfacherEditierBefehl<>(true, false, istGespeichertProperty::set));
 			rueckgaengigVerlauf.ablegen(sammelEditierung);
 		} else {
 			rueckgaengigVerlauf.ablegen(editierung);

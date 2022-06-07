@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -44,6 +45,7 @@ class UMLProjektTest {
 	@BeforeEach
 	void setUp() throws Exception {
 		projekt = new UMLProjekt("Test", Programmiersprache.Java, false);
+		projekt.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
 	}
 	
 	@AfterEach
@@ -109,6 +111,7 @@ class UMLProjektTest {
 			
 			UMLProjekt geoeffnet = ProjektBasis.ausDateiOeffnen(datei, UMLProjekt.class);
 			assertTrue(geoeffnet.istGespeichertProperty().get());
+			geoeffnet.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
 			testName(geoeffnet);
 			assertEquals(datei, geoeffnet.getSpeicherort());
 			testSpeicherOrt(geoeffnet);
