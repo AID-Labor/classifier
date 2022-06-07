@@ -228,12 +228,15 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}, this.klassifizierer.getMethoden(), this::erstelleMethodenZeile, event -> {
 			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
 					.getEigenschaften();
-			this.klassifizierer.getMethoden()
-					.add(new Methode(
-							programmierEigenschaften
-									.getStandardMethodenModifizierer(klassifizierer.getTyp()),
-							programmierEigenschaften.getLetzerDatentyp(),
-							klassifizierer.getProgrammiersprache()));
+			var methode = new Methode(
+					programmierEigenschaften
+							.getStandardMethodenModifizierer(klassifizierer.getTyp()),
+					programmierEigenschaften.getLetzerDatentyp(),
+					klassifizierer.getProgrammiersprache());
+			if (klassifizierer.getTyp().equals(KlassifiziererTyp.Interface)) {
+				methode.setzeAbstrakt(true);
+			}
+			this.klassifizierer.getMethoden().add(methode);
 		});
 		
 		StackPane container = new StackPane(allgemeinAnzeige, attributeAnzeige,
@@ -613,13 +616,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			setzePlatzhalter(rueckgabetyp);
 		});
 		
-		updateAbstrakt(abstrakt, klassifizierer.getTyp(), null);
+		updateMethode(abstrakt, statisch, klassifizierer.getTyp(), null, methode);
 		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> {
-			updateAbstrakt(abstrakt, neueWahl, alteWahl);
-			if (neueWahl.equals(KlassifiziererTyp.Interface) && !methode.istGetter()
-					&& !methode.istSetter() && !methode.istStatisch()) {
-				abstrakt.setSelected(true);
-			}
+			updateMethode(abstrakt, statisch, neueWahl, alteWahl, methode);
 		};
 		this.typBeobachter.add(typBeobachter);
 		klassifizierer.getTypProperty().addListener(typBeobachter);
@@ -744,20 +743,30 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		statisch.setDisable(!instanzAttributeErlaubt);
 	}
 	
-	private void updateAbstrakt(CheckBox abstrakt, KlassifiziererTyp typ,
-			KlassifiziererTyp alterTyp) {
+	private void updateMethode(CheckBox abstrakt, CheckBox statisch, KlassifiziererTyp typ,
+			KlassifiziererTyp alterTyp, Methode methode) {
 		boolean abstraktErlaubt = klassifizierer.getProgrammiersprache().getEigenschaften()
 				.erlaubtAbstrakteMethode(typ);
 		boolean abstraktErzwungen = !klassifizierer.getProgrammiersprache().getEigenschaften()
 				.erlaubtNichtAbstrakteMethode(typ);
-		abstrakt.setDisable(!abstraktErlaubt);
 		
 		if (abstraktErzwungen) {
 			abstrakt.setSelected(true);
+			abstrakt.setDisable(true);
 		}
 		
 		if (!abstraktErlaubt) {
 			abstrakt.setSelected(false);
+			abstrakt.setDisable(true);
+		}
+		
+		if (typ.equals(KlassifiziererTyp.Interface) && !methode.istGetter()
+				&& !methode.istSetter() && !methode.istStatisch()) {
+			abstrakt.setSelected(true);
+		} else if (typ.equals(KlassifiziererTyp.Interface)
+				&& (methode.istGetter() || methode.istSetter())) {
+			abstrakt.setDisable(true);
+			statisch.setDisable(true);
 		}
 	}
 }
