@@ -206,7 +206,7 @@ public class HauptAnsicht {
 	
 	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
 		// Menue Datei
-		NodeUtil.disable(menue.getDateiImportieren(),
+		NodeUtil.deaktivieren(menue.getDateiImportieren(),
 				menue.getExportierenBild(), menue.getExportierenQuellcode());
 		
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
@@ -238,26 +238,26 @@ public class HauptAnsicht {
 					menue.getDateiUmbenennen().setDisable(inaktiv);
 				});
 		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.disable(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter(),
+			NodeUtil.deaktivieren(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter(),
 					menue.getDateiAlleSpeichern(), menue.getDateiSchliessen(),
 					menue.getDateiUmbenennen());
 		}
 		
 		// Menue Bearbeiten
-		NodeUtil.disable(menue.getRueckgaengig(), menue.getWiederholen(), menue.getKopieren(),
+		NodeUtil.deaktivieren(menue.getRueckgaengig(), menue.getWiederholen(), menue.getKopieren(),
 				menue.getEinfuegen(), menue.getLoeschen());
 		
 		// Menue Einfuegen
-		NodeUtil.disable(menue.getKlasseEinfuegen(), menue.getInterfaceEinfuegen(),
+		NodeUtil.deaktivieren(menue.getKlasseEinfuegen(), menue.getInterfaceEinfuegen(),
 				menue.getEnumEinfuegen(), menue.getVererbungEinfuegen(),
 				menue.getAssoziationEinfuegen(), menue.getKommentarEinfuegen());
 		
 		// Menue Anordnen
-		NodeUtil.disable(menue.getAnordnenNachVorne(), menue.getAnordnenNachGanzVorne(),
+		NodeUtil.deaktivieren(menue.getAnordnenNachVorne(), menue.getAnordnenNachGanzVorne(),
 				menue.getAnordnenNachHinten(), menue.getAnordnenNachGanzHinten());
 		
 		// Menue Darstellung
-		NodeUtil.disable(menue.getDarstellungGroesser(), menue.getDarstellungKleiner(),
+		NodeUtil.deaktivieren(menue.getDarstellungGroesser(), menue.getDarstellungKleiner(),
 				menue.getDarstellungOriginalgroesse());
 		
 		menue.getVollbild().setOnAction(e -> {
@@ -291,7 +291,7 @@ public class HauptAnsicht {
 		menue.getNaechsterTab().setOnAction(e -> this.projektAnsicht.naechsterTab());
 		
 		// Menue Einstellungen
-		NodeUtil.disable(menue.getVoidAnzeigen(), menue.getTheme());
+		NodeUtil.deaktivieren(menue.getVoidAnzeigen(), menue.getTheme());
 		menue.getInfo().setOnAction(e -> {
 			var info = new InfoAnsicht(programm, rechnerService);
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
@@ -360,23 +360,23 @@ public class HauptAnsicht {
 					updateRueckgaengigWiederholen(ribbon, gezeigtesProjekt);
 				});
 		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.disable(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff(),
+			NodeUtil.deaktivieren(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff(),
 					ribbon.getRueckgaengig(), ribbon.getRueckgaengigSchnellzugriff(),
 					ribbon.getWiederholen(), ribbon.getWiederholenSchnellzugriff(),
 					ribbon.getNeueKlasse(), ribbon.getNeuesInterface(),
 					ribbon.getNeueEnumeration());
 		}
 		
-		NodeUtil.disable(ribbon.getImportieren(), ribbon.getScreenshot(),
+		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
-		NodeUtil.disable(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen());
+		NodeUtil.deaktivieren(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen());
 		
-		NodeUtil.disable(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
+		NodeUtil.deaktivieren(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(),
 				ribbon.getAnordnenNachGanzHinten());
-		NodeUtil.disable(ribbon.getVererbung(), ribbon.getAssoziation());
-		NodeUtil.disable(ribbon.getKommentar());
-		NodeUtil.disable(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),
+		NodeUtil.deaktivieren(ribbon.getVererbung(), ribbon.getAssoziation());
+		NodeUtil.deaktivieren(ribbon.getKommentar());
+		NodeUtil.deaktivieren(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),
 				ribbon.getZoomOriginalgroesse());
 		
 		ribbon.getZoomGroesser().setOnAction(e -> {

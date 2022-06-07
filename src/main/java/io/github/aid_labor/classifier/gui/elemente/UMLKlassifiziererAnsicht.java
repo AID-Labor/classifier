@@ -15,6 +15,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -79,8 +80,12 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		oben.getStyleClass().add("klassifizierung");
 		inhalt = new VBox(oben, eigenschaften);
 		inhalt.setAlignment(Pos.TOP_CENTER);
+		oben.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+		eigenschaften.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 		StackPane.setMargin(inhalt, new Insets(0));
 		this.getChildren().add(inhalt);
+		this.minHeightProperty().bind(inhalt.prefHeightProperty());
+		this.minWidthProperty().bind(inhalt.prefWidthProperty());
 		checkeTrenner(null);
 		updateStereotyp(klassifizierer.getTyp());
 	}

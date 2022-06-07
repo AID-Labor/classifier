@@ -6,30 +6,28 @@
 
 package io.github.aid_labor.classifier.gui.elemente;
 
-import java.util.logging.Logger;
-
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 
 public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackPane {
-	private static final Logger log = Logger.getLogger(UMLElementBasisAnsicht.class.getName());
-	
+//	private static final Logger log = Logger.getLogger(UMLElementBasisAnsicht.class.getName());
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -42,8 +40,18 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 	
 	public UMLElementBasisAnsicht(E umlElementModel) {
 		this.umlElementModel = umlElementModel;
-		this.translateXProperty().bindBidirectional(umlElementModel.getPosition().getXProperty());
-		this.translateYProperty().bindBidirectional(umlElementModel.getPosition().getYProperty());
+		this.translateXProperty()
+				.bindBidirectional(umlElementModel.getPosition().getXProperty());
+		this.translateYProperty()
+				.bindBidirectional(umlElementModel.getPosition().getYProperty());
+		if (umlElementModel.getPosition().getBreite() > 0) {
+			this.setPrefWidth(umlElementModel.getPosition().getBreite());
+		}
+		if (umlElementModel.getPosition().getHoehe() > 0) {
+			this.setPrefHeight(umlElementModel.getPosition().getHoehe());
+		}
+		umlElementModel.getPosition().getBreiteProperty().bind(this.widthProperty());
+		umlElementModel.getPosition().getHoeheProperty().bind(this.heightProperty());
 		this.setMinSize(80, 30);
 		this.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 	}

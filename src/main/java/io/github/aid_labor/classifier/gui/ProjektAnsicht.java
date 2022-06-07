@@ -73,7 +73,6 @@ public class ProjektAnsicht extends Tab {
 	private final Sprache sprache;
 	private final ScrollPane inhalt;
 	private final ReadOnlyBooleanWrapper kannKleinerZoomen;
-	private boolean istInhaltBeweglich;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -91,7 +90,7 @@ public class ProjektAnsicht extends Tab {
 		this.selektion = FXCollections.observableArrayList();
 		this.inhalt = new ScrollPane(new Group(zeichenflaeche));
 		this.kannKleinerZoomen = new ReadOnlyBooleanWrapper(false);
-		this.kannKleinerZoomen.bind(zeichenflaeche.scaleXProperty().greaterThan(0.5));
+		this.kannKleinerZoomen.bind(zeichenflaeche.scaleXProperty().greaterThan(0.6));
 		
 		this.setContent(inhalt);
 		
@@ -182,7 +181,6 @@ public class ProjektAnsicht extends Tab {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void initialisiereInhalt() {
-		this.inhalt.setPannable(true);
 		this.zeichenflaeche.getStyleClass().add("zeichenflaeche");
 		this.zeichenflaeche.scaleYProperty().bind(zeichenflaeche.scaleXProperty());
 	}
@@ -274,6 +272,14 @@ public class ProjektAnsicht extends Tab {
 		this.ansichten.put(idZaehler, ansicht);
 		idZaehler++;
 		
+		ansicht.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+			boolean multiSelektion = OS.getDefault().istMacOS() && e.isMetaDown()
+					|| !OS.getDefault().istMacOS() && e.isControlDown();
+			if (!multiSelektion) {
+				selektion.clear();
+			}
+		});
+		
 		ansicht.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
 			boolean multiSelektion = OS.getDefault().istMacOS() && e.isMetaDown()
 					|| !OS.getDefault().istMacOS() && e.isControlDown();
@@ -318,21 +324,8 @@ public class ProjektAnsicht extends Tab {
 			});
 		}
 		
+		NodeUtil.macheGroessenVeraenderlich(ansicht);
 		NodeUtil.macheBeweglich(ansicht);
-		
-		ansicht.addEventFilter(MouseEvent.MOUSE_ENTERED, event -> {
-			istInhaltBeweglich = inhalt.isPannable();
-			inhalt.setPannable(false);
-		});
-		
-		ansicht.addEventFilter(MouseEvent.MOUSE_EXITED_TARGET, event -> {
-			if (!NodeUtil.wirdBewegt(ansicht)) {
-				inhalt.setPannable(istInhaltBeweglich);
-			}
-		});
-		
-		ansicht.scaleXProperty().bind(zeichenflaeche.scaleXProperty());
-		ansicht.scaleYProperty().bind(zeichenflaeche.scaleYProperty());
 		
 		Parent p = ansicht.getParent();
 		if (p != null && p instanceof Region container) {
