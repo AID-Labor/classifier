@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -92,6 +93,8 @@ public abstract class ProjektBasis implements Projekt {
 	protected final Verlaufspuffer<EditierBefehl> rueckgaengigVerlauf;
 	@JsonIgnore
 	protected final Verlaufspuffer<EditierBefehl> wiederholenVerlauf;
+	@JsonIgnore
+	protected SammelEditierung sammelEditierung;
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -106,6 +109,8 @@ public abstract class ProjektBasis implements Projekt {
 	private ReadOnlyBooleanWrapper kannRueckgaengigGemachtWerdenProperty;
 	@JsonIgnore
 	private ReadOnlyBooleanWrapper kannWiederholenProperty;
+	@JsonIgnore
+	private UeberwachungsStatus ueberwachungsStatus;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -113,8 +118,14 @@ public abstract class ProjektBasis implements Projekt {
 	
 	/**
 	 * Hauptkonstruktor. Anwendungen sollten nur diesen Konstruktor nutzen, um ein neues
-	 * Projekt zu erzeugen. Zum oeffnen eines vorhandenen Projektes steht die Fabrikmethode
+	 * Projekt zu erzeugen. Zum Oeffnen eines vorhandenen Projektes steht die Fabrikmethode
 	 * {@link #ausDateiOeffnen(Path)} zur Verfuegung.
+	 * 
+	 * Zu Beginn ist die Rueckgaengig-Funktion ausgeschaltet. Diese kann mit dem Setzen
+	 * eines UberwachungsStatus mit der Methode
+	 * {@link #setUeberwachungsStatus(UeberwachungsStatus)} eingeschaltet und zudem mit
+	 * den Methoden {@link #uebernehmeEditierungen()} und {@link #verwerfeEditierungen()}
+	 * gesteuert werden.
 	 * 
 	 * @param name                 Name des Projektes
 	 * @param programmiersprache   genutzte Programmiersprache (wird fuer sprachspezifische
@@ -123,9 +134,11 @@ public abstract class ProjektBasis implements Projekt {
 	 *                             Hintergrund gespeichert werden soll, sonst {@code false}
 	 * @throws NullPointerException falls einer der Parameter {@code null} ist
 	 */
+	@JsonCreator
 	public ProjektBasis(String name, boolean automatischSpeichern)
 			throws NullPointerException {
 		this.name = new JsonStringProperty(Objects.requireNonNull(name));
+		this.setUeberwachungsStatus(UeberwachungsStatus.IGNORIEREN);
 		this.istGespeichertProperty = new JsonReadOnlyBooleanPropertyWrapper(false);
 		this.setAutomatischSpeichern(automatischSpeichern);
 		this.rueckgaengigVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
@@ -263,8 +276,8 @@ public abstract class ProjektBasis implements Projekt {
 			json.flush();
 			erfolg = true;
 		} catch (IOException e) {
-			log.log(Level.WARNING, e, () -> 
-					"Projekt %s konnte nicht gespeichert werden".formatted(this.getName()));
+			log.log(Level.WARNING, e, () -> "Projekt %s konnte nicht gespeichert werden"
+					.formatted(this.getName()));
 		}
 		
 		this.istGespeichertProperty.set(erfolg);
@@ -347,11 +360,72 @@ public abstract class ProjektBasis implements Projekt {
 	 */
 	@Override
 	public final void verarbeiteEditierung(EditierBefehl editierung) {
-		log.finer(() -> "Editierung in den Verlauf legen: " + editierung);
-		rueckgaengigVerlauf.ablegen(editierung);
-		wiederholenVerlauf.leeren();
-		updateVerlaufProperties();
-		this.istGespeichertProperty.set(false);
+		switch (ueberwachungsStatus) {
+			case IGNORIEREN -> {
+				log.finer(() -> "[%s] ignoriere Editierung: %s".formatted(ueberwachungsStatus,
+						editierung));
+			}
+			case INKREMENTELL_SAMMELN -> {
+				legeEditierungAb(editierung);
+			}
+			case ZUSAMMENFASSEN -> {
+				if (sammelEditierung == null) {
+					log.fine(() -> "[%s] erzeuge neue SammelEditierung"
+							.formatted(ueberwachungsStatus));
+					sammelEditierung = new SammelEditierung();
+				}
+				sammelEditierung.speicherEditierung(editierung);
+			}
+			default -> {
+				log.warning(() -> "unbekannter UeberwachunsStatus: " + ueberwachungsStatus);
+			}
+		}
+	}
+	
+	@Override
+	public void setUeberwachungsStatus(UeberwachungsStatus status) {
+		log.config(() -> "%s Ueberwachungsstatus %s -> %s".formatted(this,
+				this.ueberwachungsStatus, status));
+		if (!Objects.equals(this.ueberwachungsStatus, status)
+				&& Objects.equals(this.ueberwachungsStatus, UeberwachungsStatus.ZUSAMMENFASSEN)
+				&& sammelEditierung != null) {
+			log.info(() -> "[!] ungespeicherte SammelEditierung wird uebernommen");
+			this.uebernehmeEditierungen();
+			this.sammelEditierung = null;
+		}
+		this.ueberwachungsStatus = status;
+	}
+	
+	@Override
+	public UeberwachungsStatus getUeberwachungsStatus() {
+		return ueberwachungsStatus;
+	}
+	
+	@Override
+	public void uebernehmeEditierungen() throws IllegalStateException {
+		if (ueberwachungsStatus.equals(UeberwachungsStatus.IGNORIEREN)) {
+			throw new IllegalStateException("Bei der Einstellung "
+					+ "UeberwachungsStatus.IGNORIEREN kann die Editierung nicht "
+					+ "uebernommen werden!");
+		}
+		if (sammelEditierung != null) {
+			legeEditierungAb(sammelEditierung);
+			sammelEditierung = null;
+		}
+	}
+	
+	@Override
+	public void verwerfeEditierungen() throws IllegalStateException {
+		if (ueberwachungsStatus.equals(UeberwachungsStatus.INKREMENTELL_SAMMELN)) {
+			throw new IllegalStateException("Bei der Einstellung "
+					+ "UeberwachungsStatus.INKREMENTELL_SAMMELN kann die Editierung nicht "
+					+ "verworfen werden!");
+		}
+		if (sammelEditierung != null) {
+			log.fine(() -> "verwerfe Editierungen: " + sammelEditierung);
+			sammelEditierung.macheRueckgaengig();
+			sammelEditierung = null;
+		}
 	}
 	
 	@Override
@@ -399,6 +473,23 @@ public abstract class ProjektBasis implements Projekt {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	private void legeEditierungAb(EditierBefehl editierung) {
+		log.finer(() -> "[%s] Editierung in den Verlauf legen: %s"
+				.formatted(ueberwachungsStatus, editierung));
+		if (this.istGespeichertProperty.get()) {
+			SammelEditierung sammelEditierung = new SammelEditierung();
+			sammelEditierung.speicherEditierung(editierung);
+			sammelEditierung.speicherEditierung(new EinfacherEditierBefehl<>(true, false, istGespeichertProperty::set));
+			rueckgaengigVerlauf.ablegen(sammelEditierung);
+		} else {
+			rueckgaengigVerlauf.ablegen(editierung);
+		}
+		wiederholenVerlauf.leeren();
+		updateVerlaufProperties();
+		this.istGespeichertProperty.set(false);
+	}
+	
 	private void updateVerlaufProperties() {
 		if (kannWiederholenProperty != null) {
 			kannWiederholenProperty.set(!wiederholenVerlauf.istLeer());

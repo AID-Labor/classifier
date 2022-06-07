@@ -87,8 +87,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 			throw new IllegalStateException("Kann nur getter oder setter sein, nicht beides!");
 		}
 		
-		this.name = new JsonStringProperty("");
-		this.istStatisch = new JsonBooleanProperty(istStatisch);
+		this.name = new JsonStringProperty(this, "methodenname", "");
+		this.istStatisch = new JsonBooleanProperty(this, "istStatisch", istStatisch);
 		if (istGetter) {
 			this.rueckgabeTyp = Objects
 					.requireNonNull(getterAttribut.getDatentyp().erzeugeTiefeKopie());
@@ -119,9 +119,9 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 			this.ueberwachePropertyAenderung(this.istStatisch);
 		}
 		
-		this.sichtbarkeit = new JsonObjectProperty<>(sichtbarkeit);
-		this.istAbstrakt = new JsonBooleanProperty(false);
-		this.istFinal = new JsonBooleanProperty(false);
+		this.sichtbarkeit = new JsonObjectProperty<>(this, "sichtbarkeit", sichtbarkeit);
+		this.istAbstrakt = new JsonBooleanProperty(this, "istAbstrakt", false);
+		this.istFinal = new JsonBooleanProperty(this, "istFinal", false);
 		this.istGetter = istGetter;
 		this.istSetter = istSetter;
 		this.getterAttribut = getterAttribut;
@@ -139,10 +139,13 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	@JsonCreator
 	protected Methode(
 			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
+			@JsonProperty("name") String name,
 			@JsonProperty("rueckgabeTyp") Datentyp rueckgabeTyp,
 			@JsonProperty("parameterListe") List<Parameter> parameterListe,
 			@JsonProperty("getterAttribut") Attribut getterAttribut,
 			@JsonProperty("setterAttribut") Attribut setterAttribut,
+			@JsonProperty("istAbstrakt") boolean istAbstrakt,
+			@JsonProperty("istFinal") boolean istFinal,
 			@JsonProperty("istStatisch") boolean istStatisch,
 			@JsonProperty("istGetter") boolean istGetter,
 			@JsonProperty("istSetter") boolean istSetter,
@@ -152,6 +155,9 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		if (!istGetter && !istSetter && parameterListe != null) {
 			this.parameterListe.addAll(parameterListe);
 		}
+		this.setName(name);
+		this.setzeAbstrakt(istAbstrakt);
+		this.setzeFinal(istFinal);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

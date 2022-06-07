@@ -171,7 +171,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 			@Override
 			public String toString() {
 				return "%s:  -> entfernt [%s]".formatted(beobachter,
-						Arrays.toString(aenderung.getRemoved().toArray()));
+						Arrays.toString(entfernteAttribute.toArray()));
 			}
 		};
 		befehle.add(befehl);
@@ -203,7 +203,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 			@Override
 			public String toString() {
 				return "%s:  -> hinzugefuegt [%s]".formatted(beobachter,
-						Arrays.toString(aenderung.getAddedSubList().toArray()));
+						Arrays.toString(neueAttribute.toArray()));
 			}
 		};
 		befehle.add(befehl);

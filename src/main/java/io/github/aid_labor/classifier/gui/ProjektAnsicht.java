@@ -10,12 +10,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import com.dlsc.gemsfx.DialogPane;
 
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.system.OS;
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.elemente.UMLElementBasisAnsicht;
 import io.github.aid_labor.classifier.gui.elemente.UMLKlassifiziererAnsicht;
@@ -31,6 +33,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
@@ -293,6 +296,8 @@ public class ProjektAnsicht extends Tab {
 		if (ansicht.getUmlElement() instanceof UMLKlassifizierer klassifizierer) {
 			ansicht.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
 				if (event.getClickCount() == 2) {
+					var alterStatus = projekt.getUeberwachungsStatus();
+					projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
 					var dialog = new UMLKlassifiziererBearbeitenDialog(klassifizierer);
 					dialog.initOwner(ansicht.getScene().getWindow());
 					dialog.titleProperty().bind(
@@ -305,27 +310,44 @@ public class ProjektAnsicht extends Tab {
 							case BACK_PREVIOUS -> {
 								if (!klassifizierer.equals(dialog.getSicherungskopie())) {
 									log.fine(() -> "Setze zurueck " + klassifizierer);
-									int i = projekt.getDiagrammElemente()
-											.indexOf(klassifizierer);
-									projekt.getDiagrammElemente().set(i,
-											dialog.getSicherungskopie());
+//									int i = projekt.getDiagrammElemente()
+//											.indexOf(klassifizierer);
+//									projekt.getDiagrammElemente().set(i,
+//											dialog.getSicherungskopie());
+									projekt.verwerfeEditierungen();
 								}
 							}
 							case FINISH -> {
 								log.fine(() -> "Aenderungen an " + klassifizierer
 										+ " uebernommen");
+								projekt.uebernehmeEditierungen();
 							}
 							default -> {
 								log.severe(() -> "Unbekannter Buttontyp: " + button);
 							}
 						}
+						projekt.setUeberwachungsStatus(alterStatus);
 					});
 				}
 			});
 		}
 		
-		NodeUtil.macheGroessenVeraenderlich(ansicht);
-		NodeUtil.macheBeweglich(ansicht);
+		Runnable vorPositionBearbeitung = () -> {
+			projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+		};
+		
+		BiConsumer<Bounds, Bounds> nachPositionBearbeitung = (start, ende) -> {
+			if (start.equals(ende)) {
+				projekt.verwerfeEditierungen();
+			} else {
+				projekt.uebernehmeEditierungen();
+			}
+			projekt.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
+		};
+		
+		NodeUtil.macheGroessenVeraenderlich(ansicht, vorPositionBearbeitung,
+				nachPositionBearbeitung);
+		NodeUtil.macheBeweglich(ansicht, vorPositionBearbeitung, nachPositionBearbeitung);
 		
 		Parent p = ansicht.getParent();
 		if (p != null && p instanceof Region container) {

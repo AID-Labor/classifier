@@ -7,37 +7,14 @@
 package io.github.aid_labor.classifier.basis.projekt;
 
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
-
-/**
- * Basis-Implementierung fuer Editierbar-Objekte.
- * 
- * Diese Klasse stellt die Funktion zum Registrieren, Entfernen und Informieren von
- * Beobachtern
- * bereit. Unterklassen muessen bei Editierung die Methode
- * {@link #informiere(EditierBefehl)}
- * aufrufen, um ihre Beobachter zu informieren.
- * 
- * @author Tim Muehle
- *
- */
-//@formatter:off
-@JsonAutoDetect(
-		getterVisibility = Visibility.NONE,
-		isGetterVisibility = Visibility.NONE,
-		setterVisibility = Visibility.NONE,
-		fieldVisibility = Visibility.ANY
-)
-//@formatter:on
-public abstract class EditierbarBasis implements Editierbar {
-	private static final Logger log = Logger.getLogger(EditierbarBasis.class.getName());
+public class SammelEditierung implements EditierBefehl {
+	
+	private static final Logger log = Logger.getLogger(SammelEditierung.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -57,15 +34,14 @@ public abstract class EditierbarBasis implements Editierbar {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	@JsonIgnore
-	private final List<EditierBeobachter> beobachterListe;
+	private Deque<EditierBefehl> befehle;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	protected EditierbarBasis() {
-		this.beobachterListe = new LinkedList<>();
+	public SammelEditierung() {
+		this.befehle = new LinkedList<>();
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -73,6 +49,11 @@ public abstract class EditierbarBasis implements Editierbar {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	public void speicherEditierung(EditierBefehl editierung) {
+		log.finest(() -> "sammel + " + editierung);
+		befehle.add(editierung);
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -87,26 +68,24 @@ public abstract class EditierbarBasis implements Editierbar {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	@Override
-	public final void meldeAn(EditierBeobachter beobachter) {
-		log.config(() -> this + " -- Melde Beobachter an: " + beobachter);
-		this.beobachterListe.add(beobachter);
+	public void macheRueckgaengig() {
+		befehle.descendingIterator().forEachRemaining(befehl -> {
+			log.finest(() -> "Mache rueckgaengig: " + befehl);
+			befehl.macheRueckgaengig();
+		});
 	}
 	
 	@Override
-	public final void meldeAb(EditierBeobachter beobachter) {
-		while (this.beobachterListe.contains(beobachter)) {
-			log.config(() -> this + " -- Melde Beobachter ab: " + beobachter);
-			this.beobachterListe.remove(beobachter);
-		}
+	public void wiederhole() {
+		befehle.iterator().forEachRemaining(befehl -> {
+			log.finest(() -> "Wiederhole: " + befehl);
+			befehl.wiederhole();
+		});
 	}
 	
 	@Override
-	public final void informiere(EditierBefehl editierung) {
-		log.finer(() -> "%s\n   |-> informiere Beobachter ueber [%s]\n   ╰--> Beobachter: %s"
-				.formatted(this, editierung, Arrays.toString(beobachterListe.toArray())));
-		for (EditierBeobachter beobachter : this.beobachterListe) {
-			beobachter.verarbeiteEditierung(editierung);
-		}
+	public String toString() {
+		return "Sammeleditierung: \n    " + Arrays.toString(befehle.toArray());
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

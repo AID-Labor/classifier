@@ -129,12 +129,12 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		this.stereotyp.textProperty().bind(new StringBinding() {
 			
 			{
-				super.bind(umlElementModel.getTypProperty());
+				super.bind(umlElementModel.typProperty());
 			}
 			
 			@Override
 			protected String computeValue() {
-				var typ = umlElementModel.getTypProperty().get().getStereotyp();
+				var typ = umlElementModel.typProperty().get().getStereotyp();
 				return typ == null || typ.isBlank() ? "" : "\u00AB" + typ + "\u00BB";
 			}
 		});
@@ -147,7 +147,7 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 	}
 	
 	private void beobachte() {
-		umlElementModel.getTypProperty().addListener((property, alterTyp, neuerTyp) -> {
+		umlElementModel.typProperty().addListener((property, alterTyp, neuerTyp) -> {
 			updateStereotyp(neuerTyp);
 		});
 	}

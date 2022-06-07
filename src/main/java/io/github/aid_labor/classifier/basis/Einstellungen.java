@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.basis;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -160,7 +161,7 @@ public class Einstellungen {
 		this.letzterSpeicherortEinstellung = new JsonStringProperty(
 				OS.getDefault().getDokumenteOrdner());
 		this.letzteDateien = FXCollections
-				.observableSet(new AutomatischEntfernendesSet<DatumWrapper<Path>>(10) {
+				.observableSet(new AutomatischEntfernendesSet<DatumWrapper<Path>>(15) {
 					private static final long serialVersionUID = -7312452108634427547L;
 					
 					@Override
@@ -209,7 +210,8 @@ public class Einstellungen {
 	private Einstellungen(
 			@JsonProperty("letzteDateien") List<DatumWrapper<Path>> letzteDateien) {
 		this();
-		this.letzteDateien.addAll(letzteDateien);
+		this.letzteDateien.addAll(letzteDateien.stream()
+				.filter(eintrag -> Files.exists(eintrag.getElement())).toList());
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

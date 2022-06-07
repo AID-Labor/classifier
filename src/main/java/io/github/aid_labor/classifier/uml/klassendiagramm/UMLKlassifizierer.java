@@ -72,13 +72,13 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	
 	public UMLKlassifizierer(KlassifiziererTyp typ, Programmiersprache programmiersprache,
 			String name) {
-		this.typ = new JsonEnumProperty<>(typ);
-		this.sichtbarkeit = new JsonObjectProperty<>(Modifizierer.PUBLIC);
+		this.typ = new JsonEnumProperty<>(this, "typ", typ);
+		this.sichtbarkeit = new JsonObjectProperty<>(this, "sichtbarkeit", Modifizierer.PUBLIC);
 		this.programmiersprache = Objects.requireNonNull(programmiersprache);
-		this.paket = new JsonStringProperty("");
-		this.name = new JsonStringProperty(name);
-		this.superklasse = new JsonStringProperty("");
-		this.interfaces = new JsonStringProperty("");
+		this.paket = new JsonStringProperty(this, "paket", "");
+		this.name = new JsonStringProperty(this, "name", name);
+		this.superklasse = new JsonStringProperty(this, "superklasse", "");
+		this.interfaces = new JsonStringProperty(this, "interface", "");
 		this.attribute = FXCollections.observableList(new LinkedList<>());
 		this.methoden = FXCollections.observableList(new LinkedList<>());
 		
@@ -97,13 +97,18 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			@JsonProperty("typ") KlassifiziererTyp typ,
 			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
 			@JsonProperty("programmiersprache") Programmiersprache programmiersprache,
+			@JsonProperty("paket") String paket,
 			@JsonProperty("name") String name,
+			@JsonProperty("superklasse") String superklasse,
+			@JsonProperty("interfaces") String interfaces,
 			@JsonProperty("position") Position position,
 			@JsonProperty("attribute") List<Attribut> attribute,
 			@JsonProperty("methoden") List<Methode> methoden) {
 		this(typ, programmiersprache, name);
 		this.getPosition().setPosition(position);
-		
+		this.setPaket(paket);
+		this.setInterfaces(interfaces);
+		this.setSuperklasse(superklasse);
 		this.setSichtbarkeit(sichtbarkeit);
 		
 		for (var attribut : attribute) {
@@ -172,7 +177,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.typ.set(typ);
 	}
 	
-	public ObjectProperty<KlassifiziererTyp> getTypProperty() {
+	public ObjectProperty<KlassifiziererTyp> typProperty() {
 		return typ;
 	}
 	
@@ -208,7 +213,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.sichtbarkeit.set(sichtbarkeit);
 	}
 	
-	public ObjectProperty<Modifizierer> getSichtbarkeitProperty() {
+	public ObjectProperty<Modifizierer> sichtbarkeitProperty() {
 		return sichtbarkeit;
 	}
 	
@@ -254,15 +259,9 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	
 	@Override
 	public String toString() {
-		return """
-				%s@%s {
-				     typ: %s
-				     paket: %s
-				     name: %s
-				  }"""
-				.formatted(this.getClass().getSimpleName(),
-						Integer.toHexString(((Object) this).hashCode()), this.getTyp().name(),
-						this.getPaket(), this.getName());
+		return "%s@%s [ %s '%s' ]".formatted(this.getClass().getSimpleName(),
+				Integer.toHexString(((Object) this).hashCode()), this.getTyp().name(),
+				this.getName());
 	}
 	
 	@Override

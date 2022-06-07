@@ -8,6 +8,7 @@ package io.github.aid_labor.classifier.gui;
 
 import java.util.logging.Logger;
 
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
@@ -71,6 +72,8 @@ class ProjekteKontrolle {
 	
 	void legeNeuenKlassifiziererAn(KlassifiziererTyp typ) {
 		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
+		var alterStatus = projekt.getUeberwachungsStatus();
+		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
 		var klassifizierer = new UMLKlassifizierer(typ, projekt.getProgrammiersprache(), "");
 		projekt.getDiagrammElemente().add(klassifizierer);
 		
@@ -85,15 +88,17 @@ class ProjekteKontrolle {
 			switch (button.getButtonData()) {
 				case BACK_PREVIOUS -> {
 					log.fine(() -> "Entferne " + klassifizierer);
-					projekt.getDiagrammElemente().remove(klassifizierer);
+					projekt.verwerfeEditierungen();
 				}
 				case FINISH -> {
 					log.fine(() -> "Aenderungen an " + klassifizierer + " uebernommen");
+					projekt.uebernehmeEditierungen();
 				}
 				default -> {
 					log.severe(() -> "Unbekannter Buttontyp: " + button);
 				}
 			}
+			projekt.setUeberwachungsStatus(alterStatus);
 		});
 	}
 	

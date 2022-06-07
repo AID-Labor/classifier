@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.gui.util;
 
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
 import org.kordamp.ikonli.Ikon;
@@ -14,6 +15,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import io.github.aid_labor.classifier.basis.io.Ressource;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
@@ -274,7 +276,8 @@ public final class NodeUtil {
 		return bewegung.wirdBewegt;
 	}
 	
-	public static void macheBeweglich(Node element) {
+	public static void macheBeweglich(Node element, Runnable vorBewegung,
+			BiConsumer<Bounds, Bounds> nachBewegung) {
 		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung",
 				new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
@@ -295,6 +298,10 @@ public final class NodeUtil {
 			if (bewegung.aktionPosition.equals(AktionPosition.KEINE)
 					&& istEinfacherMausKlick(event)) {
 				log.finer(() -> "Starte Bewegung");
+				if (vorBewegung != null) {
+					vorBewegung.run();
+				}
+				bewegung.ausgangsPosition = element.getBoundsInParent();
 				bewegung.letzterCursor = element.getCursor();
 				element.setCursor(Cursor.CLOSED_HAND);
 				bewegung.wirdBewegt = true;
@@ -339,6 +346,10 @@ public final class NodeUtil {
 				log.finer(() -> "Beende Bewegung");
 				element.setCursor(bewegung.letzterCursor);
 				bewegung.wirdBewegt = false;
+				if (nachBewegung != null) {
+					nachBewegung.accept(bewegung.ausgangsPosition,
+							element.getBoundsInParent());
+				}
 			}
 		});
 	}
@@ -353,7 +364,8 @@ public final class NodeUtil {
 		return bewegung.wirdGroesseVeraendert;
 	}
 	
-	public static void macheGroessenVeraenderlich(Region element) {
+	public static void macheGroessenVeraenderlich(Region element,
+			Runnable vorGroessenAenderung, BiConsumer<Bounds, Bounds> nachGroessenAenderung) {
 		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung",
 				new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
@@ -372,6 +384,11 @@ public final class NodeUtil {
 			if (!bewegung.aktionPosition.equals(AktionPosition.KEINE)
 					&& istEinfacherMausKlick(event)) {
 				log.finer(() -> "Starte Groessenaenderung");
+				if (vorGroessenAenderung != null) {
+					vorGroessenAenderung.run();
+				}
+				bewegung.ausgangsPosition = element.getBoundsInParent();
+				bewegung.ausgangsPosition = element.getBoundsInParent();
 				bewegung.wirdGroesseVeraendert = true;
 				bewegung.mausStartX = event.getSceneX();
 				bewegung.mausStartY = event.getSceneY();
@@ -429,6 +446,10 @@ public final class NodeUtil {
 				log.finer(() -> "Beende Groessenaenderung");
 				element.setCursor(bewegung.letzterCursor);
 				bewegung.wirdGroesseVeraendert = false;
+				if (nachGroessenAenderung != null) {
+					nachGroessenAenderung.accept(bewegung.ausgangsPosition,
+							element.getBoundsInParent());
+				}
 			}
 		});
 	}
@@ -511,6 +532,7 @@ public final class NodeUtil {
 		private double positionStartY;
 		private AktionPosition aktionPosition;
 		private Cursor letzterCursor;
+		private Bounds ausgangsPosition;
 		
 		public BewegungsEinstellungen() {
 			wirdBewegt = false;

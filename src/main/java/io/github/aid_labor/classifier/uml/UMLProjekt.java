@@ -124,6 +124,7 @@ public class UMLProjekt extends ProjektBasis {
 			@JsonProperty("diagrammElemente") List<UMLDiagrammElement> diagrammElemente) {
 		this(name, programmiersprache, automatischSpeichern);
 		this.diagrammElemente.addAll(diagrammElemente);
+		this.istGespeichertProperty.set(true);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

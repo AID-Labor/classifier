@@ -84,9 +84,9 @@ public interface EditierBeobachter {
 					
 					@Override
 					public String toString() {
-						return "EditierBefehl: " + beobachterRef.get() + "->"
-								+ propertyRef.get()
-								+ " { alt: %s neu: %s }".formatted(alterWert, neuerWert);
+						return "EditierBefehl: %s -> %s { alt: %s neu: %s }"
+								.formatted(beobachterRef.get(), propertyRef.get(),
+										alterWert, neuerWert);
 					}
 				});
 			}

@@ -124,7 +124,6 @@ public class HauptAnsicht {
 			
 			@Override
 			public ButtonType fromString(String string) {
-				// TODO Auto-generated method stub
 				return null;
 			}
 		});

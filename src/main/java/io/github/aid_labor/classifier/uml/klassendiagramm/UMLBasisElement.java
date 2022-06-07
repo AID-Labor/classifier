@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.uml.klassendiagramm;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 
@@ -52,35 +53,42 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this.hoehe = new JsonDoubleProperty(hoehe);
 			this.breite = new JsonDoubleProperty(breite);
 		}
-
+		
+		public Position(double x, double y, double hoehe, double breite, Object bean) {
+			this.x = new JsonDoubleProperty(bean, "x", x);
+			this.y = new JsonDoubleProperty(bean, "y", y);
+			this.hoehe = new JsonDoubleProperty(bean, "hoehe", hoehe);
+			this.breite = new JsonDoubleProperty(bean, "breite", breite);
+		}
+		
 		public double getX() {
 			return x.get();
 		}
-
+		
 		public void setX(double x) {
 			this.x.set(x);
 		}
-
+		
 		public double getY() {
 			return y.get();
 		}
-
+		
 		public void setY(double y) {
 			this.y.set(y);
 		}
-
+		
 		public double getHoehe() {
 			return hoehe.get();
 		}
-
+		
 		public void setHoehe(double hoehe) {
 			this.hoehe.set(hoehe);
 		}
-
+		
 		public double getBreite() {
 			return breite.get();
 		}
-
+		
 		public void setBreite(double breite) {
 			this.breite.set(breite);
 		}
@@ -104,7 +112,7 @@ abstract class UMLBasisElement extends EditierbarBasis
 		public JsonDoubleProperty getBreiteProperty() {
 			return breite;
 		}
-
+		
 		@JsonIgnore
 		public void setPosition(Position position) {
 			this.setX(position.getX());
@@ -112,7 +120,8 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this.setHoehe(position.getHoehe());
 			this.setBreite(position.getBreite());
 		}
-
+		
+		@JsonIgnore
 		public void set(Position position) {
 			this.setX(position.getX());
 			this.setY(position.getY());
@@ -120,21 +129,21 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this.setHoehe(position.getHoehe());
 		}
 	}
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -147,15 +156,17 @@ abstract class UMLBasisElement extends EditierbarBasis
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public UMLBasisElement() {
-		this.position = new Position(10, 10, -1, -1);
+		this.position = new Position(10, 10, -1, -1, this);
 		this.ueberwachePropertyAenderung(this.position.x);
 		this.ueberwachePropertyAenderung(this.position.y);
 		this.ueberwachePropertyAenderung(this.position.hoehe);
 		this.ueberwachePropertyAenderung(this.position.breite);
 	}
 	
+	@JsonCreator
 	public UMLBasisElement(Position position) {
-		this.position = position;
+		this.position = new Position(position.getX(), position.getY(), position.getHoehe(),
+				position.getBreite(), this);
 		this.ueberwachePropertyAenderung(this.position.x);
 		this.ueberwachePropertyAenderung(this.position.y);
 		this.ueberwachePropertyAenderung(this.position.hoehe);
@@ -195,7 +206,6 @@ abstract class UMLBasisElement extends EditierbarBasis
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-
 	/**
 	 * Dieses Objekt leitet alle Informationen zu Editierungen weiter an seine eigenen
 	 * Beobachter

@@ -14,7 +14,7 @@ import javafx.beans.property.StringProperty;
 
 /**
  * Basis fuer ein Projekt. Jedes Projekt braucht einen Namen und kann auf der Festplatte
- * gespeichert werden. Das Projekt kann Editierungen beobachten, rueckgaengig machen und 
+ * gespeichert werden. Das Projekt kann Editierungen beobachten, rueckgaengig machen und
  * diese auch wiederholen.
  * 
  * @author Tim Muehle
@@ -165,4 +165,36 @@ public interface Projekt extends EditierBeobachter {
 	 * Verfuegung steht, passiert nichts.
 	 */
 	public void wiederhole();
+	
+	/**
+	 * Ueberwachungsstatus zum Sammeln von Rueckgaengig-Befehlen einstellen
+	 * 
+	 * @param status neuer Ueberwachungsstatus
+	 */
+	public void setUeberwachungsStatus(UeberwachungsStatus status);
+	
+
+	/**
+	 * aktueller Ueberwachungsstatus zum Sammeln von Rueckgaengig-Befehlen
+	 * 
+	 * @return eingestellter Ueberwachungsstatus
+	 */
+	public UeberwachungsStatus getUeberwachungsStatus();
+	
+	/**
+	 * Gesammelte Rueckgaengig-Befehle uebernehmen
+	 * 
+	 * @throws IllegalStateException wenn der UeberwachungsStatus
+	 *                               {@link UeberwachungsStatus#IGNORIEREN} ist
+	 */
+	public void uebernehmeEditierungen() throws IllegalStateException;
+	
+	/**
+	 * Gesammelte Rueckgaengig-Befehle rueckgaengig machen und endgueltig verwerfen
+	 * 
+	 * @throws IllegalStateException wenn der UeberwachungsStatus
+	 *                               {@link UeberwachungsStatus#INKREMENTELL_SAMMELN} ist
+	 */
+	public void verwerfeEditierungen() throws IllegalStateException;
+	
 }

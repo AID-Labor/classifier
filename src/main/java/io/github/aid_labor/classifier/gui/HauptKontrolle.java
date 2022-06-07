@@ -247,7 +247,7 @@ class HauptKontrolle {
 								.collect(Collectors.joining("   ")), akzeptiert));
 			}
 			if (akzeptieren) {
-				event.acceptTransferModes(TransferMode.ANY);
+				event.acceptTransferModes(TransferMode.COPY);
 			}
 		}
 		if (event.getEventType().equals(DragEvent.DRAG_DROPPED)) {

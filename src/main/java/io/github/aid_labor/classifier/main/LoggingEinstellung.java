@@ -1,8 +1,9 @@
-/* 
+/*
  * Dieser Quellcode steht unter der MIT-License.
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
+
 package io.github.aid_labor.classifier.main;
 
 import java.io.ByteArrayInputStream;
@@ -19,24 +20,27 @@ import java.util.logging.Logger;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 
+
 class LoggingEinstellung {
 	private static final Logger log = Logger.getLogger(LoggingEinstellung.class.getName());
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private static  final Properties logProperties = new Properties(10);
+	private static final Properties logProperties = new Properties(10);
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	
 	static void initialisiereLogging(ProgrammDetails programm) {
 		// Handlers
 		logProperties.setProperty("handlers",
 				"java.util.logging.ConsoleHandler, java.util.logging.FileHandler");
+		logProperties.setProperty(
+				"io.github.aid_labor.classifier.basis.sprachverwaltung.handlers",
+				"java.util.logging.FileHandler");
 		
 		// FileHandler
 		logProperties.setProperty("java.util.logging.FileHandler.limit", "0");
@@ -61,15 +65,19 @@ class LoggingEinstellung {
 		
 		// Log-Datei einstellen
 		OS os = OS.getDefault();
-		StringBuilder logdatei = os.pfadAus(os.getKonfigurationsOrdner(programm), "log",
-				"%1$tF_%1$tH-%1$tM-%1$tS".formatted(LocalDateTime.now()) + "_classifier_%u%g.log");
+		var zeit = LocalDateTime.now();
+		var dateiBegin = "%1$tF_%1$tH-%1$tM-%1$tS".formatted(zeit);
+		String logdatei = os.pfadAus(os.getKonfigurationsOrdner(programm), "log",
+				dateiBegin + "_classifier_%u%g.log").toString();
 		try {
-			Files.createDirectories(Path.of(logdatei.toString()).getParent());
+			Files.createDirectories(Path.of(logdatei).getParent());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		logProperties.setProperty("java.util.logging.FileHandler.pattern",
-				logdatei.toString());
+		logProperties.setProperty("java.util.logging.FileHandler.pattern", logdatei);
+		logProperties.setProperty(
+				"io.github.aid_labor.classifier.basis.sprachverwaltung.useParentHandlers",
+				"false");
 		
 		// Einstellungen Anwenden
 		wendeLoggingEinstellungenAn();

@@ -14,11 +14,13 @@ import com.dlsc.gemsfx.DialogPane;
 
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
@@ -312,6 +314,9 @@ public class ProjekteAnsicht {
 		
 		tab.setOnClosed(e -> this.projekte.remove(projekt));
 		
+		// Ueberwachung erst nach dem Zeichnen starten
+		Platform.runLater(() -> projekt
+				.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN));
 	}
 	
 	public void vorherigerTab() {
@@ -330,7 +335,7 @@ public class ProjekteAnsicht {
 			this.tabAnsicht.getSelectionModel().selectFirst();
 		}
 	}
-
+	
 	public void legeNeuenKlassifiziererAn(KlassifiziererTyp typ) {
 		this.kontroller.legeNeuenKlassifiziererAn(typ);
 	}

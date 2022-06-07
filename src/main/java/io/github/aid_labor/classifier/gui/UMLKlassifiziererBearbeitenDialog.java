@@ -158,7 +158,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.setResizable(true);
 		this.setOnHidden(e -> {
 			for (var beobachter : typBeobachter) {
-				klassifizierer.getTypProperty().removeListener(beobachter);
+				klassifizierer.typProperty().removeListener(beobachter);
 			}
 		});
 	}
@@ -292,12 +292,14 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		TextField interfaces = new TextField(this.klassifizierer.getInterfaces());
 		tabelle.add(interfaces, 1, 5);
 		
-		this.klassifizierer.getTypProperty()
-				.bind(typ.getSelectionModel().selectedItemProperty());
-		this.klassifizierer.getPaketProperty().bind(paket.textProperty());
-		this.klassifizierer.nameProperty().bind(name.textProperty());
-		this.klassifizierer.superklasseProperty().bind(superklasse.textProperty());
-		this.klassifizierer.interfacesProperty().bind(interfaces.textProperty());
+		typ.getSelectionModel().selectedItemProperty().addListener((p, alt, neu) -> {
+			this.klassifizierer.setTyp(neu);
+		});
+		this.klassifizierer.getPaketProperty().bindBidirectional(paket.textProperty());
+		this.klassifizierer.nameProperty().bindBidirectional(name.textProperty());
+		this.klassifizierer.superklasseProperty()
+				.bindBidirectional(superklasse.textProperty());
+		this.klassifizierer.interfacesProperty().bindBidirectional(interfaces.textProperty());
 		
 		tabelle.setHgap(5);
 		tabelle.setVgap(15);
@@ -468,7 +470,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			updateStatischAttribut(statisch, neueWahl);
 		};
 		this.typBeobachter.add(typBeobachter);
-		klassifizierer.getTypProperty().addListener(typBeobachter);
+		klassifizierer.typProperty().addListener(typBeobachter);
 		
 		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter,
 			statisch, hoch, runter, loeschen };
@@ -621,7 +623,15 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			updateMethode(abstrakt, statisch, neueWahl, alteWahl, methode);
 		};
 		this.typBeobachter.add(typBeobachter);
-		klassifizierer.getTypProperty().addListener(typBeobachter);
+		klassifizierer.typProperty().addListener(typBeobachter);
+		
+		if (methode.istGetter() || methode.istSetter()) {
+			rueckgabetyp.setDisable(true);
+		}
+		
+		if (methode.istGetter()) {
+			parameter.setDisable(true);
+		}
 		
 		abstrakt.selectedProperty().addListener((p, alt, istAbstrakt) -> {
 			if (istAbstrakt) {
@@ -672,6 +682,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				tausche(methode.getParameterListe(), zeile, zeile + 1);
 			});
 			
+			if (methode.istGetter() || methode.istSetter()) {
+				datentyp.setDisable(true);
+				loeschen.setDisable(true);
+				hoch.setDisable(true);
+				runter.setDisable(true);
+			}
+			
 			Platform.runLater(() -> {
 				eingabeValidierung.registerValidator(name, Validator
 						.createEmptyValidator(
@@ -685,10 +702,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			
 			return new Node[] { name, datentyp, loeschen, hoch, runter };
 		}, event -> {
-			var programmierEigenschaften = klassifizierer.getProgrammiersprache()
-					.getEigenschaften();
-			methode.getParameterListe()
-					.add(new Parameter(programmierEigenschaften.getLetzerDatentyp()));
+			if (!methode.istGetter() && !methode.istSetter()) {
+				var programmierEigenschaften = klassifizierer.getProgrammiersprache()
+						.getEigenschaften();
+				methode.getParameterListe()
+						.add(new Parameter(programmierEigenschaften.getLetzerDatentyp()));
+			}
 		});
 		
 		parameterListe.setPadding(new Insets(15));
@@ -728,7 +747,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		if (!superklasseErlaubt) {
 			superklasse.setText("");
 		}
-		superklasse.setDisable(superklasseErlaubt);
+		superklasse.setDisable(!superklasseErlaubt);
 	}
 	
 	private void updateStatischAttribut(CheckBox statisch, KlassifiziererTyp typ) {
