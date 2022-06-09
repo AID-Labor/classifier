@@ -81,6 +81,10 @@
     -fx-font: bold 1.5em sans-serif;
 }
 
+.element-icon-bezeichnung {
+    -fx-font: bold 16 sans-serif;
+}
+
 .abstrakt {
     -fx-font-style: italic;
 }

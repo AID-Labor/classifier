@@ -86,6 +86,7 @@ public class RibbonKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// Tab Diagramm
 	private Button neueKlasse;
+	private Button neueAbstrakteKlasse;
 	private Button neuesInterface;
 	private Button neueEnumeration;
 	
@@ -197,6 +198,10 @@ public class RibbonKomponente {
 	
 	public Button getNeueKlasse() {
 		return neueKlasse;
+	}
+	
+	public Button getNeueAbstrakteKlasse() {
+		return neueAbstrakteKlasse;
 	}
 	
 	public Button getNeuesInterface() {
@@ -385,6 +390,9 @@ public class RibbonKomponente {
 	private RibbonGroup erstelleDiagrammElementeGruppe() {
 		neueKlasse = new Button();
 		setzeElementGrafik(neueKlasse, "klassenBezeichnung", "Klasse");
+		neueAbstrakteKlasse = new Button();
+		setzeElementGrafik(neueAbstrakteKlasse, "abstrakteKlassenBezeichnung",
+				"abstrakte Klasse", true);
 		neuesInterface = new Button();
 		setzeElementGrafik(neuesInterface, "interfaceBezeichnung", "Interface",
 				"interfaceStereotyp", "<<interface>>");
@@ -394,7 +402,7 @@ public class RibbonKomponente {
 		RibbonGroup diagrammElemente = new RibbonGroup();
 		diagrammElemente.titleProperty().bind(sprache.getTextProperty("diagrammElemente",
 				"Diagramm Elemente"));
-		diagrammElemente.getNodes().addAll(neueKlasse, neuesInterface, neueEnumeration);
+		diagrammElemente.getNodes().addAll(neueKlasse, neueAbstrakteKlasse, neuesInterface);
 		
 		NodeUtil.macheUnfokussierbar(diagrammElemente.getNodes());
 		
@@ -533,14 +541,27 @@ public class RibbonKomponente {
 	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
 			String alternativBezeichnung) {
 		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, null,
-				null);
+				null, false);
+	}
+	
+	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
+			String alternativBezeichnung, boolean istAbstrakt) {
+		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, null,
+				null, istAbstrakt);
 	}
 	
 	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
 			String alternativBezeichnung, String stereotypSchluessel,
 			String alternativStereotyp) {
+		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung,
+				stereotypSchluessel, alternativStereotyp, false);
+	}
+	
+	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
+			String alternativBezeichnung, String stereotypSchluessel,
+			String alternativStereotyp, boolean istAbstrakt) {
 		var icon = new ElementIcon(sprache, bezeichnungSchluessel, alternativBezeichnung,
-				stereotypSchluessel, alternativStereotyp);
+				stereotypSchluessel, alternativStereotyp, istAbstrakt);
 		Node container = NodeUtil.plusIconHinzufuegen(icon);
 		node.setGraphic(container);
 	}

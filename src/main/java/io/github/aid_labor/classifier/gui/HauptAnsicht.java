@@ -243,7 +243,8 @@ public class HauptAnsicht {
 		}
 		
 		// Menue Bearbeiten
-		NodeUtil.deaktivieren(menue.getRueckgaengig(), menue.getWiederholen(), menue.getKopieren(),
+		NodeUtil.deaktivieren(menue.getRueckgaengig(), menue.getWiederholen(),
+				menue.getKopieren(),
 				menue.getEinfuegen(), menue.getLoeschen());
 		
 		// Menue Einfuegen
@@ -327,6 +328,9 @@ public class HauptAnsicht {
 		
 		ribbon.getNeueKlasse().setOnAction(
 				e -> this.projektAnsicht.legeNeuenKlassifiziererAn(KlassifiziererTyp.Klasse));
+		ribbon.getNeueAbstrakteKlasse().setOnAction(
+				e -> this.projektAnsicht
+						.legeNeuenKlassifiziererAn(KlassifiziererTyp.AbstrakteKlasse));
 		ribbon.getNeuesInterface().setOnAction(e -> this.projektAnsicht
 				.legeNeuenKlassifiziererAn(KlassifiziererTyp.Interface));
 		ribbon.getNeueEnumeration().setOnAction(e -> this.projektAnsicht
@@ -354,6 +358,7 @@ public class HauptAnsicht {
 					ribbon.getSpeichern().setDisable(gezeigtesProjekt == null);
 					ribbon.getSpeichernSchnellzugriff().setDisable(gezeigtesProjekt == null);
 					ribbon.getNeueKlasse().setDisable(gezeigtesProjekt == null);
+					ribbon.getNeueAbstrakteKlasse().setDisable(gezeigtesProjekt == null);
 					ribbon.getNeuesInterface().setDisable(gezeigtesProjekt == null);
 					ribbon.getNeueEnumeration().setDisable(gezeigtesProjekt == null);
 					updateRueckgaengigWiederholen(ribbon, gezeigtesProjekt);
@@ -362,13 +367,14 @@ public class HauptAnsicht {
 			NodeUtil.deaktivieren(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff(),
 					ribbon.getRueckgaengig(), ribbon.getRueckgaengigSchnellzugriff(),
 					ribbon.getWiederholen(), ribbon.getWiederholenSchnellzugriff(),
-					ribbon.getNeueKlasse(), ribbon.getNeuesInterface(),
-					ribbon.getNeueEnumeration());
+					ribbon.getNeueKlasse(), ribbon.getNeueAbstrakteKlasse(), 
+					ribbon.getNeuesInterface(), ribbon.getNeueEnumeration());
 		}
 		
 		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
-		NodeUtil.deaktivieren(ribbon.getKopieren(), ribbon.getEinfuegen(), ribbon.getLoeschen());
+		NodeUtil.deaktivieren(ribbon.getKopieren(), ribbon.getEinfuegen(),
+				ribbon.getLoeschen());
 		
 		NodeUtil.deaktivieren(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(),
