@@ -777,6 +777,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		if (!abstraktErlaubt) {
 			abstrakt.setSelected(false);
 			abstrakt.setDisable(true);
+		} else {
+			abstrakt.setDisable(false);
 		}
 		
 		if (typ.equals(KlassifiziererTyp.Interface) && !methode.istGetter()
