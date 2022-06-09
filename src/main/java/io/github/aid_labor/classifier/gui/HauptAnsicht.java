@@ -35,6 +35,7 @@ import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import javafx.application.HostServices;
+import javafx.beans.binding.BooleanBinding;
 import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
 import javafx.scene.control.ButtonType;
@@ -78,6 +79,7 @@ public class HauptAnsicht {
 	private final ProgrammDetails programm;
 	private final RibbonKomponente ribbonKomponente;
 	private final HostServices rechnerService;
+	private final BooleanBinding hatKeinProjekt;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -91,6 +93,7 @@ public class HauptAnsicht {
 		this.controller = new HauptKontrolle(this, sprache);
 		this.projektAnsicht = new ProjekteAnsicht(overlayDialog, programm);
 		this.rechnerService = rechnerService;
+		this.hatKeinProjekt = projektAnsicht.getAngezeigtesProjektProperty().isNull();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht");
@@ -211,14 +214,6 @@ public class HauptAnsicht {
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
 		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
 		
-		updateLetzteDateien(menue.getDateiLetzeOeffnen());
-		
-		// Letzte Dateien Updaten
-		Einstellungen.getBenutzerdefiniert().letzteDateien
-				.addListener((SetChangeListener<? super DatumWrapper<Path>>) aenderung -> {
-					updateLetzteDateien(menue.getDateiLetzeOeffnen());
-				});
-		
 		menue.getDateiSchliessen()
 				.setOnAction(e -> this.projektAnsicht.angezeigtesProjektSchliessen());
 		menue.getDateiSpeichern().setOnAction(this.controller::projektSpeichern);
@@ -226,28 +221,21 @@ public class HauptAnsicht {
 		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
 		menue.getDateiUmbenennen().setOnAction(this.controller::projektUmbenennen);
 		
-		// Dateimenue updaten
-		this.projektAnsicht.getAngezeigtesProjektProperty()
-				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
-					boolean inaktiv = gezeigtesProjekt == null;
-					menue.getDateiSpeichern().setDisable(inaktiv);
-					menue.getDateiSpeichernUnter().setDisable(inaktiv);
-					menue.getDateiSchliessen().setDisable(inaktiv);
-					menue.getDateiAlleSpeichern().setDisable(inaktiv);
-					menue.getDateiUmbenennen().setDisable(inaktiv);
-				});
-		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.deaktivieren(menue.getDateiSpeichern(), menue.getDateiSpeichernUnter(),
-					menue.getDateiAlleSpeichern(), menue.getDateiSchliessen(),
-					menue.getDateiUmbenennen());
-		}
-		
 		// Menue Bearbeiten
-		NodeUtil.deaktivieren(menue.getRueckgaengig(), menue.getWiederholen(),
-				menue.getKopieren(),
-				menue.getEinfuegen(), menue.getLoeschen());
+		var aktuellesProjekt = this.projektAnsicht.getAngezeigtesProjektProperty().get();
+		updateRueckgaengigWiederholen(menue, aktuellesProjekt);
+		NodeUtil.deaktivieren(menue.getKopieren(), menue.getEinfuegen(), menue.getLoeschen());
 		
 		// Menue Einfuegen
+		menue.getKlasseEinfuegen()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Klasse));
+		menue.getAbstrakteKlasseEinfuegen()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.AbstrakteKlasse));
+		menue.getInterfaceEinfuegen()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Interface));
+		menue.getEnumEinfuegen()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Enumeration));
+		
 		NodeUtil.deaktivieren(menue.getKlasseEinfuegen(), menue.getInterfaceEinfuegen(),
 				menue.getEnumEinfuegen(), menue.getVererbungEinfuegen(),
 				menue.getAssoziationEinfuegen(), menue.getKommentarEinfuegen());
@@ -257,21 +245,14 @@ public class HauptAnsicht {
 				menue.getAnordnenNachHinten(), menue.getAnordnenNachGanzHinten());
 		
 		// Menue Darstellung
-		NodeUtil.deaktivieren(menue.getDarstellungGroesser(), menue.getDarstellungKleiner(),
-				menue.getDarstellungOriginalgroesse());
+		menue.getDarstellungGroesser().setOnAction(this.controller::zoomeGroesser);
+		menue.getDarstellungKleiner().setOnAction(this.controller::zoomeKleiner);
+		menue.getDarstellungOriginalgroesse().setOnAction(this.controller::resetZoom);
 		
 		menue.getVollbild().setOnAction(e -> {
 			if (wurzel.getScene().getWindow() instanceof Stage fenster) {
 				fenster.setFullScreen(!fenster.isFullScreen());
 				menue.getVollbild().setSelected(fenster.isFullScreen());
-			}
-		});
-		
-		// Szene ueberwachen
-		wurzel.sceneProperty().addListener((property, alteSzene, neueSzene) -> {
-			menue.getVollbild().selectedProperty().unbind();
-			if (neueSzene.getWindow() instanceof Stage fenster) {
-				menue.getVollbild().selectedProperty().bind(fenster.fullScreenProperty());
 			}
 		});
 		
@@ -302,6 +283,60 @@ public class HauptAnsicht {
 				.setOnAction(this.controller::konigurationsordnerOeffnen);
 		menue.getKonfigurationsordnerBereinigen()
 				.setOnAction(this.controller::konigurationsordnerBereinigen);
+		
+		setzeMenueBindungen(menue);
+	}
+	
+	private void setzeMenueBindungen(MenueLeisteKomponente menue) {
+		// Letzte Dateien Updaten
+		updateLetzteDateien(menue.getDateiLetzeOeffnen());
+		Einstellungen.getBenutzerdefiniert().letzteDateien
+				.addListener((SetChangeListener<? super DatumWrapper<Path>>) aenderung -> {
+					updateLetzteDateien(menue.getDateiLetzeOeffnen());
+				});
+		
+		// Dateimenue updaten
+		menue.getDateiSpeichern().disableProperty().bind(hatKeinProjekt);
+		menue.getDateiSpeichernUnter().disableProperty().bind(hatKeinProjekt);
+		menue.getDateiSchliessen().disableProperty().bind(hatKeinProjekt);
+		menue.getDateiAlleSpeichern().disableProperty().bind(hatKeinProjekt);
+		menue.getDateiUmbenennen().disableProperty().bind(hatKeinProjekt);
+		
+		// Menue Bearbeiten
+		this.projektAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
+			updateRueckgaengigWiederholen(menue, projekt);
+		});
+		
+		// Menue Einfuegen
+		menue.getKlasseEinfuegen().disableProperty().bind(hatKeinProjekt);
+		menue.getAbstrakteKlasseEinfuegen().disableProperty().bind(hatKeinProjekt);
+		menue.getInterfaceEinfuegen().disableProperty().bind(hatKeinProjekt);
+		menue.getEnumEinfuegen().disableProperty().bind(hatKeinProjekt);
+		
+		// Menue Anordnen
+		// TODO
+		
+		// Menue Darstellung
+		menue.getDarstellungGroesser().disableProperty().bind(hatKeinProjekt);
+		menue.getDarstellungKleiner().disableProperty().bind(hatKeinProjekt);
+		menue.getDarstellungOriginalgroesse().disableProperty().bind(hatKeinProjekt);
+		
+		updateZoomKleinerButton(menue, this.projektAnsicht.getAnzeige().get());
+		this.projektAnsicht.getAnzeige().addListener((property, alteAnzeige, neueAnzeige) -> {
+			updateZoomKleinerButton(menue, neueAnzeige);
+		});
+		
+		// Szene fuer Vollbild ueberwachen
+		wurzel.sceneProperty().addListener((property, alteSzene, neueSzene) -> {
+			menue.getVollbild().selectedProperty().unbind();
+			if (neueSzene.getWindow() instanceof Stage fenster) {
+				menue.getVollbild().selectedProperty().bind(fenster.fullScreenProperty());
+			}
+		});
+		
+		// Menue Fenster
+		menue.getVorherigerTab().disableProperty().bind(hatKeinProjekt);
+		menue.getNaechsterTab().disableProperty().bind(hatKeinProjekt);
 	}
 	
 	private void updateLetzteDateien(Menu menueLetzteDateien) {
@@ -316,6 +351,36 @@ public class HauptAnsicht {
 		}
 	}
 	
+	private void updateRueckgaengigWiederholen(MenueLeisteKomponente menue, Projekt projekt) {
+		menue.getRueckgaengig().disableProperty().unbind();
+		menue.getWiederholen().disableProperty().unbind();
+		
+		if (projekt != null) {
+			menue.getRueckgaengig().setOnAction(e -> projekt.macheRueckgaengig());
+			menue.getWiederholen().setOnAction(e -> projekt.wiederhole());
+			menue.getRueckgaengig().disableProperty()
+					.bind(projekt.kannRueckgaengigGemachtWerdenProperty().not());
+			menue.getWiederholen().disableProperty()
+					.bind(projekt.kannWiederholenProperty().not());
+		} else {
+			menue.getRueckgaengig().setOnAction(null);
+			menue.getWiederholen().setOnAction(null);
+			menue.getRueckgaengig().disableProperty().set(true);
+			menue.getWiederholen().disableProperty().set(true);
+		}
+	}
+	
+	private void updateZoomKleinerButton(MenueLeisteKomponente menue,
+			ProjektAnsicht projektAnsicht) {
+		menue.getDarstellungKleiner().disableProperty().unbind();
+		if (projektAnsicht != null) {
+			menue.getDarstellungKleiner().disableProperty()
+					.bind(projektAnsicht.kannKleinerZoomenProperty().not());
+		} else {
+			menue.getDarstellungKleiner().setDisable(true);
+		}
+	}
+	
 	// Ende Menue
 	// =====================================================================================
 	// Beginn Ribbon
@@ -326,50 +391,14 @@ public class HauptAnsicht {
 		ribbon.getSpeichernSchnellzugriff().setOnAction(controller::projektSpeichern);
 		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
 		
-		ribbon.getNeueKlasse().setOnAction(
-				e -> this.projektAnsicht.legeNeuenKlassifiziererAn(KlassifiziererTyp.Klasse));
-		ribbon.getNeueAbstrakteKlasse().setOnAction(
-				e -> this.projektAnsicht
-						.legeNeuenKlassifiziererAn(KlassifiziererTyp.AbstrakteKlasse));
-		ribbon.getNeuesInterface().setOnAction(e -> this.projektAnsicht
-				.legeNeuenKlassifiziererAn(KlassifiziererTyp.Interface));
-		ribbon.getNeueEnumeration().setOnAction(e -> this.projektAnsicht
-				.legeNeuenKlassifiziererAn(KlassifiziererTyp.Enumeration));
-		
-		// Buttons updaten
-		updateRueckgaengigWiederholen(ribbon,
-				projektAnsicht.getAngezeigtesProjektProperty().get());
-		this.projektAnsicht.getAngezeigtesProjektProperty()
-				.addListener((property, altesProjekt, gezeigtesProjekt) -> {
-					if (gezeigtesProjekt != null) {
-						NodeUtil.setzeHervorhebung(
-								gezeigtesProjekt.istGespeichertProperty().not().get(),
-								ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
-						gezeigtesProjekt.istGespeichertProperty().addListener(
-								(gespeichertProperty, alterWert, istGespeichert) -> {
-									NodeUtil.setzeHervorhebung(!istGespeichert,
-											ribbon.getSpeichern(),
-											ribbon.getSpeichernSchnellzugriff());
-								});
-					} else {
-						NodeUtil.setzeHervorhebung(false, ribbon.getSpeichern(),
-								ribbon.getSpeichernSchnellzugriff());
-					}
-					ribbon.getSpeichern().setDisable(gezeigtesProjekt == null);
-					ribbon.getSpeichernSchnellzugriff().setDisable(gezeigtesProjekt == null);
-					ribbon.getNeueKlasse().setDisable(gezeigtesProjekt == null);
-					ribbon.getNeueAbstrakteKlasse().setDisable(gezeigtesProjekt == null);
-					ribbon.getNeuesInterface().setDisable(gezeigtesProjekt == null);
-					ribbon.getNeueEnumeration().setDisable(gezeigtesProjekt == null);
-					updateRueckgaengigWiederholen(ribbon, gezeigtesProjekt);
-				});
-		if (projektAnsicht.getAngezeigtesProjektProperty().get() == null) {
-			NodeUtil.deaktivieren(ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff(),
-					ribbon.getRueckgaengig(), ribbon.getRueckgaengigSchnellzugriff(),
-					ribbon.getWiederholen(), ribbon.getWiederholenSchnellzugriff(),
-					ribbon.getNeueKlasse(), ribbon.getNeueAbstrakteKlasse(), 
-					ribbon.getNeuesInterface(), ribbon.getNeueEnumeration());
-		}
+		ribbon.getNeueKlasse()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Klasse));
+		ribbon.getNeueAbstrakteKlasse()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.AbstrakteKlasse));
+		ribbon.getNeuesInterface()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Interface));
+		ribbon.getNeueEnumeration()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Enumeration));
 		
 		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
@@ -377,43 +406,54 @@ public class HauptAnsicht {
 				ribbon.getLoeschen());
 		
 		NodeUtil.deaktivieren(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
-				ribbon.getAnordnenNachHinten(),
-				ribbon.getAnordnenNachGanzHinten());
+				ribbon.getAnordnenNachHinten(), ribbon.getAnordnenNachGanzHinten());
 		NodeUtil.deaktivieren(ribbon.getVererbung(), ribbon.getAssoziation());
 		NodeUtil.deaktivieren(ribbon.getKommentar());
-		NodeUtil.deaktivieren(ribbon.getZoomGroesser(), ribbon.getZoomKleiner(),
-				ribbon.getZoomOriginalgroesse());
 		
-		ribbon.getZoomGroesser().setOnAction(e -> {
-			projektAnsicht.getAnzeige().get()
-					.skaliere(projektAnsicht.getAnzeige().get().getSkalierung() + 0.1);
-		});
-		ribbon.getZoomKleiner().setOnAction(e -> {
-			projektAnsicht.getAnzeige().get()
-					.skaliere(projektAnsicht.getAnzeige().get().getSkalierung() - 0.1);
-		});
-		ribbon.getZoomOriginalgroesse().setOnAction(e -> {
-			projektAnsicht.getAnzeige().get()
-					.skaliere(projektAnsicht.getAnzeige().get().getStandardSkalierung());
-		});
-		updateZoomButtons(ribbon, projektAnsicht.getAnzeige().get());
+		ribbon.getZoomGroesser().setOnAction(this.controller::zoomeGroesser);
+		ribbon.getZoomKleiner().setOnAction(this.controller::zoomeKleiner);
+		ribbon.getZoomOriginalgroesse().setOnAction(this.controller::resetZoom);
+		updateZoomKleinerButton(ribbon, projektAnsicht.getAnzeige().get());
 		
 		this.projektAnsicht.getAnzeige().addListener((property, alteAnzeige, neueAnzeige) -> {
-			updateZoomButtons(ribbon, neueAnzeige);
+			updateZoomKleinerButton(ribbon, neueAnzeige);
 		});
+		
+		setzeRibbonBindungen(ribbon);
 	}
 	
-	private void updateZoomButtons(RibbonKomponente ribbon, ProjektAnsicht projektAnsicht) {
-		boolean ausbleneden = projektAnsicht == null;
+	private void setzeRibbonBindungen(RibbonKomponente ribbon) {
+		// Buttons updaten
+		ribbon.getSpeichern().disableProperty().bind(hatKeinProjekt);
+		ribbon.getSpeichernSchnellzugriff().disableProperty().bind(hatKeinProjekt);
+		ribbon.getNeueKlasse().disableProperty().bind(hatKeinProjekt);
+		ribbon.getNeueAbstrakteKlasse().disableProperty().bind(hatKeinProjekt);
+		ribbon.getNeuesInterface().disableProperty().bind(hatKeinProjekt);
+		ribbon.getNeueEnumeration().disableProperty().bind(hatKeinProjekt);
 		
-		ribbon.getZoomGroesser().setDisable(ausbleneden);
-		ribbon.getZoomKleiner().disableProperty().unbind();
-		ribbon.getZoomKleiner().setDisable(ausbleneden);
-		ribbon.getZoomOriginalgroesse().setDisable(ausbleneden);
-		if (projektAnsicht != null) {
-			ribbon.getZoomKleiner().disableProperty()
-					.bind(projektAnsicht.kannKleinerZoomenProperty().not());
-		}
+		updateRueckgaengigWiederholen(ribbon,
+				projektAnsicht.getAngezeigtesProjektProperty().get());
+		this.projektAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
+			if (projekt != null) {
+				NodeUtil.setzeHervorhebung(
+						projekt.istGespeichertProperty().not().get(),
+						ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
+				projekt.istGespeichertProperty().addListener(
+						(gespeichertProperty, alterWert, istGespeichert) -> {
+							NodeUtil.setzeHervorhebung(!istGespeichert,
+									ribbon.getSpeichern(),
+									ribbon.getSpeichernSchnellzugriff());
+						});
+			} else {
+				NodeUtil.setzeHervorhebung(false, ribbon.getSpeichern(),
+						ribbon.getSpeichernSchnellzugriff());
+			}
+			updateRueckgaengigWiederholen(ribbon, projekt);
+		});
+		
+		ribbon.getZoomGroesser().disableProperty().bind(hatKeinProjekt);
+		ribbon.getZoomKleiner().disableProperty().bind(hatKeinProjekt);
+		ribbon.getZoomOriginalgroesse().disableProperty().bind(hatKeinProjekt);
 	}
 	
 	private void updateRueckgaengigWiederholen(RibbonKomponente ribbon, Projekt projekt) {
@@ -448,12 +488,27 @@ public class HauptAnsicht {
 		}
 	}
 	
+	private void updateZoomKleinerButton(RibbonKomponente ribbon,
+			ProjektAnsicht projektAnsicht) {
+		ribbon.getZoomKleiner().disableProperty().unbind();
+		if (projektAnsicht != null) {
+			ribbon.getZoomKleiner().disableProperty()
+					.bind(projektAnsicht.kannKleinerZoomenProperty().not());
+		} else {
+			ribbon.getZoomKleiner().setDisable(true);
+		}
+	}
+	
 	// Ende Ribbon
 	// =====================================================================================
 	// Beginn Projektansicht
 	
 	void zeigeProjekt(UMLProjekt projekt) {
 		this.projektAnsicht.zeigeProjekt(projekt);
+	}
+	
+	private void erzeugeKlassifizierer(KlassifiziererTyp typ) {
+		this.projektAnsicht.legeNeuenKlassifiziererAn(typ);
 	}
 	
 	// =====================================================================================
@@ -479,7 +534,7 @@ public class HauptAnsicht {
 				new StackPane(new EnhancedLabel(beschreibung)));
 	}
 	
-	void zeigeOffnenWarnungDialog(File datei) {
+	void zeigeOeffnenWarnungDialog(File datei) {
 		MessageFormat titelformat = new MessageFormat(sprache.getText(
 				"oeffnenWarnungTitel", "Die Datei {0} wurde nicht ge%cffnet"
 						.formatted(oe)));

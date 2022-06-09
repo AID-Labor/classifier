@@ -78,6 +78,7 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// Menue Einfuegen
 	private MenuItem klasseEinfuegen;
+	private MenuItem abstraktelasseEinfuegen;
 	private MenuItem interfaceEinfuegen;
 	private MenuItem enumEinfuegen;
 	private MenuItem vererbungEinfuegen;
@@ -214,6 +215,10 @@ public class MenueLeisteKomponente {
 	
 	public MenuItem getKlasseEinfuegen() {
 		return klasseEinfuegen;
+	}
+	
+	public MenuItem getAbstrakteKlasseEinfuegen() {
+		return abstraktelasseEinfuegen;
 	}
 	
 	public MenuItem getInterfaceEinfuegen() {
@@ -384,6 +389,8 @@ public class MenueLeisteKomponente {
 				"Einf%cgen".formatted(ue));
 		klasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuKlasse",
 				"Neue Klasse...");
+		abstraktelasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
+				"neuAbstakteKlasse", "Neue abstrakte Klasse...");
 		interfaceEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
 				"neuInterface", "Neues Interface...");
 		enumEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuEnum",
@@ -395,9 +402,9 @@ public class MenueLeisteKomponente {
 		kommentarEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
 				"neuKommentar", "Neuer Kommentar...");
 		
-		einfuegenMenue.getItems().addAll(klasseEinfuegen, interfaceEinfuegen, enumEinfuegen,
-				new SeparatorMenuItem(), vererbungEinfuegen, assoziationEinfuegen,
-				new SeparatorMenuItem(), kommentarEinfuegen);
+		einfuegenMenue.getItems().addAll(klasseEinfuegen, abstraktelasseEinfuegen,
+				interfaceEinfuegen, enumEinfuegen, new SeparatorMenuItem(), vererbungEinfuegen,
+				assoziationEinfuegen, new SeparatorMenuItem(), kommentarEinfuegen);
 		
 		return einfuegenMenue;
 	}

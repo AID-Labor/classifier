@@ -92,7 +92,8 @@ class HauptKontrolle {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	void konigurationsordnerOeffnen(Event event) {
-		Path ordner = OS.getDefault().getKonfigurationsOrdnerPath(ansicht.getProgrammDetails());
+		Path ordner = OS.getDefault()
+				.getKonfigurationsOrdnerPath(ansicht.getProgrammDetails());
 		try {
 			ansicht.getRechnerService().showDocument(ordner.toUri().toString());
 		} catch (Exception e) {
@@ -288,7 +289,7 @@ class HauptKontrolle {
 			} catch (Exception e) {
 				log.log(Level.INFO, e,
 						() -> "Projekt %s wurde nicht geoeffnet".formatted(projektName));
-				ansicht.zeigeOffnenWarnungDialog(datei);
+				ansicht.zeigeOeffnenWarnungDialog(datei);
 			}
 		}
 	}
@@ -313,6 +314,21 @@ class HauptKontrolle {
 				projekt.setName(eingabeDialog.getValue());
 			}
 		});
+	}
+	
+	void zoomeGroesser(Event event) {
+		var projekt = ansicht.getProjektAnsicht().getAnzeige().get();
+		projekt.skaliere(projekt.getSkalierung() + 0.1);
+	}
+	
+	void zoomeKleiner(Event event) {
+		var projekt = ansicht.getProjektAnsicht().getAnzeige().get();
+		projekt.skaliere(projekt.getSkalierung() - 0.1);
+	}
+	
+	void resetZoom(Event event) {
+		var projekt = ansicht.getProjektAnsicht().getAnzeige().get();
+		projekt.skaliere(projekt.getStandardSkalierung());
 	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
