@@ -7,6 +7,7 @@
 package io.github.aid_labor.classifier.gui.elemente;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import javafx.beans.binding.When;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
@@ -50,8 +51,13 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 		if (umlElementModel.getPosition().getHoehe() > 0) {
 			this.setPrefHeight(umlElementModel.getPosition().getHoehe());
 		}
-		umlElementModel.getPosition().getBreiteProperty().bindBidirectional(this.prefWidthProperty());
-		umlElementModel.getPosition().getHoeheProperty().bindBidirectional(this.prefHeightProperty());
+		
+		umlElementModel.getPosition().getBreiteProperty()
+				.bind(new When(this.prefWidthProperty().lessThanOrEqualTo(0))
+						.then(this.widthProperty()).otherwise(this.prefWidthProperty()));
+		umlElementModel.getPosition().getHoeheProperty()
+				.bind(new When(this.prefHeightProperty().lessThanOrEqualTo(0))
+						.then(this.heightProperty()).otherwise(this.prefHeightProperty()));
 		this.setMinSize(80, 30);
 		this.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 	}

@@ -21,7 +21,6 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
@@ -323,25 +322,10 @@ public final class NodeUtil {
 				double y = bewegung.positionStartY + deltaY / element.getParent().getScaleY();
 				element.setTranslateX(x < 0 ? 0 : x);
 				element.setTranslateY(y < 0 ? 0 : y);
-				
-				Parent p = element.getParent();
-				if (p != null && p instanceof Region container) {
-					var elementLayout = element.getBoundsInParent();
-					double breite = elementLayout.getMaxX() + 300;
-					if (container.getWidth() < breite) {
-						container.setMinWidth(breite);
-						container.setPrefWidth(breite);
-					}
-					double hoehe = elementLayout.getMaxY() + 300;
-					if (container.getHeight() < hoehe) {
-						container.setMinHeight(hoehe);
-						container.setPrefHeight(hoehe);
-					}
-				}
 			}
 		});
 		
-		element.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+		element.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
 			if (bewegung.wirdBewegt) {
 				log.finer(() -> "Beende Bewegung");
 				element.setCursor(bewegung.letzterCursor);
@@ -441,7 +425,7 @@ public final class NodeUtil {
 			}
 		});
 		
-		element.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+		element.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
 			if (bewegung.wirdGroesseVeraendert) {
 				log.finer(() -> "Beende Groessenaenderung");
 				element.setCursor(bewegung.letzterCursor);

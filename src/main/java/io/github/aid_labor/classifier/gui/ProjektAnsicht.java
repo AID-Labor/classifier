@@ -36,12 +36,10 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 
 
 public class ProjektAnsicht extends Tab {
@@ -71,6 +69,7 @@ public class ProjektAnsicht extends Tab {
 	private final DialogPane overlayDialog;
 	private final ProgrammDetails programm;
 	private final Pane zeichenflaeche;
+	private final Group zeichenflaecheGruppe;
 	private final Map<Integer, Node> ansichten;
 	private final ObservableList<Node> selektion;
 	private final Sprache sprache;
@@ -91,9 +90,13 @@ public class ProjektAnsicht extends Tab {
 		this.zeichenflaeche = new Pane();
 		this.ansichten = new HashMap<>();
 		this.selektion = FXCollections.observableArrayList();
-		this.inhalt = new ScrollPane(new Group(zeichenflaeche));
+		zeichenflaecheGruppe = new Group(zeichenflaeche);
+		this.inhalt = new ScrollPane(zeichenflaecheGruppe);
 		this.kannKleinerZoomen = new ReadOnlyBooleanWrapper(false);
 		this.kannKleinerZoomen.bind(zeichenflaeche.scaleXProperty().greaterThan(0.6));
+		
+		this.zeichenflaeche.getStyleClass().add("zeichenflaeche");
+		this.inhalt.getStyleClass().add("projekt-inhalt");
 		
 		this.setContent(inhalt);
 		
@@ -310,10 +313,6 @@ public class ProjektAnsicht extends Tab {
 							case BACK_PREVIOUS -> {
 								if (!klassifizierer.equals(dialog.getSicherungskopie())) {
 									log.fine(() -> "Setze zurueck " + klassifizierer);
-//									int i = projekt.getDiagrammElemente()
-//											.indexOf(klassifizierer);
-//									projekt.getDiagrammElemente().set(i,
-//											dialog.getSicherungskopie());
 									projekt.verwerfeEditierungen();
 								}
 							}
@@ -343,26 +342,25 @@ public class ProjektAnsicht extends Tab {
 				projekt.uebernehmeEditierungen();
 			}
 			projekt.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
+			updateZeichenflaechenGroesse();
 		};
 		
 		NodeUtil.macheGroessenVeraenderlich(ansicht, vorPositionBearbeitung,
 				nachPositionBearbeitung);
 		NodeUtil.macheBeweglich(ansicht, vorPositionBearbeitung, nachPositionBearbeitung);
-		
-		Parent p = ansicht.getParent();
-		if (p != null && p instanceof Region container) {
-			var elementLayout = ansicht.getBoundsInParent();
-			double breite = elementLayout.getMaxX() + 300;
-			if (container.getWidth() < breite) {
-				container.setMinWidth(breite);
-				container.setPrefWidth(breite);
-			}
-			double hoehe = elementLayout.getMaxY() + 300;
-			if (container.getHeight() < hoehe) {
-				container.setMinHeight(hoehe);
-				container.setPrefHeight(hoehe);
-			}
-		}
+		updateZeichenflaechenGroesse();
+	}
+	
+	private void updateZeichenflaechenGroesse() {
+		var maxX = projekt.getDiagrammElemente().stream()
+				.mapToDouble(element -> element.getPosition().getX()
+						+ element.getPosition().getBreite())
+				.max();
+		var maxY = projekt.getDiagrammElemente().stream()
+				.mapToDouble(element -> element.getPosition().getY()
+						+ element.getPosition().getHoehe())
+				.max();
+		this.zeichenflaeche.setPrefSize(maxX.orElse(100) + 100, maxY.orElse(100) + 100);
 	}
 	
 }
