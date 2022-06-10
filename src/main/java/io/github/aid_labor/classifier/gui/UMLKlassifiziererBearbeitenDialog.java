@@ -156,6 +156,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		getDialogPane().setContent(wurzel);
 		initialisiereButtons();
 		this.setResizable(true);
+		this.getDialogPane().setPrefSize(920, 512);
+		
 		this.setOnHidden(e -> {
 			for (var beobachter : typBeobachter) {
 				klassifizierer.typProperty().removeListener(beobachter);
@@ -354,6 +356,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					new When(vBar.visibleProperty()).then(vBar.widthProperty()).otherwise(0)));
 		});
 		
+		tabelle.widthProperty().addListener((p, a, n) -> {
+			Platform.runLater(() -> {
+				scrollContainer.requestLayout();
+			});
+			
+		});
+		
 		return ansicht;
 	}
 	
@@ -414,7 +423,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		TextField initialwert = new TextField(attribut.getInitialwert());
 		initialwert.textProperty().bindBidirectional(attribut.getInitialwertProperty());
-		initialwert.setPrefWidth(60);
 		
 		CheckBox getter = new CheckBox();
 		getter.selectedProperty().bindBidirectional(attribut.getHatGetterProperty());
