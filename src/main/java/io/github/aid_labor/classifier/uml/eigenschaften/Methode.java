@@ -286,8 +286,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(istAbstrakt(), istFinal(), getName(), getParameterListe(),
-				getRueckgabeTyp(), getSichtbarkeit(), istStatisch());
+		return ClassifierUtil.hashAlle(istAbstrakt(), istFinal(), getName(), getParameterListe(),
+				getRueckgabeTyp(), getSichtbarkeit(), istStatisch(), istGetter(), istSetter());
 	}
 	
 	@Override
@@ -307,15 +307,18 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		boolean istFinalGleich = istFinal() == m.istFinal();
 		boolean nameGleich = Objects.equals(getName(), m.getName());
 		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(
-				this.getParameterListe(),
-				m.getParameterListe());
+				this.getParameterListe(), m.getParameterListe());
 		boolean rueckgabeTypGleich = Objects.equals(getRueckgabeTyp(), m.getRueckgabeTyp());
 		boolean sichtbarkeitGleich = Objects.equals(getSichtbarkeit(), m.getSichtbarkeit());
 		boolean statischGleich = this.istStatisch() == m.istStatisch();
+		boolean getterGleich = this.istGetter() == m.istGetter();
+		boolean setterGleich = this.istSetter() == m.istSetter();
+		boolean programmierspracheGleich = Objects.equals(this.programmiersprache,
+				m.programmiersprache);
 		
 		boolean istGleich = istAbstraktGleich && istFinalGleich && nameGleich
 				&& parameterListeGleich && rueckgabeTypGleich && sichtbarkeitGleich
-				&& statischGleich;
+				&& getterGleich && statischGleich && statischGleich && programmierspracheGleich;
 		
 		log.finest(() -> """
 				istGleich: %s
@@ -325,10 +328,13 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 				   |-- parameterListeGleich: %s
 				   |-- rueckgabeTypGleich: %s
 				   |-- sichtbarkeitGleich: %s
-				   ╰-- statischGleich: %s"""
+				   |-- getterGleich: %s
+				   |-- setterGleich: %s
+				   |-- statischGleich: %s
+				   ╰-- programmierspracheGleich: %s"""
 				.formatted(istGleich, istAbstraktGleich, istFinalGleich, nameGleich,
 						parameterListeGleich, rueckgabeTypGleich, sichtbarkeitGleich,
-						statischGleich));
+						getterGleich, setterGleich, statischGleich, programmierspracheGleich));
 		
 		return istGleich;
 	}

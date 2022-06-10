@@ -76,6 +76,11 @@ public class JsonObjectProperty<T> extends SimpleObjectProperty<T> {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
+	public int hashCode() {
+		return Objects.hashCode(get());
+	}
+	
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ObjectProperty<?> jip) {
 			return Objects.deepEquals(this.getValue(), jip.getValue())

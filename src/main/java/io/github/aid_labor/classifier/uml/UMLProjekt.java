@@ -167,7 +167,7 @@ public class UMLProjekt extends ProjektBasis {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(automatischSpeichern(), diagrammElemente, getName(),
+		return ClassifierUtil.hashAlle(automatischSpeichern(), diagrammElemente, getName(),
 				programmiersprache, getSpeicherort());
 	}
 	

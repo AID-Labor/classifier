@@ -73,7 +73,12 @@ public class JsonDoubleProperty extends SimpleDoubleProperty {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
+	@Override
+	public int hashCode() {
+		return Double.hashCode(get());
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof DoubleProperty jip) {

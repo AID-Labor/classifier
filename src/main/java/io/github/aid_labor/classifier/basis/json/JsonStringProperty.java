@@ -82,6 +82,11 @@ public class JsonStringProperty extends SimpleStringProperty {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
+	public int hashCode() {
+		return Objects.hashCode(get());
+	}
+	
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof StringProperty jip) {
 			return Objects.equals(this.get(), jip.get())

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 
+import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
@@ -111,6 +112,8 @@ public abstract class ProjektBasis implements Projekt {
 	private ReadOnlyBooleanWrapper kannWiederholenProperty;
 	@JsonIgnore
 	private UeberwachungsStatus ueberwachungsStatus;
+	@JsonIgnore
+	private long gespeicherterHash;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -148,6 +151,14 @@ public abstract class ProjektBasis implements Projekt {
 				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
 		
 		this.ueberwachePropertyAenderung(this.name);
+		this.istGespeichertProperty.addListener((__, ___, istGespeichert) -> {
+			if (istGespeichert) {
+				int neuerHash = hashCode();
+				log.fine(() -> "Projekt wurde gespeichert. Update hash von "
+						+ gespeicherterHash + " zu " + neuerHash);
+				gespeicherterHash = neuerHash;
+			}
+		});
 	}
 	
 	/**
@@ -276,6 +287,8 @@ public abstract class ProjektBasis implements Projekt {
 			json.writePOJO(this);
 			json.flush();
 			erfolg = true;
+			wiederholenVerlauf.leeren();
+			updateVerlaufProperties();
 		} catch (IOException e) {
 			log.log(Level.WARNING, e, () -> "Projekt %s konnte nicht gespeichert werden"
 					.formatted(this.getName()));
@@ -314,8 +327,11 @@ public abstract class ProjektBasis implements Projekt {
 			var befehl = rueckgaengigVerlauf.entfernen();
 			log.fine(() -> "%s\n    -> mache rueckgaengig {%s}".formatted(this, befehl));
 			befehl.macheRueckgaengig();
+			
 			wiederholenVerlauf.ablegen(befehl);
+			this.istGespeichertProperty.set(gespeicherterHash == this.hashCode());
 		}
+		log.fine(() -> "Hash: " + this.hashCode() + " ### gespeichert: " + gespeicherterHash);
 		updateVerlaufProperties();
 	}
 	
@@ -348,8 +364,10 @@ public abstract class ProjektBasis implements Projekt {
 			log.fine(() -> "%s\n    -> wiederhole {%s}".formatted(this, befehl));
 			befehl.wiederhole();
 			rueckgaengigVerlauf.ablegen(befehl);
+			this.istGespeichertProperty.set(gespeicherterHash == this.hashCode());
 		}
 		updateVerlaufProperties();
+		log.fine(() -> "Hash: " + this.hashCode() + " ### gespeichert: " + gespeicherterHash);
 	}
 	
 	/**
@@ -436,7 +454,7 @@ public abstract class ProjektBasis implements Projekt {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(automatischSpeichern, getName(), speicherort);
+		return ClassifierUtil.hashAlle(automatischSpeichern, getName(), speicherort);
 	}
 	
 	@Override
@@ -478,15 +496,7 @@ public abstract class ProjektBasis implements Projekt {
 	private void legeEditierungAb(EditierBefehl editierung) {
 		log.finer(() -> "[%s] Editierung in den Verlauf legen: %s"
 				.formatted(ueberwachungsStatus, editierung));
-		if (this.istGespeichertProperty.get()) {
-			SammelEditierung sammelEditierung = new SammelEditierung();
-			sammelEditierung.speicherEditierung(editierung);
-			sammelEditierung.speicherEditierung(
-					new EinfacherEditierBefehl<>(true, false, istGespeichertProperty::set));
-			rueckgaengigVerlauf.ablegen(sammelEditierung);
-		} else {
-			rueckgaengigVerlauf.ablegen(editierung);
-		}
+		rueckgaengigVerlauf.ablegen(editierung);
 		wiederholenVerlauf.leeren();
 		updateVerlaufProperties();
 		this.istGespeichertProperty.set(false);
