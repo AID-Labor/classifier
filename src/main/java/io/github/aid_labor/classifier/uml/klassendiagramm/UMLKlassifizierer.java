@@ -312,6 +312,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		return istGleich;
 	}
 	
+	@Override
 	public UMLKlassifizierer erzeugeTiefeKopie() {
 		var kopie = new UMLKlassifizierer(getTyp(), getProgrammiersprache(), getName());
 		kopie.setPaket(getPaket());

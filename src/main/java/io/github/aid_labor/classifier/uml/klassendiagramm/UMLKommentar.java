@@ -132,6 +132,11 @@ public class UMLKommentar extends UMLBasisElement {
 		return Objects.equals(inhaltProperty, other.inhaltProperty);
 	}
 	
+	@Override
+	public UMLKommentar erzeugeTiefeKopie() {
+		return new UMLKommentar(getInhalt(), new Position(getPosition()));
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

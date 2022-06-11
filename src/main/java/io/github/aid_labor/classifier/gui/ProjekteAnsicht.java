@@ -121,12 +121,20 @@ public class ProjekteAnsicht {
 		return angezeigtesProjekt.getReadOnlyProperty();
 	}
 	
+	public UMLProjekt getAngezeigtesProjekt() {
+		return angezeigtesProjekt.get();
+	}
+	
 	public Parent getAnsicht() {
 		return this.tabAnsicht;
 	}
 	
-	public ReadOnlyObjectProperty<ProjektAnsicht> getAnzeige() {
+	public ReadOnlyObjectProperty<ProjektAnsicht> getProjektAnsichtProperty() {
 		return anzeige.getReadOnlyProperty();
+	}
+	
+	public ProjektAnsicht getProjektAnsicht() {
+		return anzeige.get();
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

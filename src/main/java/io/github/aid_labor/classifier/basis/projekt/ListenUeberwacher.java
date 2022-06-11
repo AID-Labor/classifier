@@ -194,6 +194,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 			
 			@Override
 			public void wiederhole() {
+				
 				liste.addAll(startIndex, neueAttribute);
 			}
 			

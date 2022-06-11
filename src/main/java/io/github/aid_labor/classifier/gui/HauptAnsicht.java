@@ -34,8 +34,12 @@ import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.application.HostServices;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -75,12 +79,13 @@ public class HauptAnsicht {
 	private final Pane wurzel;
 	private final HauptKontrolle controller;
 	private final Sprache sprache;
-	private final ProjekteAnsicht projektAnsicht;
+	private final ProjekteAnsicht projekteAnsicht;
 	private final DialogPane overlayDialog;
 	private final ProgrammDetails programm;
 	private final RibbonKomponente ribbonKomponente;
 	private final HostServices rechnerService;
 	private final BooleanBinding hatKeinProjekt;
+	private final ObservableList<UMLDiagrammElement> kopiePuffer;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -92,9 +97,10 @@ public class HauptAnsicht {
 		this.overlayDialog = new DialogPane();
 		this.programm = programm;
 		this.controller = new HauptKontrolle(this, sprache);
-		this.projektAnsicht = new ProjekteAnsicht(overlayDialog, programm);
+		this.projekteAnsicht = new ProjekteAnsicht(overlayDialog, programm);
 		this.rechnerService = rechnerService;
-		this.hatKeinProjekt = projektAnsicht.getAngezeigtesProjektProperty().isNull();
+		this.hatKeinProjekt = projekteAnsicht.getAngezeigtesProjektProperty().isNull();
+		this.kopiePuffer = FXCollections.observableArrayList();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "HauptAnsicht");
@@ -141,7 +147,7 @@ public class HauptAnsicht {
 		var hauptInhalt = new BorderPane();
 		hauptInhalt
 				.setTop(new VBox(menueAnsicht.getMenueleiste(), ribbonKomponente.getRibbon()));
-		hauptInhalt.setCenter(projektAnsicht.getAnsicht());
+		hauptInhalt.setCenter(projekteAnsicht.getAnsicht());
 		
 		// TODO Datei(en) oeffnen!!!
 		hauptInhalt.setOnDragDetected(this.controller::projektOeffnen);
@@ -177,7 +183,7 @@ public class HauptAnsicht {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	ProjekteAnsicht getProjektAnsicht() {
-		return projektAnsicht;
+		return projekteAnsicht;
 	}
 	
 	public ProgrammDetails getProgrammDetails() {
@@ -216,14 +222,14 @@ public class HauptAnsicht {
 		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
 		
 		menue.getDateiSchliessen()
-				.setOnAction(e -> this.projektAnsicht.angezeigtesProjektSchliessen());
+				.setOnAction(e -> this.projekteAnsicht.angezeigtesProjektSchliessen());
 		menue.getDateiSpeichern().setOnAction(this.controller::projektSpeichern);
-		menue.getDateiAlleSpeichern().setOnAction(e -> this.projektAnsicht.allesSpeichern());
+		menue.getDateiAlleSpeichern().setOnAction(e -> this.projekteAnsicht.allesSpeichern());
 		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
 		menue.getDateiUmbenennen().setOnAction(this.controller::projektUmbenennen);
 		
 		// Menue Bearbeiten
-		var aktuellesProjekt = this.projektAnsicht.getAngezeigtesProjektProperty().get();
+		var aktuellesProjekt = this.projekteAnsicht.getAngezeigtesProjektProperty().get();
 		updateRueckgaengigWiederholen(menue, aktuellesProjekt);
 		NodeUtil.deaktivieren(menue.getKopieren(), menue.getEinfuegen(), menue.getLoeschen());
 		
@@ -269,8 +275,8 @@ public class HauptAnsicht {
 		});
 		
 		// Menue Fenster
-		menue.getVorherigerTab().setOnAction(e -> this.projektAnsicht.vorherigerTab());
-		menue.getNaechsterTab().setOnAction(e -> this.projektAnsicht.naechsterTab());
+		menue.getVorherigerTab().setOnAction(e -> this.projekteAnsicht.vorherigerTab());
+		menue.getNaechsterTab().setOnAction(e -> this.projekteAnsicht.naechsterTab());
 		
 		// Menue Einstellungen
 		NodeUtil.deaktivieren(menue.getVoidAnzeigen(), menue.getTheme());
@@ -304,7 +310,7 @@ public class HauptAnsicht {
 		menue.getDateiUmbenennen().disableProperty().bind(hatKeinProjekt);
 		
 		// Menue Bearbeiten
-		this.projektAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
+		this.projekteAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
 			updateRueckgaengigWiederholen(menue, projekt);
 		});
 		
@@ -322,9 +328,9 @@ public class HauptAnsicht {
 		menue.getDarstellungKleiner().disableProperty().bind(hatKeinProjekt);
 		menue.getDarstellungOriginalgroesse().disableProperty().bind(hatKeinProjekt);
 		
-		updateZoomKleinerButton(menue, this.projektAnsicht.getAnzeige().get());
-		this.projektAnsicht.getAnzeige().addListener((property, alteAnzeige, neueAnzeige) -> {
-			updateZoomKleinerButton(menue, neueAnzeige);
+		updateZoomKleinerButton(menue, this.projekteAnsicht.getProjektAnsichtProperty().get());
+		this.projekteAnsicht.getProjektAnsichtProperty().addListener((__, ___, anzeige) -> {
+			updateZoomKleinerButton(menue, anzeige);
 		});
 		
 		// Szene fuer Vollbild ueberwachen
@@ -405,8 +411,17 @@ public class HauptAnsicht {
 				ribbon.getExportieren());
 //		NodeUtil.deaktivieren(ribbon.getKopieren(), ribbon.getEinfuegen());
 		
+		ribbon.getKopieren().setOnAction(e -> {
+			kopiePuffer.setAll(projekteAnsicht.getProjektAnsicht().getSelektion());
+		});
+		ribbon.getEinfuegen().setOnAction(e -> {
+			var kopie = kopiePuffer.stream()
+					.map(umlElement -> umlElement.erzeugeTiefeKopie()).toList();
+			projekteAnsicht.getAngezeigtesProjekt().getDiagrammElemente().addAll(kopie);
+		});
 		ribbon.getLoeschen()
-				.setOnAction(e -> projektAnsicht.getAnzeige().get().entferneAuswahl());
+				.setOnAction(e -> projekteAnsicht.getProjektAnsichtProperty().get()
+						.entferneAuswahl());
 		
 		NodeUtil.deaktivieren(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(), ribbon.getAnordnenNachGanzHinten());
@@ -417,9 +432,9 @@ public class HauptAnsicht {
 		ribbon.getZoomGroesser().setOnAction(this.controller::zoomeGroesser);
 		ribbon.getZoomKleiner().setOnAction(this.controller::zoomeKleiner);
 		ribbon.getZoomOriginalgroesse().setOnAction(this.controller::resetZoom);
-		updateZoomKleinerButton(ribbon, projektAnsicht.getAnzeige().get());
+		updateZoomKleinerButton(ribbon, projekteAnsicht.getProjektAnsichtProperty().get());
 		
-		this.projektAnsicht.getAnzeige().addListener((property, alteAnzeige, neueAnzeige) -> {
+		this.projekteAnsicht.getProjektAnsichtProperty().addListener((p, a, neueAnzeige) -> {
 			updateZoomKleinerButton(ribbon, neueAnzeige);
 		});
 		
@@ -436,16 +451,18 @@ public class HauptAnsicht {
 		ribbon.getNeueEnumeration().disableProperty().bind(hatKeinProjekt);
 		
 		updateRueckgaengigWiederholen(ribbon,
-				projektAnsicht.getAngezeigtesProjektProperty().get());
-		this.projektAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
+				projekteAnsicht.getAngezeigtesProjektProperty().get());
+		this.projekteAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
 			updateSpeichernHervorhebeung(ribbon, projekt);
 			updateRueckgaengigWiederholen(ribbon, projekt);
 		});
 		
-		updateSelektionButtons(ribbon, projektAnsicht.getAnzeige().get());
-		this.projektAnsicht.getAnzeige().addListener((__, alt, neueAnzeige) -> {
-			updateSelektionButtons(ribbon, neueAnzeige);
-		});
+		updateSelektionButtons(ribbon, projekteAnsicht.getProjektAnsichtProperty().get());
+		this.projekteAnsicht.getProjektAnsichtProperty()
+				.addListener((__, alt, neueAnzeige) -> {
+					updateSelektionButtons(ribbon, neueAnzeige);
+				});
+		ribbon.getEinfuegen().disableProperty().bind(Bindings.isEmpty(kopiePuffer));
 		
 		ribbon.getZoomGroesser().disableProperty().bind(hatKeinProjekt);
 		ribbon.getZoomKleiner().disableProperty().bind(hatKeinProjekt);
@@ -515,7 +532,6 @@ public class HauptAnsicht {
 	private void updateSelektionButtons(RibbonKomponente ribbon, ProjektAnsicht neueAnzeige) {
 		Button[] buttons = {
 			ribbon.getKopieren(),
-			ribbon.getEinfuegen(),
 			ribbon.getLoeschen(),
 //			ribbon.getAnordnenNachVorne(),
 //			ribbon.getAnordnenNachGanzVorne(),
@@ -537,11 +553,11 @@ public class HauptAnsicht {
 	// Beginn Projektansicht
 	
 	void zeigeProjekt(UMLProjekt projekt) {
-		this.projektAnsicht.zeigeProjekt(projekt);
+		this.projekteAnsicht.zeigeProjekt(projekt);
 	}
 	
 	private void erzeugeKlassifizierer(KlassifiziererTyp typ) {
-		this.projektAnsicht.legeNeuenKlassifiziererAn(typ);
+		this.projekteAnsicht.legeNeuenKlassifiziererAn(typ);
 	}
 	
 	// =====================================================================================

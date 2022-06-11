@@ -50,6 +50,11 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this(0, 0, 0, 0);
 		}
 		
+		public Position(Position position) {
+			this();
+			setPosition(position);
+		}
+		
 		public Position(double x, double y, double hoehe, double breite) {
 			this.x = new JsonDoubleProperty(x);
 			this.y = new JsonDoubleProperty(y);
@@ -173,7 +178,7 @@ abstract class UMLBasisElement extends EditierbarBasis
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final Position position;
-	@JsonIgnore private int id;
+	@JsonIgnore private long id;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -209,12 +214,12 @@ abstract class UMLBasisElement extends EditierbarBasis
 	}
 	
 	@Override
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	
 	@Override
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	

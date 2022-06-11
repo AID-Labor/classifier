@@ -317,17 +317,17 @@ class HauptKontrolle {
 	}
 	
 	void zoomeGroesser(Event event) {
-		var projekt = ansicht.getProjektAnsicht().getAnzeige().get();
+		var projekt = ansicht.getProjektAnsicht().getProjektAnsichtProperty().get();
 		projekt.skaliere(projekt.getSkalierung() + 0.1);
 	}
 	
 	void zoomeKleiner(Event event) {
-		var projekt = ansicht.getProjektAnsicht().getAnzeige().get();
+		var projekt = ansicht.getProjektAnsicht().getProjektAnsichtProperty().get();
 		projekt.skaliere(projekt.getSkalierung() - 0.1);
 	}
 	
 	void resetZoom(Event event) {
-		var projekt = ansicht.getProjektAnsicht().getAnzeige().get();
+		var projekt = ansicht.getProjektAnsicht().getProjektAnsichtProperty().get();
 		projekt.skaliere(projekt.getStandardSkalierung());
 	}
 	

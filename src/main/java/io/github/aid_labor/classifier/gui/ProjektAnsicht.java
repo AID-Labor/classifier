@@ -72,7 +72,7 @@ public class ProjektAnsicht extends Tab {
 	private final ProgrammDetails programm;
 	private final Pane zeichenflaeche;
 	private final Group zeichenflaecheGruppe;
-	private final Map<Integer, Node> ansichten;
+	private final Map<Long, Node> ansichten;
 	private final ObservableList<UMLElementBasisAnsicht<? extends UMLDiagrammElement>> selektion;
 	private final Sprache sprache;
 	private final ScrollPane inhalt;
@@ -188,7 +188,13 @@ public class ProjektAnsicht extends Tab {
 		var elemente = this.getSelektion();
 		log.fine(() -> "[%s] entferne %s".formatted(projekt,
 				Arrays.toString(elemente.toArray())));
-		this.projekt.getDiagrammElemente().removeAll(elemente);
+		var entfernenIds = elemente.stream().map(e -> e.getId()).toList();
+		var status = this.projekt.getUeberwachungsStatus();
+		this.projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+		this.projekt.getDiagrammElemente()
+				.removeIf(element -> entfernenIds.contains(element.getId()));
+		this.projekt.uebernehmeEditierungen();
+		this.projekt.setUeberwachungsStatus(status);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -243,7 +249,7 @@ public class ProjektAnsicht extends Tab {
 		});
 	}
 	
-	private int idZaehler = 0;
+	private long idZaehler = 0;
 	
 	private <E extends UMLDiagrammElement> void ueberwacheDiagrammElemente(
 			Change<E> aenderung) {

@@ -38,8 +38,10 @@ public interface UMLDiagrammElement extends Editierbar {
 	
 	Position getPosition();
 
-	int getId();
+	long getId();
 	
-	void setId(int id);
+	void setId(long id);
+
+	UMLDiagrammElement erzeugeTiefeKopie();
 	
 }
