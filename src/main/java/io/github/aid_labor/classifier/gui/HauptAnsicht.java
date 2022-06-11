@@ -38,6 +38,7 @@ import javafx.application.HostServices;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -402,11 +403,14 @@ public class HauptAnsicht {
 		
 		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
-		NodeUtil.deaktivieren(ribbon.getKopieren(), ribbon.getEinfuegen(),
-				ribbon.getLoeschen());
+//		NodeUtil.deaktivieren(ribbon.getKopieren(), ribbon.getEinfuegen());
+		
+		ribbon.getLoeschen()
+				.setOnAction(e -> projektAnsicht.getAnzeige().get().entferneAuswahl());
 		
 		NodeUtil.deaktivieren(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(), ribbon.getAnordnenNachGanzHinten());
+		
 		NodeUtil.deaktivieren(ribbon.getVererbung(), ribbon.getAssoziation());
 		NodeUtil.deaktivieren(ribbon.getKommentar());
 		
@@ -434,26 +438,35 @@ public class HauptAnsicht {
 		updateRueckgaengigWiederholen(ribbon,
 				projektAnsicht.getAngezeigtesProjektProperty().get());
 		this.projektAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
-			if (projekt != null) {
-				NodeUtil.setzeHervorhebung(
-						projekt.istGespeichertProperty().not().get(),
-						ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
-				projekt.istGespeichertProperty().addListener(
-						(gespeichertProperty, alterWert, istGespeichert) -> {
-							NodeUtil.setzeHervorhebung(!istGespeichert,
-									ribbon.getSpeichern(),
-									ribbon.getSpeichernSchnellzugriff());
-						});
-			} else {
-				NodeUtil.setzeHervorhebung(false, ribbon.getSpeichern(),
-						ribbon.getSpeichernSchnellzugriff());
-			}
+			updateSpeichernHervorhebeung(ribbon, projekt);
 			updateRueckgaengigWiederholen(ribbon, projekt);
+		});
+		
+		updateSelektionButtons(ribbon, projektAnsicht.getAnzeige().get());
+		this.projektAnsicht.getAnzeige().addListener((__, alt, neueAnzeige) -> {
+			updateSelektionButtons(ribbon, neueAnzeige);
 		});
 		
 		ribbon.getZoomGroesser().disableProperty().bind(hatKeinProjekt);
 		ribbon.getZoomKleiner().disableProperty().bind(hatKeinProjekt);
 		ribbon.getZoomOriginalgroesse().disableProperty().bind(hatKeinProjekt);
+	}
+	
+	private void updateSpeichernHervorhebeung(RibbonKomponente ribbon, UMLProjekt projekt) {
+		if (projekt != null) {
+			NodeUtil.setzeHervorhebung(
+					projekt.istGespeichertProperty().not().get(),
+					ribbon.getSpeichern(), ribbon.getSpeichernSchnellzugriff());
+			projekt.istGespeichertProperty().addListener(
+					(gespeichertProperty, alterWert, istGespeichert) -> {
+						NodeUtil.setzeHervorhebung(!istGespeichert,
+								ribbon.getSpeichern(),
+								ribbon.getSpeichernSchnellzugriff());
+					});
+		} else {
+			NodeUtil.setzeHervorhebung(false, ribbon.getSpeichern(),
+					ribbon.getSpeichernSchnellzugriff());
+		}
 	}
 	
 	private void updateRueckgaengigWiederholen(RibbonKomponente ribbon, Projekt projekt) {
@@ -496,6 +509,26 @@ public class HauptAnsicht {
 					.bind(projektAnsicht.kannKleinerZoomenProperty().not());
 		} else {
 			ribbon.getZoomKleiner().setDisable(true);
+		}
+	}
+	
+	private void updateSelektionButtons(RibbonKomponente ribbon, ProjektAnsicht neueAnzeige) {
+		Button[] buttons = {
+			ribbon.getKopieren(),
+			ribbon.getEinfuegen(),
+			ribbon.getLoeschen(),
+//			ribbon.getAnordnenNachVorne(),
+//			ribbon.getAnordnenNachGanzVorne(),
+//			ribbon.getAnordnenNachHinten(),
+//			ribbon.getAnordnenNachGanzHinten()
+		};
+		for (var b : buttons) {
+			b.disableProperty().unbind();
+			if (neueAnzeige == null) {
+				b.setDisable(true);
+			} else {
+				b.disableProperty().bind(neueAnzeige.hatSelektionProperty());
+			}
 		}
 	}
 	

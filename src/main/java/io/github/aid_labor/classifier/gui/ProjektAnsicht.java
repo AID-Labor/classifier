@@ -27,6 +27,8 @@ import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.When;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -71,7 +73,7 @@ public class ProjektAnsicht extends Tab {
 	private final Pane zeichenflaeche;
 	private final Group zeichenflaecheGruppe;
 	private final Map<Integer, Node> ansichten;
-	private final ObservableList<Node> selektion;
+	private final ObservableList<UMLElementBasisAnsicht<? extends UMLDiagrammElement>> selektion;
 	private final Sprache sprache;
 	private final ScrollPane inhalt;
 	private final ReadOnlyBooleanWrapper kannKleinerZoomen;
@@ -144,12 +146,14 @@ public class ProjektAnsicht extends Tab {
 		return kannKleinerZoomen.getReadOnlyProperty();
 	}
 	
-	public List<UMLDiagrammElement> getSelektion() {
-		return selektion.stream().filter(node -> {
-			return node instanceof UMLDiagrammElement;
-		}).map(node -> {
-			return (UMLDiagrammElement) node;
+	public List<? extends UMLDiagrammElement> getSelektion() {
+		return selektion.stream().map(node -> {
+			return node.getUmlElement();
 		}).toList();
+	}
+	
+	public BooleanBinding hatSelektionProperty() {
+		return Bindings.isEmpty(selektion);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -178,6 +182,13 @@ public class ProjektAnsicht extends Tab {
 	
 	public boolean projektSpeichernUnter() {
 		return this.controller.projektSpeichernUnter(this.projekt);
+	}
+	
+	public void entferneAuswahl() {
+		var elemente = this.getSelektion();
+		log.fine(() -> "[%s] entferne %s".formatted(projekt,
+				Arrays.toString(elemente.toArray())));
+		this.projekt.getDiagrammElemente().removeAll(elemente);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

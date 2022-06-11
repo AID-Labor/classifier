@@ -326,7 +326,10 @@ public abstract class ProjektBasis implements Projekt {
 		if (!rueckgaengigVerlauf.istLeer()) {
 			var befehl = rueckgaengigVerlauf.entfernen();
 			log.fine(() -> "%s\n    -> mache rueckgaengig {%s}".formatted(this, befehl));
+			var status = this.getUeberwachungsStatus();
+			this.setUeberwachungsStatus(UeberwachungsStatus.IGNORIEREN);
 			befehl.macheRueckgaengig();
+			this.setUeberwachungsStatus(status);
 			
 			wiederholenVerlauf.ablegen(befehl);
 			this.istGespeichertProperty.set(gespeicherterHash == this.hashCode());
@@ -362,7 +365,10 @@ public abstract class ProjektBasis implements Projekt {
 		if (!wiederholenVerlauf.istLeer()) {
 			var befehl = wiederholenVerlauf.entfernen();
 			log.fine(() -> "%s\n    -> wiederhole {%s}".formatted(this, befehl));
+			var status = this.getUeberwachungsStatus();
+			this.setUeberwachungsStatus(UeberwachungsStatus.IGNORIEREN);
 			befehl.wiederhole();
+			this.setUeberwachungsStatus(status);
 			rueckgaengigVerlauf.ablegen(befehl);
 			this.istGespeichertProperty.set(gespeicherterHash == this.hashCode());
 		}

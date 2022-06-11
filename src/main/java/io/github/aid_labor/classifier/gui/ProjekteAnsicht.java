@@ -139,64 +139,7 @@ public class ProjekteAnsicht {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private void setzeListener() {
-		this.tabAnsicht.getSelectionModel().selectedItemProperty()
-				.addListener((itemProperty, alteWahl, neueWahl) -> {
-					log.finest(() -> "neuer Tab ausgewaehlt: %s"
-							.formatted(neueWahl == null ? "null" : neueWahl.getText()));
-					if (neueWahl instanceof ProjektAnsicht tab) {
-						angezeigtesProjekt.set(tab.getProjekt());
-						anzeige.set(tab);
-					} else {
-						angezeigtesProjekt.set(null);
-						anzeige.set(null);
-					}
-				});
-		
-		this.angezeigtesProjekt.addListener((property, alt, neu) -> {
-			String nameAlt = alt == null ? "null" : alt.getName();
-			String nameNeu = neu == null ? "null" : neu.getName();
-			log.finest(() -> "aktuelles Projekt geaendert -> alt: %s - neu: %s"
-					.formatted(nameAlt, nameNeu));
-		});
-		
-		this.projekte.addListener((Change<?> aenderung) -> {
-			log.fine(() -> "%cnderung der angezeigten Projekte > > > > > > > > > > > > > > >"
-					.formatted(Umlaute.AE));
-			if (aenderung.getElementAdded() != null) {
-				log.fine(() -> "Projekt hinzugef%cgt: %s".formatted(Umlaute.ue,
-						aenderung.getElementAdded()));
-			}
-			if (aenderung.getElementRemoved() != null) {
-				log.fine(
-						() -> "Projekt entfernt: %s".formatted(aenderung.getElementRemoved()));
-			}
-			log.fine(() -> "%cnderung der angezeigten Projekte < < < < < < < < < < < < < < <"
-					.formatted(Umlaute.AE));
-		});
-		
-		EventType<WindowEvent> eventTyp = WindowEvent.WINDOW_CLOSE_REQUEST;
-		tabAnsicht.sceneProperty().addListener((property, alteSzene, neueSzene) -> {
-			if (alteSzene != null) {
-				if (alteSzene.getWindow() != null) {
-					alteSzene.getWindow().removeEventHandler(eventTyp, eventAktion);
-				}
-			}
-			if (neueSzene != null) {
-				if (neueSzene.getWindow() != null) {
-					neueSzene.getWindow().addEventHandler(eventTyp, eventAktion);
-				}
-				neueSzene.windowProperty().addListener((prop, altesFenster, neuesFenster) -> {
-					if (altesFenster != null) {
-						altesFenster.removeEventHandler(eventTyp, eventAktion);
-					}
-					if (neuesFenster != null) {
-						neuesFenster.addEventHandler(eventTyp, eventAktion);
-					}
-				});
-			}
-		});
-	}
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*
@@ -346,4 +289,62 @@ public class ProjekteAnsicht {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	private void setzeListener() {
+		this.tabAnsicht.getSelectionModel().selectedItemProperty()
+				.addListener((itemProperty, alteWahl, neueWahl) -> {
+					log.finest(() -> "neuer Tab ausgewaehlt: %s"
+							.formatted(neueWahl == null ? "null" : neueWahl.getText()));
+					if (neueWahl instanceof ProjektAnsicht tab) {
+						angezeigtesProjekt.set(tab.getProjekt());
+						anzeige.set(tab);
+					} else {
+						angezeigtesProjekt.set(null);
+						anzeige.set(null);
+					}
+				});
+		
+		this.angezeigtesProjekt.addListener((property, alt, neu) -> {
+			String nameAlt = alt == null ? "null" : alt.getName();
+			String nameNeu = neu == null ? "null" : neu.getName();
+			log.finest(() -> "aktuelles Projekt geaendert -> alt: %s - neu: %s"
+					.formatted(nameAlt, nameNeu));
+		});
+		
+		this.projekte.addListener((Change<?> aenderung) -> {
+			log.fine(() -> "%cnderung der angezeigten Projekte > > > > > > > > > > > > > > >"
+					.formatted(Umlaute.AE));
+			if (aenderung.getElementAdded() != null) {
+				log.fine(() -> "Projekt hinzugef%cgt: %s".formatted(Umlaute.ue,
+						aenderung.getElementAdded()));
+			}
+			if (aenderung.getElementRemoved() != null) {
+				log.fine(
+						() -> "Projekt entfernt: %s".formatted(aenderung.getElementRemoved()));
+			}
+			log.fine(() -> "%cnderung der angezeigten Projekte < < < < < < < < < < < < < < <"
+					.formatted(Umlaute.AE));
+		});
+		
+		EventType<WindowEvent> eventTyp = WindowEvent.WINDOW_CLOSE_REQUEST;
+		tabAnsicht.sceneProperty().addListener((property, alteSzene, neueSzene) -> {
+			if (alteSzene != null) {
+				if (alteSzene.getWindow() != null) {
+					alteSzene.getWindow().removeEventHandler(eventTyp, eventAktion);
+				}
+			}
+			if (neueSzene != null) {
+				if (neueSzene.getWindow() != null) {
+					neueSzene.getWindow().addEventHandler(eventTyp, eventAktion);
+				}
+				neueSzene.windowProperty().addListener((prop, altesFenster, neuesFenster) -> {
+					if (altesFenster != null) {
+						altesFenster.removeEventHandler(eventTyp, eventAktion);
+					}
+					if (neuesFenster != null) {
+						neuesFenster.addEventHandler(eventTyp, eventAktion);
+					}
+				});
+			}
+		});
+	}
 }
