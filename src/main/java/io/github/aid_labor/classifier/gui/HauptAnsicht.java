@@ -231,7 +231,9 @@ public class HauptAnsicht {
 		// Menue Bearbeiten
 		var aktuellesProjekt = this.projekteAnsicht.getAngezeigtesProjektProperty().get();
 		updateRueckgaengigWiederholen(menue, aktuellesProjekt);
-		NodeUtil.deaktivieren(menue.getKopieren(), menue.getEinfuegen(), menue.getLoeschen());
+		menue.getKopieren().setOnAction(e -> auswahlKopieren());
+		menue.getEinfuegen().setOnAction(e -> auswahlEinfuegen());
+		menue.getLoeschen().setOnAction(e -> auswahlLoeschen());
 		
 		// Menue Einfuegen
 		menue.getKlasseEinfuegen()
@@ -243,8 +245,7 @@ public class HauptAnsicht {
 		menue.getEnumEinfuegen()
 				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Enumeration));
 		
-		NodeUtil.deaktivieren(menue.getKlasseEinfuegen(), menue.getInterfaceEinfuegen(),
-				menue.getEnumEinfuegen(), menue.getVererbungEinfuegen(),
+		NodeUtil.deaktivieren(menue.getVererbungEinfuegen(),
 				menue.getAssoziationEinfuegen(), menue.getKommentarEinfuegen());
 		
 		// Menue Anordnen
@@ -314,6 +315,14 @@ public class HauptAnsicht {
 			updateRueckgaengigWiederholen(menue, projekt);
 		});
 		
+		updateSelektionButtons(menue, projekteAnsicht.getProjektAnsichtProperty().get());
+		this.projekteAnsicht.getProjektAnsichtProperty()
+				.addListener((__, alt, neueAnzeige) -> {
+					updateSelektionButtons(menue, neueAnzeige);
+				});
+		menue.getEinfuegen().disableProperty().bind(Bindings.isEmpty(kopiePuffer));
+		
+		
 		// Menue Einfuegen
 		menue.getKlasseEinfuegen().disableProperty().bind(hatKeinProjekt);
 		menue.getAbstrakteKlasseEinfuegen().disableProperty().bind(hatKeinProjekt);
@@ -377,6 +386,25 @@ public class HauptAnsicht {
 		}
 	}
 	
+	private void updateSelektionButtons(MenueLeisteKomponente menue, ProjektAnsicht neueAnzeige) {
+		MenuItem[] buttons = {
+			menue.getKopieren(),
+			menue.getLoeschen(),
+//			menue.getAnordnenNachVorne(),
+//			menue.getAnordnenNachGanzVorne(),
+//			menue.getAnordnenNachHinten(),
+//			menue.getAnordnenNachGanzHinten()
+		};
+		for (var b : buttons) {
+			b.disableProperty().unbind();
+			if (neueAnzeige == null) {
+				b.setDisable(true);
+			} else {
+				b.disableProperty().bind(neueAnzeige.hatSelektionProperty());
+			}
+		}
+	}
+	
 	private void updateZoomKleinerButton(MenueLeisteKomponente menue,
 			ProjektAnsicht projektAnsicht) {
 		menue.getDarstellungKleiner().disableProperty().unbind();
@@ -409,19 +437,10 @@ public class HauptAnsicht {
 		
 		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
-//		NodeUtil.deaktivieren(ribbon.getKopieren(), ribbon.getEinfuegen());
 		
-		ribbon.getKopieren().setOnAction(e -> {
-			kopiePuffer.setAll(projekteAnsicht.getProjektAnsicht().getSelektion());
-		});
-		ribbon.getEinfuegen().setOnAction(e -> {
-			var kopie = kopiePuffer.stream()
-					.map(umlElement -> umlElement.erzeugeTiefeKopie()).toList();
-			projekteAnsicht.getAngezeigtesProjekt().getDiagrammElemente().addAll(kopie);
-		});
-		ribbon.getLoeschen()
-				.setOnAction(e -> projekteAnsicht.getProjektAnsichtProperty().get()
-						.entferneAuswahl());
+		ribbon.getKopieren().setOnAction(e -> auswahlKopieren());
+		ribbon.getEinfuegen().setOnAction(e -> auswahlEinfuegen());
+		ribbon.getLoeschen().setOnAction(e -> auswahlLoeschen());
 		
 		NodeUtil.deaktivieren(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
 				ribbon.getAnordnenNachHinten(), ribbon.getAnordnenNachGanzHinten());
@@ -558,6 +577,27 @@ public class HauptAnsicht {
 	
 	private void erzeugeKlassifizierer(KlassifiziererTyp typ) {
 		this.projekteAnsicht.legeNeuenKlassifiziererAn(typ);
+	}
+	
+	private void auswahlKopieren() {
+		kopiePuffer.setAll(projekteAnsicht.getProjektAnsicht().getSelektion());
+	}
+	
+	private void auswahlEinfuegen() {
+		var kopie = kopiePuffer.stream()
+				.map(umlElement -> {
+					var umlKopie = umlElement.erzeugeTiefeKopie();
+					var x = umlKopie.getPosition().getX() + 20;
+					var y = umlKopie.getPosition().getY() + 20;
+					umlKopie.getPosition().setX(x);
+					umlKopie.getPosition().setY(y);
+					return umlKopie;
+				}).toList();
+		projekteAnsicht.getAngezeigtesProjekt().getDiagrammElemente().addAll(kopie);
+	}
+	
+	private void auswahlLoeschen() {
+		projekteAnsicht.getProjektAnsichtProperty().get().entferneAuswahl();
 	}
 	
 	// =====================================================================================
