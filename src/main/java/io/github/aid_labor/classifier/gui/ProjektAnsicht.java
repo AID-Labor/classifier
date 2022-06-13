@@ -117,7 +117,7 @@ public class ProjektAnsicht extends Tab {
 			}
 		});
 		
-		fuegeAlleHinzu(projekt.getDiagrammElemente());
+		fuegeAlleHinzu(projekt.getDiagrammElemente(), 0);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -261,19 +261,19 @@ public class ProjektAnsicht extends Tab {
 					zeichenflaeche.getChildren().set(aenderung.getPermutation(i), kopie[i]);
 				}
 			}
-			if (aenderung.wasAdded()) {
-				fuegeAlleHinzu(aenderung.getAddedSubList());
-			}
 			if (aenderung.wasRemoved()) {
 				for (UMLDiagrammElement entfernt : aenderung.getRemoved()) {
 					var ansicht = this.ansichten.remove(entfernt.getId());
 					this.zeichenflaeche.getChildren().remove(ansicht);
 				}
 			}
+			if (aenderung.wasAdded()) {
+				fuegeAlleHinzu(aenderung.getAddedSubList(), aenderung.getFrom());
+			}
 		}
 	}
 	
-	private <E extends UMLDiagrammElement> void fuegeAlleHinzu(List<E> elemente) {
+	private <E extends UMLDiagrammElement> void fuegeAlleHinzu(List<E> elemente, int index) {
 		for (var neu : elemente) {
 			UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht = null;
 			if (neu instanceof UMLKlassifizierer klassifizierer) {
@@ -285,12 +285,13 @@ public class ProjektAnsicht extends Tab {
 				continue;
 			}
 			
-			fuegeHinzu(ansicht);
+			fuegeHinzu(ansicht, index);
+			index++;
 		}
 	}
 	
-	private void fuegeHinzu(UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht) {
-		this.zeichenflaeche.getChildren().add(ansicht);
+	private void fuegeHinzu(UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht, int index) {
+		this.zeichenflaeche.getChildren().add(index, ansicht);
 		ansicht.getUmlElement().setId(idZaehler);
 		this.ansichten.put(idZaehler, ansicht);
 		idZaehler++;

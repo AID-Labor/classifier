@@ -14,7 +14,13 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.function.BiConsumer;
 
 import com.dlsc.gemsfx.DialogPane;
 import com.dlsc.gemsfx.DialogPane.Type;
@@ -25,6 +31,7 @@ import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.projekt.Projekt;
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
@@ -334,7 +341,10 @@ public class HauptAnsicht {
 		menue.getEnumEinfuegen().disableProperty().bind(hatKeinProjekt);
 		
 		// Menue Anordnen
-		// TODO
+		menue.getAnordnenNachVorne().setOnAction(e -> nachVorne());
+		menue.getAnordnenNachHinten().setOnAction(e -> nachHinten());
+		menue.getAnordnenNachGanzVorne().setOnAction(e -> nachGanzVorne());
+		menue.getAnordnenNachGanzHinten().setOnAction(e -> nachGanzHinten());
 		
 		// Menue Darstellung
 		menue.getDarstellungGroesser().disableProperty().bind(hatKeinProjekt);
@@ -395,10 +405,10 @@ public class HauptAnsicht {
 		MenuItem[] buttons = {
 			menue.getKopieren(),
 			menue.getLoeschen(),
-//			menue.getAnordnenNachVorne(),
-//			menue.getAnordnenNachGanzVorne(),
-//			menue.getAnordnenNachHinten(),
-//			menue.getAnordnenNachGanzHinten()
+			menue.getAnordnenNachVorne(),
+			menue.getAnordnenNachGanzVorne(),
+			menue.getAnordnenNachHinten(),
+			menue.getAnordnenNachGanzHinten()
 		};
 		for (var b : buttons) {
 			b.disableProperty().unbind();
@@ -447,8 +457,10 @@ public class HauptAnsicht {
 		ribbon.getEinfuegen().setOnAction(e -> auswahlEinfuegen());
 		ribbon.getLoeschen().setOnAction(e -> auswahlLoeschen());
 		
-		NodeUtil.deaktivieren(ribbon.getAnordnenNachVorne(), ribbon.getAnordnenNachGanzVorne(),
-				ribbon.getAnordnenNachHinten(), ribbon.getAnordnenNachGanzHinten());
+		ribbon.getAnordnenNachVorne().setOnAction(e -> nachVorne());
+		ribbon.getAnordnenNachHinten().setOnAction(e -> nachHinten());
+		ribbon.getAnordnenNachGanzVorne().setOnAction(e -> nachGanzVorne());
+		ribbon.getAnordnenNachGanzHinten().setOnAction(e -> nachGanzHinten());
 		
 		NodeUtil.deaktivieren(ribbon.getVererbung(), ribbon.getAssoziation());
 		NodeUtil.deaktivieren(ribbon.getKommentar());
@@ -557,10 +569,10 @@ public class HauptAnsicht {
 		Button[] buttons = {
 			ribbon.getKopieren(),
 			ribbon.getLoeschen(),
-//			ribbon.getAnordnenNachVorne(),
-//			ribbon.getAnordnenNachGanzVorne(),
-//			ribbon.getAnordnenNachHinten(),
-//			ribbon.getAnordnenNachGanzHinten()
+			ribbon.getAnordnenNachVorne(),
+			ribbon.getAnordnenNachGanzVorne(),
+			ribbon.getAnordnenNachHinten(),
+			ribbon.getAnordnenNachGanzHinten()
 		};
 		for (var b : buttons) {
 			b.disableProperty().unbind();
@@ -603,6 +615,92 @@ public class HauptAnsicht {
 	
 	private void auswahlLoeschen() {
 		projekteAnsicht.getProjektAnsichtProperty().get().entferneAuswahl();
+	}
+	
+	private SortedSet<Integer> getIndizes() {
+		return this.getIndizes(Comparator.naturalOrder());
+	}
+	
+	private SortedSet<Integer> getIndizes(Comparator<Integer> sortierVergleich) {
+		SortedSet<Integer> indizes = new TreeSet<>(sortierVergleich);
+		var ids = projekteAnsicht.getProjektAnsicht().getSelektion().stream()
+				.map(el -> el.getId()).toList();
+		var elemente = this.projekteAnsicht.getAngezeigtesProjekt().getDiagrammElemente();
+		int i = 0;
+		int anzahlGefunden = 0;
+		for (var element : elemente) {
+			if (ids.contains(element.getId())) {
+				indizes.add(i);
+				anzahlGefunden++;
+			}
+			
+			if (anzahlGefunden == ids.size()) {
+				break;
+			}
+			i++;
+		}
+		return indizes;
+	}
+	
+	private void nachVorne() {
+		SortedSet<Integer> indizesRueckwaerts = getIndizes(Comparator.reverseOrder());
+		
+		var projekt = projekteAnsicht.getAngezeigtesProjekt();
+		var diagrammElemente = projekt.getDiagrammElemente();
+		var status = projekt.getUeberwachungsStatus();
+		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+		
+		for (int index : indizesRueckwaerts) {
+			if (index < diagrammElemente.size()-1) {
+				var a = diagrammElemente.remove(index);
+				diagrammElemente.add(index + 1, a);
+			}
+		}
+		projekt.setUeberwachungsStatus(status);
+	}
+	
+	private void nachHinten() {
+		SortedSet<Integer> indizes = getIndizes();
+		
+		var projekt = projekteAnsicht.getAngezeigtesProjekt();
+		var diagrammElemente = projekt.getDiagrammElemente();
+		var status = projekt.getUeberwachungsStatus();
+		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+		
+		for (int index : indizes) {
+			if (index > 0) {
+				var a = diagrammElemente.remove(index);
+				diagrammElemente.add(index-1, a);
+			}
+		}
+		projekt.setUeberwachungsStatus(status);
+	}
+	
+	private void nachGanzVorne() {
+		verschiebeAuswahl((auswahl, projekt) -> projekt.getDiagrammElemente().addAll(auswahl));
+	}
+	
+	private void nachGanzHinten() {
+		verschiebeAuswahl(
+				(auswahl, projekt) -> projekt.getDiagrammElemente().addAll(0, auswahl));
+	}
+	
+	private void verschiebeAuswahl(
+			BiConsumer<List<UMLDiagrammElement>, UMLProjekt> wiedereinfuegenAktion) {
+		SortedSet<Integer> indizesRueckwaerts = getIndizes(Comparator.reverseOrder());
+		
+		var projekt = projekteAnsicht.getAngezeigtesProjekt();
+		var diagrammElemente = projekt.getDiagrammElemente();
+		var status = projekt.getUeberwachungsStatus();
+		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+		
+		List<UMLDiagrammElement> neuAnordnen = new LinkedList<>();
+		for (int index : indizesRueckwaerts) {
+			neuAnordnen.add(diagrammElemente.remove(index));
+		}
+		Collections.reverse(neuAnordnen);
+		wiedereinfuegenAktion.accept(neuAnordnen, projekt);
+		projekt.setUeberwachungsStatus(status);
 	}
 	
 	// =====================================================================================

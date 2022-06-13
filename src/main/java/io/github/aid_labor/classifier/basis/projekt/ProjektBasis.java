@@ -505,7 +505,7 @@ public abstract class ProjektBasis implements Projekt {
 		rueckgaengigVerlauf.ablegen(editierung);
 		wiederholenVerlauf.leeren();
 		updateVerlaufProperties();
-		this.istGespeichertProperty.set(false);
+		this.istGespeichertProperty.set(gespeicherterHash == this.hashCode());
 	}
 	
 	private void updateVerlaufProperties() {
