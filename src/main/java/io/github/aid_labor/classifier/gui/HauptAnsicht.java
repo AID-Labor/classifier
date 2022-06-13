@@ -280,7 +280,12 @@ public class HauptAnsicht {
 		menue.getNaechsterTab().setOnAction(e -> this.projekteAnsicht.naechsterTab());
 		
 		// Menue Einstellungen
-		NodeUtil.deaktivieren(menue.getVoidAnzeigen(), menue.getTheme());
+		NodeUtil.deaktivieren(menue.getTheme());
+		
+		menue.getVoidAnzeigen().selectedProperty()
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeVoid);
+		menue.getParameternamenAnzeigen().selectedProperty()
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeParameterNamen);
 		menue.getInfo().setOnAction(e -> {
 			var info = new InfoAnsicht(programm, rechnerService);
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
@@ -321,7 +326,6 @@ public class HauptAnsicht {
 					updateSelektionButtons(menue, neueAnzeige);
 				});
 		menue.getEinfuegen().disableProperty().bind(Bindings.isEmpty(kopiePuffer));
-		
 		
 		// Menue Einfuegen
 		menue.getKlasseEinfuegen().disableProperty().bind(hatKeinProjekt);
@@ -386,7 +390,8 @@ public class HauptAnsicht {
 		}
 	}
 	
-	private void updateSelektionButtons(MenueLeisteKomponente menue, ProjektAnsicht neueAnzeige) {
+	private void updateSelektionButtons(MenueLeisteKomponente menue,
+			ProjektAnsicht neueAnzeige) {
 		MenuItem[] buttons = {
 			menue.getKopieren(),
 			menue.getLoeschen(),
