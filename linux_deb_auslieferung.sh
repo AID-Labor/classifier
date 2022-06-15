@@ -13,7 +13,7 @@ LICENSE_FILE="LICENSE.txt"
 
 # Einstellungen fuer jpackage:
 INPUT="auslieferung/${VERSION}/Linux/input"
-OUT="auslieferung/${VERSION}/Linux/app/deb"
+OUT="auslieferung/${VERSION}/Linux/deb"
 MODULE_PATH="${INPUT}/lib"
 MAIN_MODULE="classifier"
 MAIN_CLASS="io.github.aid_labor.classifier.main.Hauptfenster"
