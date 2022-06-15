@@ -59,6 +59,7 @@ class LoggingEinstellung {
 		logProperties.setProperty("java.util.logging.FileHandler.level", "INFO");
 		logProperties.setProperty("java.util.logging.ConsoleHandler.level", "WARNING");
 		logProperties.setProperty("javafx.level", "INFO");
+		logProperties.setProperty("com.sun.level", "OFF");
 		
 		// Einstellungen Anwenden
 		wendeLoggingEinstellungenAn();

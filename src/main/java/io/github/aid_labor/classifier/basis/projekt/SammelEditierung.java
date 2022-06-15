@@ -69,18 +69,22 @@ public class SammelEditierung implements EditierBefehl {
 	
 	@Override
 	public void macheRueckgaengig() {
-		befehle.descendingIterator().forEachRemaining(befehl -> {
+		Deque<EditierBefehl> rueckgaengigSchlange = new LinkedList<>(befehle);
+		while (!rueckgaengigSchlange.isEmpty()) {
+			var befehl = rueckgaengigSchlange.pollLast();
 			log.finest(() -> "Mache rueckgaengig: " + befehl);
 			befehl.macheRueckgaengig();
-		});
+		}
 	}
 	
 	@Override
 	public void wiederhole() {
-		befehle.iterator().forEachRemaining(befehl -> {
+		Deque<EditierBefehl> wiederholSchlange = new LinkedList<>(befehle);
+		while (!wiederholSchlange.isEmpty()) {
+			var befehl = wiederholSchlange.pollFirst();
 			log.finest(() -> "Wiederhole: " + befehl);
 			befehl.wiederhole();
-		});
+		}
 	}
 	
 	@Override

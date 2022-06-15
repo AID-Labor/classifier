@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -63,16 +64,16 @@ public class UMLKommentar extends UMLBasisElement {
 	
 	public UMLKommentar() {
 		super(new Position());
-		this.inhaltProperty = new JsonStringProperty(this, "inhalt");
+		this.inhaltProperty = new JsonStringProperty(this, "inhalt", "");
 		this.ueberwachePropertyAenderung(this.inhaltProperty);
 	}
 	
 	@JsonCreator
 	public UMLKommentar(@JsonProperty("inhalt") String inhalt,
 			@JsonProperty("position") Position position) {
-		super(position);
-		this.inhaltProperty = new JsonStringProperty(this, "inhalt", inhalt);
-		this.ueberwachePropertyAenderung(this.inhaltProperty);
+		this();
+		this.inhaltProperty.set(inhalt);
+		this.getPosition().set(position);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -113,7 +114,7 @@ public class UMLKommentar extends UMLBasisElement {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(inhaltProperty);
+		return ClassifierUtil.hashAlle(getInhalt(), getPosition());
 	}
 	
 	@Override
@@ -129,6 +130,11 @@ public class UMLKommentar extends UMLBasisElement {
 		}
 		UMLKommentar other = (UMLKommentar) obj;
 		return Objects.equals(inhaltProperty, other.inhaltProperty);
+	}
+	
+	@Override
+	public UMLKommentar erzeugeTiefeKopie() {
+		return new UMLKommentar(getInhalt(), new Position(getPosition()));
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

@@ -6,14 +6,14 @@ cd "$(dirname "$0")" # zum Pfad dieses Skriptes wechseln
 NAME="Classifier"
 DESCRIPTION="UML-Klassenmodellierung"
 # Version muss groesser gleich 1.0.0 sein!
-VERSION="1.0.0"
+VERSION="1.0.1"
 VENDOR="Tim Mühle"
 COPYRIGHT="Copyright © 2022 - Tim Mühle"
 LICENSE_FILE="LICENSE.txt"
 
 # Einstellungen fuer jpackage:
 INPUT="auslieferung/${VERSION}/Linux/input"
-OUT="auslieferung/${VERSION}/Linux/app/deb"
+OUT="auslieferung/${VERSION}/Linux/deb"
 MODULE_PATH="${INPUT}/lib"
 MAIN_MODULE="classifier"
 MAIN_CLASS="io.github.aid_labor.classifier.main.Hauptfenster"

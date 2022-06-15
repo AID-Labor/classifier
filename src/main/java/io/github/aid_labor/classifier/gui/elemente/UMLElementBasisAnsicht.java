@@ -50,8 +50,11 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 		if (umlElementModel.getPosition().getHoehe() > 0) {
 			this.setPrefHeight(umlElementModel.getPosition().getHoehe());
 		}
-		umlElementModel.getPosition().getBreiteProperty().bindBidirectional(this.prefWidthProperty());
-		umlElementModel.getPosition().getHoeheProperty().bindBidirectional(this.prefHeightProperty());
+		
+		umlElementModel.getPosition().getBreiteProperty()
+				.bindBidirectional(this.prefWidthProperty());
+		umlElementModel.getPosition().getHoeheProperty()
+				.bindBidirectional(this.prefHeightProperty());
 		this.setMinSize(80, 30);
 		this.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 	}

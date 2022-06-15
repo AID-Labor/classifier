@@ -103,9 +103,11 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 			}
 		}
 		
+		var sammelEditierung = new SammelEditierung();
 		for (EditierBefehl editierBefehl : befehle) {
-			beobachter.verarbeiteEditierung(editierBefehl);
+			sammelEditierung.speicherEditierung(editierBefehl);
 		}
+		beobachter.verarbeiteEditierung(sammelEditierung);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -156,7 +158,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 			
 			int startIndex = aenderung.getFrom();
 			List<E> entfernteAttribute = Collections.unmodifiableList(
-					new ArrayList<>(aenderung.getAddedSubList()));
+					new ArrayList<>(aenderung.getRemoved()));
 			
 			@Override
 			public void wiederhole() {
@@ -170,7 +172,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 			
 			@Override
 			public String toString() {
-				return "%s:  -> entfernt [%s]".formatted(beobachter,
+				return "%s:  -> entfernt <index %d> %s".formatted(beobachter, startIndex,
 						Arrays.toString(entfernteAttribute.toArray()));
 			}
 		};
@@ -202,7 +204,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 			
 			@Override
 			public String toString() {
-				return "%s:  -> hinzugefuegt [%s]".formatted(beobachter,
+				return "%s:  -> hinzugefuegt <index %d> [%s]".formatted(beobachter, startIndex,
 						Arrays.toString(neueAttribute.toArray()));
 			}
 		};

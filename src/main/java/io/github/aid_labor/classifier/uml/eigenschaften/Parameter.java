@@ -11,6 +11,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
@@ -97,7 +98,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(getDatentyp(), getName());
+		return ClassifierUtil.hashAlle(getDatentyp(), getName());
 	}
 	
 	@Override

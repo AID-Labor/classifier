@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
 import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
@@ -223,7 +224,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(getDatentyp(), hatGetter(), hatSetter(), getInitialwert(),
+		return ClassifierUtil.hashAlle(getDatentyp(), hatGetter(), hatSetter(), getInitialwert(),
 				getName(), getSichtbarkeit(), istStatisch());
 	}
 	

@@ -78,6 +78,7 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// Menue Einfuegen
 	private MenuItem klasseEinfuegen;
+	private MenuItem abstraktelasseEinfuegen;
 	private MenuItem interfaceEinfuegen;
 	private MenuItem enumEinfuegen;
 	private MenuItem vererbungEinfuegen;
@@ -106,7 +107,8 @@ public class MenueLeisteKomponente {
 	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// Menue Einstellungen
-	private MenuItem voidAnzeigen;
+	private CheckMenuItem voidAnzeigen;
+	private CheckMenuItem parameternamenAnzeigen;
 	private Menu theme;
 	private MenuItem info;
 	private MenuItem konfigurationsordnerOeffnen;
@@ -216,6 +218,10 @@ public class MenueLeisteKomponente {
 		return klasseEinfuegen;
 	}
 	
+	public MenuItem getAbstrakteKlasseEinfuegen() {
+		return abstraktelasseEinfuegen;
+	}
+	
 	public MenuItem getInterfaceEinfuegen() {
 		return interfaceEinfuegen;
 	}
@@ -280,8 +286,12 @@ public class MenueLeisteKomponente {
 		return naechsterTab;
 	}
 	
-	public MenuItem getVoidAnzeigen() {
+	public CheckMenuItem getVoidAnzeigen() {
 		return voidAnzeigen;
+	}
+	
+	public CheckMenuItem getParameternamenAnzeigen() {
+		return parameternamenAnzeigen;
 	}
 	
 	public Menu getTheme() {
@@ -384,6 +394,8 @@ public class MenueLeisteKomponente {
 				"Einf%cgen".formatted(ue));
 		klasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuKlasse",
 				"Neue Klasse...");
+		abstraktelasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
+				"neuAbstakteKlasse", "Neue abstrakte Klasse...");
 		interfaceEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
 				"neuInterface", "Neues Interface...");
 		enumEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuEnum",
@@ -395,9 +407,9 @@ public class MenueLeisteKomponente {
 		kommentarEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
 				"neuKommentar", "Neuer Kommentar...");
 		
-		einfuegenMenue.getItems().addAll(klasseEinfuegen, interfaceEinfuegen, enumEinfuegen,
-				new SeparatorMenuItem(), vererbungEinfuegen, assoziationEinfuegen,
-				new SeparatorMenuItem(), kommentarEinfuegen);
+		einfuegenMenue.getItems().addAll(klasseEinfuegen, abstraktelasseEinfuegen,
+				interfaceEinfuegen, enumEinfuegen, new SeparatorMenuItem(), vererbungEinfuegen,
+				assoziationEinfuegen, new SeparatorMenuItem(), kommentarEinfuegen);
 		
 		return einfuegenMenue;
 	}
@@ -468,8 +480,10 @@ public class MenueLeisteKomponente {
 	private Menu erstelleEinstellungenMenue() {
 		Menu einstellungenMenue = SprachUtil.bindText(new Menu(), sprache,
 				"einstellungenMenue", "Einstellungen");
-		voidAnzeigen = SprachUtil.bindText(new MenuItem(), sprache, "voidAnzeigen",
+		voidAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "voidAnzeigen",
 				"void Anzeigen");
+		parameternamenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache,
+				"parameternamenAnzeigen", "Parameternamen Anzeigen");
 		theme = SprachUtil.bindText(new Menu(), sprache, "theme",
 				"Farbschema");
 		info = SprachUtil.bindText(new MenuItem(), sprache, "info",
@@ -479,7 +493,8 @@ public class MenueLeisteKomponente {
 		konfigurationsordnerBereinigen = SprachUtil.bindText(new MenuItem(), sprache,
 				"konfigBereinigen", "Konfigurationsordner bereinigen".formatted(oe));
 		
-		einstellungenMenue.getItems().addAll(voidAnzeigen, new SeparatorMenuItem(), theme,
+		einstellungenMenue.getItems().addAll(voidAnzeigen, parameternamenAnzeigen, 
+				new SeparatorMenuItem(), theme,
 				new SeparatorMenuItem(), info, konfigurationsordnerOeffnen,
 				konfigurationsordnerBereinigen);
 		

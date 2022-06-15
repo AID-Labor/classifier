@@ -78,6 +78,11 @@ public class JsonLocaleProperty extends SimpleObjectProperty<Locale> {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
+	public int hashCode() {
+		return Objects.hashCode(get());
+	}
+	
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ObjectProperty<?> jip) {
 			return Objects.equals(this.get(), jip.get())

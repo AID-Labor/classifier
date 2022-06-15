@@ -4,9 +4,9 @@ rem Mit den folgeneden Variablen koennen die Grundlegenden Daten fuer das Projek
 set NAME=Classifier
 set DESCRIPTION=UML-Klassenmodellierung
 rem Version muss groesser gleich 1.0.0 sein!
-set VERSION=1.0.0
-set VENDOR="Tim MÅhle"
-set COPYRIGHT="Copyright ∏ 2022 - Tim MÅhle"
+set VERSION=1.0.1
+set VENDOR="Tim MÔøΩhle"
+set COPYRIGHT="Copyright ÔøΩ 2022 - Tim MÔøΩhle"
 set LICENSE_FILE=LICENSE.txt
 
 rem Einstellungen fuer jpackage:

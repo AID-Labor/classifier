@@ -6,11 +6,13 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.dlsc.gemsfx.DialogPane;
@@ -27,21 +29,23 @@ import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.When;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
-import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 
 
 public class ProjektAnsicht extends Tab {
@@ -71,8 +75,9 @@ public class ProjektAnsicht extends Tab {
 	private final DialogPane overlayDialog;
 	private final ProgrammDetails programm;
 	private final Pane zeichenflaeche;
-	private final Map<Integer, Node> ansichten;
-	private final ObservableList<Node> selektion;
+	private final Group zeichenflaecheGruppe;
+	private final Map<Long, Node> ansichten;
+	private final ObservableList<UMLElementBasisAnsicht<? extends UMLDiagrammElement>> selektion;
 	private final Sprache sprache;
 	private final ScrollPane inhalt;
 	private final ReadOnlyBooleanWrapper kannKleinerZoomen;
@@ -91,9 +96,13 @@ public class ProjektAnsicht extends Tab {
 		this.zeichenflaeche = new Pane();
 		this.ansichten = new HashMap<>();
 		this.selektion = FXCollections.observableArrayList();
-		this.inhalt = new ScrollPane(new Group(zeichenflaeche));
+		zeichenflaecheGruppe = new Group(zeichenflaeche);
+		this.inhalt = new ScrollPane(zeichenflaecheGruppe);
 		this.kannKleinerZoomen = new ReadOnlyBooleanWrapper(false);
 		this.kannKleinerZoomen.bind(zeichenflaeche.scaleXProperty().greaterThan(0.6));
+		
+		this.zeichenflaeche.getStyleClass().add("zeichenflaeche");
+		this.inhalt.getStyleClass().add("projekt-inhalt");
 		
 		this.setContent(inhalt);
 		
@@ -112,7 +121,7 @@ public class ProjektAnsicht extends Tab {
 			}
 		});
 		
-		fuegeAlleHinzu(projekt.getDiagrammElemente());
+		fuegeAlleHinzu(projekt.getDiagrammElemente(), 0);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -141,12 +150,14 @@ public class ProjektAnsicht extends Tab {
 		return kannKleinerZoomen.getReadOnlyProperty();
 	}
 	
-	public List<UMLDiagrammElement> getSelektion() {
-		return selektion.stream().filter(node -> {
-			return node instanceof UMLDiagrammElement;
-		}).map(node -> {
-			return (UMLDiagrammElement) node;
+	public List<? extends UMLDiagrammElement> getSelektion() {
+		return selektion.stream().map(node -> {
+			return node.getUmlElement();
 		}).toList();
+	}
+	
+	public BooleanBinding hatSelektionProperty() {
+		return Bindings.isEmpty(selektion);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -175,6 +186,19 @@ public class ProjektAnsicht extends Tab {
 	
 	public boolean projektSpeichernUnter() {
 		return this.controller.projektSpeichernUnter(this.projekt);
+	}
+	
+	public void entferneAuswahl() {
+		var elemente = this.getSelektion();
+		log.fine(() -> "[%s] entferne %s".formatted(projekt,
+				Arrays.toString(elemente.toArray())));
+		var entfernenIds = elemente.stream().map(e -> e.getId()).toList();
+		var status = this.projekt.getUeberwachungsStatus();
+		this.projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+		this.projekt.getDiagrammElemente()
+				.removeIf(element -> entfernenIds.contains(element.getId()));
+		this.projekt.uebernehmeEditierungen();
+		this.projekt.setUeberwachungsStatus(status);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -229,7 +253,7 @@ public class ProjektAnsicht extends Tab {
 		});
 	}
 	
-	private int idZaehler = 0;
+	private long idZaehler = 0;
 	
 	private <E extends UMLDiagrammElement> void ueberwacheDiagrammElemente(
 			Change<E> aenderung) {
@@ -241,19 +265,19 @@ public class ProjektAnsicht extends Tab {
 					zeichenflaeche.getChildren().set(aenderung.getPermutation(i), kopie[i]);
 				}
 			}
-			if (aenderung.wasAdded()) {
-				fuegeAlleHinzu(aenderung.getAddedSubList());
-			}
 			if (aenderung.wasRemoved()) {
 				for (UMLDiagrammElement entfernt : aenderung.getRemoved()) {
 					var ansicht = this.ansichten.remove(entfernt.getId());
 					this.zeichenflaeche.getChildren().remove(ansicht);
 				}
 			}
+			if (aenderung.wasAdded()) {
+				fuegeAlleHinzu(aenderung.getAddedSubList(), aenderung.getFrom());
+			}
 		}
 	}
 	
-	private <E extends UMLDiagrammElement> void fuegeAlleHinzu(List<E> elemente) {
+	private <E extends UMLDiagrammElement> void fuegeAlleHinzu(List<E> elemente, int index) {
 		for (var neu : elemente) {
 			UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht = null;
 			if (neu instanceof UMLKlassifizierer klassifizierer) {
@@ -265,12 +289,14 @@ public class ProjektAnsicht extends Tab {
 				continue;
 			}
 			
-			fuegeHinzu(ansicht);
+			fuegeHinzu(ansicht, index);
+			index++;
 		}
 	}
 	
-	private void fuegeHinzu(UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht) {
-		this.zeichenflaeche.getChildren().add(ansicht);
+	private void fuegeHinzu(UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht,
+			int index) {
+		this.zeichenflaeche.getChildren().add(index, ansicht);
 		ansicht.getUmlElement().setId(idZaehler);
 		this.ansichten.put(idZaehler, ansicht);
 		idZaehler++;
@@ -294,42 +320,19 @@ public class ProjektAnsicht extends Tab {
 		});
 		
 		if (ansicht.getUmlElement() instanceof UMLKlassifizierer klassifizierer) {
-			ansicht.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
-				if (event.getClickCount() == 2) {
-					var alterStatus = projekt.getUeberwachungsStatus();
-					projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
-					var dialog = new UMLKlassifiziererBearbeitenDialog(klassifizierer);
-					dialog.initOwner(ansicht.getScene().getWindow());
-					dialog.titleProperty().bind(
-							projekt.nameProperty().concat(" > ")
-									.concat(new When(klassifizierer.nameProperty().isEmpty())
-											.then(sprache.getText("unbenannt", "Unbenannt"))
-											.otherwise(klassifizierer.nameProperty())));
-					dialog.showAndWait().ifPresent(button -> {
-						switch (button.getButtonData()) {
-							case BACK_PREVIOUS -> {
-								if (!klassifizierer.equals(dialog.getSicherungskopie())) {
-									log.fine(() -> "Setze zurueck " + klassifizierer);
-//									int i = projekt.getDiagrammElemente()
-//											.indexOf(klassifizierer);
-//									projekt.getDiagrammElemente().set(i,
-//											dialog.getSicherungskopie());
-									projekt.verwerfeEditierungen();
-								}
-							}
-							case FINISH -> {
-								log.fine(() -> "Aenderungen an " + klassifizierer
-										+ " uebernommen");
-								projekt.uebernehmeEditierungen();
-							}
-							default -> {
-								log.severe(() -> "Unbekannter Buttontyp: " + button);
-							}
-						}
-						projekt.setUeberwachungsStatus(alterStatus);
-					});
-				}
-			});
+			bearbeitenDialogOeffnen(ansicht, klassifizierer,
+					UMLKlassifiziererBearbeitenDialog.class,
+					projekt.nameProperty().concat(" > ")
+							.concat(new When(klassifizierer.nameProperty().isEmpty())
+									.then(sprache.getText("unbenannt", "Unbenannt"))
+									.otherwise(klassifizierer.nameProperty())));
+		} else if (ansicht.getUmlElement() instanceof UMLKommentar kommentar) {
+			bearbeitenDialogOeffnen(ansicht, kommentar,
+					UMLKommentarBearbeitenDialog.class,
+					projekt.nameProperty().concat(" > ")
+							.concat(sprache.getTextProperty("kommentarBearbeitenTitel",
+									"Kommentar bearbeiten")));
+			
 		}
 		
 		Runnable vorPositionBearbeitung = () -> {
@@ -343,26 +346,66 @@ public class ProjektAnsicht extends Tab {
 				projekt.uebernehmeEditierungen();
 			}
 			projekt.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
+			updateZeichenflaechenGroesse();
 		};
 		
 		NodeUtil.macheGroessenVeraenderlich(ansicht, vorPositionBearbeitung,
 				nachPositionBearbeitung);
 		NodeUtil.macheBeweglich(ansicht, vorPositionBearbeitung, nachPositionBearbeitung);
-		
-		Parent p = ansicht.getParent();
-		if (p != null && p instanceof Region container) {
-			var elementLayout = ansicht.getBoundsInParent();
-			double breite = elementLayout.getMaxX() + 300;
-			if (container.getWidth() < breite) {
-				container.setMinWidth(breite);
-				container.setPrefWidth(breite);
+		updateZeichenflaechenGroesse();
+	}
+	
+	private <T extends UMLDiagrammElement> void bearbeitenDialogOeffnen(Node ansicht,
+			T element, Class<? extends Alert> dialogTyp, ObservableValue<String> titel) {
+		ansicht.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
+			if (event.getClickCount() == 2 && !event.isConsumed()) {
+				event.consume();
+				var alterStatus = projekt.getUeberwachungsStatus();
+				projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+				Alert dialog;
+				try {
+					dialog = dialogTyp.getConstructor(element.getClass()).newInstance(element);
+				} catch (InstantiationException | IllegalAccessException
+						| IllegalArgumentException | InvocationTargetException
+						| NoSuchMethodException | SecurityException e) {
+					log.log(Level.SEVERE, e,
+							() -> "Dialog konnte nicht mit dem geforderten Konstruktor "
+									+ ">>public %s(%s)<< instanziiert werden!"
+											.formatted(dialogTyp.getSimpleName(),
+													element.getClass().getSimpleName()));
+					return;
+				}
+				dialog.initOwner(ansicht.getScene().getWindow());
+				dialog.titleProperty().bind(titel);
+				dialog.showAndWait().ifPresent(button -> {
+					switch (button.getButtonData()) {
+						case BACK_PREVIOUS -> {
+							log.fine(() -> "Setze zurueck " + element);
+							projekt.verwerfeEditierungen();
+						}
+						case FINISH -> {
+							log.fine(() -> "Aenderungen an " + element
+									+ " uebernommen");
+							projekt.uebernehmeEditierungen();
+						}
+						default -> log.severe(() -> "Unbekannter Buttontyp: " + button);
+					}
+					projekt.setUeberwachungsStatus(alterStatus);
+				});
 			}
-			double hoehe = elementLayout.getMaxY() + 300;
-			if (container.getHeight() < hoehe) {
-				container.setMinHeight(hoehe);
-				container.setPrefHeight(hoehe);
-			}
-		}
+		});
+	}
+	
+	private void updateZeichenflaechenGroesse() {
+		var maxX = projekt.getDiagrammElemente().stream()
+				.mapToDouble(element -> element.getPosition().getX()
+						+ element.getPosition().getBreite())
+				.max();
+		var maxY = projekt.getDiagrammElemente().stream()
+				.mapToDouble(element -> element.getPosition().getY()
+						+ element.getPosition().getHoehe())
+				.max();
+		this.zeichenflaeche.setPrefSize(maxX.orElse(100) + 100, maxY.orElse(100) + 100);
 	}
 	
 }

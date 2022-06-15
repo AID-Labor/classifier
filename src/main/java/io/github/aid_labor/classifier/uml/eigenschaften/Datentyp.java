@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
@@ -65,7 +66,7 @@ public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter 
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(typName);
+		return ClassifierUtil.hashAlle(typName);
 	}
 
 	@Override

@@ -76,6 +76,11 @@ public class JsonBooleanProperty extends SimpleBooleanProperty {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 	@Override
+	public int hashCode() {
+		return Boolean.hashCode(get());
+	}
+	
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof BooleanProperty jip) {
 			return this.get() == jip.get() && this.getName().equals(jip.getName());

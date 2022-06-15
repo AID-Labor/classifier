@@ -6,9 +6,9 @@
 package io.github.aid_labor.classifier.uml.klassendiagramm;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
@@ -38,8 +38,11 @@ public interface UMLDiagrammElement extends Editierbar {
 	
 	Position getPosition();
 
-	int getId();
+	long getId();
 	
-	void setId(int id);
+	void setId(long id);
+
+	UMLDiagrammElement erzeugeTiefeKopie();
+
 	
 }

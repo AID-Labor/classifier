@@ -6,10 +6,13 @@
 
 package io.github.aid_labor.classifier.uml.klassendiagramm;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 
+import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonDoubleProperty;
 import io.github.aid_labor.classifier.basis.projekt.EditierBefehl;
 import io.github.aid_labor.classifier.basis.projekt.EditierBeobachter;
@@ -45,6 +48,11 @@ abstract class UMLBasisElement extends EditierbarBasis
 		
 		public Position() {
 			this(0, 0, 0, 0);
+		}
+		
+		public Position(Position position) {
+			this();
+			setPosition(position);
 		}
 		
 		public Position(double x, double y, double hoehe, double breite) {
@@ -128,6 +136,27 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this.setBreite(position.getBreite());
 			this.setHoehe(position.getHoehe());
 		}
+
+		@Override
+		public int hashCode() {
+			return ClassifierUtil.hashAlle(breite, hoehe, x, y);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null) {
+				return false;
+			}
+			if (getClass() != obj.getClass()) {
+				return false;
+			}
+			Position other = (Position) obj;
+			return Objects.equals(breite, other.breite) && Objects.equals(hoehe, other.hoehe)
+					&& Objects.equals(x, other.x) && Objects.equals(y, other.y);
+		}
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -149,7 +178,7 @@ abstract class UMLBasisElement extends EditierbarBasis
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final Position position;
-	@JsonIgnore private int id;
+	@JsonIgnore private long id;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -185,12 +214,12 @@ abstract class UMLBasisElement extends EditierbarBasis
 	}
 	
 	@Override
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 	
 	@Override
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	

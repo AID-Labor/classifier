@@ -76,6 +76,11 @@ public class JsonIntegerProperty extends SimpleIntegerProperty {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@Override
+	public int hashCode() {
+		return Integer.hashCode(get());
+	}
+	
+	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof IntegerProperty jip) {
 			return this.get() == jip.get() && this.getName().equals(jip.getName());

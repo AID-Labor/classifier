@@ -18,8 +18,10 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Line;
 
+
 /**
- * Icon-Ansicht fuer UML-Diagramm-Elemente (speziell: UML Classifier aus dem Klassendiagramm)
+ * Icon-Ansicht fuer UML-Diagramm-Elemente (speziell: UML Classifier aus dem
+ * Klassendiagramm)
  * 
  * @author Tim Muehle
  *
@@ -51,9 +53,20 @@ public class ElementIcon extends StackPane {
 	}
 	
 	public ElementIcon(Sprache sprache, String bezeichnungSchluessel,
-			String alternativBezeichnung,
-			String stereotypSchluessel, String alternativStereotyp) {
-		super();
+			String alternativBezeichnung, boolean istAbstrakt) {
+		this(sprache, bezeichnungSchluessel, alternativBezeichnung, null, null, istAbstrakt);
+	}
+	
+	public ElementIcon(Sprache sprache, String bezeichnungSchluessel,
+			String alternativBezeichnung, String stereotypSchluessel,
+			String alternativStereotyp) {
+		this(sprache, bezeichnungSchluessel, alternativBezeichnung, stereotypSchluessel,
+				alternativStereotyp, false);
+	}
+	
+	public ElementIcon(Sprache sprache, String bezeichnungSchluessel,
+			String alternativBezeichnung, String stereotypSchluessel,
+			String alternativStereotyp, boolean istAbstrakt) {
 		
 		this.hoeheProperty = new SimpleDoubleProperty(90);
 		this.breiteProperty = new SimpleDoubleProperty(130);
@@ -87,7 +100,10 @@ public class ElementIcon extends StackPane {
 		
 		Label bezeichnung = SprachUtil.bindText(new Label(), sprache, bezeichnungSchluessel,
 				alternativBezeichnung);
-		bezeichnung.setStyle("-fx-font: bold 16 sans-serif;");
+		bezeichnung.getStyleClass().add("element-icon-bezeichnung");
+		if (istAbstrakt) {
+			bezeichnung.getStyleClass().add("abstrakt");
+		}
 		text.getChildren().addAll(bezeichnung, linieOben);
 		StackPane.setAlignment(text, Pos.TOP_CENTER);
 		StackPane.setMargin(text, new Insets(2, 0, 2, 0));

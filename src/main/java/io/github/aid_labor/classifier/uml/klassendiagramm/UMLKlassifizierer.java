@@ -266,8 +266,8 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(getAttribute(), getMethoden(), getName(), getPaket(),
-				getProgrammiersprache(), getTyp());
+		return ClassifierUtil.hashAlle(getAttribute(), getMethoden(), getName(), getPaket(),
+				getProgrammiersprache(), getPosition(), getTyp());
 	}
 	
 	@Override
@@ -292,9 +292,10 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		boolean programmierspracheGleich = getProgrammiersprache()
 				.equals(klassifizierer.getProgrammiersprache());
 		boolean typGleich = getTyp().equals(klassifizierer.getTyp());
+		boolean positionGleich = getPosition().equals(klassifizierer.getPosition());
 		
 		boolean istGleich = attributeGleich && methodenGleich && nameGleich && paketGleich
-				&& programmierspracheGleich && typGleich;
+				&& programmierspracheGleich && positionGleich && typGleich;
 		
 		log.finest(() -> """
 				istGleich: %s
@@ -303,13 +304,15 @@ public class UMLKlassifizierer extends UMLBasisElement {
 				   |-- nameGleich: %s
 				   |-- paketGleich: %s
 				   |-- programmierspracheGleich: %s
+				   |-- positionGleich: %s
 				   ╰-- typGleich: %s"""
 				.formatted(istGleich, attributeGleich, methodenGleich, nameGleich, paketGleich,
-						programmierspracheGleich, typGleich));
+						programmierspracheGleich, positionGleich, typGleich));
 		
 		return istGleich;
 	}
 	
+	@Override
 	public UMLKlassifizierer erzeugeTiefeKopie() {
 		var kopie = new UMLKlassifizierer(getTyp(), getProgrammiersprache(), getName());
 		kopie.setPaket(getPaket());

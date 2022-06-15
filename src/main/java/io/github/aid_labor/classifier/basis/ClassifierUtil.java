@@ -67,6 +67,23 @@ public class ClassifierUtil {
 		return elementeGleich;
 	}
 	
+	public static int hashAlle(Object... objekte) {
+		long hash = 0;
+		for (var obj : objekte) {
+			if (obj instanceof Iterable<?> iterierbar) {
+				int i = 1;
+				for (var element : iterierbar) {
+					hash = 31*hash + i * element.hashCode();
+					i++;
+				}
+			} else {
+				hash = 31*hash + (obj == null ? 0 : obj.hashCode());
+			}
+		}
+		
+		return (int) hash;
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
