@@ -54,7 +54,7 @@ public class ElementIcon extends StackPane {
 	
 	public ElementIcon(Sprache sprache, String bezeichnungSchluessel,
 			String alternativBezeichnung, boolean istAbstrakt) {
-		this(sprache, bezeichnungSchluessel, alternativBezeichnung, null, null, true);
+		this(sprache, bezeichnungSchluessel, alternativBezeichnung, null, null, istAbstrakt);
 	}
 	
 	public ElementIcon(Sprache sprache, String bezeichnungSchluessel,

@@ -291,6 +291,10 @@ public class ProjekteAnsicht {
 		this.kontroller.legeNeuenKlassifiziererAn(typ);
 	}
 	
+	public void legeKommentarAn() {
+		this.kontroller.legeKommentarAn();
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -335,10 +339,8 @@ public class ProjekteAnsicht {
 		
 		EventType<WindowEvent> eventTyp = WindowEvent.WINDOW_CLOSE_REQUEST;
 		tabAnsicht.sceneProperty().addListener((property, alteSzene, neueSzene) -> {
-			if (alteSzene != null) {
-				if (alteSzene.getWindow() != null) {
-					alteSzene.getWindow().removeEventHandler(eventTyp, eventAktion);
-				}
+			if (alteSzene != null && alteSzene.getWindow() != null) {
+				alteSzene.getWindow().removeEventHandler(eventTyp, eventAktion);
 			}
 			if (neueSzene != null) {
 				if (neueSzene.getWindow() != null) {

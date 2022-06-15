@@ -120,7 +120,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private final ToggleButton attribute;
 	private final ToggleButton methoden;
 	private final ValidationSupport eingabeValidierung;
-	private final LinkedList<ChangeListener<KlassifiziererTyp>> typBeobachter;
+	private final LinkedList<ChangeListener<KlassifiziererTyp>> typBeobachterListe;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -132,7 +132,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.sicherungskopie = klassifizierer.erzeugeTiefeKopie();
 		this.sprache = new Sprache();
 		this.eingabeValidierung = new ValidationSupport();
-		this.typBeobachter = new LinkedList<>();
+		this.typBeobachterListe = new LinkedList<>();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
@@ -159,7 +159,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.getDialogPane().setPrefSize(920, 512);
 		
 		this.setOnHidden(e -> {
-			for (var beobachter : typBeobachter) {
+			for (var beobachter : typBeobachterListe) {
 				klassifizierer.typProperty().removeListener(beobachter);
 			}
 		});
@@ -249,12 +249,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		BorderPane.setAlignment(container, Pos.TOP_CENTER);
 		wurzel.setCenter(container);
 		
-		ueberwacheSelektion(this.allgemein, allgemeinAnzeige, container);
-		ueberwacheSelektion(this.attribute, attributeAnzeige, container);
-		ueberwacheSelektion(this.methoden, methodenAnzeige, container);
+		ueberwacheSelektion(this.allgemein, allgemeinAnzeige);
+		ueberwacheSelektion(this.attribute, attributeAnzeige);
+		ueberwacheSelektion(this.methoden, methodenAnzeige);
 	}
 	
-	private void ueberwacheSelektion(ToggleButton button, Node anzeige, StackPane container) {
+	private void ueberwacheSelektion(ToggleButton button, Node anzeige) {
 		anzeige.setVisible(button.isSelected());
 		anzeige.visibleProperty().bind(button.selectedProperty());
 	}
@@ -294,9 +294,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		TextField interfaces = new TextField(this.klassifizierer.getInterfaces());
 		tabelle.add(interfaces, 1, 5);
 		
-		typ.getSelectionModel().selectedItemProperty().addListener((p, alt, neu) -> {
-			this.klassifizierer.setTyp(neu);
-		});
+		typ.getSelectionModel().selectedItemProperty()
+				.addListener((p, alt, neu) -> this.klassifizierer.setTyp(neu));
 		this.klassifizierer.getPaketProperty().bindBidirectional(paket.textProperty());
 		this.klassifizierer.nameProperty().bindBidirectional(name.textProperty());
 		this.klassifizierer.superklasseProperty()
@@ -316,10 +315,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		});
 		
 		updateSuperklasse(superklasse, klassifizierer.getTyp());
-		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> {
-			updateSuperklasse(superklasse, neueWahl);
-		};
-		this.typBeobachter.add(typBeobachter);
+		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl,
+				neueWahl) -> updateSuperklasse(superklasse, neueWahl);
+		this.typBeobachterListe.add(typBeobachter);
 		typ.getSelectionModel().selectedItemProperty().addListener(typBeobachter);
 		
 		return tabelle;
@@ -338,17 +336,17 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20);
 		neu.setOnAction(neuAktion);
 		
-		HBox buttonBar = new HBox(neu);
-		buttonBar.setSpacing(5);
-		buttonBar.setAlignment(Pos.CENTER_LEFT);
-		buttonBar.setPadding(new Insets(5, 0, 0, 0));
+		HBox tabellenButtons = new HBox(neu);
+		tabellenButtons.setSpacing(5);
+		tabellenButtons.setAlignment(Pos.CENTER_LEFT);
+		tabellenButtons.setPadding(new Insets(5, 0, 0, 0));
 		
 		BorderPane ansicht = new BorderPane();
 		ansicht.setMaxWidth(Region.USE_PREF_SIZE);
 		var scrollContainer = new ScrollPane(tabelle);
 		scrollContainer.getStyleClass().add("edge-to-edge");
 		ansicht.setCenter(scrollContainer);
-		ansicht.setBottom(buttonBar);
+		ansicht.setBottom(tabellenButtons);
 		
 		Platform.runLater(() -> {
 			var vBar = ((ScrollPaneSkin) scrollContainer.getSkin()).getVerticalScrollBar();
@@ -356,12 +354,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					new When(vBar.visibleProperty()).then(vBar.widthProperty()).otherwise(0)));
 		});
 		
-		tabelle.widthProperty().addListener((p, a, n) -> {
-			Platform.runLater(() -> {
-				scrollContainer.requestLayout();
-			});
-			
-		});
+		tabelle.widthProperty()
+				.addListener((p, a, n) -> Platform.runLater(scrollContainer::requestLayout));
 		
 		return ansicht;
 	}
@@ -376,12 +370,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
 		
-		inhalt.addListener(new ListChangeListener<T>() {
-			@Override
-			public void onChanged(Change<? extends T> aenderung) {
-				if (aenderung.next()) {
-					fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
-				}
+		inhalt.addListener((ListChangeListener<? super T>) aenderung -> {
+			if (aenderung.next()) {
+				fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
 			}
 		});
 	}
@@ -392,9 +383,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				.filter(kind -> GridPane.getRowIndex(kind) > 0).toList();
 		for (var kind : zuEntfernen) {
 			if (kind instanceof Control c) {
-				eingabeValidierung.registerValidator(c, false, (control, wert) -> {
-					return ValidationResult.fromInfoIf(control, "ungenutzt", false);
-				});
+				eingabeValidierung.registerValidator(c, false, (control,
+						wert) -> ValidationResult.fromInfoIf(control, "ungenutzt", false));
 			}
 		}
 		tabelle.getChildren().removeIf(kind -> GridPane.getRowIndex(kind) > 0);
@@ -411,9 +401,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		sichtbarkeit.getItems().addAll(klassifizierer.getProgrammiersprache()
 				.getEigenschaften().getAttributModifizierer(klassifizierer.getTyp()));
 		sichtbarkeit.getSelectionModel().select(attribut.getSichtbarkeit());
-		sichtbarkeit.getSelectionModel().selectedItemProperty().addListener((o, alt, neu) -> {
-			attribut.setSichtbarkeit(neu);
-		});
+		sichtbarkeit.getSelectionModel().selectedItemProperty()
+				.addListener((o, alt, neu) -> attribut.setSichtbarkeit(neu));
 		
 		TextField name = new TextField();
 		name.textProperty().bindBidirectional(attribut.getNameProperty());
@@ -438,15 +427,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		Label loeschen = new Label();
 		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
-		loeschen.setOnMouseClicked(e -> {
-			klassifizierer.getAttribute().remove(attribut);
-		});
+		loeschen.setOnMouseClicked(e -> klassifizierer.getAttribute().remove(attribut));
 		
 		Label hoch = new Label();
 		NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
-		hoch.setOnMouseClicked(e -> {
-			tausche(klassifizierer.getAttribute(), zeile, zeile - 1);
-		});
+		hoch.setOnMouseClicked(e -> tausche(klassifizierer.getAttribute(), zeile, zeile - 1));
 		
 		if (zeile == 0) {
 			hoch.setDisable(true);
@@ -454,9 +439,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		Label runter = new Label();
 		NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
-		runter.setOnMouseClicked(e -> {
-			tausche(klassifizierer.getAttribute(), zeile, zeile + 1);
-		});
+		runter.setOnMouseClicked(
+				e -> tausche(klassifizierer.getAttribute(), zeile, zeile + 1));
 		
 		if (zeile == klassifizierer.getAttribute().size() - 1) {
 			runter.setDisable(true);
@@ -474,10 +458,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		});
 		
 		updateStatischAttribut(statisch, klassifizierer.getTyp());
-		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> {
-			updateStatischAttribut(statisch, neueWahl);
-		};
-		this.typBeobachter.add(typBeobachter);
+		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl,
+				neueWahl) -> updateStatischAttribut(statisch, neueWahl);
+		this.typBeobachterListe.add(typBeobachter);
 		klassifizierer.typProperty().addListener(typBeobachter);
 		
 		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter,
@@ -520,9 +503,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		sichtbarkeit.getItems().addAll(klassifizierer.getProgrammiersprache()
 				.getEigenschaften().getMethodenModifizierer(klassifizierer.getTyp()));
 		sichtbarkeit.getSelectionModel().select(methode.getSichtbarkeit());
-		sichtbarkeit.getSelectionModel().selectedItemProperty().addListener((o, alt, neu) -> {
-			methode.setSichtbarkeit(neu);
-		});
+		sichtbarkeit.getSelectionModel().selectedItemProperty()
+				.addListener((o, alt, neu) -> methode.setSichtbarkeit(neu));
 		
 		TextField name = new TextField();
 		name.textProperty().bindBidirectional(methode.getNameProperty());
@@ -540,13 +522,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						if (stringExpr != null) {
 							super.unbind(stringExpr);
 						}
-						var params = methode.getParameterListe().stream().map(param -> {
-							return Bindings.concat(new When(Einstellungen
-									.getBenutzerdefiniert().zeigeParameterNamen)
-									.then(param.getNameProperty().concat(": "))
-									.otherwise(""),
-									param.getDatentyp().getTypNameProperty());
-						}).toArray();
+						var params = methode.getParameterListe().stream()
+								.map(param -> Bindings.concat(new When(Einstellungen
+										.getBenutzerdefiniert().zeigeParameterNamen)
+										.then(param.getNameProperty().concat(": "))
+										.otherwise(""),
+										param.getDatentyp().getTypNameProperty()))
+								.toArray();
 						
 						if (params.length < 1) {
 							return "";
@@ -591,15 +573,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		Label loeschen = new Label();
 		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
-		loeschen.setOnMouseClicked(e -> {
-			klassifizierer.getMethoden().remove(methode);
-		});
+		loeschen.setOnMouseClicked(e -> klassifizierer.getMethoden().remove(methode));
 		
 		Label hoch = new Label();
 		NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
-		hoch.setOnMouseClicked(e -> {
-			tausche(klassifizierer.getMethoden(), zeile, zeile - 1);
-		});
+		hoch.setOnMouseClicked(e -> tausche(klassifizierer.getMethoden(), zeile, zeile - 1));
 		
 		if (zeile == 0) {
 			hoch.setDisable(true);
@@ -607,9 +585,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		Label runter = new Label();
 		NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
-		runter.setOnMouseClicked(e -> {
-			tausche(klassifizierer.getMethoden(), zeile, zeile + 1);
-		});
+		runter.setOnMouseClicked(e -> tausche(klassifizierer.getMethoden(), zeile, zeile + 1));
 		
 		if (zeile == klassifizierer.getMethoden().size() - 1) {
 			runter.setDisable(true);
@@ -626,11 +602,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			setzePlatzhalter(rueckgabetyp);
 		});
 		
-		updateMethode(abstrakt, statisch, klassifizierer.getTyp(), null, methode);
-		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> {
-			updateMethode(abstrakt, statisch, neueWahl, alteWahl, methode);
-		};
-		this.typBeobachter.add(typBeobachter);
+		updateMethode(abstrakt, statisch, klassifizierer.getTyp(), methode);
+		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl,
+				neueWahl) -> updateMethode(abstrakt, statisch, neueWahl, methode);
+		this.typBeobachterListe.add(typBeobachter);
 		klassifizierer.typProperty().addListener(typBeobachter);
 		
 		if (methode.istGetter() || methode.istSetter()) {
@@ -642,13 +617,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		
 		abstrakt.selectedProperty().addListener((p, alt, istAbstrakt) -> {
-			if (istAbstrakt) {
+			if (istAbstrakt.booleanValue()) {
 				statisch.setSelected(false);
 			}
 		});
 		
 		statisch.selectedProperty().addListener((p, alt, istStatisch) -> {
-			if (istStatisch) {
+			if (istStatisch.booleanValue()) {
 				abstrakt.setSelected(false);
 			}
 		});
@@ -670,15 +645,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			
 			Label loeschen = new Label();
 			NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
-			loeschen.setOnMouseClicked(e -> {
-				methode.getParameterListe().remove(param);
-			});
+			loeschen.setOnMouseClicked(e -> methode.getParameterListe().remove(param));
 			
 			Label hoch = new Label();
 			NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
-			hoch.setOnMouseClicked(e -> {
-				tausche(methode.getParameterListe(), zeile, zeile - 1);
-			});
+			hoch.setOnMouseClicked(
+					e -> tausche(methode.getParameterListe(), zeile, zeile - 1));
 			
 			if (zeile == 0) {
 				hoch.setDisable(true);
@@ -686,9 +658,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			
 			Label runter = new Label();
 			NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
-			runter.setOnMouseClicked(e -> {
-				tausche(methode.getParameterListe(), zeile, zeile + 1);
-			});
+			runter.setOnMouseClicked(
+					e -> tausche(methode.getParameterListe(), zeile, zeile + 1));
 			
 			if (methode.istGetter() || methode.istSetter()) {
 				datentyp.setDisable(true);
@@ -736,10 +707,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	}
 	
 	private void setzePlatzhalter(TextInputControl eingabefeld) {
-		eingabeValidierung.validationResultProperty().addListener((p, alt, neu) -> {
-			eingabefeld.setPromptText(eingabeValidierung.getHighestMessage(eingabefeld)
-					.orElseGet(() -> leereValidierungsMeldung).getText());
-		});
+		eingabeValidierung.validationResultProperty()
+				.addListener((p, alt, neu) -> eingabefeld
+						.setPromptText(eingabeValidierung.getHighestMessage(eingabefeld)
+								.orElseGet(() -> leereValidierungsMeldung).getText()));
 	}
 	
 	private <E> void tausche(List<E> liste, int indexA, int indexB) {
@@ -771,7 +742,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	}
 	
 	private void updateMethode(CheckBox abstrakt, CheckBox statisch, KlassifiziererTyp typ,
-			KlassifiziererTyp alterTyp, Methode methode) {
+			Methode methode) {
 		boolean abstraktErlaubt = klassifizierer.getProgrammiersprache().getEigenschaften()
 				.erlaubtAbstrakteMethode(typ);
 		boolean abstraktErzwungen = !klassifizierer.getProgrammiersprache().getEigenschaften()

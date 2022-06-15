@@ -61,6 +61,20 @@
     -fx-border-color: black;
 }
 
+.kommentar {
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-border-color: black;
+    -fx-background-color: white;
+}
+
+.kommentar-hintergrund {
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-border-color: black;
+    -fx-background-color: silver;
+}
+
 #selektiert {
     -fx-effect: dropshadow(one-pass-box, red, 20, 0.5, 0, 0);
 }
@@ -99,13 +113,17 @@
 }
 
 .projekt-inhalt {   /* ScrollPane im Tab */
+    /*
     -fx-border-width: 2;
     -fx-border-style: solid;
     -fx-border-color: red;
+    */
 }
 
 .zeichenflaeche {   /* Eltern-Knoten der Diagramm-Elemente (Pane) */
+    /*
     -fx-border-width: 2;
     -fx-border-style: solid;
     -fx-border-color: blue;
+    */
 }

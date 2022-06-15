@@ -64,16 +64,16 @@ public class UMLKommentar extends UMLBasisElement {
 	
 	public UMLKommentar() {
 		super(new Position());
-		this.inhaltProperty = new JsonStringProperty(this, "inhalt");
+		this.inhaltProperty = new JsonStringProperty(this, "inhalt", "");
 		this.ueberwachePropertyAenderung(this.inhaltProperty);
 	}
 	
 	@JsonCreator
 	public UMLKommentar(@JsonProperty("inhalt") String inhalt,
 			@JsonProperty("position") Position position) {
-		super(position);
-		this.inhaltProperty = new JsonStringProperty(this, "inhalt", inhalt);
-		this.ueberwachePropertyAenderung(this.inhaltProperty);
+		this();
+		this.inhaltProperty.set(inhalt);
+		this.getPosition().set(position);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -114,7 +114,7 @@ public class UMLKommentar extends UMLBasisElement {
 	
 	@Override
 	public int hashCode() {
-		return ClassifierUtil.hashAlle(inhaltProperty);
+		return ClassifierUtil.hashAlle(getInhalt(), getPosition());
 	}
 	
 	@Override

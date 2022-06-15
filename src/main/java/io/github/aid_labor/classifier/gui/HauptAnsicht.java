@@ -42,6 +42,7 @@ import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.application.HostServices;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -441,15 +442,6 @@ public class HauptAnsicht {
 		ribbon.getSpeichernSchnellzugriff().setOnAction(controller::projektSpeichern);
 		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
 		
-		ribbon.getNeueKlasse()
-				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Klasse));
-		ribbon.getNeueAbstrakteKlasse()
-				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.AbstrakteKlasse));
-		ribbon.getNeuesInterface()
-				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Interface));
-		ribbon.getNeueEnumeration()
-				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Enumeration));
-		
 		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getScreenshot(),
 				ribbon.getExportieren());
 		
@@ -462,8 +454,18 @@ public class HauptAnsicht {
 		ribbon.getAnordnenNachGanzVorne().setOnAction(e -> nachGanzVorne());
 		ribbon.getAnordnenNachGanzHinten().setOnAction(e -> nachGanzHinten());
 		
+		ribbon.getNeueKlasse()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Klasse));
+		ribbon.getNeueAbstrakteKlasse()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.AbstrakteKlasse));
+		ribbon.getNeuesInterface()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Interface));
+		ribbon.getNeueEnumeration()
+				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Enumeration));
+		ribbon.getKommentar()
+				.setOnAction(e -> erzeugeKommentar());
+		
 		NodeUtil.deaktivieren(ribbon.getVererbung(), ribbon.getAssoziation());
-		NodeUtil.deaktivieren(ribbon.getKommentar());
 		
 		ribbon.getZoomGroesser().setOnAction(this.controller::zoomeGroesser);
 		ribbon.getZoomKleiner().setOnAction(this.controller::zoomeKleiner);
@@ -485,6 +487,7 @@ public class HauptAnsicht {
 		ribbon.getNeueAbstrakteKlasse().disableProperty().bind(hatKeinProjekt);
 		ribbon.getNeuesInterface().disableProperty().bind(hatKeinProjekt);
 		ribbon.getNeueEnumeration().disableProperty().bind(hatKeinProjekt);
+		ribbon.getKommentar().disableProperty().bind(hatKeinProjekt);
 		
 		updateRueckgaengigWiederholen(ribbon,
 				projekteAnsicht.getAngezeigtesProjektProperty().get());
@@ -596,6 +599,10 @@ public class HauptAnsicht {
 		this.projekteAnsicht.legeNeuenKlassifiziererAn(typ);
 	}
 	
+	private void erzeugeKommentar() {
+		this.projekteAnsicht.legeKommentarAn();
+	}
+	
 	private void auswahlKopieren() {
 		kopiePuffer.setAll(projekteAnsicht.getProjektAnsicht().getSelektion());
 	}
@@ -651,7 +658,7 @@ public class HauptAnsicht {
 		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
 		
 		for (int index : indizesRueckwaerts) {
-			if (index < diagrammElemente.size()-1) {
+			if (index < diagrammElemente.size() - 1) {
 				var a = diagrammElemente.remove(index);
 				diagrammElemente.add(index + 1, a);
 			}
@@ -670,7 +677,7 @@ public class HauptAnsicht {
 		for (int index : indizes) {
 			if (index > 0) {
 				var a = diagrammElemente.remove(index);
-				diagrammElemente.add(index-1, a);
+				diagrammElemente.add(index - 1, a);
 			}
 		}
 		projekt.setUeberwachungsStatus(status);
