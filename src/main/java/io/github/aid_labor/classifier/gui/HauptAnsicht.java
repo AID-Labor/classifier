@@ -42,7 +42,6 @@ import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
-import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.application.HostServices;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -252,9 +251,10 @@ public class HauptAnsicht {
 				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Interface));
 		menue.getEnumEinfuegen()
 				.setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Enumeration));
+		menue.getKommentarEinfuegen().setOnAction(e -> erzeugeKommentar());
 		
 		NodeUtil.deaktivieren(menue.getVererbungEinfuegen(),
-				menue.getAssoziationEinfuegen(), menue.getKommentarEinfuegen());
+				menue.getAssoziationEinfuegen());
 		
 		// Menue Anordnen
 		NodeUtil.deaktivieren(menue.getAnordnenNachVorne(), menue.getAnordnenNachGanzVorne(),
@@ -340,6 +340,7 @@ public class HauptAnsicht {
 		menue.getAbstrakteKlasseEinfuegen().disableProperty().bind(hatKeinProjekt);
 		menue.getInterfaceEinfuegen().disableProperty().bind(hatKeinProjekt);
 		menue.getEnumEinfuegen().disableProperty().bind(hatKeinProjekt);
+		menue.getKommentarEinfuegen().disableProperty().bind(hatKeinProjekt);
 		
 		// Menue Anordnen
 		menue.getAnordnenNachVorne().setOnAction(e -> nachVorne());
