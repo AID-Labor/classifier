@@ -117,7 +117,7 @@ rm -rf ~/.config/${NAME}
 
 chmod 555 "./${OUT}/${NAME}-${VERSION}/uninstall.sh"
 
-echo "Erzeuge Archiv ${OUT}/${NAME}-${VERSION}-linux.tar.gz"
+echo "Erzeuge Archiv ${OUT}/${NAME}-${VERSION}-linux-install.tar.gz"
 tar -C "./${OUT}" -czf "./${OUT}/${NAME}-${VERSION}-linux.tar.gz" "${NAME}-${VERSION}"
 
 echo ""

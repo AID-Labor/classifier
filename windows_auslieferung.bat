@@ -82,7 +82,7 @@ jpackage ^
 --win-menu-group %WIN_MENU_GROUP%
 @echo off
 
-ren %OUT%\%NAME%-%VERSION%.exe %NAME%-%VERSION%-windows.exe
+ren %OUT%\%NAME%-%VERSION%.exe %NAME%-%VERSION%-windows-install.exe
 echo.
 echo.
 
@@ -111,7 +111,7 @@ jpackage ^
 --win-menu-group %WIN_MENU_GROUP%
 @echo off
 
-ren %OUT%\%NAME%-%VERSION%.msi %NAME%-%VERSION%-windows.msi
+ren %OUT%\%NAME%-%VERSION%.msi %NAME%-%VERSION%-windows-install.msi
 echo.
 echo.
 
