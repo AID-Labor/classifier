@@ -6,13 +6,12 @@
 
 package io.github.aid_labor.classifier.gui;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import com.dlsc.gemsfx.DialogPane;
@@ -151,9 +150,7 @@ public class ProjektAnsicht extends Tab {
 	}
 	
 	public List<? extends UMLDiagrammElement> getSelektion() {
-		return selektion.stream().map(node -> {
-			return node.getUmlElement();
-		}).toList();
+		return selektion.stream().map(UMLElementBasisAnsicht::getUmlElement).toList();
 	}
 	
 	public BooleanBinding hatSelektionProperty() {
@@ -321,18 +318,17 @@ public class ProjektAnsicht extends Tab {
 		
 		if (ansicht.getUmlElement() instanceof UMLKlassifizierer klassifizierer) {
 			bearbeitenDialogOeffnen(ansicht, klassifizierer,
-					UMLKlassifiziererBearbeitenDialog.class,
 					projekt.nameProperty().concat(" > ")
 							.concat(new When(klassifizierer.nameProperty().isEmpty())
 									.then(sprache.getText("unbenannt", "Unbenannt"))
-									.otherwise(klassifizierer.nameProperty())));
+									.otherwise(klassifizierer.nameProperty())),
+					() -> new UMLKlassifiziererBearbeitenDialog(klassifizierer, projekt));
 		} else if (ansicht.getUmlElement() instanceof UMLKommentar kommentar) {
 			bearbeitenDialogOeffnen(ansicht, kommentar,
-					UMLKommentarBearbeitenDialog.class,
 					projekt.nameProperty().concat(" > ")
 							.concat(sprache.getTextProperty("kommentarBearbeitenTitel",
-									"Kommentar bearbeiten")));
-			
+									"Kommentar bearbeiten")),
+					() -> new UMLKommentarBearbeitenDialog(kommentar));
 		}
 		
 		Runnable vorPositionBearbeitung = () -> {
@@ -356,25 +352,14 @@ public class ProjektAnsicht extends Tab {
 	}
 	
 	private <T extends UMLDiagrammElement> void bearbeitenDialogOeffnen(Node ansicht,
-			T element, Class<? extends Alert> dialogTyp, ObservableValue<String> titel) {
+			T element, ObservableValue<String> titel,
+			Supplier<? extends Alert> dialogKonstruktor) {
 		ansicht.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
 			if (event.getClickCount() == 2 && !event.isConsumed()) {
 				event.consume();
 				var alterStatus = projekt.getUeberwachungsStatus();
 				projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
-				Alert dialog;
-				try {
-					dialog = dialogTyp.getConstructor(element.getClass()).newInstance(element);
-				} catch (InstantiationException | IllegalAccessException
-						| IllegalArgumentException | InvocationTargetException
-						| NoSuchMethodException | SecurityException e) {
-					log.log(Level.SEVERE, e,
-							() -> "Dialog konnte nicht mit dem geforderten Konstruktor "
-									+ ">>public %s(%s)<< instanziiert werden!"
-											.formatted(dialogTyp.getSimpleName(),
-													element.getClass().getSimpleName()));
-					return;
-				}
+				Alert dialog = dialogKonstruktor.get();
 				dialog.initOwner(ansicht.getScene().getWindow());
 				dialog.titleProperty().bind(titel);
 				dialog.showAndWait().ifPresent(button -> {

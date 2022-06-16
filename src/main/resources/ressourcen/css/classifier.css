@@ -112,6 +112,11 @@
     -fx-underline: true;
 }
 
+.eingabefehler {
+    -fx-base: derive(red, 50%);
+    -fx-prompt-text-fill: derive(silver, -40%)
+}
+
 .projekt-inhalt {   /* ScrollPane im Tab */
     /*
     -fx-border-width: 2;

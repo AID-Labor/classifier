@@ -6,7 +6,10 @@
 
 package io.github.aid_labor.classifier.gui.util;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.kordamp.ikonli.Ikon;
@@ -15,6 +18,9 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import io.github.aid_labor.classifier.basis.io.Ressource;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Point2D;
@@ -66,8 +72,7 @@ public final class NodeUtil {
 	 * @param anzeigeStil Darstellungsstil von Text und Icon
 	 * @return die hinzugefuegte Grafik
 	 */
-	public static ImageView fuegeGrafikHinzu(Labeled node, Ressource grafik, int hoehe,
-			ContentDisplay anzeigeStil) {
+	public static ImageView fuegeGrafikHinzu(Labeled node, Ressource grafik, int hoehe, ContentDisplay anzeigeStil) {
 		ImageView grafikNode = new ImageView(grafik.externeForm());
 		grafikNode.setPreserveRatio(true);
 		grafikNode.setFitHeight(hoehe);
@@ -98,8 +103,7 @@ public final class NodeUtil {
 	 * @param anzeigeStil Darstellungsstil von Text und Icon
 	 * @return das hinzugefuegte Icon
 	 */
-	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, int groesse,
-			ContentDisplay anzeigeStil) {
+	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, int groesse, ContentDisplay anzeigeStil) {
 		FontIcon symbol = new FontIcon(iconCode);
 		symbol.setIconSize(groesse);
 		node.setGraphic(symbol);
@@ -129,8 +133,7 @@ public final class NodeUtil {
 	 * @param anzeigeStil Darstellungsstil von Text und Icon
 	 * @return das hinzugefuegte Icon
 	 */
-	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode,
-			ContentDisplay anzeigeStil) {
+	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, ContentDisplay anzeigeStil) {
 		return fuegeIconHinzu(node, iconCode, 24, anzeigeStil);
 	}
 	
@@ -258,16 +261,14 @@ public final class NodeUtil {
 	 *                    Aufheben
 	 * @param elemente    Elemente, die die Id erhalten
 	 */
-	public static void setzeHervorhebung(ReadOnlyBooleanProperty hervorheben,
-			Node... elemente) {
+	public static void setzeHervorhebung(ReadOnlyBooleanProperty hervorheben, Node... elemente) {
 		for (Node element : elemente) {
 			setzeHervorhebung(hervorheben.get(), element);
 		}
 	}
 	
 	public static boolean wirdBewegt(Node n) {
-		Object obj = n.getProperties().getOrDefault("bewegungsEinstellung",
-				new BewegungsEinstellungen());
+		Object obj = n.getProperties().getOrDefault("bewegungsEinstellung", new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
 			return false;
 		}
@@ -275,13 +276,11 @@ public final class NodeUtil {
 		return bewegung.wirdBewegt;
 	}
 	
-	public static void macheBeweglich(Node element, Runnable vorBewegung,
-			BiConsumer<Bounds, Bounds> nachBewegung) {
-		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung",
-				new BewegungsEinstellungen());
+	public static void macheBeweglich(Node element, Runnable vorBewegung, BiConsumer<Bounds, Bounds> nachBewegung) {
+		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung", new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
-			log.warning(() -> "unbekanntes Objekt fuer Schluessel 'bewegungsEinstellung'. "
-					+ " Node " + element + " kann nicht beweglich gemacht werden!");
+			log.warning(() -> "unbekanntes Objekt fuer Schluessel 'bewegungsEinstellung'. " + " Node " + element
+					+ " kann nicht beweglich gemacht werden!");
 			return;
 		}
 		
@@ -294,8 +293,7 @@ public final class NodeUtil {
 		});
 		
 		element.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-			if (bewegung.aktionPosition.equals(AktionPosition.KEINE)
-					&& istEinfacherMausKlick(event)) {
+			if (bewegung.aktionPosition.equals(AktionPosition.KEINE) && istEinfacherMausKlick(event)) {
 				log.finer(() -> "Starte Bewegung");
 				if (vorBewegung != null) {
 					vorBewegung.run();
@@ -331,16 +329,14 @@ public final class NodeUtil {
 				element.setCursor(bewegung.letzterCursor);
 				bewegung.wirdBewegt = false;
 				if (nachBewegung != null) {
-					nachBewegung.accept(bewegung.ausgangsPosition,
-							element.getBoundsInParent());
+					nachBewegung.accept(bewegung.ausgangsPosition, element.getBoundsInParent());
 				}
 			}
 		});
 	}
 	
 	public static boolean wirdGroesseVeraendert(Node n) {
-		Object obj = n.getProperties().getOrDefault("bewegungsEinstellung",
-				new BewegungsEinstellungen());
+		Object obj = n.getProperties().getOrDefault("bewegungsEinstellung", new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
 			return false;
 		}
@@ -348,13 +344,12 @@ public final class NodeUtil {
 		return bewegung.wirdGroesseVeraendert;
 	}
 	
-	public static void macheGroessenVeraenderlich(Region element,
-			Runnable vorGroessenAenderung, BiConsumer<Bounds, Bounds> nachGroessenAenderung) {
-		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung",
-				new BewegungsEinstellungen());
+	public static void macheGroessenVeraenderlich(Region element, Runnable vorGroessenAenderung,
+			BiConsumer<Bounds, Bounds> nachGroessenAenderung) {
+		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung", new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {
-			log.warning(() -> "unbekanntes Objekt fuer Schluessel 'bewegungsEinstellung'. "
-					+ " Node " + element + " kann nicht beweglich gemacht werden!");
+			log.warning(() -> "unbekanntes Objekt fuer Schluessel 'bewegungsEinstellung'. " + " Node " + element
+					+ " kann nicht beweglich gemacht werden!");
 			return;
 		}
 		
@@ -365,8 +360,7 @@ public final class NodeUtil {
 		beobachteMausBewegung(element, bewegung);
 		
 		element.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-			if (!bewegung.aktionPosition.equals(AktionPosition.KEINE)
-					&& istEinfacherMausKlick(event)) {
+			if (!bewegung.aktionPosition.equals(AktionPosition.KEINE) && istEinfacherMausKlick(event)) {
 				log.finer(() -> "Starte Groessenaenderung");
 				if (vorGroessenAenderung != null) {
 					vorGroessenAenderung.run();
@@ -387,8 +381,7 @@ public final class NodeUtil {
 			if (bewegung.wirdGroesseVeraendert) {
 				log.finest(() -> "Veraendere Groesse");
 				
-				Point2D mausposition = element.getParent().sceneToLocal(event.getSceneX(),
-						event.getSceneY());
+				Point2D mausposition = element.getParent().sceneToLocal(event.getSceneX(), event.getSceneY());
 				
 				if (bewegung.aktionPosition.istObenSelektiert()) {
 					double minYNeu = mausposition.getY();
@@ -431,15 +424,13 @@ public final class NodeUtil {
 				element.setCursor(bewegung.letzterCursor);
 				bewegung.wirdGroesseVeraendert = false;
 				if (nachGroessenAenderung != null) {
-					nachGroessenAenderung.accept(bewegung.ausgangsPosition,
-							element.getBoundsInParent());
+					nachGroessenAenderung.accept(bewegung.ausgangsPosition, element.getBoundsInParent());
 				}
 			}
 		});
 	}
 	
-	private static void beobachteMausBewegung(Region element,
-			BewegungsEinstellungen bewegung) {
+	private static void beobachteMausBewegung(Region element, BewegungsEinstellungen bewegung) {
 		element.addEventHandler(MouseEvent.MOUSE_MOVED, event -> {
 			double minX = element.getBoundsInLocal().getMinX();
 			double minY = element.getBoundsInLocal().getMinY();
@@ -488,6 +479,57 @@ public final class NodeUtil {
 		});
 	}
 	
+	private static final String LISTENERS_KEY = "UeberwacherListe";
+	
+	public static <T> void beobachteSchwach(Node node, ObservableValue<T> property, Runnable aktion) {
+		beobachteSchwach(node, property, (p, a, n) -> aktion.run());
+	}
+	
+	public static <T> void beobachteSchwach(Node node, ObservableValue<T> property,
+			BiConsumer<T, T> aenderungsAuswertung) {
+		beobachteSchwach(node, property, (p, alt, neu) -> aenderungsAuswertung.accept(alt, neu));
+	}
+	
+	public static <T> void beobachteSchwach(Node node, ObservableValue<T> property,
+			Consumer<T> neuAuswertung) {
+		beobachteSchwach(node, property, (p, alt, neu) -> neuAuswertung.accept(neu));
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> void beobachteSchwach(Node node, ObservableValue<T> property,
+			ChangeListener<T> beobachter) {
+		var ueberwacherProp = node.getProperties().get(LISTENERS_KEY);
+		
+		if (ueberwacherProp == null) {
+			ueberwacherProp = new ArrayList<ChangeListener<?>>();
+			node.getProperties().put(LISTENERS_KEY, ueberwacherProp);
+		}
+		
+		List<ChangeListener<?>> ueberwacherListe;
+		try {
+			ueberwacherListe = (List<ChangeListener<?>>) ueberwacherProp;
+		} catch (Exception e) {
+			log.severe(() -> "falscher Typ fuer UberwacherListe");
+			return;
+		}
+		
+		ueberwacherListe.add(beobachter);
+		property.addListener(new WeakChangeListener<>(beobachter));
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static void entferneSchwacheBeobachtung(Node node) {
+		var ueberwacherProp = node.getProperties().remove(LISTENERS_KEY);
+		
+		List<ChangeListener<?>> ueberwacherListe;
+		try {
+			ueberwacherListe = (List<ChangeListener<?>>) ueberwacherProp;
+			ueberwacherListe.clear();
+		} catch (Exception e) {
+			log.severe(() -> "falscher Typ fuer UberwacherListe");
+		}
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -495,16 +537,9 @@ public final class NodeUtil {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private static boolean istEinfacherMausKlick(MouseEvent event) {
-		return event.isPrimaryButtonDown()
-				&& !event.isAltDown()
-				&& !event.isBackButtonDown()
-				&& !event.isControlDown()
-				&& !event.isForwardButtonDown()
-				&& !event.isMetaDown()
-				&& !event.isMiddleButtonDown()
-				&& !event.isSecondaryButtonDown()
-				&& !event.isShiftDown()
-				&& !event.isShortcutDown();
+		return event.isPrimaryButtonDown() && !event.isAltDown() && !event.isBackButtonDown() && !event.isControlDown()
+				&& !event.isForwardButtonDown() && !event.isMetaDown() && !event.isMiddleButtonDown()
+				&& !event.isSecondaryButtonDown() && !event.isShiftDown() && !event.isShortcutDown();
 	}
 	
 	private static class BewegungsEinstellungen {
@@ -528,14 +563,9 @@ public final class NodeUtil {
 	}
 	
 	private static enum AktionPosition {
-		KEINE(false, false, false, false),
-		OBEN(true, false, false, false),
-		RECHTS(false, true, false, false),
-		UNTEN(false, false, true, false),
-		LINKS(false, false, false, true),
-		OBEN_LINKS(true, false, false, true),
-		OBEN_RECHTS(true, true, false, false),
-		UNTEN_LINKS(false, false, true, true),
+		KEINE(false, false, false, false), OBEN(true, false, false, false), RECHTS(false, true, false, false),
+		UNTEN(false, false, true, false), LINKS(false, false, false, true), OBEN_LINKS(true, false, false, true),
+		OBEN_RECHTS(true, true, false, false), UNTEN_LINKS(false, false, true, true),
 		UNTEN_RECHTS(false, true, true, false);
 		
 		private boolean obenSelektiert;
@@ -543,8 +573,8 @@ public final class NodeUtil {
 		private boolean untenSelektiert;
 		private boolean linksSelektiert;
 		
-		private AktionPosition(boolean obenSelektiert, boolean rechtsSelektiert,
-				boolean untenSelektiert, boolean linksSelektiert) {
+		private AktionPosition(boolean obenSelektiert, boolean rechtsSelektiert, boolean untenSelektiert,
+				boolean linksSelektiert) {
 			this.obenSelektiert = obenSelektiert;
 			this.rechtsSelektiert = rechtsSelektiert;
 			this.untenSelektiert = untenSelektiert;

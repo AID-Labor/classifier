@@ -109,6 +109,7 @@ public class MenueLeisteKomponente {
 	// Menue Einstellungen
 	private CheckMenuItem voidAnzeigen;
 	private CheckMenuItem parameternamenAnzeigen;
+	private CheckMenuItem erweiterteValidierungAktivieren;
 	private Menu theme;
 	private MenuItem info;
 	private MenuItem konfigurationsordnerOeffnen;
@@ -292,6 +293,10 @@ public class MenueLeisteKomponente {
 	
 	public CheckMenuItem getParameternamenAnzeigen() {
 		return parameternamenAnzeigen;
+	}
+	
+	public CheckMenuItem getErweiterteValidierungAktivieren() {
+		return erweiterteValidierungAktivieren;
 	}
 	
 	public Menu getTheme() {
@@ -484,6 +489,8 @@ public class MenueLeisteKomponente {
 				"void Anzeigen");
 		parameternamenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache,
 				"parameternamenAnzeigen", "Parameternamen Anzeigen");
+		erweiterteValidierungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache,
+				"erweiterteValidierungAktivieren", "Erweiterte Validierung");
 		theme = SprachUtil.bindText(new Menu(), sprache, "theme",
 				"Farbschema");
 		info = SprachUtil.bindText(new MenuItem(), sprache, "info",
@@ -494,7 +501,7 @@ public class MenueLeisteKomponente {
 				"konfigBereinigen", "Konfigurationsordner bereinigen".formatted(oe));
 		
 		einstellungenMenue.getItems().addAll(voidAnzeigen, parameternamenAnzeigen, 
-				new SeparatorMenuItem(), theme,
+				erweiterteValidierungAktivieren, new SeparatorMenuItem(), theme,
 				new SeparatorMenuItem(), info, konfigurationsordnerOeffnen,
 				konfigurationsordnerBereinigen);
 		

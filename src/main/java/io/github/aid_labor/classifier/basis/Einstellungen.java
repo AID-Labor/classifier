@@ -149,6 +149,7 @@ public class Einstellungen {
 	public final JsonBooleanProperty zeigePackageModifier;
 	public final JsonBooleanProperty zeigeVoid;
 	public final JsonBooleanProperty zeigeParameterNamen;
+	public final JsonBooleanProperty erweiterteValidierungAktivieren;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -199,6 +200,7 @@ public class Einstellungen {
 		this.zeigePackageModifier = new JsonBooleanProperty(true);
 		this.zeigeVoid = new JsonBooleanProperty(false);
 		this.zeigeParameterNamen = new JsonBooleanProperty(true);
+		this.erweiterteValidierungAktivieren = new JsonBooleanProperty(true);
 	}
 	
 	/**

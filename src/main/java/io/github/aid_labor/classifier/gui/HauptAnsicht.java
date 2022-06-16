@@ -294,6 +294,9 @@ public class HauptAnsicht {
 				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeVoid);
 		menue.getParameternamenAnzeigen().selectedProperty()
 				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeParameterNamen);
+		menue.getErweiterteValidierungAktivieren().selectedProperty()
+				.bindBidirectional(
+						Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivieren);
 		menue.getInfo().setOnAction(e -> {
 			var info = new InfoAnsicht(programm, rechnerService);
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
@@ -618,7 +621,7 @@ public class HauptAnsicht {
 					umlKopie.getPosition().setY(y);
 					return umlKopie;
 				}).toList();
-		projekteAnsicht.getAngezeigtesProjekt().getDiagrammElemente().addAll(kopie);
+		projekteAnsicht.fuegeEin(kopie);
 	}
 	
 	private void auswahlLoeschen() {

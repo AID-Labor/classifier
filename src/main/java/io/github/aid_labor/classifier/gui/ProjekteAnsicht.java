@@ -20,6 +20,9 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -293,6 +296,18 @@ public class ProjekteAnsicht {
 	
 	public void legeKommentarAn() {
 		this.kontroller.legeKommentarAn();
+	}
+	
+	public void fuegeEin(Iterable<UMLDiagrammElement> elemente) {
+		for (var element : elemente) {
+			if (element instanceof UMLKlassifizierer klassifizierer) {
+				this.kontroller.legeNeuenKlassifiziererAn(klassifizierer);
+			} else if (element instanceof UMLKommentar kommentar) {
+				this.kontroller.legeKommentarAn(kommentar);
+			} else {
+				log.severe(() -> "unbekanntes UMLDiagrammelement: " + element);
+			}
+		} 
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

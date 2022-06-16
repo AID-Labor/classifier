@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
@@ -75,37 +76,51 @@ class ProjekteKontrolle {
 	
 	void legeNeuenKlassifiziererAn(KlassifiziererTyp typ) {
 		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
-		var klassifizierer = new UMLKlassifizierer(typ, projekt.getProgrammiersprache(), "");
+		legeNeuenKlassifiziererAn(
+				new UMLKlassifizierer(typ, projekt.getProgrammiersprache(), ""));
+	}
+	
+	void legeNeuenKlassifiziererAn(UMLKlassifizierer klassifizierer) {
+		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
 		
-		var dialog = new UMLKlassifiziererBearbeitenDialog(klassifizierer);
-		dialog.titleProperty().bind(
-				projekt.nameProperty().concat(" > ")
-						.concat(new When(klassifizierer.nameProperty().isEmpty())
-								.then(sprache.getText("unbenannt", "Unbenannt"))
-								.otherwise(klassifizierer.nameProperty())));
-		legeDiagrammElementAn(klassifizierer, dialog);
+		legeDiagrammElementAn(klassifizierer, () -> {
+			var dialog = new UMLKlassifiziererBearbeitenDialog(klassifizierer, projekt);
+			dialog.titleProperty().bind(
+					projekt.nameProperty().concat(" > ")
+							.concat(new When(klassifizierer.nameProperty().isEmpty())
+									.then(sprache.getText("unbenannt", "Unbenannt"))
+									.otherwise(klassifizierer.nameProperty())));
+			return dialog;
+		});
 	}
 	
 	void legeKommentarAn() {
+		legeKommentarAn(new UMLKommentar());
+	}
+	
+	void legeKommentarAn(UMLKommentar kommentar) {
 		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
-		var kommentar = new UMLKommentar();
 		
-		var dialog = new UMLKommentarBearbeitenDialog(kommentar);
-		dialog.titleProperty().bind(projekt.nameProperty().concat(" > ")
-				.concat(sprache.getTextProperty("kommentarBearbeitenTitel",
-						"Kommentar bearbeiten")));
-		legeDiagrammElementAn(kommentar, dialog);
+		legeDiagrammElementAn(kommentar, () -> {
+			var dialog = new UMLKommentarBearbeitenDialog(kommentar);
+			dialog.titleProperty().bind(projekt.nameProperty().concat(" > ")
+					.concat(sprache.getTextProperty("kommentarBearbeitenTitel",
+							"Kommentar bearbeiten")));
+			return dialog;
+		});
 	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private void legeDiagrammElementAn(UMLDiagrammElement element, Alert dialog) {
+	private void legeDiagrammElementAn(UMLDiagrammElement element,
+			Supplier<Alert> dialogKonstruktor) {
 		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
 		var alterStatus = projekt.getUeberwachungsStatus();
 		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
 		
 		projekt.getDiagrammElemente().add(element);
 		
+		var dialog = dialogKonstruktor.get();
 		dialog.initOwner(this.ansicht.getAnsicht().getScene().getWindow());
 		dialog.showAndWait().ifPresent(button -> {
 			switch (button.getButtonData()) {
