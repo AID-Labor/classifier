@@ -16,6 +16,7 @@ set MODULE_PATH="%INPUT%\lib"
 set MAIN_JAR="%INPUT%\classifier-%VERSION%.jar"
 set MAIN_MODULE=classifier
 set MAIN_CLASS=io.github.aid_labor.classifier.main.Hauptfenster
+set JAVA_OPTIONEN="--add-opens javafx.graphics/javafx.scene=org.controlsfx.controls"
 
 rem Weitere Befehle fuer jpackage:
 rem App Icon aendern: --icon "path/to/icon.png"
@@ -51,7 +52,8 @@ jpackage ^
 --dest %OUT% ^
 --module-path %MODULE_PATH% ^
 --module-path %MAIN_JAR% ^
---module %MAIN_MODULE%/%MAIN_CLASS%
+--module %MAIN_MODULE%/%MAIN_CLASS% ^
+--java-options %JAVA_OPTIONEN%
 @echo off
 echo.
 echo Installer fuer Windows werden erzeugt.
@@ -76,6 +78,7 @@ jpackage ^
 --module-path %MODULE_PATH% ^
 --module-path %MAIN_JAR% ^
 --module %MAIN_MODULE%/%MAIN_CLASS% ^
+--java-options %JAVA_OPTIONEN% ^
 --win-dir-chooser ^
 --win-shortcut ^
 --win-menu ^
@@ -105,6 +108,7 @@ jpackage ^
 --module-path %MODULE_PATH% ^
 --module-path %MAIN_JAR% ^
 --module %MAIN_MODULE%/%MAIN_CLASS% ^
+--java-options %JAVA_OPTIONEN% ^
 --win-dir-chooser ^
 --win-shortcut ^
 --win-menu ^

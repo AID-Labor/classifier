@@ -504,12 +504,12 @@ public final class NodeUtil {
 			ueberwacherProp = new ArrayList<ChangeListener<?>>();
 			node.getProperties().put(LISTENERS_KEY, ueberwacherProp);
 		}
-		
+		var liste = ueberwacherProp;	// Hilfe fuer Lambda Ausdruck
 		List<ChangeListener<?>> ueberwacherListe;
 		try {
 			ueberwacherListe = (List<ChangeListener<?>>) ueberwacherProp;
 		} catch (Exception e) {
-			log.severe(() -> "falscher Typ fuer UberwacherListe");
+			log.severe(() -> "[" + node + "] falscher Typ fuer UberwacherListe: " + liste);
 			return;
 		}
 		
@@ -521,12 +521,18 @@ public final class NodeUtil {
 	public static void entferneSchwacheBeobachtung(Node node) {
 		var ueberwacherProp = node.getProperties().remove(LISTENERS_KEY);
 		
+		if (ueberwacherProp == null) {
+			log.finest("[" + node + "] keine Beobachter zu entfernen");
+			return;
+		}
+		
 		List<ChangeListener<?>> ueberwacherListe;
 		try {
 			ueberwacherListe = (List<ChangeListener<?>>) ueberwacherProp;
 			ueberwacherListe.clear();
+			log.finer("[" + node + "] Beobachter entfernt");
 		} catch (Exception e) {
-			log.severe(() -> "falscher Typ fuer UberwacherListe");
+			log.severe(() -> "[" + node + "] falscher Typ fuer UberwacherListe: " + ueberwacherProp);
 		}
 	}
 	

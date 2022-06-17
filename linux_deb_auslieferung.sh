@@ -17,6 +17,7 @@ OUT="auslieferung/${VERSION}/Linux/deb"
 MODULE_PATH="${INPUT}/lib"
 MAIN_MODULE="classifier"
 MAIN_CLASS="io.github.aid_labor.classifier.main.Hauptfenster"
+JAVA_OPTIONEN="--add-opens javafx.graphics/javafx.scene=org.controlsfx.controls"
 
 # Weitere Befehle fuer jpackage:
 # App Icon aendern: --icon "path/to/icon.png"
@@ -58,7 +59,8 @@ jpackage \
 --dest "${OUT}" \
 --module-path "${MODULE_PATH}" \
 --module-path "${INPUT}" \
---module "${MAIN_MODULE}/${MAIN_CLASS}"
+--module "${MAIN_MODULE}/${MAIN_CLASS}" \
+--java-options "${JAVA_OPTIONEN}"
 
 echo ""
 
@@ -80,6 +82,7 @@ jpackage \
 --module-path "${MODULE_PATH}" \
 --module-path "${INPUT}/${MAIN_JAR}" \
 --module "${MAIN_MODULE}/${MAIN_CLASS}" \
+--java-options "${JAVA_OPTIONEN}" \
 --linux-menu-group "${LINUX_MENU_GROUP}" \
 --linux-shortcut \
 --linux-rpm-license-type "${LINUX_RPM_LICENSE_TYPE}"

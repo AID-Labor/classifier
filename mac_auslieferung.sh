@@ -17,6 +17,7 @@ OUT="auslieferung/${VERSION}/macOS/app"
 MODULE_PATH="${INPUT}/lib"
 MAIN_MODULE="classifier"
 MAIN_CLASS="io.github.aid_labor.classifier.main.Hauptfenster"
+JAVA_OPTIONEN="--add-opens javafx.graphics/javafx.scene=org.controlsfx.controls"
 
 # Weitere Befehle fuer jpackage:
 # App Icon aendern: --icon "path/to/icon.png"
@@ -61,6 +62,7 @@ jpackage \
 --module-path "${MODULE_PATH}" \
 --module-path "${INPUT}" \
 --module "${MAIN_MODULE}/${MAIN_CLASS}" \
+--java-options "${JAVA_OPTIONEN}" \
 --mac-package-name "${MAC_PACKAGE_NAME}" \
 --mac-package-identifier "${MAC_PACKAGE_ID}"
 
@@ -84,6 +86,7 @@ jpackage \
 --module-path "${MODULE_PATH}" \
 --module-path "${INPUT}/${MAIN_JAR}" \
 --module "${MAIN_MODULE}/${MAIN_CLASS}" \
+--java-options "${JAVA_OPTIONEN}" \
 --mac-package-name "${MAC_PACKAGE_NAME}" \
 --mac-package-identifier "${MAC_PACKAGE_ID}"
 

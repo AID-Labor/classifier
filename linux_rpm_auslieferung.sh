@@ -1,5 +1,6 @@
 #!/bin/sh
 cd "$(dirname "$0")" # zum Pfad dieses Skriptes wechseln
+PROJEKT_PFAD=$(dirname "$0")
 
 # ---- Benoetigte Informationen in Variablen speichern ------------------------------------------------
 # Mit den folgeneden Variablen koennen die Grundlegenden Daten fuer das Projekt # eingestellt werden:
@@ -18,6 +19,7 @@ OUT="auslieferung/${VERSION}/Linux/rpm"
 MODULE_PATH="${INPUT}/lib"
 MAIN_MODULE="classifier"
 MAIN_CLASS="io.github.aid_labor.classifier.main.Hauptfenster"
+JAVA_OPTIONEN="--add-opens javafx.graphics/javafx.scene=org.controlsfx.controls"
 
 # Weitere Befehle fuer jpackage:
 # App Icon aendern: --icon "path/to/icon.png"
@@ -59,7 +61,8 @@ jpackage \
 --dest "${OUT}" \
 --module-path "${MODULE_PATH}" \
 --module-path "${INPUT}" \
---module "${MAIN_MODULE}/${MAIN_CLASS}"
+--module "${MAIN_MODULE}/${MAIN_CLASS}" \
+--java-options "${JAVA_OPTIONEN}"
 
 echo ""
 
@@ -80,6 +83,7 @@ jpackage \
 --module-path "${MODULE_PATH}" \
 --module-path "${INPUT}/${MAIN_JAR}" \
 --module "${MAIN_MODULE}/${MAIN_CLASS}" \
+--java-options "${JAVA_OPTIONEN}" \
 --linux-menu-group "${LINUX_MENU_GROUP}" \
 --linux-shortcut \
 --linux-rpm-license-type "${LINUX_RPM_LICENSE_TYPE}"
@@ -88,7 +92,9 @@ echo ""
 mv "./${OUT}/classifier-${VERSION}-1.x86_64.rpm" "./${OUT}/${NAME}-${VERSION}-linux.rpm"
 
 echo "Entpacke App nach ./${OUT}/${NAME}-${VERSION}"
-rpm2cpio "./${OUT}/${NAME}-${VERSION}-linux.rpm" | cpio -idm -D "./${OUT}/${NAME}-${VERSION}"
+cd "./${OUT}"
+mkdir "${NAME}-${VERSION}"
+rpm2cpio "${NAME}-${VERSION}-linux.rpm" | (cd "${NAME}-${VERSION}" && cpio -idm)
 echo ""
 echo "Erzeuge Installer-Skript"
 echo "#!/bin/sh
@@ -101,8 +107,8 @@ chmod +x ./opt/*/bin/*
 cp -r --copy-contents ./opt/* /opt/
 mkdir --parents /usr/share/applications
 cp --copy-contents ./opt/*/lib/*.desktop /usr/share/applications/
-" > "./${OUT}/${NAME}-${VERSION}/install.sh"
-chmod 555 "./${OUT}/${NAME}-${VERSION}/install.sh"
+" > "${NAME}-${VERSION}/install.sh"
+chmod 555 "${NAME}-${VERSION}/install.sh"
 echo "Erzeuge Uninstaller-Skript"
 echo "#!/bin/sh
 if [ \$(/usr/bin/id -u) -ne 0 ]; then
@@ -113,12 +119,12 @@ fi
 rm -rf /opt/${NAME_KLEIN}
 rm /usr/share/applications/${NAME_KLEIN}-${NAME}.desktop
 rm -rf ~/.config/${NAME}
-" > "./${OUT}/${NAME}-${VERSION}/uninstall.sh"
+" > "${NAME}-${VERSION}/uninstall.sh"
 
-chmod 555 "./${OUT}/${NAME}-${VERSION}/uninstall.sh"
+chmod 555 "${NAME}-${VERSION}/uninstall.sh"
 
 echo "Erzeuge Archiv ${OUT}/${NAME}-${VERSION}-linux-install.tar.gz"
-tar -C "./${OUT}" -czf "./${OUT}/${NAME}-${VERSION}-linux.tar.gz" "${NAME}-${VERSION}"
+tar -czf "${NAME}-${VERSION}-linux-install.tar.gz" "${NAME}-${VERSION}"
 
 echo ""
 echo ""
