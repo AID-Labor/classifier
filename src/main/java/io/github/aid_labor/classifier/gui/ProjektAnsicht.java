@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.dlsc.gemsfx.DialogPane;
@@ -69,7 +70,7 @@ public class ProjektAnsicht extends Tab {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private final UMLProjekt projekt;
+	private UMLProjekt projekt;
 	private final ProjektKontrolle controller;
 	private final DialogPane overlayDialog;
 	private final ProgrammDetails programm;
@@ -201,6 +202,17 @@ public class ProjektAnsicht extends Tab {
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	void schliesse() {
+		try {
+			projekt.close();
+		} catch (Exception e1) {
+			log.log(Level.WARNING, e1, () -> "Fehler beim Schliessen des Projektes");
+		}
+		projekt = null;
+		selektion.clear();
+		ansichten.clear();
+	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

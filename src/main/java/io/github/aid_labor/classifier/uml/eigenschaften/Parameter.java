@@ -6,9 +6,12 @@
 
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
@@ -24,23 +27,29 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
+	private static long naechsteId = 0;
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final JsonStringProperty name;
 	private final Datentyp datentyp;
+	@JsonIgnore
+	private final List<Object> beobachterListe;
+	@JsonIgnore
+	private final long id;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -50,21 +59,27 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 	public Parameter(@JsonProperty("datentyp") Datentyp datentyp, @JsonProperty("name") String name) {
 		this.datentyp = Objects.requireNonNull(datentyp);
 		this.name = new JsonStringProperty(name);
+		this.beobachterListe = new LinkedList<>();
+		this.id = naechsteId++;
 		
-		this.ueberwachePropertyAenderung(datentyp.getTypNameProperty());
-		this.ueberwachePropertyAenderung(this.name);
+		this.ueberwachePropertyAenderung(datentyp.getTypNameProperty(), id + "_parameter_typ");
+		this.ueberwachePropertyAenderung(this.name, id + "_parameter_name");
 	}
 	
 	public Parameter(Datentyp datentyp) {
 		this(datentyp, "");
 	}
 	
-	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@Override
+	public List<Object> getBeobachterListe() {
+		return beobachterListe;
+	}
 	
 	public String getName() {
 		return name.get();
@@ -113,13 +128,17 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 			return false;
 		}
 		Parameter other = (Parameter) obj;
-		return Objects.equals(getDatentyp(), other.getDatentyp())
-				&& Objects.equals(getName(), other.getName());
+		return Objects.equals(getDatentyp(), other.getDatentyp()) && Objects.equals(getName(), other.getName());
 	}
-
+	
 	public Parameter erzeugeTiefeKopie() {
-		var kopie = new Parameter(getDatentyp().erzeugeTiefeKopie(), getName());
-		return kopie;
+		return new Parameter(getDatentyp().erzeugeTiefeKopie(), getName());
+	}
+	
+	@Override
+	public void close() throws Exception {
+		log.finest(() -> this + " leere listener");
+		beobachterListe.clear();
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

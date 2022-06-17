@@ -10,6 +10,7 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
@@ -42,7 +43,7 @@ class ProjektKontrolle {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private final ProjektAnsicht ansicht;
+	private final WeakReference<ProjektAnsicht> ansicht;
 	private final Sprache sprache;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -50,7 +51,7 @@ class ProjektKontrolle {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	ProjektKontrolle(ProjektAnsicht ansicht, Sprache sprache) {
-		this.ansicht = ansicht;
+		this.ansicht = new WeakReference<ProjektAnsicht>(ansicht);
 		this.sprache = sprache;
 	}
 	
@@ -69,25 +70,22 @@ class ProjektKontrolle {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	void checkSchliessen(Event event) {
-		if (!ansicht.getProjekt().istGespeichertProperty().get()) {
+		if (!ansicht.get().getProjekt().istGespeichertProperty().get()) {
 			MessageFormat nachricht = new MessageFormat(sprache.getText("schliessenAbfrage",
 					"Projekt \"{0}\" vor dem Schlie%cen speichern?".formatted(sz)));
-			String abfrage = nachricht.format(new Object[] { ansicht.getProjekt().getName() });
-			ButtonType abbrechenButton = new ButtonType(sprache.getText("abbrechen",
-					"Abbrechen"),
+			String abfrage = nachricht.format(new Object[] { ansicht.get().getProjekt().getName() });
+			ButtonType abbrechenButton = new ButtonType(sprache.getText("abbrechen", "Abbrechen"),
 					ButtonData.CANCEL_CLOSE);
-			ButtonType verwerfenButton = new ButtonType(sprache.getText("verwerfen",
-					"%cnderungen verwerfen".formatted(AE)),
-					ButtonData.NO);
-			ButtonType speichernSchliessenButton = new ButtonType(sprache.getText(
-					"speichernSchliessen", "Speichern und Schlie%cen".formatted(sz)),
-					ButtonData.APPLY);
+			ButtonType verwerfenButton = new ButtonType(
+					sprache.getText("verwerfen", "%cnderungen verwerfen".formatted(AE)), ButtonData.NO);
+			ButtonType speichernSchliessenButton = new ButtonType(
+					sprache.getText("speichernSchliessen", "Speichern und Schlie%cen".formatted(sz)), ButtonData.APPLY);
 			
 			// @formatter:off
 			Alert dialog = new Alert(AlertType.CONFIRMATION, "", new ButtonType[] 
 					{abbrechenButton, verwerfenButton, speichernSchliessenButton});
 			dialog.setHeaderText(abfrage);
-			Window hauptfenster = ansicht.getTabPane().getScene().getWindow();
+			Window hauptfenster = ansicht.get().getTabPane().getScene().getWindow();
 			FensterUtil.initialisiereElternFenster(hauptfenster, dialog);
 			
 			dialog.setOnShowing(e -> {
@@ -98,21 +96,25 @@ class ProjektKontrolle {
 				switch (button.getButtonData()) {
 					case NO -> {
 						log.info(() -> "Verwerfe %cnderungen am Projekt [%s] und Schlie%ce"
-						.formatted(AE, ansicht.getProjekt(), sz));
+							.formatted(AE, ansicht.get().getProjekt(), sz));
+						this.ansicht.get().schliesse();
 					}
 					case APPLY -> {
 						log.info(() -> "Speichere %cnderungen am Projekt [%s] und Schlie%ce"
-								.formatted(AE, ansicht.getProjekt(), sz));
-						projektSpeichern(this.ansicht.getProjekt());
+							.formatted(AE, ansicht.get().getProjekt(), sz));
+						projektSpeichern(this.ansicht.get().getProjekt());
+						this.ansicht.get().schliesse();
 					}
 					default -> {
 						log.info(() -> "Schlie%cen von Projekt [%s] abgebrochen"
-							.formatted(sz, ansicht.getProjekt()));
+							.formatted(sz, ansicht.get().getProjekt()));
 						event.consume();
 					}
 				}
 			});
 			// @formatter:on
+		} else {
+			this.ansicht.get().schliesse();
 		}
 	}
 	
@@ -121,7 +123,7 @@ class ProjektKontrolle {
 			return projektSpeichernUnter(projekt);
 		}
 		
-		return ansicht.getProjekt().speichern();
+		return ansicht.get().getProjekt().speichern();
 	}
 	
 	boolean projektSpeichernUnter(UMLProjekt projekt) {
@@ -131,21 +133,18 @@ class ProjektKontrolle {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
 			dateiDialog.setInitialFileName(projekt.getSpeicherort().getFileName().toString());
 		} else {
-			dateiDialog.setInitialDirectory(new File(
-					Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung.get()));
+			dateiDialog.setInitialDirectory(
+					new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung.get()));
 			dateiDialog.setInitialFileName(projekt.getName());
 		}
 		
-		dateiDialog.getExtensionFilters()
-				.addAll(ansicht.getProgrammDetails().dateiZuordnung());
+		dateiDialog.getExtensionFilters().addAll(ansicht.get().getProgrammDetails().dateiZuordnung());
 		
-		String format = sprache.getText("speichernDialogTitel",
-				"Projekt \"{1}\" speichern als...");
+		String format = sprache.getText("speichernDialogTitel", "Projekt \"{1}\" speichern als...");
 		String titel = MessageFormat.format(format, projekt.getName());
 		dateiDialog.setTitle(titel);
 		
-		File speicherOrt = dateiDialog
-				.showSaveDialog(ansicht.getTabPane().getScene().getWindow());
+		File speicherOrt = dateiDialog.showSaveDialog(ansicht.get().getTabPane().getScene().getWindow());
 		if (speicherOrt == null) {
 			// @formatter:off
 			log.info(() -> 
@@ -158,7 +157,7 @@ class ProjektKontrolle {
 		Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung
 				.set(speicherOrt.getParentFile().getAbsolutePath());
 		
-		boolean gespeichert = ansicht.getProjekt().speichern(speicherOrt.toPath());
+		boolean gespeichert = ansicht.get().getProjekt().speichern(speicherOrt.toPath());
 		
 		if (gespeichert) {
 			DatumWrapper<Path> dateiEintrag = new DatumWrapper<Path>(speicherOrt.toPath());

@@ -347,6 +347,7 @@ public class ProjekteAnsicht {
 			if (aenderung.getElementRemoved() != null) {
 				log.fine(
 						() -> "Projekt entfernt: %s".formatted(aenderung.getElementRemoved()));
+				
 			}
 			log.fine(() -> "%cnderung der angezeigten Projekte < < < < < < < < < < < < < < <"
 					.formatted(Umlaute.AE));

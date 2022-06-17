@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.uml.klassendiagramm;
 
+import java.lang.reflect.Modifier;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -84,11 +85,11 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		
 		this.attribute.addListener(new ListenUeberwacher<>(this.attribute, this));
 		this.methoden.addListener(new ListenUeberwacher<>(this.methoden, this));
-		this.ueberwachePropertyAenderung(this.name);
-		this.ueberwachePropertyAenderung(this.paket);
-		this.ueberwachePropertyAenderung(this.typ);
-		this.ueberwachePropertyAenderung(this.superklasse);
-		this.ueberwachePropertyAenderung(this.interfaces);
+		this.ueberwachePropertyAenderung(this.name, getId() + "_klassifizierername");
+		this.ueberwachePropertyAenderung(this.paket, getId() + "_paket");
+		this.ueberwachePropertyAenderung(this.typ, getId() + "_klassifizierertyp");
+		this.ueberwachePropertyAenderung(this.superklasse, getId() + "_superklasse");
+		this.ueberwachePropertyAenderung(this.interfaces, getId() + "_interfaces");
 		ueberwacheGetterUndSetter();
 	}
 	
@@ -126,6 +127,13 @@ public class UMLKlassifizierer extends UMLBasisElement {
 					attribut.setGetter(getter);
 					int index = methoden.indexOf(methode);
 					methoden.set(index, getter);
+					for (var m : mList) {
+						try {
+							m.close();
+						} catch (Exception e) {
+							//
+						}
+					}
 				}
 			}
 			if (attribut.hatSetter()) {
@@ -142,6 +150,13 @@ public class UMLKlassifizierer extends UMLBasisElement {
 					attribut.setSetter(setter);
 					int index = methoden.indexOf(methode);
 					methoden.set(index, setter);
+					for (var m : mList) {
+						try {
+							m.close();
+						} catch (Exception e) {
+							//
+						}
+					}
 				}
 			}
 		}
@@ -327,6 +342,31 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		}
 		
 		return kopie;
+	}
+	
+	@Override
+	public void close() throws Exception {
+		log.finest(() -> this + " leere inhalt");
+		for (var attribut : attribute) {
+			attribut.close();
+		}
+		for (var methode : methoden) {
+			methode.close();
+		}
+		methoden.clear();
+		attribute.clear();
+		super.close();
+		
+		for(var attribut : this.getClass().getDeclaredFields()) {
+			try {
+				if (!Modifier.isStatic(attribut.getModifiers())) {
+					attribut.setAccessible(true);
+					attribut.set(this, null);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

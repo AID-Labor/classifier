@@ -8,7 +8,9 @@ package io.github.aid_labor.classifier.gui.elemente;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
+import javafx.beans.WeakInvalidationListener;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.binding.When;
 import javafx.geometry.Insets;
@@ -51,6 +53,7 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 	private final VBox inhalt;
 	private final VBox oben;
 	private final VBox eigenschaften;
+	private InvalidationListener trennerBeobachter;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -129,25 +132,26 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		this.stereotyp.textProperty().bind(new StringBinding() {
 			
 			{
-				super.bind(umlElementModel.typProperty());
+				super.bind(umlElementModel.get().typProperty());
 			}
 			
 			@Override
 			protected String computeValue() {
-				var typ = umlElementModel.typProperty().get().getStereotyp();
+				var typ = umlElementModel.get().typProperty().get().getStereotyp();
 				return typ == null || typ.isBlank() ? "" : "\u00AB" + typ + "\u00BB";
 			}
 		});
-		var paket = new When(umlElementModel.getPaketProperty().isNotEmpty())
-				.then(umlElementModel.getPaketProperty().concat("::")).otherwise("");
+		var paket = new When(umlElementModel.get().getPaketProperty().isNotEmpty())
+				.then(umlElementModel.get().getPaketProperty().concat("::")).otherwise("");
 		this.name.textProperty()
-				.bind(paket.concat(umlElementModel.nameProperty()));
-		umlElementModel.getAttribute().addListener(this::checkeTrenner);
-		methoden.getChildren().addListener(this::checkeTrenner);
+				.bind(paket.concat(umlElementModel.get().nameProperty()));
+		trennerBeobachter = this::checkeTrenner;
+		umlElementModel.get().getAttribute().addListener(new WeakInvalidationListener(trennerBeobachter));
+		methoden.getChildren().addListener(new WeakInvalidationListener(trennerBeobachter));
 	}
 	
 	private void beobachte() {
-		umlElementModel.typProperty().addListener((property, alterTyp, neuerTyp) -> {
+		umlElementModel.get().typProperty().addListener((property, alterTyp, neuerTyp) -> {
 			updateStereotyp(neuerTyp);
 		});
 	}
@@ -166,8 +170,8 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 	}
 	
 	private void checkeTrenner(Observable o) {
-		boolean hatAttributOderMethode = umlElementModel.getAttribute().size() > 0
-				|| umlElementModel.getMethoden().size() > 0;
+		boolean hatAttributOderMethode = !umlElementModel.get().getAttribute().isEmpty()
+				|| !umlElementModel.get().getMethoden().isEmpty();
 		if (hatAttributOderMethode) {
 			if (!this.inhalt.getChildren().contains(this.eigenschaften)) {
 				this.inhalt.getChildren().add(eigenschaften);

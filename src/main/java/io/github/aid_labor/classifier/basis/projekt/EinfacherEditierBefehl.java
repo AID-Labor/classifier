@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  *
  * @param <T>
  */
-public class EinfacherEditierBefehl<T> implements EditierBefehl {
+public class EinfacherEditierBefehl<T> implements WertEditierBefehl<T> {
 	private static final Logger log = Logger.getLogger(EinfacherEditierBefehl.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -40,6 +40,7 @@ public class EinfacherEditierBefehl<T> implements EditierBefehl {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private String quelle;
+	private final String id;
 	private final T alterWert;
 	private final T neuerWert;
 	private final Consumer<T> setter;
@@ -48,7 +49,7 @@ public class EinfacherEditierBefehl<T> implements EditierBefehl {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public EinfacherEditierBefehl(T alterWert, T neuerWert, Consumer<T> setter) {
+	public EinfacherEditierBefehl(T alterWert, T neuerWert, Consumer<T> setter, String id) {
 		try {
 			var aufrufer = Thread.currentThread().getStackTrace()[1];
 			quelle = "%s.%s[%d]".formatted(aufrufer.getClassName(), aufrufer.getMethodName(),
@@ -61,6 +62,7 @@ public class EinfacherEditierBefehl<T> implements EditierBefehl {
 		this.alterWert = alterWert;
 		this.neuerWert = neuerWert;
 		this.setter = setter;
+		this.id = id;
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -82,18 +84,28 @@ public class EinfacherEditierBefehl<T> implements EditierBefehl {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	@Override
-	public void wiederhole() {
-		setter.accept(neuerWert);
-	}
-	
-	@Override
-	public void macheRueckgaengig() {
-		setter.accept(alterWert);
-	}
-	
-	@Override
 	public String toString() {
 		return alterWert + " -> " + neuerWert + "\n    -> Quelle: " + quelle;
+	}
+	
+	@Override
+	public String id() {
+		return id;
+	}
+
+	@Override
+	public T getVorher() {
+		return alterWert;
+	}
+
+	@Override
+	public T getNachher() {
+		return neuerWert;
+	}
+
+	@Override
+	public void set(T wert) {
+		setter.accept(wert);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

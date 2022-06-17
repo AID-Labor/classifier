@@ -32,7 +32,7 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.UMLBasisElement.Positi
 		fieldVisibility = Visibility.ANY
 )
 // @formatter:on
-public interface UMLDiagrammElement extends Editierbar {
+public interface UMLDiagrammElement extends Editierbar, AutoCloseable {
 	
 	String getName();
 	

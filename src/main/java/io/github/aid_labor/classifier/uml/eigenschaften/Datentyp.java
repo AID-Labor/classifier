@@ -6,11 +6,14 @@
 
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
@@ -29,14 +32,26 @@ import javafx.beans.property.StringProperty;
 //@formatter:on
 public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter {
 	
+	private static long naechsteId = 0;
 	
 	private final JsonStringProperty typName;
+	@JsonIgnore
+	private final List<Object> beobachterListe;
+	@JsonIgnore
+	private final long id;
 	
 	@JsonCreator
 	public Datentyp(@JsonProperty("typName") String typName) {
 		this.typName = new JsonStringProperty(this, "typName", typName);
+		this.beobachterListe = new LinkedList<>();
+		this.id = naechsteId++;
 		
-		this.ueberwachePropertyAenderung(this.typName);
+		this.ueberwachePropertyAenderung(this.typName, id + "_datentyp_name");
+	}
+	
+	@Override
+	public List<Object> getBeobachterListe() {
+		return beobachterListe;
 	}
 	
 	public void set(Datentyp datentyp) {
@@ -82,6 +97,11 @@ public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter 
 		}
 		Datentyp other = (Datentyp) obj;
 		return Objects.equals(typName, other.typName);
+	}
+	
+	@Override
+	public void close() throws Exception {
+		beobachterListe.clear();
 	}
 
 }

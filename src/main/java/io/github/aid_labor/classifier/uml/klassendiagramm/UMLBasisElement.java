@@ -6,6 +6,9 @@
 
 package io.github.aid_labor.classifier.uml.klassendiagramm;
 
+import java.lang.reflect.Modifier;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -31,12 +34,8 @@ import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
  * @author Tim Muehle
  *
  */
-@JsonSubTypes({
-	@JsonSubTypes.Type(value = UMLKlassifizierer.class),
-	@JsonSubTypes.Type(value = UMLKommentar.class)
-})
-abstract class UMLBasisElement extends EditierbarBasis
-		implements UMLDiagrammElement, EditierBeobachter {
+@JsonSubTypes({ @JsonSubTypes.Type(value = UMLKlassifizierer.class), @JsonSubTypes.Type(value = UMLKommentar.class) })
+abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammElement, EditierBeobachter {
 //	private static final Logger log = Logger.getLogger(UMLBasisElement.class.getName());
 	
 	public static class Position {
@@ -136,12 +135,12 @@ abstract class UMLBasisElement extends EditierbarBasis
 			this.setBreite(position.getBreite());
 			this.setHoehe(position.getHoehe());
 		}
-
+		
 		@Override
 		public int hashCode() {
 			return ClassifierUtil.hashAlle(breite, hoehe, x, y);
 		}
-
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj) {
@@ -178,7 +177,10 @@ abstract class UMLBasisElement extends EditierbarBasis
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final Position position;
-	@JsonIgnore private long id;
+	@JsonIgnore
+	private long id;
+	@JsonIgnore
+	private final List<Object> beobachterListe;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -186,20 +188,17 @@ abstract class UMLBasisElement extends EditierbarBasis
 	
 	public UMLBasisElement() {
 		this.position = new Position(10, 10, -1, -1, this);
-		this.ueberwachePropertyAenderung(this.position.x);
-		this.ueberwachePropertyAenderung(this.position.y);
-		this.ueberwachePropertyAenderung(this.position.hoehe);
-		this.ueberwachePropertyAenderung(this.position.breite);
+		this.beobachterListe = new LinkedList<>();
+		this.ueberwachePropertyAenderung(this.position.x, getId() + "_x_position");
+		this.ueberwachePropertyAenderung(this.position.y, getId() + "_y_position");
+		this.ueberwachePropertyAenderung(this.position.hoehe, getId() + "_hoehe");
+		this.ueberwachePropertyAenderung(this.position.breite, getId() + "_breite");
 	}
 	
 	@JsonCreator
 	public UMLBasisElement(Position position) {
-		this.position = new Position(position.getX(), position.getY(), position.getHoehe(),
-				position.getBreite(), this);
-		this.ueberwachePropertyAenderung(this.position.x);
-		this.ueberwachePropertyAenderung(this.position.y);
-		this.ueberwachePropertyAenderung(this.position.hoehe);
-		this.ueberwachePropertyAenderung(this.position.breite);
+		this();
+		position.set(position);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -223,6 +222,11 @@ abstract class UMLBasisElement extends EditierbarBasis
 		this.id = id;
 	}
 	
+	@Override
+	public List<Object> getBeobachterListe() {
+		return beobachterListe;
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -243,6 +247,23 @@ abstract class UMLBasisElement extends EditierbarBasis
 	public void verarbeiteEditierung(EditierBefehl editierung) {
 		log.finest(() -> "verarbeite " + editierung);
 		informiere(editierung);
+	}
+	
+	@Override
+	public void close() throws Exception {
+		log.finest(() -> this + " leere editierBeobachter");
+		beobachterListe.clear();
+		
+		for(var attribut : this.getClass().getDeclaredFields()) {
+			try {
+				if (!Modifier.isStatic(attribut.getModifiers())) {
+					attribut.setAccessible(true);
+					attribut.set(this, null);
+				}
+			} catch (Exception e) {
+				// ignore
+			}
+		}
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

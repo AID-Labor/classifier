@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.lang.ref.WeakReference;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -40,7 +41,7 @@ class ProjekteKontrolle {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private final ProjekteAnsicht ansicht;
+	private final WeakReference<ProjekteAnsicht> ansicht;
 	private final Sprache sprache;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -48,7 +49,7 @@ class ProjekteKontrolle {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	ProjekteKontrolle(ProjekteAnsicht ansicht, Sprache sprache) {
-		this.ansicht = ansicht;
+		this.ansicht = new WeakReference<ProjekteAnsicht>(ansicht);
 		this.sprache = sprache;
 	}
 	
@@ -75,13 +76,13 @@ class ProjekteKontrolle {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	void legeNeuenKlassifiziererAn(KlassifiziererTyp typ) {
-		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
+		var projekt = this.ansicht.get().getAngezeigtesProjektProperty().get();
 		legeNeuenKlassifiziererAn(
 				new UMLKlassifizierer(typ, projekt.getProgrammiersprache(), ""));
 	}
 	
 	void legeNeuenKlassifiziererAn(UMLKlassifizierer klassifizierer) {
-		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
+		var projekt = this.ansicht.get().getAngezeigtesProjektProperty().get();
 		
 		legeDiagrammElementAn(klassifizierer, () -> {
 			var dialog = new UMLKlassifiziererBearbeitenDialog(klassifizierer, projekt);
@@ -99,7 +100,7 @@ class ProjekteKontrolle {
 	}
 	
 	void legeKommentarAn(UMLKommentar kommentar) {
-		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
+		var projekt = this.ansicht.get().getAngezeigtesProjektProperty().get();
 		
 		legeDiagrammElementAn(kommentar, () -> {
 			var dialog = new UMLKommentarBearbeitenDialog(kommentar);
@@ -114,14 +115,14 @@ class ProjekteKontrolle {
 	
 	private void legeDiagrammElementAn(UMLDiagrammElement element,
 			Supplier<Alert> dialogKonstruktor) {
-		var projekt = this.ansicht.getAngezeigtesProjektProperty().get();
+		var projekt = this.ansicht.get().getAngezeigtesProjektProperty().get();
 		var alterStatus = projekt.getUeberwachungsStatus();
 		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
 		
 		projekt.getDiagrammElemente().add(element);
 		
 		var dialog = dialogKonstruktor.get();
-		dialog.initOwner(this.ansicht.getAnsicht().getScene().getWindow());
+		dialog.initOwner(this.ansicht.get().getAnsicht().getScene().getWindow());
 		dialog.showAndWait().ifPresent(button -> {
 			switch (button.getButtonData()) {
 				case BACK_PREVIOUS -> {

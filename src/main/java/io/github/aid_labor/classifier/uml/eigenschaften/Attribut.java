@@ -6,6 +6,8 @@
 
 package io.github.aid_labor.classifier.uml.eigenschaften;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -30,7 +32,9 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
+	private static long naechsteId = 0;
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -57,6 +61,9 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	private Methode getter;
 	@JsonBackReference("setterAttribut")
 	private Methode setter;
+	@JsonIgnore
+	private final List<Object> beobachterListe;
+	@JsonIgnore private final long id;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -82,14 +89,16 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.istStatisch = new JsonBooleanProperty(this, "istStatisch", istStatisch);
 		this.getter = getter;
 		this.setter = setter;
+		this.beobachterListe = new LinkedList<>();
+		this.id = naechsteId++;
 		
-		this.ueberwachePropertyAenderung(this.sichtbarkeit);
-		this.ueberwachePropertyAenderung(this.datentyp.getTypNameProperty());
-		this.ueberwachePropertyAenderung(this.name);
-		this.ueberwachePropertyAenderung(this.initialwert);
-		this.ueberwachePropertyAenderung(this.hatGetter);
-		this.ueberwachePropertyAenderung(this.hatSetter);
-		this.ueberwachePropertyAenderung(this.istStatisch);
+		this.ueberwachePropertyAenderung(this.sichtbarkeit, id + "_attribut_sichtbarkeit");
+		this.ueberwachePropertyAenderung(this.datentyp.getTypNameProperty(), id + "_attribut_datentyp");
+		this.ueberwachePropertyAenderung(this.name, id + "_attribut_name");
+		this.ueberwachePropertyAenderung(this.initialwert, id + "_attribut_initialwert");
+		this.ueberwachePropertyAenderung(this.hatGetter, id + "_attribut_getter");
+		this.ueberwachePropertyAenderung(this.hatSetter, id + "_attribut_setter");
+		this.ueberwachePropertyAenderung(this.istStatisch, id + "_attribut_statisch");
 	}
 	
 	public Attribut(Modifizierer sichtbarkeit, Datentyp datentyp, boolean istStatisch) {
@@ -105,6 +114,11 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@Override
+	public List<Object> getBeobachterListe() {
+		return beobachterListe;
+	}
 	
 	public Modifizierer getSichtbarkeit() {
 		return sichtbarkeit.get();
@@ -275,6 +289,14 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		kopie.nutzeSetter(hatSetter());
 		
 		return kopie;
+	}
+	
+	@Override
+	public void close() throws Exception {
+		getter = null;
+		setter = null;
+		log.finest(() -> this + " leere listeners");
+		beobachterListe.clear();
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

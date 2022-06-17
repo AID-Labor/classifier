@@ -24,4 +24,5 @@ public interface EditierBefehl {
 	 */
 	@Override
 	public String toString();
+	
 }

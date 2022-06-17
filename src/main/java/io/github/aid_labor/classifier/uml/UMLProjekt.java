@@ -7,6 +7,7 @@
 package io.github.aid_labor.classifier.uml;
 
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -20,6 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize.Typing;
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.projekt.ListenUeberwacher;
 import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.collections.FXCollections;
@@ -207,6 +209,28 @@ public class UMLProjekt extends ProjektBasis {
 						nameGleich, programmierspracheGleich, speicherortGleich));
 		
 		return istGleich;
+	}
+	
+	@Override
+	public void close() throws Exception {
+		log.finest(() -> this + " leere diagrammelemente");
+		this.setUeberwachungsStatus(UeberwachungsStatus.IGNORIEREN);
+		for (var element : getDiagrammElemente()) {
+			element.close();
+		}
+		getDiagrammElemente().clear();
+		super.close();
+		
+		for(var attribut : this.getClass().getDeclaredFields()) {
+			try {
+				if (!Modifier.isStatic(attribut.getModifiers())) {
+					attribut.setAccessible(true);
+					attribut.set(this, null);
+				}
+			} catch (Exception e) {
+				// ignore
+			}
+		}
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

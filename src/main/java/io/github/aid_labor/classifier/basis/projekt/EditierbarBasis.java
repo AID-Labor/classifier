@@ -95,7 +95,13 @@ public abstract class EditierbarBasis implements Editierbar {
 	@Override
 	public final void meldeAb(EditierBeobachter beobachter) {
 		while (this.beobachterListe.contains(beobachter)) {
-			log.config(() -> this + " -- Melde Beobachter ab: " + beobachter);
+			log.config(() -> {
+				try {
+					return this + " -- Melde Beobachter ab: " + beobachter;
+				} catch (Exception e) {
+					return "";
+				}
+			});
 			this.beobachterListe.remove(beobachter);
 		}
 	}

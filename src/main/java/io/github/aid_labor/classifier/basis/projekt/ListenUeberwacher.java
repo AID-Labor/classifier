@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.basis.projekt;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,7 +47,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final List<E> liste;
-	private final EditierBeobachter beobachter;
+	private final WeakReference<EditierBeobachter> beobachter;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -61,7 +62,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 	 */
 	public ListenUeberwacher(List<E> liste, EditierBeobachter beobachter) {
 		this.liste = liste;
-		this.beobachter = beobachter;
+		this.beobachter = new WeakReference<EditierBeobachter>(beobachter);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -107,7 +108,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 		for (EditierBefehl editierBefehl : befehle) {
 			sammelEditierung.speicherEditierung(editierBefehl);
 		}
-		beobachter.verarbeiteEditierung(sammelEditierung);
+		beobachter.get().verarbeiteEditierung(sammelEditierung);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -149,10 +150,16 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 	
 	private void behandleEntfernung(Change<? extends E> aenderung,
 			List<EditierBefehl> befehle) {
-		log.finer(() -> "%s:  -> entfernt [%s]".formatted(beobachter,
-				Arrays.toString(aenderung.getRemoved().toArray())));
+		log.finer(() -> {
+			try {
+				return "%s:  -> entfernt [%s]".formatted(beobachter, Arrays.toString(aenderung.getRemoved().toArray()));
+			} catch (Exception e) {
+				return "";
+			}
+		});
+				
 		for (E entfernt : aenderung.getRemoved()) {
-			entfernt.meldeAb(beobachter);
+			entfernt.meldeAb(beobachter.get());
 		}
 		var befehl = new EditierBefehl() {
 			
@@ -172,8 +179,12 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 			
 			@Override
 			public String toString() {
-				return "%s:  -> entfernt <index %d> %s".formatted(beobachter, startIndex,
-						Arrays.toString(entfernteAttribute.toArray()));
+				try {
+					return "%s:  -> entfernt <index %d> %s".formatted(beobachter, startIndex,
+							Arrays.toString(entfernteAttribute.toArray()));
+				} catch (Exception e) {
+					return "";
+				}
 			}
 		};
 		befehle.add(befehl);
@@ -184,7 +195,7 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 		log.finer(() -> "%s:  -> hinzugefuegt [%s]".formatted(beobachter,
 				Arrays.toString(aenderung.getAddedSubList().toArray())));
 		for (E hinzu : aenderung.getAddedSubList()) {
-			hinzu.meldeAn(beobachter);
+			hinzu.meldeAn(beobachter.get());
 		}
 		var befehl = new EditierBefehl() {
 			

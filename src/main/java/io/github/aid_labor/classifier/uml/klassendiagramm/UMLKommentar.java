@@ -65,12 +65,11 @@ public class UMLKommentar extends UMLBasisElement {
 	public UMLKommentar() {
 		super(new Position());
 		this.inhaltProperty = new JsonStringProperty(this, "inhalt", "");
-		this.ueberwachePropertyAenderung(this.inhaltProperty);
+		this.ueberwachePropertyAenderung(this.inhaltProperty, getId() + "_inhalt");
 	}
 	
 	@JsonCreator
-	public UMLKommentar(@JsonProperty("inhalt") String inhalt,
-			@JsonProperty("position") Position position) {
+	public UMLKommentar(@JsonProperty("inhalt") String inhalt, @JsonProperty("position") Position position) {
 		this();
 		this.inhaltProperty.set(inhalt);
 		this.getPosition().set(position);

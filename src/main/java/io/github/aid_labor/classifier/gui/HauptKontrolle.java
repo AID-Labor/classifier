@@ -13,6 +13,7 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -65,7 +66,7 @@ class HauptKontrolle {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private HauptAnsicht ansicht;
+	private WeakReference<HauptAnsicht> ansicht;
 	private Sprache sprache;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -73,7 +74,7 @@ class HauptKontrolle {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	HauptKontrolle(HauptAnsicht ansicht, Sprache sprache) {
-		this.ansicht = ansicht;
+		this.ansicht = new WeakReference<HauptAnsicht>(ansicht);
 		this.sprache = sprache;
 	}
 	
@@ -93,9 +94,9 @@ class HauptKontrolle {
 	
 	void konigurationsordnerOeffnen(Event event) {
 		Path ordner = OS.getDefault()
-				.getKonfigurationsOrdnerPath(ansicht.getProgrammDetails());
+				.getKonfigurationsOrdnerPath(ansicht.get().getProgrammDetails());
 		try {
-			ansicht.getRechnerService().showDocument(ordner.toUri().toString());
+			ansicht.get().getRechnerService().showDocument(ordner.toUri().toString());
 		} catch (Exception e) {
 			log.log(Level.WARNING, e,
 					() -> "Ordner %s konnte nicht angezeigt werden".formatted(ordner));
@@ -113,7 +114,7 @@ class HauptKontrolle {
 				.formatted(oe, oe, AE)));
 		beschreibung.setWrapText(true);
 		beschreibung.setId("NEUSTART_WARNUNG");
-		this.ansicht.getOverlayDialog().showNode(Type.WARNING, dialogTitel,
+		this.ansicht.get().getOverlayDialog().showNode(Type.WARNING, dialogTitel,
 				new StackPane(beschreibung), false, List.of(ButtonType.OK, ButtonType.CANCEL))
 				.thenAccept(buttonTyp -> {
 					if (buttonTyp.equals(ButtonType.OK)) {
@@ -145,7 +146,7 @@ class HauptKontrolle {
 				new ButtonType(sprache.getText("ok", "Ok"), ButtonData.OK_DONE));
 		
 		Platform.runLater(() -> eingabeName.requestFocus());
-		ansicht.getOverlayDialog()
+		ansicht.get().getOverlayDialog()
 				.showNode(Type.INPUT, sprache.getText("neuesProjekt", "Neues Projekt"), dialog,
 						false, buttons, true)
 				.thenAccept(button -> {
@@ -157,12 +158,12 @@ class HauptKontrolle {
 								.getSelectionModel().getSelectedItem();
 						
 						if (name.isBlank()) {
-							ansicht.zeigeAnlegenFehlerDialog(sprache.getText(
+							ansicht.get().zeigeAnlegenFehlerDialog(sprache.getText(
 									"anlegenFehlerName",
 									"Es muss ein g%cltiger Projektname angegeben werden"
 											.formatted(ue)));
 						} else if (programmiersprache == null) {
-							ansicht.zeigeAnlegenFehlerDialog(sprache.getText(
+							ansicht.get().zeigeAnlegenFehlerDialog(sprache.getText(
 									"anlegenFehlerProgrammiersprache",
 									"Es muss eine Programmiersprache ausgew%chlt werden"
 											.formatted(ae)));
@@ -170,7 +171,7 @@ class HauptKontrolle {
 							UMLProjekt projekt = new UMLProjekt(name, programmiersprache,
 									false);
 							try {
-								ansicht.zeigeProjekt(projekt);
+								ansicht.get().zeigeProjekt(projekt);
 							} catch (Exception e) {
 								log.log(Level.SEVERE, e,
 										() -> "Fehler beim Anlegen eins Projektes");
@@ -186,17 +187,17 @@ class HauptKontrolle {
 	}
 	
 	void projektSpeichern(Event event) {
-		UMLProjekt projekt = ansicht.getProjektAnsicht().getAngezeigtesProjektProperty().get();
+		UMLProjekt projekt = ansicht.get().getProjektAnsicht().getAngezeigtesProjektProperty().get();
 		
 		if (projekt.getSpeicherort() == null) {
 			projektSpeichernUnter(event);
 		}
 		
-		ansicht.getProjektAnsicht().angezeigtesProjektSpeichern();
+		ansicht.get().getProjektAnsicht().angezeigtesProjektSpeichern();
 	}
 	
 	void projektSpeichernUnter(Event event) {
-		ansicht.getProjektAnsicht().angezeigtesProjektSpeicherUnter();
+		ansicht.get().getProjektAnsicht().angezeigtesProjektSpeicherUnter();
 	}
 	
 	void projektOeffnen(Event event) {
@@ -206,14 +207,14 @@ class HauptKontrolle {
 				Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung.get()));
 		
 		dateiDialog.getExtensionFilters()
-				.addAll(ansicht.getProgrammDetails().dateiZuordnung());
+				.addAll(ansicht.get().getProgrammDetails().dateiZuordnung());
 		
 		String titel = sprache.getText("oeffnenDialogTitel",
 				"Projekt %cffnen".formatted(Umlaute.OE));
 		dateiDialog.setTitle(titel);
 		
 		List<File> dateien = dateiDialog
-				.showOpenMultipleDialog(ansicht.getWurzelknoten().getScene().getWindow());
+				.showOpenMultipleDialog(ansicht.get().getWurzelknoten().getScene().getWindow());
 		
 		if (dateien != null && !dateien.isEmpty()) {
 			Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung
@@ -231,7 +232,7 @@ class HauptKontrolle {
 			Dragboard db = event.getDragboard();
 			boolean akzeptieren = false;
 			if (db.hasFiles()) {
-				for (ExtensionFilter erweiterungen : this.ansicht.getProgrammDetails()
+				for (ExtensionFilter erweiterungen : this.ansicht.get().getProgrammDetails()
 						.dateiZuordnung()) {
 					for (String erweiterung : erweiterungen.getExtensions()) {
 						akzeptieren |= db.getFiles().stream()
@@ -276,11 +277,11 @@ class HauptKontrolle {
 		}
 		
 		if (projekt == null) {
-			ansicht.zeigeOeffnenFehlerDialog(datei);
+			ansicht.get().zeigeOeffnenFehlerDialog(datei);
 		} else {
 			String projektName = projekt.getName();
 			try {
-				this.ansicht.zeigeProjekt(projekt);
+				this.ansicht.get().zeigeProjekt(projekt);
 				DatumWrapper<Path> dateiEintrag = new DatumWrapper<Path>(datei.toPath());
 				if (!Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag)) {
 					Einstellungen.getBenutzerdefiniert().letzteDateien.remove(dateiEintrag);
@@ -289,19 +290,19 @@ class HauptKontrolle {
 			} catch (Exception e) {
 				log.log(Level.INFO, e,
 						() -> "Projekt %s wurde nicht geoeffnet".formatted(projektName));
-				ansicht.zeigeOeffnenWarnungDialog(datei);
+				ansicht.get().zeigeOeffnenWarnungDialog(datei);
 			}
 		}
 	}
 	
 	void projektUmbenennen(Event event) {
-		UMLProjekt projekt = ansicht.getProjektAnsicht().getAngezeigtesProjektProperty().get();
+		UMLProjekt projekt = ansicht.get().getProjektAnsicht().getAngezeigtesProjektProperty().get();
 		
 		MessageFormat format = new MessageFormat(sprache.getText("umbenennenTitel",
 				"Neuen Namen f%cr Projekt {0} festlegen".formatted(ue)));
 		String titel = format.format(new Object[] { projekt.getName() });
 		
-		Dialog<String> eingabeDialog = this.ansicht.getOverlayDialog().showTextInput(titel,
+		Dialog<String> eingabeDialog = this.ansicht.get().getOverlayDialog().showTextInput(titel,
 				projekt.getName());
 		
 		TextField eingabe = findeElement(eingabeDialog.getContent(), TextField.class);
@@ -317,17 +318,17 @@ class HauptKontrolle {
 	}
 	
 	void zoomeGroesser(Event event) {
-		var projekt = ansicht.getProjektAnsicht().getProjektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjektAnsicht().getProjektAnsichtProperty().get();
 		projekt.skaliere(projekt.getSkalierung() + 0.1);
 	}
 	
 	void zoomeKleiner(Event event) {
-		var projekt = ansicht.getProjektAnsicht().getProjektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjektAnsicht().getProjektAnsichtProperty().get();
 		projekt.skaliere(projekt.getSkalierung() - 0.1);
 	}
 	
 	void resetZoom(Event event) {
-		var projekt = ansicht.getProjektAnsicht().getProjektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjektAnsicht().getProjektAnsichtProperty().get();
 		projekt.skaliere(projekt.getStandardSkalierung());
 	}
 	
@@ -335,7 +336,7 @@ class HauptKontrolle {
 	
 	private void bereinigeKonfigurationsOrdner() {
 		var konfigurationsordner = OS.getDefault()
-				.getKonfigurationsOrdnerPath(ansicht.getProgrammDetails());
+				.getKonfigurationsOrdnerPath(ansicht.get().getProgrammDetails());
 		var ausgeschlossen = Ressourcen.get().KONFIGURATIONSORDNER.alsPath();
 		
 		log.info(() -> "Bereinige Konfigurationsordner " + konfigurationsordner);

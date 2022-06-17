@@ -6,6 +6,8 @@
 
 package io.github.aid_labor.classifier.gui.elemente;
 
+import java.lang.ref.WeakReference;
+
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -32,14 +34,14 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	protected final E umlElementModel;
+	protected final WeakReference<E> umlElementModel;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public UMLElementBasisAnsicht(E umlElementModel) {
-		this.umlElementModel = umlElementModel;
+		this.umlElementModel = new WeakReference<>(umlElementModel);
 		this.translateXProperty()
 				.bindBidirectional(umlElementModel.getPosition().getXProperty());
 		this.translateYProperty()
@@ -66,7 +68,7 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	public E getUmlElement() {
-		return umlElementModel;
+		return umlElementModel.get();
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

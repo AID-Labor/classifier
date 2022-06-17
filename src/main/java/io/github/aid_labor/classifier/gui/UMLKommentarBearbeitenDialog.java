@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.lang.ref.WeakReference;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
@@ -50,7 +51,7 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final Sprache sprache;
-	private final UMLKommentar kommentar;
+	private final WeakReference<UMLKommentar> kommentar;
 	private final HTMLEditor inhalt;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -60,7 +61,7 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 	public UMLKommentarBearbeitenDialog(UMLKommentar kommentar) {
 		super(AlertType.NONE);
 		this.sprache = new Sprache();
-		this.kommentar = kommentar;
+		this.kommentar = new WeakReference<>(kommentar);
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
@@ -120,7 +121,7 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void updateKommentar(Event event) {
-		kommentar.setInhalt(inhalt.getHtmlText().replace(" contenteditable=\"true\"", ""));
+		kommentar.get().setInhalt(inhalt.getHtmlText().replace(" contenteditable=\"true\"", ""));
 		if (event != null) {
 			log.finest(() -> """
 					potentielle Aenderung festgestellt

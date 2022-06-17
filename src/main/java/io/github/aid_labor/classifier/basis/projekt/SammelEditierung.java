@@ -8,7 +8,10 @@ package io.github.aid_labor.classifier.basis.projekt;
 
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 
@@ -24,6 +27,59 @@ public class SammelEditierung implements EditierBefehl {
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	private static class AenderbareWertEditierung<T> implements WertEditierBefehl<T> {
+		
+		private final String id;
+		private T vorher;
+		private T nachher;
+		private Consumer<T> setter;
+		
+		public AenderbareWertEditierung(WertEditierBefehl<T> wertEditierung) {
+			this(wertEditierung.id(), wertEditierung.getVorher(), wertEditierung.getNachher(), wertEditierung::set);
+		}
+		
+		public AenderbareWertEditierung(String id, T vorher, T nachher, Consumer<T> setter) {
+			this.id = id;
+			this.vorher = vorher;
+			this.nachher = nachher;
+			this.setter = setter;
+		}
+		
+		@Override
+		public String id() {
+			return id;
+		}
+		
+		@Override
+		public T getVorher() {
+			return vorher;
+		}
+		
+		@Override
+		public T getNachher() {
+			return nachher;
+		}
+		
+		@SuppressWarnings("unused")
+		public void setVorher(T vorher) {
+			this.vorher = vorher;
+		}
+		
+		public void setNachher(T nachher) {
+			this.nachher = nachher;
+		}
+		
+		@Override
+		public void set(T wert) {
+			setter.accept(wert);
+		}
+		
+		@Override
+		public String toString() {
+			return "%s {%s -> %s}".formatted(id, vorher, nachher);
+		}
+	}
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
@@ -35,6 +91,7 @@ public class SammelEditierung implements EditierBefehl {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private Deque<EditierBefehl> befehle;
+	private final Map<String, AenderbareWertEditierung<?>> wertEditierungen;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -42,6 +99,7 @@ public class SammelEditierung implements EditierBefehl {
 	
 	public SammelEditierung() {
 		this.befehle = new LinkedList<>();
+		this.wertEditierungen = new HashMap<>();
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -50,9 +108,25 @@ public class SammelEditierung implements EditierBefehl {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	public void speicherEditierung(EditierBefehl editierung) {
+	public <T> void speicherEditierung(EditierBefehl editierung) {
 		log.finest(() -> "sammel + " + editierung);
-		befehle.add(editierung);
+		
+		if (WertEditierBefehl.class.isAssignableFrom(editierung.getClass())) {
+			@SuppressWarnings("unchecked")
+			WertEditierBefehl<T> wertEditierung = (WertEditierBefehl<T>) editierung;
+			@SuppressWarnings("unchecked")
+			AenderbareWertEditierung<T> vorherigeEditierung = (AenderbareWertEditierung<T>) this.wertEditierungen
+					.get(wertEditierung.id());
+			if (vorherigeEditierung != null) {
+				vorherigeEditierung.setNachher(wertEditierung.getNachher());
+			} else {
+				vorherigeEditierung = new AenderbareWertEditierung<>(wertEditierung);
+				wertEditierungen.put(wertEditierung.id(), vorherigeEditierung);
+				befehle.add(vorherigeEditierung);
+			}
+		} else {
+			befehle.add(editierung);
+		}
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -91,7 +165,7 @@ public class SammelEditierung implements EditierBefehl {
 	public String toString() {
 		return "Sammeleditierung: \n    " + Arrays.toString(befehle.toArray());
 	}
-	
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

@@ -8,6 +8,8 @@ package io.github.aid_labor.classifier.basis.projekt;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -114,6 +116,8 @@ public abstract class ProjektBasis implements Projekt {
 	private UeberwachungsStatus ueberwachungsStatus;
 	@JsonIgnore
 	private long gespeicherterHash;
+	@JsonIgnore
+	private final List<Object> beobachterListe;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -149,8 +153,9 @@ public abstract class ProjektBasis implements Projekt {
 				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
 		this.wiederholenVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
 				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
+		this.beobachterListe = new LinkedList<>();
 		
-		this.ueberwachePropertyAenderung(this.name);
+		this.ueberwachePropertyAenderung(this.name, "projektname");
 		this.istGespeichertProperty.addListener((__, ___, istGespeichert) -> {
 			if (istGespeichert) {
 				int neuerHash = hashCode();
@@ -184,6 +189,11 @@ public abstract class ProjektBasis implements Projekt {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@Override
+	public List<Object> getBeobachterListe() {
+		return beobachterListe;
+	}
 	
 	/**
 	 * {@inheritDoc}
@@ -491,6 +501,16 @@ public abstract class ProjektBasis implements Projekt {
 						speicherortGleich));
 		
 		return istGleich;
+	}
+	
+	@Override
+	public void close() throws Exception {
+		log.fine(() -> "Raueme Projekt " + this.getName() + " auf und schliesse");
+		this.setUeberwachungsStatus(UeberwachungsStatus.IGNORIEREN);
+		rueckgaengigVerlauf.leeren();
+		wiederholenVerlauf.leeren();
+		beobachterListe.clear();
+		sammelEditierung = null;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

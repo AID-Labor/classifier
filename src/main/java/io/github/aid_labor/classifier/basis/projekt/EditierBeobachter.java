@@ -7,6 +7,7 @@
 package io.github.aid_labor.classifier.basis.projekt;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -14,6 +15,7 @@ import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.collections.WeakListChangeListener;
 
 
 /**
@@ -24,7 +26,7 @@ import javafx.collections.ObservableList;
  * @author Tim Muehle
  *
  */
-public interface EditierBeobachter {
+public interface EditierBeobachter extends AutoCloseable {
 	
 	public static final Logger log = Logger.getLogger(EditierBeobachter.class.getName());
 	
@@ -39,6 +41,8 @@ public interface EditierBeobachter {
 	 */
 	public void verarbeiteEditierung(EditierBefehl editierung);
 	
+	public List<Object> getBeobachterListe();
+	
 	/**
 	 * Installiert einen {@code ChangeListener}, der diesen {@code EditierBeobachter} bei
 	 * Aenderung der uebergebenen Eigenschaft mit einem entsprechenden {@link EditierBefehl}
@@ -46,9 +50,12 @@ public interface EditierBeobachter {
 	 * 
 	 * @param <T>      Typparameter des Uebergabeparameters
 	 * @param property Eigenschaft, die ueber Anderungen informiert
+	 * @param id       ID zur eindeutigen Identifizierung von Editierungen
 	 */
-	public default <T> void ueberwachePropertyAenderung(Property<T> property) {
-		property.addListener(new PropertyUeberwachung<>(this, property));
+	public default <T> void ueberwachePropertyAenderung(Property<T> property, String id) {
+		var beobachter = new PropertyUeberwachung<>(this, property, id);
+		getBeobachterListe().add(beobachter);
+		property.addListener(beobachter);
 	}
 	
 	public static class PropertyUeberwachung<T> implements ChangeListener<T> {
@@ -56,37 +63,46 @@ public interface EditierBeobachter {
 		private boolean wiederhole;
 		private final WeakReference<EditierBeobachter> beobachterRef;
 		private final WeakReference<Property<T>> propertyRef;
+		private final String id;
 		
-		private PropertyUeberwachung(EditierBeobachter beobachter, Property<T> property) {
+		private PropertyUeberwachung(EditierBeobachter beobachter, Property<T> property, String id) {
 			this.wiederhole = false;
 			this.beobachterRef = new WeakReference<>(beobachter);
 			this.propertyRef = new WeakReference<>(property);
+			this.id = id;
 		}
 		
 		@Override
 		public void changed(ObservableValue<? extends T> aufrufer, T alterWert, T neuerWert) {
 			if (!Objects.equals(alterWert, neuerWert) && !wiederhole) {
-				beobachterRef.get().verarbeiteEditierung(new EditierBefehl() {
-					
-					@Override
-					public void wiederhole() {
-						wiederhole = true;
-						propertyRef.get().setValue(neuerWert);
-						wiederhole = false;
-					}
-					
-					@Override
-					public void macheRueckgaengig() {
-						wiederhole = true;
-						propertyRef.get().setValue(alterWert);
-						wiederhole = false;
-					}
+				beobachterRef.get().verarbeiteEditierung(new WertEditierBefehl<T>() {
 					
 					@Override
 					public String toString() {
-						return "EditierBefehl: %s -> %s { alt: %s neu: %s }"
-								.formatted(beobachterRef.get(), propertyRef.get(),
-										alterWert, neuerWert);
+						return "EditierBefehl: %s -> %s { alt: %s neu: %s }".formatted(beobachterRef.get(),
+								propertyRef.get(), alterWert, neuerWert);
+					}
+					
+					@Override
+					public String id() {
+						return id;
+					}
+					
+					@Override
+					public T getVorher() {
+						return alterWert;
+					}
+					
+					@Override
+					public T getNachher() {
+						return neuerWert;
+					}
+					
+					@Override
+					public void set(T wert) {
+						wiederhole = true;
+						propertyRef.get().setValue(wert);
+						wiederhole = false;
 					}
 				});
 			}
@@ -94,9 +110,10 @@ public interface EditierBeobachter {
 		
 	}
 	
-	public default <E extends Editierbar> void ueberwacheListenAenderung(
-			ObservableList<E> liste) {
-		liste.addListener(new ListenUeberwacher<>(liste, this));
+	public default <E extends Editierbar> void ueberwacheListenAenderung(ObservableList<E> liste) {
+		var beobachter = new ListenUeberwacher<>(liste, this);
+		getBeobachterListe().add(beobachter);
+		liste.addListener(new WeakListChangeListener<>(beobachter));
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

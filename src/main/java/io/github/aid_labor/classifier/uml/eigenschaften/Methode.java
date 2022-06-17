@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -35,6 +36,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	private static long naechsteId = 0;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
@@ -64,36 +67,38 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	@JsonManagedReference("setterAttribut")
 	private Attribut setterAttribut;
 	private final Programmiersprache programmiersprache;
+	@JsonIgnore
+	private final List<Object> beobachterListe;
+	@JsonIgnore
+	private final long id;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Methode(Modifizierer sichtbarkeit, Datentyp rueckgabeTyp,
-			Programmiersprache programmiersprache) {
+	public Methode(Modifizierer sichtbarkeit, Datentyp rueckgabeTyp, Programmiersprache programmiersprache) {
 		this(sichtbarkeit, rueckgabeTyp, false, programmiersprache);
 	}
 	
 	public Methode(Modifizierer sichtbarkeit, Datentyp rueckgabeTyp, boolean istStatisch,
 			Programmiersprache programmiersprache) {
-		this(sichtbarkeit, rueckgabeTyp, istStatisch, false, false, null, null,
-				programmiersprache);
+		this(sichtbarkeit, rueckgabeTyp, istStatisch, false, false, null, null, programmiersprache);
 	}
 	
-	protected Methode(Modifizierer sichtbarkeit, Datentyp rueckgabeTyp, boolean istStatisch,
-			boolean istGetter, boolean istSetter, Attribut getterAttribut,
-			Attribut setterAttribut, Programmiersprache programmiersprache) {
+	protected Methode(Modifizierer sichtbarkeit, Datentyp rueckgabeTyp, boolean istStatisch, boolean istGetter,
+			boolean istSetter, Attribut getterAttribut, Attribut setterAttribut,
+			Programmiersprache programmiersprache) {
 		if (istGetter && istSetter) {
 			throw new IllegalStateException("Kann nur getter oder setter sein, nicht beides!");
 		}
+		this.id = naechsteId++;
+		this.beobachterListe = new LinkedList<>();
 		
 		this.name = new JsonStringProperty(this, "methodenname", "");
 		this.istStatisch = new JsonBooleanProperty(this, "istStatisch", istStatisch);
 		if (istGetter) {
-			this.rueckgabeTyp = Objects
-					.requireNonNull(getterAttribut.getDatentyp().erzeugeTiefeKopie());
-			this.rueckgabeTyp.getTypNameProperty()
-					.bind(getterAttribut.getDatentyp().getTypNameProperty());
+			this.rueckgabeTyp = Objects.requireNonNull(getterAttribut.getDatentyp().erzeugeTiefeKopie());
+			this.rueckgabeTyp.getTypNameProperty().bind(getterAttribut.getDatentyp().getTypNameProperty());
 			this.istStatisch.bindBidirectional(getterAttribut.getIstStatischProperty());
 			this.name.set("get" + Character.toUpperCase(getterAttribut.getName().charAt(0))
 					+ getterAttribut.getName().substring(1));
@@ -104,19 +109,16 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 			this.istStatisch.bindBidirectional(setterAttribut.getIstStatischProperty());
 			this.name.set("set" + Character.toUpperCase(setterAttribut.getName().charAt(0))
 					+ setterAttribut.getName().substring(1));
-			var param = new Parameter(setterAttribut.getDatentyp().erzeugeTiefeKopie(),
-					setterAttribut.getName());
+			var param = new Parameter(setterAttribut.getDatentyp().erzeugeTiefeKopie(), setterAttribut.getName());
 			param.getNameProperty().bind(setterAttribut.getNameProperty());
-			param.getDatentyp().getTypNameProperty()
-					.bind(setterAttribut.getDatentyp().getTypNameProperty());
-			this.parameterListe = FXCollections
-					.unmodifiableObservableList(FXCollections.observableArrayList(param));
+			param.getDatentyp().getTypNameProperty().bind(setterAttribut.getDatentyp().getTypNameProperty());
+			this.parameterListe = FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(param));
 			setterAttribut.setSetter(this);
 		} else {
 			this.rueckgabeTyp = Objects.requireNonNull(rueckgabeTyp);
-			this.ueberwachePropertyAenderung(this.rueckgabeTyp.getTypNameProperty());
+			this.ueberwachePropertyAenderung(this.rueckgabeTyp.getTypNameProperty(), id + "_methode_rueckgabetyp");
 			this.parameterListe = FXCollections.observableList(new LinkedList<>());
-			this.ueberwachePropertyAenderung(this.istStatisch);
+			this.ueberwachePropertyAenderung(this.istStatisch, id + "_methode_statisch");
 		}
 		
 		this.sichtbarkeit = new JsonObjectProperty<>(this, "sichtbarkeit", sichtbarkeit);
@@ -128,30 +130,25 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		this.setterAttribut = setterAttribut;
 		this.programmiersprache = programmiersprache;
 		
-		this.ueberwachePropertyAenderung(this.sichtbarkeit);
-		this.ueberwachePropertyAenderung(this.name);
-		this.ueberwachePropertyAenderung(this.istAbstrakt);
-		this.ueberwachePropertyAenderung(this.istFinal);
+		this.ueberwachePropertyAenderung(this.sichtbarkeit, id + "_methode_sichtbarkeit");
+		this.ueberwachePropertyAenderung(this.name, id + "_methode_name");
+		this.ueberwachePropertyAenderung(this.istAbstrakt, id + "_methode_abstrakt");
+		this.ueberwachePropertyAenderung(this.istFinal, id + "_methode_final");
 		
 		this.ueberwacheListenAenderung(this.parameterListe);
 	}
 	
 	@JsonCreator
-	protected Methode(
-			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
-			@JsonProperty("name") String name,
+	protected Methode(@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit, @JsonProperty("name") String name,
 			@JsonProperty("rueckgabeTyp") Datentyp rueckgabeTyp,
 			@JsonProperty("parameterListe") List<Parameter> parameterListe,
 			@JsonProperty("getterAttribut") Attribut getterAttribut,
-			@JsonProperty("setterAttribut") Attribut setterAttribut,
-			@JsonProperty("istAbstrakt") boolean istAbstrakt,
-			@JsonProperty("istFinal") boolean istFinal,
-			@JsonProperty("istStatisch") boolean istStatisch,
-			@JsonProperty("istGetter") boolean istGetter,
-			@JsonProperty("istSetter") boolean istSetter,
+			@JsonProperty("setterAttribut") Attribut setterAttribut, @JsonProperty("istAbstrakt") boolean istAbstrakt,
+			@JsonProperty("istFinal") boolean istFinal, @JsonProperty("istStatisch") boolean istStatisch,
+			@JsonProperty("istGetter") boolean istGetter, @JsonProperty("istSetter") boolean istSetter,
 			@JsonProperty("programmiersprache") Programmiersprache programmiersprache) {
-		this(sichtbarkeit, rueckgabeTyp, istStatisch, istGetter, istSetter, getterAttribut,
-				setterAttribut, programmiersprache);
+		this(sichtbarkeit, rueckgabeTyp, istStatisch, istGetter, istSetter, getterAttribut, setterAttribut,
+				programmiersprache);
 		if (!istGetter && !istSetter && parameterListe != null) {
 			this.parameterListe.addAll(parameterListe);
 		}
@@ -166,9 +163,10 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-//	public int getId() {
-//		return id;
-//	}
+	@Override
+	public List<Object> getBeobachterListe() {
+		return beobachterListe;
+	}
 	
 	public Modifizierer getSichtbarkeit() {
 		return sichtbarkeit.get();
@@ -273,21 +271,16 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	
 	@Override
 	public String toString() {
-		return "Methode <%s %s %s(%s) {%s %s}>".formatted(
-				getSichtbarkeit(),
-				getRueckgabeTyp().getTypName(),
-				getName(),
-				getParameterListe().stream()
-						.map(p -> String.join(" ", p.getDatentyp().getTypName(), p.getName()))
+		return "Methode <%s %s %s(%s) {%s %s}>".formatted(getSichtbarkeit(), getRueckgabeTyp().getTypName(), getName(),
+				getParameterListe().stream().map(p -> String.join(" ", p.getDatentyp().getTypName(), p.getName()))
 						.collect(Collectors.joining(", ")),
-				istAbstrakt() ? " abstract" : "",
-				istFinal() ? "final " : "");
+				istAbstrakt() ? " abstract" : "", istFinal() ? "final " : "");
 	}
 	
 	@Override
 	public int hashCode() {
-		return ClassifierUtil.hashAlle(istAbstrakt(), istFinal(), getName(), getParameterListe(),
-				getRueckgabeTyp(), getSichtbarkeit(), istStatisch(), istGetter(), istSetter());
+		return ClassifierUtil.hashAlle(istAbstrakt(), istFinal(), getName(), getParameterListe(), getRueckgabeTyp(),
+				getSichtbarkeit(), istStatisch(), istGetter(), istSetter());
 	}
 	
 	@Override
@@ -306,19 +299,17 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		boolean istAbstraktGleich = istAbstrakt() == m.istAbstrakt();
 		boolean istFinalGleich = istFinal() == m.istFinal();
 		boolean nameGleich = Objects.equals(getName(), m.getName());
-		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(
-				this.getParameterListe(), m.getParameterListe());
+		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(this.getParameterListe(), m.getParameterListe());
 		boolean rueckgabeTypGleich = Objects.equals(getRueckgabeTyp(), m.getRueckgabeTyp());
 		boolean sichtbarkeitGleich = Objects.equals(getSichtbarkeit(), m.getSichtbarkeit());
 		boolean statischGleich = this.istStatisch() == m.istStatisch();
 		boolean getterGleich = this.istGetter() == m.istGetter();
 		boolean setterGleich = this.istSetter() == m.istSetter();
-		boolean programmierspracheGleich = Objects.equals(this.programmiersprache,
-				m.programmiersprache);
+		boolean programmierspracheGleich = Objects.equals(this.programmiersprache, m.programmiersprache);
 		
-		boolean istGleich = istAbstraktGleich && istFinalGleich && nameGleich
-				&& parameterListeGleich && rueckgabeTypGleich && sichtbarkeitGleich
-				&& getterGleich && statischGleich && statischGleich && programmierspracheGleich;
+		boolean istGleich = istAbstraktGleich && istFinalGleich && nameGleich && parameterListeGleich
+				&& rueckgabeTypGleich && sichtbarkeitGleich && getterGleich && statischGleich && statischGleich
+				&& programmierspracheGleich;
 		
 		log.finest(() -> """
 				istGleich: %s
@@ -331,10 +322,9 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 				   |-- getterGleich: %s
 				   |-- setterGleich: %s
 				   |-- statischGleich: %s
-				   ╰-- programmierspracheGleich: %s"""
-				.formatted(istGleich, istAbstraktGleich, istFinalGleich, nameGleich,
-						parameterListeGleich, rueckgabeTypGleich, sichtbarkeitGleich,
-						getterGleich, setterGleich, statischGleich, programmierspracheGleich));
+				   ╰-- programmierspracheGleich: %s""".formatted(istGleich, istAbstraktGleich, istFinalGleich,
+				nameGleich, parameterListeGleich, rueckgabeTypGleich, sichtbarkeitGleich, getterGleich, setterGleich,
+				statischGleich, programmierspracheGleich));
 		
 		return istGleich;
 	}
@@ -349,9 +339,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 			setterAttributKopie = setterAttribut.erzeugeTiefeKopie();
 		}
 		
-		var kopie = new Methode(getSichtbarkeit(), getRueckgabeTyp().erzeugeTiefeKopie(),
-				istStatisch(), istGetter(), istSetter(), getterAttributKopie,
-				setterAttributKopie, programmiersprache);
+		var kopie = new Methode(getSichtbarkeit(), getRueckgabeTyp().erzeugeTiefeKopie(), istStatisch(), istGetter(),
+				istSetter(), getterAttributKopie, setterAttributKopie, programmiersprache);
 		kopie.setName(getName());
 		kopie.setzeAbstrakt(istAbstrakt());
 		kopie.setzeFinal(istFinal());
@@ -365,16 +354,31 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		return kopie;
 	}
 	
-	public static Methode erstelleGetter(Attribut attribut,
-			Programmiersprache programmiersprache) {
-		return new Methode(Modifizierer.PUBLIC, attribut.getDatentyp(), attribut.istStatisch(),
-				true, false, attribut, null, programmiersprache);
+	public static Methode erstelleGetter(Attribut attribut, Programmiersprache programmiersprache) {
+		return new Methode(Modifizierer.PUBLIC, attribut.getDatentyp(), attribut.istStatisch(), true, false, attribut,
+				null, programmiersprache);
 	}
 	
-	public static Methode erstelleSetter(Attribut attribut,
-			Programmiersprache programmiersprache) {
-		return new Methode(Modifizierer.PUBLIC, attribut.getDatentyp(), attribut.istStatisch(),
-				false, true, null, attribut, programmiersprache);
+	public static Methode erstelleSetter(Attribut attribut, Programmiersprache programmiersprache) {
+		return new Methode(Modifizierer.PUBLIC, attribut.getDatentyp(), attribut.istStatisch(), false, true, null,
+				attribut, programmiersprache);
+	}
+	
+	@Override
+	public void close() throws Exception {
+		log.finest(() -> this + " leere Parameter");
+		for(var param : parameterListe) {
+			param.close();
+		}
+		try {
+			parameterListe.clear();
+		} catch (Exception e) {
+			// ignorieren fuer Empty List
+		}
+		log.finest(() -> this + " leere listeners");
+		beobachterListe.clear();
+		getterAttribut = null;
+		setterAttribut = null;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
