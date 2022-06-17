@@ -13,10 +13,12 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
@@ -152,6 +154,28 @@ class ProjektKontrolle {
 					.formatted(Umlaute.ue, projekt));
 			// @formatter:on
 			return false;
+		}
+		
+		if (OS.getDefault().istLinux()) { // Workaround fuer Dateierweiterung
+			var erweiterungen = Arrays.stream(ansicht.get().getProgrammDetails().dateiZuordnung())
+					.flatMap(e -> e.getExtensions().stream()).toList();
+			if (!erweiterungen.isEmpty()) {
+				boolean hatErweiterung = false;
+				for (var erweiterung : erweiterungen) {
+					log.finer(() -> "Pruefe Erweiterung " + erweiterung);
+					if (speicherOrt.getName().matches(erweiterung.replace(".", "\\.").replace("*", ".+"))) {
+						log.finer(() -> "Erweiterung vorhanden: " + erweiterung);
+						hatErweiterung = true;
+						break;
+					}
+				}
+				
+				if (!hatErweiterung) {
+					speicherOrt = new File(speicherOrt.getAbsolutePath() + erweiterungen.get(0).replace("*", ""));
+					String datei = speicherOrt.getAbsolutePath();
+					log.finer(() -> "Keine Erweiterung vorhanden. Neue Datei: " + datei);
+				}
+			}
 		}
 		
 		Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung

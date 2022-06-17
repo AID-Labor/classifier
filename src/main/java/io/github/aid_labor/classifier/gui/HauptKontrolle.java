@@ -93,13 +93,11 @@ class HauptKontrolle {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	void konigurationsordnerOeffnen(Event event) {
-		Path ordner = OS.getDefault()
-				.getKonfigurationsOrdnerPath(ansicht.get().getProgrammDetails());
+		Path ordner = OS.getDefault().getKonfigurationsOrdnerPath(ansicht.get().getProgrammDetails());
 		try {
 			ansicht.get().getRechnerService().showDocument(ordner.toUri().toString());
 		} catch (Exception e) {
-			log.log(Level.WARNING, e,
-					() -> "Ordner %s konnte nicht angezeigt werden".formatted(ordner));
+			log.log(Level.WARNING, e, () -> "Ordner %s konnte nicht angezeigt werden".formatted(ordner));
 		}
 	}
 	
@@ -110,13 +108,11 @@ class HauptKontrolle {
 				Nur die Einstellungen bleiben erhalten.
 				
 				Das Programm wird automatisch beendet und muss wieder manuell ge%cffnet werden.
-				Nicht gespeicherte %cnderungen gehen ohne Nachfrage verloren!"""
-				.formatted(oe, oe, AE)));
+				Nicht gespeicherte %cnderungen gehen ohne Nachfrage verloren!""".formatted(oe, oe, AE)));
 		beschreibung.setWrapText(true);
 		beschreibung.setId("NEUSTART_WARNUNG");
-		this.ansicht.get().getOverlayDialog().showNode(Type.WARNING, dialogTitel,
-				new StackPane(beschreibung), false, List.of(ButtonType.OK, ButtonType.CANCEL))
-				.thenAccept(buttonTyp -> {
+		this.ansicht.get().getOverlayDialog().showNode(Type.WARNING, dialogTitel, new StackPane(beschreibung), false,
+				List.of(ButtonType.OK, ButtonType.CANCEL)).thenAccept(buttonTyp -> {
 					if (buttonTyp.equals(ButtonType.OK)) {
 						bereinigeKonfigurationsOrdner();
 						Platform.exit();
@@ -133,55 +129,45 @@ class HauptKontrolle {
 		ChoiceBox<Programmiersprache> wahlProgrammiersprache = new ChoiceBox<>();
 		wahlProgrammiersprache.getItems().addAll(Programmiersprache.values());
 		wahlProgrammiersprache.getSelectionModel().select(Programmiersprache.Java);
-		dialog.add(new EnhancedLabel(sprache.getText("programmiersprache",
-				"Programmiersprache") + ":"), 0, 1);
+		dialog.add(new EnhancedLabel(sprache.getText("programmiersprache", "Programmiersprache") + ":"), 0, 1);
 		dialog.add(wahlProgrammiersprache, 1, 1);
 		dialog.setHgap(10);
 		dialog.setVgap(15);
 		dialog.setPadding(new Insets(20));
 		
 		List<ButtonType> buttons = List.of(
-				new ButtonType(sprache.getText("abbrechen", "Abbrechen"),
-						ButtonData.CANCEL_CLOSE),
+				new ButtonType(sprache.getText("abbrechen", "Abbrechen"), ButtonData.CANCEL_CLOSE),
 				new ButtonType(sprache.getText("ok", "Ok"), ButtonData.OK_DONE));
 		
 		Platform.runLater(() -> eingabeName.requestFocus());
 		ansicht.get().getOverlayDialog()
-				.showNode(Type.INPUT, sprache.getText("neuesProjekt", "Neues Projekt"), dialog,
-						false, buttons, true)
+				.showNode(Type.INPUT, sprache.getText("neuesProjekt", "Neues Projekt"), dialog, false, buttons, true)
 				.thenAccept(button -> {
 					if (button.getButtonData().equals(ButtonData.OK_DONE)) {
 						log.finest(() -> "neues Projekt anlegen");
 						
 						String name = eingabeName.textProperty().get();
-						Programmiersprache programmiersprache = wahlProgrammiersprache
-								.getSelectionModel().getSelectedItem();
+						Programmiersprache programmiersprache = wahlProgrammiersprache.getSelectionModel()
+								.getSelectedItem();
 						
 						if (name.isBlank()) {
-							ansicht.get().zeigeAnlegenFehlerDialog(sprache.getText(
-									"anlegenFehlerName",
-									"Es muss ein g%cltiger Projektname angegeben werden"
-											.formatted(ue)));
+							ansicht.get().zeigeAnlegenFehlerDialog(sprache.getText("anlegenFehlerName",
+									"Es muss ein g%cltiger Projektname angegeben werden".formatted(ue)));
 						} else if (programmiersprache == null) {
-							ansicht.get().zeigeAnlegenFehlerDialog(sprache.getText(
-									"anlegenFehlerProgrammiersprache",
-									"Es muss eine Programmiersprache ausgew%chlt werden"
-											.formatted(ae)));
+							ansicht.get().zeigeAnlegenFehlerDialog(sprache.getText("anlegenFehlerProgrammiersprache",
+									"Es muss eine Programmiersprache ausgew%chlt werden".formatted(ae)));
 						} else {
-							UMLProjekt projekt = new UMLProjekt(name, programmiersprache,
-									false);
+							UMLProjekt projekt = new UMLProjekt(name, programmiersprache, false);
 							try {
 								ansicht.get().zeigeProjekt(projekt);
 							} catch (Exception e) {
-								log.log(Level.SEVERE, e,
-										() -> "Fehler beim Anlegen eins Projektes");
+								log.log(Level.SEVERE, e, () -> "Fehler beim Anlegen eins Projektes");
 							}
 						}
 					} else if (button.getButtonData().equals(ButtonData.CANCEL_CLOSE)) {
 						log.finest(() -> "Projekt erstellen abgebrochen.");
 					} else {
-						log.severe(() -> "Unbehandelter Buttontyp: "
-								+ button.getButtonData().toString());
+						log.severe(() -> "Unbehandelter Buttontyp: " + button.getButtonData().toString());
 					}
 				});
 	}
@@ -203,18 +189,17 @@ class HauptKontrolle {
 	void projektOeffnen(Event event) {
 		FileChooser dateiDialog = new FileChooser();
 		
-		dateiDialog.setInitialDirectory(new File(
-				Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung.get()));
+		dateiDialog.setInitialDirectory(
+				new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung.get()));
 		
-		dateiDialog.getExtensionFilters()
-				.addAll(ansicht.get().getProgrammDetails().dateiZuordnung());
+		if (!OS.getDefault().istLinux()) {	// Workaraound, da in Linux die Dateierweitung nicht erkannt wird
+			dateiDialog.getExtensionFilters().addAll(ansicht.get().getProgrammDetails().dateiZuordnung());
+		}
 		
-		String titel = sprache.getText("oeffnenDialogTitel",
-				"Projekt %cffnen".formatted(Umlaute.OE));
+		String titel = sprache.getText("oeffnenDialogTitel", "Projekt %cffnen".formatted(Umlaute.OE));
 		dateiDialog.setTitle(titel);
 		
-		List<File> dateien = dateiDialog
-				.showOpenMultipleDialog(ansicht.get().getWurzelknoten().getScene().getWindow());
+		List<File> dateien = dateiDialog.showOpenMultipleDialog(ansicht.get().getWurzelknoten().getScene().getWindow());
 		
 		if (dateien != null && !dateien.isEmpty()) {
 			Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung
@@ -232,21 +217,18 @@ class HauptKontrolle {
 			Dragboard db = event.getDragboard();
 			boolean akzeptieren = false;
 			if (db.hasFiles()) {
-				for (ExtensionFilter erweiterungen : this.ansicht.get().getProgrammDetails()
-						.dateiZuordnung()) {
+				for (ExtensionFilter erweiterungen : this.ansicht.get().getProgrammDetails().dateiZuordnung()) {
 					for (String erweiterung : erweiterungen.getExtensions()) {
-						akzeptieren |= db.getFiles().stream()
-								.filter(datei -> datei.getName().endsWith(erweiterung))
-								.toList()
-								.isEmpty();
+						akzeptieren |= db.getFiles().stream().filter(datei -> datei.getName().endsWith(erweiterung))
+								.toList().isEmpty();
 					}
 				}
 				String akzeptiert = String.valueOf(akzeptieren);
 				log.finer(() -> """
 						DragOver-Dateien: [%s]
-						         Akzeptieren: %s"""
-						.formatted(db.getFiles().stream().map(datei -> datei.getAbsolutePath())
-								.collect(Collectors.joining("   ")), akzeptiert));
+						         Akzeptieren: %s""".formatted(
+						db.getFiles().stream().map(datei -> datei.getAbsolutePath()).collect(Collectors.joining("   ")),
+						akzeptiert));
 			}
 			if (akzeptieren) {
 				event.acceptTransferModes(TransferMode.COPY);
@@ -268,12 +250,10 @@ class HauptKontrolle {
 		try {
 			projekt = UMLProjekt.ausDateiOeffnen(datei.toPath());
 		} catch (IOException e) {
-			log.log(Level.WARNING, e, () -> "Datei %s konnte nicht gelesen werden"
-					.formatted(datei.getAbsolutePath()));
+			log.log(Level.WARNING, e, () -> "Datei %s konnte nicht gelesen werden".formatted(datei.getAbsolutePath()));
 		} catch (Exception e) {
 			log.log(Level.WARNING, e,
-					() -> "Beim Lesen der Datei %s ist ein Fehler aufgetreten"
-							.formatted(datei.getAbsolutePath()));
+					() -> "Beim Lesen der Datei %s ist ein Fehler aufgetreten".formatted(datei.getAbsolutePath()));
 		}
 		
 		if (projekt == null) {
@@ -288,8 +268,7 @@ class HauptKontrolle {
 					Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag);
 				}
 			} catch (Exception e) {
-				log.log(Level.INFO, e,
-						() -> "Projekt %s wurde nicht geoeffnet".formatted(projektName));
+				log.log(Level.INFO, e, () -> "Projekt %s wurde nicht geoeffnet".formatted(projektName));
 				ansicht.get().zeigeOeffnenWarnungDialog(datei);
 			}
 		}
@@ -298,12 +277,11 @@ class HauptKontrolle {
 	void projektUmbenennen(Event event) {
 		UMLProjekt projekt = ansicht.get().getProjektAnsicht().getAngezeigtesProjektProperty().get();
 		
-		MessageFormat format = new MessageFormat(sprache.getText("umbenennenTitel",
-				"Neuen Namen f%cr Projekt {0} festlegen".formatted(ue)));
+		MessageFormat format = new MessageFormat(
+				sprache.getText("umbenennenTitel", "Neuen Namen f%cr Projekt {0} festlegen".formatted(ue)));
 		String titel = format.format(new Object[] { projekt.getName() });
 		
-		Dialog<String> eingabeDialog = this.ansicht.get().getOverlayDialog().showTextInput(titel,
-				projekt.getName());
+		Dialog<String> eingabeDialog = this.ansicht.get().getOverlayDialog().showTextInput(titel, projekt.getName());
 		
 		TextField eingabe = findeElement(eingabeDialog.getContent(), TextField.class);
 		if (eingabe != null) {
@@ -335,8 +313,7 @@ class HauptKontrolle {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void bereinigeKonfigurationsOrdner() {
-		var konfigurationsordner = OS.getDefault()
-				.getKonfigurationsOrdnerPath(ansicht.get().getProgrammDetails());
+		var konfigurationsordner = OS.getDefault().getKonfigurationsOrdnerPath(ansicht.get().getProgrammDetails());
 		var ausgeschlossen = Ressourcen.get().KONFIGURATIONSORDNER.alsPath();
 		
 		log.info(() -> "Bereinige Konfigurationsordner " + konfigurationsordner);
@@ -347,8 +324,7 @@ class HauptKontrolle {
 				DateiUtil.loescheDateiOderOrdner(inhalt);
 			}
 		} catch (IOException e) {
-			log.log(Level.WARNING, e,
-					() -> "Fehler beim Bereinigen des Konfigurationsordners");
+			log.log(Level.WARNING, e, () -> "Fehler beim Bereinigen des Konfigurationsordners");
 		}
 	}
 	
