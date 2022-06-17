@@ -44,6 +44,10 @@ public class ClassifierUtil {
 	 */
 	public static <T extends Iterable<E>, E> boolean pruefeGleichheit(T ersterContainer,
 			T zweiterConateiner) {
+		if (ersterContainer == null || zweiterConateiner == null) {
+			return ersterContainer == null && zweiterConateiner == null;
+		}
+		
 		boolean elementeGleich = true;
 		Iterator<E> elemente1 = ersterContainer.iterator();
 		Iterator<E> elemente2 = zweiterConateiner.iterator();
