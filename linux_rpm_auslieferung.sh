@@ -100,25 +100,83 @@ echo "Erzeuge Installer-Skript"
 echo "#!/bin/sh
 if [ \$(/usr/bin/id -u) -ne 0 ]; then
     echo \"root permissions required, please retry wiht sudo or as root\"
-    exit
+    exit 1
 fi
 
+EXIT_CODE=0
 chmod +x ./opt/*/bin/*
-cp -r --copy-contents ./opt/* /opt/
+echo ''
+echo '1) -----------------------'
+echo ''
+echo copy program to /opt/
+cp -rv --copy-contents ./opt/* /opt/
+EXIT_CODE=\$(expr $EXIT_CODE + \$?)
+
+echo ''
+echo '2) -----------------------'
+echo ''
+echo copy desktop-file for Application-Menu to /usr/share/applications/
 mkdir --parents /usr/share/applications
-cp --copy-contents ./opt/*/lib/*.desktop /usr/share/applications/
+cp -v --copy-contents ./opt/*/lib/*.desktop /usr/share/applications/
+EXIT_CODE=\$(expr $EXIT_CODE + \$?)
+
+echo ''
+echo '--------------------------'
+echo ''
+if [ \$EXIT_CODE -gt 0 ]; then
+    echo Something went wrong.
+    EXIT_CODE=2
+else
+    echo Installation successfully completed.
+fi
+echo ''
+exit \$EXIT_CODE
 " > "${NAME}-${VERSION}/install.sh"
 chmod 555 "${NAME}-${VERSION}/install.sh"
 echo "Erzeuge Uninstaller-Skript"
 echo "#!/bin/sh
 if [ \$(/usr/bin/id -u) -ne 0 ]; then
     echo \"root permissions required, please retry wiht sudo or as root\"
-    exit
+    exit 1
 fi
 
-rm -rf /opt/${NAME_KLEIN}
-rm /usr/share/applications/${NAME_KLEIN}-${NAME}.desktop
-rm -rf ~/.config/${NAME}
+EXIT_CODE=0
+echo ''
+echo '1) -----------------------'
+echo ''
+echo delete program path
+rm -rfv /opt/${NAME_KLEIN}
+EXIT_CODE=\$(expr $EXIT_CODE + \$?)
+
+echo ''
+echo '2) -----------------------'
+echo ''
+echo delete desktop-file
+rm -v /usr/share/applications/${NAME_KLEIN}-${NAME}.desktop
+EXIT_CODE=\$(expr $EXIT_CODE + \$?)
+
+echo ''
+echo '--------------------------'
+if [ \$EXIT_CODE -gt 0 ]; then
+    echo Something went wrong. Please see output.
+    EXIT_CODE=2
+else
+    echo Uninstallation successfully completed.
+fi
+echo '--------------------------'
+echo ''
+
+echo ''
+echo '--------- Additional Steps ---------'
+echo ''
+echo 'run the following command to remove all remaining configuration files:'
+echo ''
+echo '>>'
+echo '    rm -rfv ~/.config/${NAME}'
+echo '<<'
+echo ''
+
+exit \$EXIT_CODE
 " > "${NAME}-${VERSION}/uninstall.sh"
 
 chmod 555 "${NAME}-${VERSION}/uninstall.sh"
