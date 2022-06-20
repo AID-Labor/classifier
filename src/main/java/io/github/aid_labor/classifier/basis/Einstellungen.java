@@ -44,7 +44,7 @@ import javafx.collections.ObservableSet;
 		getterVisibility = Visibility.NONE,
 		isGetterVisibility = Visibility.NONE,
 		setterVisibility = Visibility.NONE,
-		creatorVisibility = Visibility.NONE,
+		creatorVisibility = Visibility.NON_PRIVATE,
 		fieldVisibility = Visibility.ANY
 )
 // @formatter:on
@@ -216,10 +216,10 @@ public class Einstellungen {
 	 * @param letzteDateien
 	 */
 	@JsonCreator
-	private Einstellungen(@JsonProperty("letzteDateien") List<DatumWrapper<Path>> letzteDateien) {
+	Einstellungen(@JsonProperty("letzteDateienProperty") List<DatumWrapper<Path>> letzteDateienProperty) {
 		this();
 		this.letzteDateienProperty
-				.addAll(letzteDateien.stream().filter(eintrag -> Files.exists(eintrag.getElement())).toList());
+				.addAll(letzteDateienProperty.stream().filter(eintrag -> Files.exists(eintrag.getElement())).toList());
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
