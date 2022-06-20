@@ -7,9 +7,11 @@
 package io.github.aid_labor.classifier.gui;
 
 import java.lang.ref.WeakReference;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 
 import org.controlsfx.control.PopOver;
@@ -617,7 +619,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		Platform.runLater(() -> {
 			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivieren.get()) {
-				eingabeValidierung.registerValidator(parameter,
+				eingabeValidierung.registerValidator(parameter, Validator.combine(
 						Validator.createPredicateValidator(
 								tf -> getKlassifizierer().getMethoden().stream()
 										.filter(m -> Objects.equals(m.getName(), methode.getName()) && Objects
@@ -625,7 +627,22 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 										.count() <= 1,
 								sprache.getText("methodeValidierung",
 										"Eine Methode mit gleicher Signatur (Name und Parameterliste) "
-												+ "ist bereits vorhanden")));
+												+ "ist bereits vorhanden")),
+						Validator.createPredicateValidator(
+								tf -> {
+									Set<String> params = new HashSet<>();
+									boolean doppelt = false;
+									for (var param : methode.getParameterListe()) {
+										if (!params.add(param.getName())) {
+											doppelt = true;
+											break;
+										}
+									}
+									return !doppelt;
+								},
+								sprache.getText("parameterValidierung2",
+										"Es darf keine Parameter mit gleichem Namen geben"))
+						));
 				setzePlatzhalter(parameter);
 				NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
 			}
@@ -709,8 +726,23 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					}
 					
 					Platform.runLater(() -> {
-						eingabeValidierung.registerValidator(name,
-								Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
+						if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivieren.get()) {
+							eingabeValidierung.registerValidator(name,
+									Validator.combine(
+											Validator.createEmptyValidator(
+													sprache.getText("nameValidierung", "Name angeben")),
+											Validator.createPredicateValidator(
+													tf -> methode.getParameterListe().stream()
+															.filter(p -> Objects.equals(p.getName(), name.getText()))
+															.count() <= 1,
+													sprache.getText("parameterValidierung",
+															"Ein Parameter mit diesem Namen ist bereits vorhanden"))));
+							NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
+						} else {
+							eingabeValidierung.registerValidator(name,
+									Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
+						}
+						
 						eingabeValidierung.registerValidator(datentyp, Validator
 								.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
 						setzePlatzhalter(name);
