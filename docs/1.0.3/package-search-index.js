@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"m":"classifier","l":"io.github.aid_labor.classifier.main"}];updateSearchResults();

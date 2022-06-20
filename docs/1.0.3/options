@@ -1,0 +1,33 @@
+--class-path
+'/Users/tim/.m2/repository/org/openjfx/javafx-base/17.0.2/javafx-base-17.0.2.jar:/Users/tim/.m2/repository/org/openjfx/javafx-controls/17.0.2/javafx-controls-17.0.2.jar:/Users/tim/.m2/repository/org/openjfx/javafx-graphics/17.0.2/javafx-graphics-17.0.2.jar:/Users/tim/.m2/repository/org/openjfx/javafx-swing/17.0.2/javafx-swing-17.0.2.jar:/Users/tim/.m2/repository/org/openjfx/javafx-web/17.0.2/javafx-web-17.0.2.jar:/Users/tim/.m2/repository/org/openjfx/javafx-media/17.0.2/javafx-media-17.0.2.jar:/Users/tim/.m2/repository/com/dlsc/unitfx/unitfx/1.0.10/unitfx-1.0.10.jar:/Users/tim/.m2/repository/tech/units/indriya/2.1.2/indriya-2.1.2.jar:/Users/tim/.m2/repository/javax/measure/unit-api/2.1.2/unit-api-2.1.2.jar:/Users/tim/.m2/repository/tech/uom/lib/uom-lib-common/2.1/uom-lib-common-2.1.jar:/Users/tim/.m2/repository/javax/inject/javax.inject/1/javax.inject-1.jar:/Users/tim/.m2/repository/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar:/Users/tim/.m2/repository/commons-digester/commons-digester/2.1/commons-digester-2.1.jar:/Users/tim/.m2/repository/commons-logging/commons-logging/1.2/commons-logging-1.2.jar:/Users/tim/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar:/Users/tim/.m2/repository/com/squareup/okio/okio/1.15.0/okio-1.15.0.jar:/Users/tim/.m2/repository/org/openjfx/javafx-fxml/18/javafx-fxml-18.jar:/Users/tim/.m2/repository/org/openjfx/javafx-fxml/18/javafx-fxml-18-mac.jar:/Users/tim/.m2/repository/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.13.3/jackson-datatype-jsr310-2.13.3.jar'
+--module-path
+'/Users/tim/.m2/repository/org/kordamp/ikonli/ikonli-materialdesign-pack/12.3.0/ikonli-materialdesign-pack-12.3.0.jar:/Users/tim/.m2/repository/org/apache/commons/commons-lang3/3.11/commons-lang3-3.11.jar:/Users/tim/.m2/repository/com/squareup/retrofit2/retrofit/2.6.1/retrofit-2.6.1.jar:/Users/tim/.m2/repository/org/kordamp/ikonli/ikonli-javafx/12.3.1/ikonli-javafx-12.3.1.jar:/Users/tim/.m2/repository/org/controlsfx/controlsfx/11.1.1/controlsfx-11.1.1.jar:/Users/tim/.m2/repository/org/openjfx/javafx-graphics/17.0.2/javafx-graphics-17.0.2-mac.jar:/Users/tim/.m2/repository/org/openjfx/javafx-swing/17.0.2/javafx-swing-17.0.2-mac.jar:/Users/tim/.m2/repository/com/dlsc/gemsfx/gemsfx/1.45.2/gemsfx-1.45.2.jar:/Users/tim/.m2/repository/com/dlsc/pickerfx/pickerfx/1.2.0/pickerfx-1.2.0.jar:/Users/tim/.m2/repository/com/pixelduke/fxribbon/1.2.1/fxribbon-1.2.1.jar:/Users/tim/.m2/repository/com/squareup/okhttp3/okhttp/3.12.0/okhttp-3.12.0.jar:/Users/tim/.m2/repository/org/openjfx/javafx-web/17.0.2/javafx-web-17.0.2-mac.jar:/Users/tim/.m2/repository/org/kordamp/ikonli/ikonli-whhg-pack/12.3.1/ikonli-whhg-pack-12.3.1.jar:/Users/tim/.m2/repository/org/kordamp/ikonli/ikonli-remixicon-pack/12.3.1/ikonli-remixicon-pack-12.3.1.jar:/Users/tim/.m2/repository/org/kordamp/ikonli/ikonli-carbonicons-pack/12.3.1/ikonli-carbonicons-pack-12.3.1.jar:/Users/tim/.m2/repository/commons-validator/commons-validator/1.7/commons-validator-1.7.jar:/Users/tim/.m2/repository/fr/brouillard/oss/cssfx/11.5.1/cssfx-11.5.1.jar:/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/target/classes:/Users/tim/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.13.3/jackson-databind-2.13.3.jar:/Users/tim/.m2/repository/org/kordamp/ikonli/ikonli-core/12.3.0/ikonli-core-12.3.0.jar:/Users/tim/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.13.3/jackson-core-2.13.3.jar:/Users/tim/.m2/repository/org/openjfx/javafx-controls/17.0.2/javafx-controls-17.0.2-mac.jar:/Users/tim/.m2/repository/commons-cli/commons-cli/1.5.0/commons-cli-1.5.0.jar:/Users/tim/.m2/repository/org/kordamp/ikonli/ikonli-bootstrapicons-pack/12.3.1/ikonli-bootstrapicons-pack-12.3.1.jar:/Users/tim/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar:/Users/tim/.m2/repository/org/openjfx/javafx-base/17.0.2/javafx-base-17.0.2-mac.jar:/Users/tim/.m2/repository/org/openjfx/javafx-media/17.0.2/javafx-media-17.0.2-mac.jar:/Users/tim/.m2/repository/org/kordamp/ikonli/ikonli-typicons-pack/12.3.1/ikonli-typicons-pack-12.3.1.jar'
+--patch-module
+classifier='/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java'
+-encoding
+'UTF-8'
+-protected
+--module-source-path
+'/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/doc/1.0.3/src'
+--javafx --module classifier --show-module-contents all --show-packages all --show-types protected
+-author
+-bottom
+'Copyright &#169; 2022. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/doc/1.0.3'
+-docencoding
+'UTF-8'
+-doctitle
+'Classifier 1.0.3 API'
+-tag
+"apiNote:a:Api-Note:"
+-tag
+"implNote:a:Implementation-Note:"
+-tag
+"implSpec:a:Implementation-Specification:"
+-use
+-version
+-windowtitle
+'Classifier 1.0.3 API'
