@@ -1,37 +1,16 @@
-## Welcome to GitHub Pages
+## Classifier
 
-You can use the [editor on GitHub](https://github.com/AID-Labor/classifier/edit/main/docs/index.md) to maintain and preview the content for your website in Markdown files.
+![Logo](Classifier-Logo_2x.png)
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+Classifier ist ein kostenloses Tool zur Modellierung von UML-Klassendiagrammen. Der Classifier wurde 2022 im Umfang meiner Bachelorarbeit an der Hochschule Bochum für das "Labor für Angewandte Informatik & Datenbanken" (AID-Labor) entwickelt und soll für die Lehre in der Vorlesung "Informatik 2" in den Bachelor-Studiengängen Elektrotechnik sowie Wirtschaftsingenieurswesen Elektrotechnik eingesetzt werden. Die Bachelorarbeit wurde betreut von Prof. Dr. rer. nat. Katrin Brabender und Dipl.-Ing. (FH) Andreas Koch, bei denen ich mich herzlich für die Zusammenarbeit bedanke.
 
-### Markdown
+### Download
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+[Aktuelle Verion](https://github.com/AID-Labor/classifier/releases/latest)
 
-```markdown
-Syntax highlighted code block
+### Javadoc
 
-# Header 1
-## Header 2
-### Header 3
+[Dokumentation](url)
 
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/AID-Labor/classifier/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+### Screenshots
+_in Erstellung_
