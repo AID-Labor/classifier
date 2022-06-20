@@ -307,10 +307,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		tabelle.add(interfaces, 1, 5);
 		
 		NodeUtil.beobachteSchwach(typ, typ.getSelectionModel().selectedItemProperty(), getKlassifizierer()::setTyp);
-		bindeBiderektional(getKlassifizierer().getPaketProperty(), paket.textProperty());
-		bindeBiderektional(getKlassifizierer().nameProperty(), name.textProperty());
-		bindeBiderektional(getKlassifizierer().superklasseProperty(), superklasse.textProperty());
-		bindeBiderektional(getKlassifizierer().interfacesProperty(), interfaces.textProperty());
+		bindeBidirektional(getKlassifizierer().getPaketProperty(), paket.textProperty());
+		bindeBidirektional(getKlassifizierer().nameProperty(), name.textProperty());
+		bindeBidirektional(getKlassifizierer().superklasseProperty(), superklasse.textProperty());
+		bindeBidirektional(getKlassifizierer().interfacesProperty(), interfaces.textProperty());
 		
 		tabelle.setHgap(5);
 		tabelle.setVgap(15);
@@ -332,6 +332,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				neueWahl);
 		this.typBeobachterListe.add(typBeobachter);
 		typ.getSelectionModel().selectedItemProperty().addListener(typBeobachter);
+		
+		this.setOnShown(e -> Platform.runLater(name::requestFocus));
 		
 		return tabelle;
 	}
@@ -419,24 +421,24 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				attribut::setSichtbarkeit);
 		
 		TextField name = new TextField();
-		bindeBiderektional(name.textProperty(), attribut.getNameProperty());
+		bindeBidirektional(name.textProperty(), attribut.getNameProperty());
 		
 		TextField datentyp = new TextField(attribut.getDatentyp().getTypName());
-		bindeBiderektional(datentyp.textProperty(), attribut.getDatentyp().getTypNameProperty());
+		bindeBidirektional(datentyp.textProperty(), attribut.getDatentyp().getTypNameProperty());
 		
 		TextField initialwert = new TextField(attribut.getInitialwert());
-		bindeBiderektional(initialwert.textProperty(),attribut.getInitialwertProperty());
+		bindeBidirektional(initialwert.textProperty(),attribut.getInitialwertProperty());
 		
 		CheckBox getter = new CheckBox();
-		bindeBiderektional(getter.selectedProperty(), attribut.getHatGetterProperty());
+		bindeBidirektional(getter.selectedProperty(), attribut.getHatGetterProperty());
 		GridPane.setHalignment(getter, HPos.CENTER);
 		
 		CheckBox setter = new CheckBox();
-		bindeBiderektional(setter.selectedProperty(), attribut.getHatSetterProperty());
+		bindeBidirektional(setter.selectedProperty(), attribut.getHatSetterProperty());
 		GridPane.setHalignment(setter, HPos.CENTER);
 		
 		CheckBox statisch = new CheckBox();
-		bindeBiderektional(statisch.selectedProperty(), attribut.getIstStatischProperty());
+		bindeBidirektional(statisch.selectedProperty(), attribut.getIstStatischProperty());
 		GridPane.setHalignment(statisch, HPos.CENTER);
 		
 		Label loeschen = new Label();
@@ -487,6 +489,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.typBeobachterListe.add(typBeobachter);
 		getKlassifizierer().typProperty().addListener(typBeobachter);
 		
+		if (name.getText().isEmpty()) {
+			Platform.runLater(name::requestFocus);
+		}
+		
 		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter, statisch, hoch, runter,
 			loeschen };
 	}
@@ -529,7 +535,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				methode::setSichtbarkeit);
 		
 		TextField name = new TextField();
-		bindeBiderektional(name.textProperty(), methode.getNameProperty());
+		bindeBidirektional(name.textProperty(), methode.getNameProperty());
 		
 		TextField parameter = new TextField();
 		parameter.textProperty().bind(Bindings.concat("(").concat(new StringBinding() {
@@ -574,19 +580,19 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		parameter.setOnAction(e -> bearbeiteParameter(parameter, methode));
 		
 		TextField rueckgabetyp = new TextField(methode.getRueckgabeTyp().getTypName());
-		bindeBiderektional(rueckgabetyp.textProperty(), methode.getRueckgabeTyp().getTypNameProperty());
+		bindeBidirektional(rueckgabetyp.textProperty(), methode.getRueckgabeTyp().getTypNameProperty());
 		rueckgabetyp.setPrefWidth(70);
 		
 		CheckBox abstrakt = new CheckBox();
-		bindeBiderektional(abstrakt.selectedProperty(), methode.getIstAbstraktProperty());
+		bindeBidirektional(abstrakt.selectedProperty(), methode.getIstAbstraktProperty());
 		GridPane.setHalignment(abstrakt, HPos.CENTER);
 		
 		CheckBox istFinal = new CheckBox();
-		bindeBiderektional(istFinal.selectedProperty(), methode.getIstFinalProperty());
+		bindeBidirektional(istFinal.selectedProperty(), methode.getIstFinalProperty());
 		GridPane.setHalignment(istFinal, HPos.CENTER);
 		
 		CheckBox statisch = new CheckBox();
-		bindeBiderektional(statisch.selectedProperty(), methode.getIstStatischProperty());
+		bindeBidirektional(statisch.selectedProperty(), methode.getIstStatischProperty());
 		GridPane.setHalignment(statisch, HPos.CENTER);
 		
 		Label loeschen = new Label();
@@ -658,6 +664,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			}
 		});
 		
+		if (name.getText().isEmpty()) {
+			Platform.runLater(name::requestFocus);
+		}
+		
 		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, istFinal, statisch, hoch, runter,
 			loeschen };
 	}
@@ -666,10 +676,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		var parameterListe = erzeugeTabellenAnzeige(new String[] { "Parametername", "Datentyp" },
 				methode.getParameterListe(), (param, zeile) -> {
 					TextField name = new TextField();
-					bindeBiderektional(name.textProperty(), param.getNameProperty());
+					bindeBidirektional(name.textProperty(), param.getNameProperty());
 					
 					TextField datentyp = new TextField(param.getDatentyp().getTypName());
-					bindeBiderektional(datentyp.textProperty(), param.getDatentyp().getTypNameProperty());
+					bindeBidirektional(datentyp.textProperty(), param.getDatentyp().getTypNameProperty());
 					
 					Label loeschen = new Label();
 					NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
@@ -686,6 +696,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					Label runter = new Label();
 					NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
 					runter.setOnMouseClicked(e -> tausche(methode.getParameterListe(), zeile, zeile + 1));
+					
+					if (zeile == methode.getParameterListe().size() - 1) {
+						runter.setDisable(true);
+					}
 					
 					if (methode.istGetter() || methode.istSetter()) {
 						datentyp.setDisable(true);
@@ -708,6 +722,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 									() -> eingabeValidierung.revalidate());
 						}
 					});
+					
+					if (name.getText().isEmpty()) {
+						Platform.runLater(name::requestFocus);
+					}
 					
 					return new Node[] { name, datentyp, loeschen, hoch, runter };
 				}, event -> {
@@ -806,7 +824,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 	}
 	
-	private <T> void bindeBiderektional(Property<T> p1, Property<T> p2) {
+	private <T> void bindeBidirektional(Property<T> p1, Property<T> p2) {
 		p1.bindBidirectional(p2);
 		loeseBindungen.add(() -> p1.unbindBidirectional(p2));
 	}

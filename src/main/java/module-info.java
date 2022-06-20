@@ -37,4 +37,5 @@ module classifier {
 	requires fr.brouillard.oss.cssfx;
 	requires org.controlsfx.controls;
 	requires javafx.web;
+	requires java.xml;
 }

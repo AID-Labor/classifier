@@ -14,6 +14,7 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import javafx.application.Platform;
+import javafx.concurrent.Worker;
 import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
@@ -29,23 +30,22 @@ import javafx.scene.web.WebView;
 
 
 public class UMLKommentarBearbeitenDialog extends Alert {
-	private static final Logger log = Logger
-			.getLogger(UMLKommentarBearbeitenDialog.class.getName());
-
+	private static final Logger log = Logger.getLogger(UMLKommentarBearbeitenDialog.class.getName());
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -63,8 +63,7 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 		this.sprache = new Sprache();
 		this.kommentar = new WeakReference<>(kommentar);
 		
-		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
-				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
+		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"UMLKommentarBearbeitenDialog");
 		if (!spracheGesetzt) {
 			sprache.ignoriereSprachen();
@@ -94,6 +93,23 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 		this.setResizable(true);
 		this.getDialogPane().setPrefSize(700, 400);
 		this.setOnHidden(this::updateKommentar);
+		
+		this.setOnShown(e -> {
+			web.getEngine().getLoadWorker().stateProperty().addListener((p, alt, status) -> {
+				if (Worker.State.SUCCEEDED.equals(status)) {
+					var js = """
+							const body = document.body;
+							const pos = document.createRange();
+							pos.setStartAfter(body);
+							pos.setEndAfter(body);
+							window.getSelection().addRange(pos);
+							body.focus();
+							alert("HEY");
+							""";
+					Platform.runLater(() -> web.getEngine().executeScript(js));
+				}
+			});
+		});
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -131,36 +147,19 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 	}
 	
 	private void ueberwacheAenderungen(HTMLEditor editor) {
-		String[] selektoren = {
-			".html-editor-cut",
-			".html-editor-copy",
-			".html-editor-paste",
-			".html-editor-align-left",
-			".html-editor-align-right",
-			".html-editor-align-center",
-			".html-editor-align-justify",
-			".html-editor-outdent",
-			".html-editor-indent",
-			".html-editor-bullets",
-			".html-editor-numbers",
-			".format-menu-button",
-			".font-family-menu-button",
-			".font-size-menu-button",
-			".html-editor-bold",
-			".html-editor-italic",
-			".html-editor-underline",
-			".html-editor-strike",
-			".html-editor-hr",
-			".html-editor-foreground",
-			".html-editor-background",
-		};
+		String[] selektoren = { ".html-editor-cut", ".html-editor-copy", ".html-editor-paste",
+			".html-editor-align-left", ".html-editor-align-right", ".html-editor-align-center",
+			".html-editor-align-justify", ".html-editor-outdent", ".html-editor-indent", ".html-editor-bullets",
+			".html-editor-numbers", ".format-menu-button", ".font-family-menu-button", ".font-size-menu-button",
+			".html-editor-bold", ".html-editor-italic", ".html-editor-underline", ".html-editor-strike",
+			".html-editor-hr", ".html-editor-foreground", ".html-editor-background", };
 		for (String selektor : selektoren) {
 			Platform.runLater(() -> {
 				var node = editor.lookup(selektor);
 				if (node instanceof ButtonBase b) {
 					var action = b.getOnAction();
 					b.setOnAction(e -> {
-						if (e != null && action!= null) {
+						if (e != null && action != null) {
 							action.handle(e);
 						}
 						this.updateKommentar(e);
@@ -168,7 +167,7 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 				} else if (node instanceof ComboBoxBase<?> cb) {
 					var action = cb.getOnAction();
 					cb.setOnAction(e -> {
-						if (e != null && action!= null) {
+						if (e != null && action != null) {
 							action.handle(e);
 						}
 						this.updateKommentar(e);
@@ -179,11 +178,8 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 	}
 	
 	private void initialisiereButtons() {
-		ButtonType[] buttons = {
-			new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.FINISH),
-			new ButtonType(sprache.getText("CANCEL_CLOSE", "Abbrechen"),
-					ButtonData.BACK_PREVIOUS)
-		};
+		ButtonType[] buttons = { new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.FINISH),
+			new ButtonType(sprache.getText("CANCEL_CLOSE", "Abbrechen"), ButtonData.BACK_PREVIOUS) };
 		this.getDialogPane().getButtonTypes().addAll(buttons);
 	}
 }
