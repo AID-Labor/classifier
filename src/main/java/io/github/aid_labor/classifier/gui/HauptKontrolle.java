@@ -139,7 +139,7 @@ class HauptKontrolle {
 				new ButtonType(sprache.getText("abbrechen", "Abbrechen"), ButtonData.CANCEL_CLOSE),
 				new ButtonType(sprache.getText("ok", "Ok"), ButtonData.OK_DONE));
 		
-		Platform.runLater(() -> eingabeName.requestFocus());
+		Platform.runLater(eingabeName::requestFocus);
 		ansicht.get().getOverlayDialog()
 				.showNode(Type.INPUT, sprache.getText("neuesProjekt", "Neues Projekt"), dialog, false, buttons, true)
 				.thenAccept(button -> {
