@@ -43,6 +43,14 @@ public final class DateiUtil {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	/**
+	 * Extrahiert einen Eintrag aus einer Jmod-Datei in ein angegebenes Verzeichnis
+	 * 
+	 * @param zielordner	Zielverzeichnis, in das extrahiert wird
+	 * @param ordner		Wurzelverzeichnis im Jmod-Dateisystem
+	 * @param weitererPfad	Weitere Unterordner im Jmod-Dateisystem
+	 * @throws IOException	Wenn beim entpacken ein Fehler auftritt
+	 */
 	public static void extrahiereAusJmod(Path zielordner, String ordner,
 			String... weitererPfad) throws IOException {
 		log.fine(() -> "extrahiere %s aus jmod nach %s"

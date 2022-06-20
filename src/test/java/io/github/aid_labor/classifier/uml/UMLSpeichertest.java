@@ -24,15 +24,15 @@ import io.github.aid_labor.classifier.LoggingEinstellung;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
-import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
-import io.github.aid_labor.classifier.uml.eigenschaften.Java;
-import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
-import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
-import io.github.aid_labor.classifier.uml.eigenschaften.Parameter;
-import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Parameter;
+import io.github.aid_labor.classifier.uml.programmierung.Java;
+import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 
 
 class UMLSpeichertest {
@@ -167,7 +167,7 @@ class UMLSpeichertest {
 		attribut.getDatentyp().set(Java.CHAR_PRIMITIV());
 		testeSpeichernUndOeffnen();
 		
-		attribut.setzeStatisch(true);
+		attribut.setStatisch(true);
 		testeSpeichernUndOeffnen();
 	}
 	

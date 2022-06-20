@@ -33,6 +33,12 @@ public record BibliothekInfo (
 
 	private static final Logger log = Logger.getLogger(BibliothekInfo.class.getName());
 	
+	/**
+	 * Informationen zu einer Lizenz
+	 * 
+	 * @author Tim Muehle
+	 *
+	 */
 	public record LizenzInfo (
 			String name,
 			String link
@@ -46,6 +52,11 @@ public record BibliothekInfo (
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
+	/**
+	 * Läd Informationen zu einer Bibliothek aus einer JSON-Datei.
+	 * Die JSON-Datei muss dabei Schlüssel-Werte-Paare für alle Record-Komponenten dieser Klasse und von 
+	 * {@link LizenzInfo} haben.
+	 */
 	public static BibliothekInfo ladeAusJson(Path jsondatei) {
 		try (var json = JsonUtil.getUTF8JsonParser(jsondatei)) {
 			return json.readValueAs(BibliothekInfo.class);

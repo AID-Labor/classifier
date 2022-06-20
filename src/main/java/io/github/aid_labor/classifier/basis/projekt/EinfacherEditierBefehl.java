@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * 
  * @author Tim Muehle
  *
- * @param <T>
+ * @param <T> Typ des Editierbaren Wertes
  */
 public class EinfacherEditierBefehl<T> implements WertEditierBefehl<T> {
 	private static final Logger log = Logger.getLogger(EinfacherEditierBefehl.class.getName());

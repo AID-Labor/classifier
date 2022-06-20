@@ -34,6 +34,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 
 
+/**
+ * Speicherung aller Einstellungen, die von der:dem Nutzer:in personalisiert werden kann.
+ * Diese Klasse ist als 'Multition-Pattern' ausgelegt. Es gibt eine Instanz für die personalisierten Einstellungen
+ * und eien Instanz für die Default-Einstellungen, die jeweils über eine Klassenmethode erreicht werden können.
+ */
 // @formatter:off
 @JsonAutoDetect(
 		getterVisibility = Visibility.NONE,
@@ -51,7 +56,6 @@ public class Einstellungen {
 	
 	private static Logger log = Logger.getLogger(Einstellungen.class.getName());
 	
-	private static Einstellungen defaultInstanz;
 	private static Einstellungen benutzerInstanz;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -59,29 +63,44 @@ public class Einstellungen {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	/**
+	 * Default-Einstellungen. Diese Methode erzeugt bei jedem Aufruf ein neues Objekt, um sicherzustellen, dass
+	 * keine Änderungen stattgefunden haben.
+	 * 
+	 * @return Ausgangs-Einstellungen
+	 */
 	public static Einstellungen getDefault() {
-		if (defaultInstanz == null) {
-			log.config(() -> "erzeuge Default-Einstellungen");
-			defaultInstanz = new Einstellungen();
-		}
-		
-		return defaultInstanz;
+		return new Einstellungen();
 	}
 	
+	/**
+	 * Personalisierte Einstellungen als geteilte Singleton-Instanz.
+	 * 
+	 * @return benutzerdefinierte Einstellungen
+	 */
 	public static Einstellungen getBenutzerdefiniert() {
 		if (benutzerInstanz == null) {
 			log.config(() -> "erzeuge benutzerdefinierte Einstellungen");
-			benutzerInstanz = laden(Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath())
-					.orElse(new Einstellungen());
+			benutzerInstanz = laden(Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath()).orElse(new Einstellungen());
 		}
 		
 		return benutzerInstanz;
 	}
 	
+	/**
+	 * Speichert die benutzerdefinierte Einstellungen als JSON-Datei. Der Speicherort ist in
+	 * {@link Ressourcen#NUTZER_EINSTELLUNGEN} festgelegt
+	 * 
+	 * @return {@code true}, wenn das Speichern erfolgreich war, sonst {@code false}
+	 */
 	public static boolean speicherBenutzerdefiniert() {
 		return speichern(benutzerInstanz, Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath());
 	}
 	
+	/**
+	 * Setzt die benutzerdefinierten Einstellungen auf den letzten gespeicherten Stand zurück. 
+	 * @return {@code true}, wenn das Zurücksetzen erfolgreich war, sonst {@code false}
+	 */
 	public static boolean resetBenutzerdefiniert() {
 		log.config(() -> "Benutzereinstellungen zuruecksetzen");
 		var benutzerInstanzNeu = laden(Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath());
@@ -130,26 +149,15 @@ public class Einstellungen {
 //  *	Attribute																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public final JsonEnumProperty<Theme> themeEinstellung;
-	public final JsonLocaleProperty sprachEinstellung;
-	/**
-	 * letzter verwendeter Speicherort vom Oeffnen oder Speichern eines Projektes
-	 */
-	public final JsonStringProperty letzterSpeicherortEinstellung;
-	/**
-	 * Letzte verwendete Datei sortiert nach dem Zeitpunkt des Hinzufuegens. Es werden nur die
-	 * letzten 10 Dateien behalten.
-	 */
-	public final ObservableSet<DatumWrapper<Path>> letzteDateien;
-	/**
-	 * Anzahl der Elemente, die im Verlauf zum Rueckgaengig machen bzw. Wiederholen
-	 * gespeichert werden
-	 */
-	public final JsonIntegerProperty verlaufAnzahl;
-	public final JsonBooleanProperty zeigePackageModifier;
-	public final JsonBooleanProperty zeigeVoid;
-	public final JsonBooleanProperty zeigeParameterNamen;
-	public final JsonBooleanProperty erweiterteValidierungAktivieren;
+	private final JsonEnumProperty<Theme> themeProperty;
+	private final JsonLocaleProperty sprachProperty;
+	private final JsonStringProperty letzterSpeicherortProperty;
+	private final ObservableSet<DatumWrapper<Path>> letzteDateienProperty;
+	private final JsonIntegerProperty verlaufAnzahlProperty;
+	private final JsonBooleanProperty zeigePackageModifierProperty;
+	private final JsonBooleanProperty zeigeVoidProperty;
+	private final JsonBooleanProperty zeigeParameterNamenProperty;
+	private final JsonBooleanProperty erweiterteValidierungAktivierenProperty;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -157,11 +165,10 @@ public class Einstellungen {
 	
 	// Singleton bzw. Multiton-Muster
 	private Einstellungen() {
-		this.themeEinstellung = new JsonEnumProperty<Theme>(Theme.SYSTEM);
-		this.sprachEinstellung = new JsonLocaleProperty(Locale.GERMAN);
-		this.letzterSpeicherortEinstellung = new JsonStringProperty(
-				OS.getDefault().getDokumenteOrdner());
-		this.letzteDateien = FXCollections
+		this.themeProperty = new JsonEnumProperty<Theme>(Theme.SYSTEM);
+		this.sprachProperty = new JsonLocaleProperty(Locale.GERMAN);
+		this.letzterSpeicherortProperty = new JsonStringProperty(OS.getDefault().getDokumenteOrdner());
+		this.letzteDateienProperty = FXCollections
 				.observableSet(new AutomatischEntfernendesSet<DatumWrapper<Path>>(15) {
 					private static final long serialVersionUID = -7312452108634427547L;
 					
@@ -196,11 +203,11 @@ public class Einstellungen {
 						return false;
 					}
 				});
-		this.verlaufAnzahl = new JsonIntegerProperty(100);
-		this.zeigePackageModifier = new JsonBooleanProperty(true);
-		this.zeigeVoid = new JsonBooleanProperty(false);
-		this.zeigeParameterNamen = new JsonBooleanProperty(true);
-		this.erweiterteValidierungAktivieren = new JsonBooleanProperty(true);
+		this.verlaufAnzahlProperty = new JsonIntegerProperty(100);
+		this.zeigePackageModifierProperty = new JsonBooleanProperty(true);
+		this.zeigeVoidProperty = new JsonBooleanProperty(false);
+		this.zeigeParameterNamenProperty = new JsonBooleanProperty(true);
+		this.erweiterteValidierungAktivierenProperty = new JsonBooleanProperty(true);
 	}
 	
 	/**
@@ -209,16 +216,90 @@ public class Einstellungen {
 	 * @param letzteDateien
 	 */
 	@JsonCreator
-	private Einstellungen(
-			@JsonProperty("letzteDateien") List<DatumWrapper<Path>> letzteDateien) {
+	private Einstellungen(@JsonProperty("letzteDateien") List<DatumWrapper<Path>> letzteDateien) {
 		this();
-		this.letzteDateien.addAll(letzteDateien.stream()
-				.filter(eintrag -> Files.exists(eintrag.getElement())).toList());
+		this.letzteDateienProperty
+				.addAll(letzteDateien.stream().filter(eintrag -> Files.exists(eintrag.getElement())).toList());
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	/**
+	 * Verwendetes Layout-Theme
+	 * @return themeProperty
+	 */
+	public final JsonEnumProperty<Theme> themeProperty() {
+		return themeProperty;
+	}
+	
+	/**
+	 * Verwendete Programmsprache
+	 * @return sprachProperty
+	 */
+	public final JsonLocaleProperty sprachProperty() {
+		return sprachProperty;
+	}
+	
+	/**
+	 * letzter verwendeter Speicherort vom Oeffnen oder Speichern eines Projektes
+	 * @return letzterSpeicherortProperty
+	 */
+	public final JsonStringProperty letzterSpeicherortProperty() {
+		return letzterSpeicherortProperty;
+	}
+	
+	/**
+	 * Letzte verwendete Datei sortiert nach dem Zeitpunkt des Hinzufuegens. Es werden nur die
+	 * letzten 10 Dateien behalten. Gelöschte Dateien werden beim Laden der Einstellungen ignoriert.
+	 * @return letzteDateienProperty
+	 */
+	public final ObservableSet<DatumWrapper<Path>> letzteDateienProperty() {
+		return letzteDateienProperty;
+	}
+	
+	/**
+	 * Anzahl der Elemente, die im Verlauf zum Rueckgaengig machen bzw. Wiederholen
+	 * gespeichert werden
+	 * @return verlaufAnzahlProperty
+	 */
+	public final JsonIntegerProperty verlaufAnzahlProperty() {
+		return verlaufAnzahlProperty;
+	}
+	
+	/**
+	 * {@code true}, wenn der Modifizierer >package< im UML-Diagramm angezeigt werden soll
+	 * @return zeigePackageModifierProperty
+	 */
+	public final JsonBooleanProperty zeigePackageModifierProperty() {
+		return zeigePackageModifierProperty;
+	}
+	
+	/**
+	 * {@code true}, wenn >void< im UML-Diagramm angezeigt werden soll
+	 * @return zeigeVoidProperty
+	 */
+	public final JsonBooleanProperty zeigeVoidProperty() {
+		return zeigeVoidProperty;
+	}
+	
+	/**
+	 * {@code true}, wenn Parameternamen im UML-Diagramm angezeigt werden sollen
+	 * @return zeigeParameterNamenProperty
+	 */
+	public final JsonBooleanProperty zeigeParameterNamenProperty() {
+		return zeigeParameterNamenProperty;
+	}
+	
+	/**
+	 * {@code true}, wenn die erweiterte Eingabevalidierung im UML-Diagramm aktiviert ist
+	 * @return erweiterteValidierungAktivierenProperty
+	 */
+	public final JsonBooleanProperty erweiterteValidierungAktivierenProperty() {
+		return erweiterteValidierungAktivierenProperty;
+	}
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																		*

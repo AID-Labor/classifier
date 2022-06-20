@@ -92,8 +92,6 @@ public class Sprache {
 	 * wird der erste Parameter eingestellt.
 	 * 
 	 * @param sprachdatei     Zu benutzende Sprache
-	 * @param weitereSprachen Weitere Sprachen, die mit {code nutzeSprache} eingestellt werden
-	 *                        koennen
 	 * @throws IOException Falls ein Fehler beim Lesen der default-Sprachdatei auftritt
 	 */
 	public Sprache(SprachDatei sprachdatei)
@@ -284,9 +282,6 @@ public class Sprache {
 	 * 
 	 * @param sprachdatei Sprache, die fuer alle Getter verwendet werden soll
 	 * @throws IOException              Falls beim Lesen der Sprachdatei ein Fehler auftritt
-	 * @throws MissingResourceException Falls die Sprachdatei zur uebergebenen Sprache nicht
-	 *                                  mit {@link #spracheHinzufuegen(SprachDatei)} bekannt
-	 *                                  gemacht wurde
 	 */
 	public void nutzeSprache(SprachDatei sprachdatei) throws IOException {
 		this.aktuelleSprache = sprachdatei.sprache();

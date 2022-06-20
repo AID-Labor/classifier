@@ -59,7 +59,7 @@ public class JsonEnumProperty<T extends Enum<T>> extends SimpleObjectProperty<T>
 	 * Serialisieren
 	 * @author Tim Muehle
 	 *
-	 * @param <T>
+	 * @param <T> Enum-Typ
 	 */
 	public static class EnumPropertyZuStringKonverter<T extends Enum<T>>
 			extends StdConverter<ObjectProperty<T>, String> {

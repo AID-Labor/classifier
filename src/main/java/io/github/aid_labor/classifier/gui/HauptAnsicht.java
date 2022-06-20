@@ -35,8 +35,8 @@ import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
-import io.github.aid_labor.classifier.gui.elemente.MenueLeisteKomponente;
-import io.github.aid_labor.classifier.gui.elemente.RibbonKomponente;
+import io.github.aid_labor.classifier.gui.komponenten.MenueLeisteKomponente;
+import io.github.aid_labor.classifier.gui.komponenten.RibbonKomponente;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
@@ -291,12 +291,12 @@ public class HauptAnsicht {
 		NodeUtil.deaktivieren(menue.getTheme());
 		
 		menue.getVoidAnzeigen().selectedProperty()
-				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeVoid);
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeVoidProperty());
 		menue.getParameternamenAnzeigen().selectedProperty()
-				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeParameterNamen);
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty());
 		menue.getErweiterteValidierungAktivieren().selectedProperty()
 				.bindBidirectional(
-						Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivieren);
+						Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty());
 		menue.getInfo().setOnAction(e -> {
 			var info = new InfoAnsicht(programm, rechnerService);
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
@@ -314,7 +314,7 @@ public class HauptAnsicht {
 	private void setzeMenueBindungen(MenueLeisteKomponente menue) {
 		// Letzte Dateien Updaten
 		updateLetzteDateien(menue.getDateiLetzeOeffnen());
-		Einstellungen.getBenutzerdefiniert().letzteDateien
+		Einstellungen.getBenutzerdefiniert().letzteDateienProperty()
 				.addListener((SetChangeListener<? super DatumWrapper<Path>>) aenderung -> {
 					updateLetzteDateien(menue.getDateiLetzeOeffnen());
 				});
@@ -377,7 +377,7 @@ public class HauptAnsicht {
 	private void updateLetzteDateien(Menu menueLetzteDateien) {
 		menueLetzteDateien.getItems().clear();
 		for (DatumWrapper<Path> datei : Einstellungen
-				.getBenutzerdefiniert().letzteDateien) {
+				.getBenutzerdefiniert().letzteDateienProperty()) {
 			MenuItem menueEintrag = new MenuItem(datei.getElement().toString());
 			menueEintrag.setOnAction(e -> {
 				this.controller.projektOeffnen(datei.getElement().toFile());

@@ -136,7 +136,7 @@ class ProjektKontrolle {
 			dateiDialog.setInitialFileName(projekt.getSpeicherort().getFileName().toString());
 		} else {
 			dateiDialog.setInitialDirectory(
-					new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung.get()));
+					new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get()));
 			dateiDialog.setInitialFileName(projekt.getName());
 		}
 		
@@ -178,16 +178,16 @@ class ProjektKontrolle {
 			}
 		}
 		
-		Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung
+		Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty()
 				.set(speicherOrt.getParentFile().getAbsolutePath());
 		
 		boolean gespeichert = ansicht.get().getProjekt().speichern(speicherOrt.toPath());
 		
 		if (gespeichert) {
 			DatumWrapper<Path> dateiEintrag = new DatumWrapper<Path>(speicherOrt.toPath());
-			if (!Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag)) {
-				Einstellungen.getBenutzerdefiniert().letzteDateien.remove(dateiEintrag);
-				Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag);
+			if (!Einstellungen.getBenutzerdefiniert().letzteDateienProperty().add(dateiEintrag)) {
+				Einstellungen.getBenutzerdefiniert().letzteDateienProperty().remove(dateiEintrag);
+				Einstellungen.getBenutzerdefiniert().letzteDateienProperty().add(dateiEintrag);
 			}
 		}
 		

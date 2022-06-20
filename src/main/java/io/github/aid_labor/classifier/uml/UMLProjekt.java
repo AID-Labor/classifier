@@ -22,8 +22,8 @@ import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.projekt.ListenUeberwacher;
 import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
-import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 

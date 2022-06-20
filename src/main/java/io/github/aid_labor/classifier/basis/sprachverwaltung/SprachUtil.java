@@ -56,7 +56,7 @@ public final class SprachUtil {
 	 * @param hauptsprache    Hauptsprache, die versucht wird einzustellen
 	 * @param weitereSprachen Reihenfolge, in der die alternativen Sprachen geprueft werden,
 	 *                        falls die Hauptsprache nicht gesetzt werden konnte
-	 * @return @code true}, wenn eine Sprache erfolgreich gesetzt wurde, sonst {@code false}
+	 * @return {@code true}, wenn eine Sprache erfolgreich gesetzt wurde, sonst {@code false}
 	 */
 	public static boolean setUpSprache(Sprache sprache, Path suchordner,
 			String dateiPraefix, Locale hauptsprache, Locale... weitereSprachen) {
@@ -79,8 +79,8 @@ public final class SprachUtil {
 	 * Sucht nach Sprachdateien und stellt die erste gefundene Sprache aus der folgenden
 	 * Reihenfolge ein:
 	 * <ol>
-	 * <li>{@link Einstellungen#sprachEinstellung aus Einstellungen#getBenutzerdefiniert()}
-	 * <li>{@link Einstellungen#sprachEinstellung aus Einstellungen#getDefault()}
+	 * <li>{@link Einstellungen#sprachProperty aus Einstellungen#getBenutzerdefiniert()}
+	 * <li>{@link Einstellungen#sprachProperty aus Einstellungen#getDefault()}
 	 * <li>{@link Locale#GERMAN}
 	 * <li>{@link Locale#GERMANY}
 	 * <li>{@link Locale#ENGLISH}
@@ -91,15 +91,12 @@ public final class SprachUtil {
 	 * @param sprache         Sprach-Objekt, fuer das die Sprache gesetzt wird
 	 * @param suchordner      Ordner, in dem nach Sprachdateien gesucht wird
 	 * @param dateiPraefix    Prafix im Dateinamen der Sprachdateien
-	 * @param hauptsprache    Hauptsprache, die versucht wird einzustellen
-	 * @param weitereSprachen Reihenfolge, in der die alternativen Sprachen geprueft werden,
-	 *                        falls die Hauptsprache nicht gesetzt werden konnte
-	 * @return @code true}, wenn eine Sprache erfolgreich gesetzt wurde, sonst {@code false}
+	 * @return {@code true}, wenn eine Sprache erfolgreich gesetzt wurde, sonst {@code false}
 	 */
 	public static boolean setUpSprache(Sprache sprache, Path suchordner, String dateiPraefix) {
 		return setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
-				dateiPraefix, Einstellungen.getBenutzerdefiniert().sprachEinstellung.get(),
-				Einstellungen.getDefault().sprachEinstellung.get(), Locale.GERMAN,
+				dateiPraefix, Einstellungen.getBenutzerdefiniert().sprachProperty().get(),
+				Einstellungen.getDefault().sprachProperty().get(), Locale.GERMAN,
 				Locale.GERMANY, Locale.ENGLISH, Locale.UK, Locale.US);
 	}
 	

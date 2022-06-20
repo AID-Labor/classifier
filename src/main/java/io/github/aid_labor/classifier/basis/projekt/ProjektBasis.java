@@ -126,7 +126,7 @@ public abstract class ProjektBasis implements Projekt {
 	/**
 	 * Hauptkonstruktor. Anwendungen sollten nur diesen Konstruktor nutzen, um ein neues
 	 * Projekt zu erzeugen. Zum Oeffnen eines vorhandenen Projektes steht die Fabrikmethode
-	 * {@link #ausDateiOeffnen(Path)} zur Verfuegung.
+	 * {@link #ausDateiOeffnen(Path, Class)} zur Verfuegung.
 	 * 
 	 * Zu Beginn ist die Rueckgaengig-Funktion ausgeschaltet. Diese kann mit dem Setzen
 	 * eines UberwachungsStatus mit der Methode
@@ -135,8 +135,6 @@ public abstract class ProjektBasis implements Projekt {
 	 * gesteuert werden.
 	 * 
 	 * @param name                 Name des Projektes
-	 * @param programmiersprache   genutzte Programmiersprache (wird fuer sprachspezifische
-	 *                             Eigenschaften benoetigt)
 	 * @param automatischSpeichern {@code true}, wenn dises Projekt regelmaessig im
 	 *                             Hintergrund gespeichert werden soll, sonst {@code false}
 	 * @throws NullPointerException falls einer der Parameter {@code null} ist
@@ -150,9 +148,9 @@ public abstract class ProjektBasis implements Projekt {
 				"istGespeichert", false);
 		this.setAutomatischSpeichern(automatischSpeichern);
 		this.rueckgaengigVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
-				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
+				Einstellungen.getBenutzerdefiniert().verlaufAnzahlProperty().get());
 		this.wiederholenVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
-				Einstellungen.getBenutzerdefiniert().verlaufAnzahl.get());
+				Einstellungen.getBenutzerdefiniert().verlaufAnzahlProperty().get());
 		this.beobachterListe = new LinkedList<>();
 		
 		this.ueberwachePropertyAenderung(this.name, "projektname");

@@ -8,7 +8,12 @@ package io.github.aid_labor.classifier.basis;
 
 import java.util.Iterator;
 
-
+/**
+ * Sammlung von allgemein hilfreichen Methoden
+ * 
+ * @author Tim Muehle
+ *
+ */
 public class ClassifierUtil {
 //	private static final Logger log = Logger.getLogger(ClassifierUtil.class.getName());
 	
@@ -32,8 +37,8 @@ public class ClassifierUtil {
 	
 	/**
 	 * Testet alle Elemente in einem Container aus Gleichheit. Zwei Container sind nur gleich,
-	 * wenn sie in der gleichen Reihenfolge die Gleichen Elemente laut {@code equals haben}.
-	 * Zwei {@code null}-Werte ergeben ebenfalls true;
+	 * wenn sie in der gleichen Reihenfolge die Gleichen Elemente laut {@code equals} haben oder beide {@code null}
+	 * sind. Zwei {@code null}-Werte im Inhalts-Vergleich der Container ergeben ebenfalls {@code true}.
 	 * 
 	 * @param <T>               Containertyp
 	 * @param <E>               Inhaltstyp der Container
@@ -58,7 +63,7 @@ public class ClassifierUtil {
 			if (e1 == e2 || (e1 == null && e2 == null)) {
 				continue;
 			}
-			if (!e1.equals(e2)) {
+			if (e1 != null && !e1.equals(e2)) {
 				elementeGleich = false;
 				break;
 			}
@@ -71,13 +76,23 @@ public class ClassifierUtil {
 		return elementeGleich;
 	}
 	
+	/**
+	 * Berechnet einen gemeinsamen Hash-Wert für alle Übergabeparameter.
+	 * Für die Berechnung wird auf allen Objekten {@code hashCode()} aufgerufen. Ist ein Übergabeparameter iterierbar
+	 * (siehe {@link Iterable}), wird über den gesamten Inhalt iteriert, für jedes Element {@code hashCode()} 
+	 * aufgerufen und der Wert mit der Position im {@link Iterator} multipliziert. Jeder {@code null}-Wert hat den
+	 * Hash-Wert {@code 0}.
+	 * 
+	 * @param objekte Objekte, die gehasht werden
+	 * @return berechneter Hash-Wert
+	 */
 	public static int hashAlle(Object... objekte) {
 		long hash = 0;
 		for (var obj : objekte) {
 			if (obj instanceof Iterable<?> iterierbar) {
 				int i = 1;
 				for (var element : iterierbar) {
-					hash = 31*hash + i * element.hashCode();
+					hash = 31*hash + i * (element == null ? 0 : element.hashCode());
 					i++;
 				}
 			} else {

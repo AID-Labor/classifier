@@ -32,14 +32,14 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
-import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
-import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
-import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
-import io.github.aid_labor.classifier.uml.eigenschaften.Parameter;
-import io.github.aid_labor.classifier.uml.eigenschaften.ProgrammierEigenschaften;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Parameter;
+import io.github.aid_labor.classifier.uml.programmierung.ProgrammierEigenschaften;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
@@ -423,24 +423,24 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				attribut::setSichtbarkeit);
 		
 		TextField name = new TextField();
-		bindeBidirektional(name.textProperty(), attribut.getNameProperty());
+		bindeBidirektional(name.textProperty(), attribut.nameProperty());
 		
 		TextField datentyp = new TextField(attribut.getDatentyp().getTypName());
 		bindeBidirektional(datentyp.textProperty(), attribut.getDatentyp().getTypNameProperty());
 		
 		TextField initialwert = new TextField(attribut.getInitialwert());
-		bindeBidirektional(initialwert.textProperty(),attribut.getInitialwertProperty());
+		bindeBidirektional(initialwert.textProperty(),attribut.initialwertProperty());
 		
 		CheckBox getter = new CheckBox();
-		bindeBidirektional(getter.selectedProperty(), attribut.getHatGetterProperty());
+		bindeBidirektional(getter.selectedProperty(), attribut.hatGetterProperty());
 		GridPane.setHalignment(getter, HPos.CENTER);
 		
 		CheckBox setter = new CheckBox();
-		bindeBidirektional(setter.selectedProperty(), attribut.getHatSetterProperty());
+		bindeBidirektional(setter.selectedProperty(), attribut.hatSetterProperty());
 		GridPane.setHalignment(setter, HPos.CENTER);
 		
 		CheckBox statisch = new CheckBox();
-		bindeBidirektional(statisch.selectedProperty(), attribut.getIstStatischProperty());
+		bindeBidirektional(statisch.selectedProperty(), attribut.istStatischProperty());
 		GridPane.setHalignment(statisch, HPos.CENTER);
 		
 		Label loeschen = new Label();
@@ -464,7 +464,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		
 		Platform.runLater(() -> {
-			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivieren.get()) {
+			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 				eingabeValidierung.registerValidator(name,
 						Validator.combine(
 								Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")),
@@ -553,7 +553,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				}
 				var params = methode.getParameterListe().stream()
 						.map(param -> Bindings.concat(
-								new When(Einstellungen.getBenutzerdefiniert().zeigeParameterNamen)
+								new When(Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty())
 										.then(param.getNameProperty().concat(": ")).otherwise(""),
 								param.getDatentyp().getTypNameProperty()))
 						.toArray();
@@ -618,7 +618,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		
 		Platform.runLater(() -> {
-			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivieren.get()) {
+			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 				eingabeValidierung.registerValidator(parameter, Validator.combine(
 						Validator.createPredicateValidator(
 								tf -> getKlassifizierer().getMethoden().stream()
@@ -726,7 +726,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					}
 					
 					Platform.runLater(() -> {
-						if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivieren.get()) {
+						if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 							eingabeValidierung.registerValidator(name,
 									Validator.combine(
 											Validator.createEmptyValidator(
@@ -748,7 +748,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						setzePlatzhalter(name);
 						setzePlatzhalter(datentyp);
 						
-						if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivieren.get()) {
+						if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 							NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
 							NodeUtil.beobachteSchwach(datentyp, datentyp.textProperty(),
 									() -> eingabeValidierung.revalidate());

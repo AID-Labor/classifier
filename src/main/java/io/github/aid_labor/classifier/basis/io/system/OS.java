@@ -295,7 +295,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param beginn Start des Pfades
 	 * @param ende   Datei- oder Orndername am Ende des Pfades
 	 * 
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final CharSequence beginn, final CharSequence ende) {
 		return pfadAus(new StringBuilder(beginn), ende);
@@ -308,7 +308,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param beginn Start des Pfades
 	 * @param ende   Datei- oder Orndername am Ende des Pfades
 	 * 
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final StringBuilder beginn, final CharSequence ende) {
 		beginn.append(this.seperator).append(ende);
@@ -323,7 +323,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param ordner Ordnername, der als erstes an den Pfad angefuegt wird
 	 * @param ende   Datei- oder Orndername am Ende des Pfades
 	 * 
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final CharSequence beginn, final CharSequence ordner,
 		final CharSequence ende) {
@@ -338,7 +338,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param ordner Ordnername, der als erstes an den Pfad angefuegt wird
 	 * @param ende   Datei- oder Orndername am Ende des Pfades
 	 * 
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final StringBuilder beginn, final CharSequence ordner,
 		final CharSequence ende) {
@@ -356,7 +356,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param ordner2 Ordnername, der als zweites an den Pfad angefuegt wird
 	 * @param ende    Datei- oder Orndername am Ende des Pfades
 	 * 
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final StringBuilder beginn, final CharSequence ordner1,
 		final CharSequence ordner2, final CharSequence ende) {
@@ -375,7 +375,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param ordner2 Ordnername, der als zweites an den Pfad angefuegt wird
 	 * @param ende    Datei- oder Orndername am Ende des Pfades
 	 * 
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final CharSequence beginn, final CharSequence ordner1,
 		final CharSequence ordner2, final CharSequence ende) {
@@ -392,7 +392,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param ordner3 Ordnername, der als drittes an den Pfad angefuegt wird
 	 * @param ende    Datei- oder Orndername am Ende des Pfades
 	 * 
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final StringBuilder beginn, final CharSequence ordner1,
 		final CharSequence ordner2, final CharSequence ordner3, final CharSequence ende) {
@@ -413,7 +413,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param ordner3 Ordnername, der als drittes an den Pfad angefuegt wird
 	 * @param ende    Datei- oder Orndername am Ende des Pfades
 	 * 
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final CharSequence beginn, final CharSequence ordner1,
 		final CharSequence ordner2, final CharSequence ordner3, final CharSequence ende) {
@@ -429,7 +429,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param rest   Ordnernamen, die in der uebergebenen Reihenfolge angefuegt werden. Der
 	 *               letzte Parameter darf ein Dateiname sein.
 	 * 				
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final StringBuilder beginn, final CharSequence ordner,
 		final CharSequence... rest) {
@@ -450,7 +450,7 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	 * @param rest   Ordnernamen, die in der uebergebenen Reihenfolge angefuegt werden. Der
 	 *               letzte Parameter darf ein Dateiname sein.
 	 * 				
-	 * @return Das selbe Objekt, das als {@link beginn} uebergeben wurde
+	 * @return Das selbe Objekt, das als {@code beginn} uebergeben wurde
 	 */
 	public StringBuilder pfadAus(final CharSequence beginn, final CharSequence ordner,
 		final CharSequence... rest) {

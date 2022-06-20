@@ -23,10 +23,10 @@ import io.github.aid_labor.classifier.basis.json.JsonEnumProperty.EnumPropertyZu
 import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.ListenUeberwacher;
-import io.github.aid_labor.classifier.uml.eigenschaften.Attribut;
-import io.github.aid_labor.classifier.uml.eigenschaften.Methode;
-import io.github.aid_labor.classifier.uml.eigenschaften.Modifizierer;
-import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
+import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -387,7 +387,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 					}
 				}
 				for (var attribut : aenderung.getAddedSubList()) {
-					attribut.getHatGetterProperty().addListener((p, hatteGet, hatGetter) -> {
+					attribut.hatGetterProperty().addListener((p, hatteGet, hatGetter) -> {
 						if (hatGetter == hatteGet) {
 							return;
 						}
@@ -403,7 +403,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 						}
 					});
 					
-					attribut.getHatSetterProperty().addListener((p, hatteSet, hatSetter) -> {
+					attribut.hatSetterProperty().addListener((p, hatteSet, hatSetter) -> {
 						if (hatSetter == hatteSet) {
 							return;
 						}

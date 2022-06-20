@@ -34,7 +34,7 @@ import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
-import io.github.aid_labor.classifier.uml.eigenschaften.Programmiersprache;
+import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.geometry.Insets;
@@ -190,7 +190,7 @@ class HauptKontrolle {
 		FileChooser dateiDialog = new FileChooser();
 		
 		dateiDialog.setInitialDirectory(
-				new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung.get()));
+				new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get()));
 		
 		if (!OS.getDefault().istLinux()) {	// Workaraound, da in Linux die Dateierweitung nicht erkannt wird
 			dateiDialog.getExtensionFilters().addAll(ansicht.get().getProgrammDetails().dateiZuordnung());
@@ -202,7 +202,7 @@ class HauptKontrolle {
 		List<File> dateien = dateiDialog.showOpenMultipleDialog(ansicht.get().getWurzelknoten().getScene().getWindow());
 		
 		if (dateien != null && !dateien.isEmpty()) {
-			Einstellungen.getBenutzerdefiniert().letzterSpeicherortEinstellung
+			Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty()
 					.set(dateien.get(0).getParentFile().getAbsolutePath());
 			
 			dateien.forEach(datei -> {
@@ -263,9 +263,9 @@ class HauptKontrolle {
 			try {
 				this.ansicht.get().zeigeProjekt(projekt);
 				DatumWrapper<Path> dateiEintrag = new DatumWrapper<Path>(datei.toPath());
-				if (!Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag)) {
-					Einstellungen.getBenutzerdefiniert().letzteDateien.remove(dateiEintrag);
-					Einstellungen.getBenutzerdefiniert().letzteDateien.add(dateiEintrag);
+				if (!Einstellungen.getBenutzerdefiniert().letzteDateienProperty().add(dateiEintrag)) {
+					Einstellungen.getBenutzerdefiniert().letzteDateienProperty().remove(dateiEintrag);
+					Einstellungen.getBenutzerdefiniert().letzteDateienProperty().add(dateiEintrag);
 				}
 			} catch (Exception e) {
 				log.log(Level.INFO, e, () -> "Projekt %s wurde nicht geoeffnet".formatted(projektName));

@@ -19,13 +19,12 @@ import java.util.logging.Logger;
  * 
  * <b>
  * Instanzen dieser Klasse sind nicht automatisch synchronisiert. Zum Synchronisieren
- * einer Instanz von VerketteterVerlauf kann die Methode
- * {@link #synchronisierterVerlauf(VerketteterVerlauf)} verwendet werden.
+ * einer Instanz von VerketteterVerlauf kann {@link #synchronisierterVerlauf()} verwendet werden.
  * </b>
  * 
  * @author Tim Muehle
  *
- * @param <T>
+ * @param <T> Typ der zu speichernden Elemente
  */
 public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	private static final Logger log = Logger.getLogger(VerketteterVerlauf.class.getName());

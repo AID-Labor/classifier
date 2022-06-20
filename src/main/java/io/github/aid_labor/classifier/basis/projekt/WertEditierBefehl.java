@@ -5,7 +5,14 @@
  */
 package io.github.aid_labor.classifier.basis.projekt;
 
-
+/**
+ * EditierBefehl fuer einfache Wertaenderung, die mit einem Setter
+ * angewendet und rueckgaengig gemacht werden kann.
+ * 
+ * @author Tim Muehle
+ *
+ * @param <T> Typ des Editierbaren Wertes
+ */
 public interface WertEditierBefehl<T> extends EditierBefehl {
 	
 	/**

@@ -16,7 +16,12 @@ import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import javafx.beans.property.StringProperty;
 
-
+/**
+ * Model-Klasse fuer Kommentare im UML Klassendiagramm
+ * 
+ * @author Tim Muehle
+ *
+ */
 public class UMLKommentar extends UMLBasisElement {
 	
 //	private static final Logger log = Logger.getLogger(UMLKommentar.class.getName());

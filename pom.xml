@@ -441,6 +441,37 @@
 					<statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter" />
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.4.0</version>
+				<configuration>
+					<show>protected</show>
+					<reportOutputDirectory>doc</reportOutputDirectory>
+					<destDir>${project.version}</destDir>
+					<docencoding>UTF-8</docencoding>
+					<additionalOptions>--javafx --module classifier --show-module-contents all --show-packages all --show-types protected</additionalOptions>
+					<failOnError>false</failOnError>
+					<tags>
+						<tag>
+							<name>apiNote</name>
+							<placement>a</placement>
+							<head>Api-Note:</head>
+						</tag>
+						<tag>
+							<name>implNote</name>
+							<placement>a</placement>
+							<head>Implementation-Note:</head>
+						</tag>
+						<tag>
+							<name>implSpec</name>
+							<placement>a</placement>
+							<head>Implementation-Specification:</head>
+						</tag>
+					</tags>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -478,7 +509,7 @@
 			<artifactId>javafx-web</artifactId>
 			<version>${javafx.version}</version>
 		</dependency>
-		
+
 		<!-- ControlsFX -->
 		<dependency>
 			<groupId>org.controlsfx</groupId>
@@ -531,7 +562,7 @@
 			<artifactId>ikonli-bootstrapicons-pack</artifactId>
 			<version>12.3.1</version>
 		</dependency>
-		
+
 		<!-- JSON -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
