@@ -43,7 +43,12 @@
     -fx-font: bold 2em sans-serif;
 }
 
-#NEUSTART_WARNUNG {
+.dialog-text {
+    -fx-font: normal 1.2em sans-serif;
+    -fx-text-alignment: center;
+}
+
+.dialog-text-warnung {
     -fx-font: bold 1.2em sans-serif;
     -fx-text-fill: red;
 }

@@ -48,7 +48,6 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -110,8 +109,9 @@ class HauptKontrolle {
 				Das Programm wird automatisch beendet und muss wieder manuell ge%cffnet werden.
 				Nicht gespeicherte %cnderungen gehen ohne Nachfrage verloren!""".formatted(oe, oe, AE)));
 		beschreibung.setWrapText(true);
-		beschreibung.setId("NEUSTART_WARNUNG");
-		this.ansicht.get().getOverlayDialog().showNode(Type.WARNING, dialogTitel, new StackPane(beschreibung), false,
+		beschreibung.setPrefWidth(850);
+		beschreibung.getStyleClass().add("dialog-text-warnung");
+		this.ansicht.get().getOverlayDialog().showNode(Type.WARNING, dialogTitel, beschreibung, false,
 				List.of(ButtonType.OK, ButtonType.CANCEL)).thenAccept(buttonTyp -> {
 					if (buttonTyp.equals(ButtonType.OK)) {
 						bereinigeKonfigurationsOrdner();

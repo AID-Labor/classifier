@@ -24,7 +24,6 @@ import java.util.function.BiConsumer;
 
 import com.dlsc.gemsfx.DialogPane;
 import com.dlsc.gemsfx.DialogPane.Type;
-import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
@@ -57,6 +56,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
 
@@ -720,8 +721,9 @@ public class HauptAnsicht {
 	void zeigeAnlegenFehlerDialog(String beschreibung) {
 		String titel = sprache.getText("anlegenFehlerTitel",
 				"Fehler beim Anlegen eines Projektes");
-		this.overlayDialog.showNode(Type.ERROR, titel,
-				new StackPane(new EnhancedLabel(beschreibung)));
+		var text = new TextFlow(new Text(beschreibung));
+		text.getStyleClass().add("dialog-text-warnung");
+		this.overlayDialog.showNode(Type.ERROR, titel, text);
 	}
 	
 	void zeigeOeffnenFehlerDialog(File datei) {
@@ -733,8 +735,9 @@ public class HauptAnsicht {
 				.formatted(oe, ae, ue)));
 		String beschreibung = nachricht.format(new Object[] { datei.getName() });
 		
-		this.overlayDialog.showNode(Type.ERROR, dialogTitel,
-				new StackPane(new EnhancedLabel(beschreibung)));
+		var text = new TextFlow(new Text(beschreibung));
+		text.getStyleClass().add("dialog-text");
+		this.overlayDialog.showNode(Type.ERROR, dialogTitel, text);
 	}
 	
 	void zeigeOeffnenWarnungDialog(File datei) {
@@ -742,13 +745,13 @@ public class HauptAnsicht {
 				"oeffnenWarnungTitel", "Die Datei {0} wurde nicht ge%cffnet"
 						.formatted(oe)));
 		String dialogTitel = titelformat.format(new Object[] { datei.getName() });
-		String beschreibung = sprache.getText("oeffnenWarnung",
+		var beschreibung = new Text(sprache.getText("oeffnenWarnung",
 				"""
-						Die Datei ist bereits ge%cffnet. Das mehrfache %cffnen einer Datei \
-						wird nicht unterst%ctzt."""
-						.formatted(oe, OE, ue));
-		this.overlayDialog.showNode(Type.WARNING, dialogTitel,
-				new StackPane(new EnhancedLabel(beschreibung)), false, List.of(ButtonType.OK));
+				Die Datei ist bereits ge%cffnet. Das mehrfache %cffnen einer Datei \
+				wird nicht unterst%ctzt.""".formatted(oe, OE, ue)));
+		var text = new TextFlow(beschreibung);
+		text.getStyleClass().add("dialog-text");
+		this.overlayDialog.showNode(Type.WARNING, dialogTitel, text, false, List.of(ButtonType.OK));
 	}
 	
 }

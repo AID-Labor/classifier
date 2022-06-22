@@ -257,7 +257,7 @@ public class ProjekteAnsicht {
 			var exc = new UnsupportedOperationException(("Projekt %s mit dem Speicherort '%s' "
 					+ "kann nicht angezeigt werden, da dieses Projekt bereits geoeffnet ist")
 					.formatted(projekt.getName(), projekt.getSpeicherort()));
-			log.log(Level.INFO, exc, () -> "Projekt anzeigen abgebrochen");
+			log.info(() -> "Projekt anzeigen abgebrochen: " + exc.getMessage());
 			throw exc;
 		}
 		
