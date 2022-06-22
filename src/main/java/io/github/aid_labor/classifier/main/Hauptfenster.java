@@ -46,7 +46,7 @@ public class Hauptfenster extends Application {
 	
 	// @formatter:off
 	private static final ProgrammDetails programm = new ProgrammDetails(
-		"1.0.2 [SNAPSHOT_003]",
+		"1.0.3 [SNAPSHOT_004]",
 		"Classifier",
 		"Tim M%chle".formatted(ue),
 		"https://github.com/AID-Labor/classifier",
