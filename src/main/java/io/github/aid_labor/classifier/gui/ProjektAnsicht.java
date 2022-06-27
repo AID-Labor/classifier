@@ -103,6 +103,8 @@ public class ProjektAnsicht extends Tab {
 		
 		this.zeichenflaeche.getStyleClass().add("zeichenflaeche");
 		this.inhalt.getStyleClass().add("projekt-inhalt");
+		zeichenflaeche.minHeightProperty().bind(inhalt.heightProperty());
+		zeichenflaeche.minWidthProperty().bind(inhalt.widthProperty());
 		
 		this.setContent(inhalt);
 		

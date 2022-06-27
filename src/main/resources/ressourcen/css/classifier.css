@@ -84,10 +84,6 @@
     -fx-effect: dropshadow(one-pass-box, red, 20, 0.5, 0, 0);
 }
 
-.zeichenflaeche {
-    
-}
-
 .sichtbarkeit-label {
     -fx-padding: 0 1 0 0;
 }
