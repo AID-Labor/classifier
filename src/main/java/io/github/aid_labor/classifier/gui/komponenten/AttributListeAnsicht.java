@@ -9,7 +9,9 @@ package io.github.aid_labor.classifier.gui.komponenten;
 import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.StringBinding;
 import javafx.beans.binding.When;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -59,7 +61,31 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 		attribut.sichtbarkeitProperty().addListener((p, alt, neu) -> {
 			sichtbarkeit.textProperty().unbind();
 			sichtbarkeit.textProperty()
-					.bind(attribut.sichtbarkeitProperty().get().getKurzform());
+					.bind(new StringBinding() {
+						
+						Observable x;
+						{
+							super.bind(attribut.sichtbarkeitProperty());
+						}
+						
+						@Override
+						protected String computeValue() {
+							if (x != null) {
+								super.unbind(x);
+							}
+							var prop = attribut.sichtbarkeitProperty().get();
+							
+							if (prop == null) {
+								x = null;
+								return "";
+							} else {
+								x = prop.getKurzform();
+								super.bind(prop.getKurzform());
+								return prop.getKurzform().get();
+							}
+						}
+						
+					});
 		});
 		
 		var beschreibung = new EnhancedLabel();

@@ -34,8 +34,8 @@ public interface ProgrammierEigenschaften {
 	public boolean istAttributModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
 	public boolean istMethodenModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
 	
-	public Modifizierer[] getAttributModifizierer(KlassifiziererTyp typ);
-	public Modifizierer[] getMethodenModifizierer(KlassifiziererTyp typ);
+	public List<Modifizierer> getAttributModifizierer(KlassifiziererTyp typ);
+	public List<Modifizierer> getMethodenModifizierer(KlassifiziererTyp typ, boolean istStatisch, boolean istAbstrakt);
 	
 	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ);
 	public boolean erlaubtSuperklasse(KlassifiziererTyp typ);

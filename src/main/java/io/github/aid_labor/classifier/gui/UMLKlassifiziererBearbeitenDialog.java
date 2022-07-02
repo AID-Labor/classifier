@@ -243,7 +243,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					var programmierEigenschaften = getKlassifizierer().getProgrammiersprache().getEigenschaften();
 					this.getKlassifizierer().getAttribute()
 							.add(new Attribut(
-									programmierEigenschaften.getStandardAttributModifizierer(getKlassifizierer().getTyp()),
+									programmierEigenschaften
+											.getStandardAttributModifizierer(getKlassifizierer().getTyp()),
 									programmierEigenschaften.getLetzerDatentyp()));
 				});
 		var methodenAnzeige = erzeugeTabellenAnzeige(new String[] { "Sichtbarkeit", "Methodenname", "Parameterliste",
@@ -416,9 +417,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	
 	private Node[] erstelleAttributZeile(Attribut attribut, int zeile) {
 		ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
-		sichtbarkeit.getItems().addAll(getKlassifizierer().getProgrammiersprache().getEigenschaften()
-				.getAttributModifizierer(getKlassifizierer().getTyp()));
-		sichtbarkeit.getSelectionModel().select(attribut.getSichtbarkeit());
 		NodeUtil.beobachteSchwach(sichtbarkeit, sichtbarkeit.getSelectionModel().selectedItemProperty(),
 				attribut::setSichtbarkeit);
 		
@@ -429,7 +427,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		bindeBidirektional(datentyp.textProperty(), attribut.getDatentyp().getTypNameProperty());
 		
 		TextField initialwert = new TextField(attribut.getInitialwert());
-		bindeBidirektional(initialwert.textProperty(),attribut.initialwertProperty());
+		bindeBidirektional(initialwert.textProperty(), attribut.initialwertProperty());
 		
 		CheckBox getter = new CheckBox();
 		bindeBidirektional(getter.selectedProperty(), attribut.hatGetterProperty());
@@ -485,9 +483,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			setzePlatzhalter(datentyp);
 		});
 		
-		updateStatischAttribut(statisch, getKlassifizierer().getTyp());
-		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateStatischAttribut(statisch,
-				neueWahl);
+		updateAttribut(sichtbarkeit, statisch, attribut, getKlassifizierer().getTyp());
+		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateAttribut(sichtbarkeit,
+				statisch, attribut, neueWahl);
 		this.typBeobachterListe.add(typBeobachter);
 		getKlassifizierer().typProperty().addListener(typBeobachter);
 		
@@ -530,9 +528,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	
 	private Node[] erstelleMethodenZeile(Methode methode, int zeile) {
 		ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
-		sichtbarkeit.getItems().addAll(getKlassifizierer().getProgrammiersprache().getEigenschaften()
-				.getMethodenModifizierer(getKlassifizierer().getTyp()));
-		sichtbarkeit.getSelectionModel().select(methode.getSichtbarkeit());
 		NodeUtil.beobachteSchwach(sichtbarkeit, sichtbarkeit.getSelectionModel().selectedItemProperty(),
 				methode::setSichtbarkeit);
 		
@@ -619,17 +614,17 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		Platform.runLater(() -> {
 			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
-				eingabeValidierung.registerValidator(parameter, Validator.combine(
-						Validator.createPredicateValidator(
-								tf -> getKlassifizierer().getMethoden().stream()
-										.filter(m -> Objects.equals(m.getName(), methode.getName()) && Objects
-												.deepEquals(m.getParameterListe(), methode.getParameterListe()))
-										.count() <= 1,
-								sprache.getText("methodeValidierung",
-										"Eine Methode mit gleicher Signatur (Name und Parameterliste) "
-												+ "ist bereits vorhanden")),
-						Validator.createPredicateValidator(
-								tf -> {
+				eingabeValidierung.registerValidator(parameter,
+						Validator.combine(
+								Validator.createPredicateValidator(
+										tf -> getKlassifizierer().getMethoden().stream()
+												.filter(m -> Objects.equals(m.getName(), methode.getName()) && Objects
+														.deepEquals(m.getParameterListe(), methode.getParameterListe()))
+												.count() <= 1,
+										sprache.getText("methodeValidierung",
+												"Eine Methode mit gleicher Signatur (Name und Parameterliste) "
+														+ "ist bereits vorhanden")),
+								Validator.createPredicateValidator(tf -> {
 									Set<String> params = new HashSet<>();
 									boolean doppelt = false;
 									for (var param : methode.getParameterListe()) {
@@ -639,10 +634,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 										}
 									}
 									return !doppelt;
-								},
-								sprache.getText("parameterValidierung2",
-										"Es darf keine Parameter mit gleichem Namen geben"))
-						));
+								}, sprache.getText("parameterValidierung2",
+										"Es darf keine Parameter mit gleichem Namen geben"))));
 				setzePlatzhalter(parameter);
 				NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
 			}
@@ -655,11 +648,16 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			setzePlatzhalter(rueckgabetyp);
 		});
 		
-		updateMethode(abstrakt, statisch, getKlassifizierer().getTyp(), methode);
-		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateMethode(abstrakt, statisch,
-				neueWahl, methode);
+		updateMethode(sichtbarkeit, abstrakt, statisch, methode, getKlassifizierer().getTyp());
+		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateMethode(sichtbarkeit,
+				abstrakt, statisch, methode, neueWahl);
 		this.typBeobachterListe.add(typBeobachter);
 		getKlassifizierer().typProperty().addListener(typBeobachter);
+		
+		Runnable abstraktStatischBeobachter = () -> updateMethode(sichtbarkeit,
+				abstrakt, statisch, methode, getKlassifizierer().getTyp());
+		NodeUtil.beobachteSchwach(abstrakt, abstrakt.selectedProperty(), abstraktStatischBeobachter);
+		NodeUtil.beobachteSchwach(statisch, statisch.selectedProperty(), abstraktStatischBeobachter);
 		
 		if (methode.istGetter() || methode.istSetter()) {
 			rueckgabetyp.setDisable(true);
@@ -727,16 +725,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					
 					Platform.runLater(() -> {
 						if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
-							eingabeValidierung.registerValidator(name,
-									Validator.combine(
-											Validator.createEmptyValidator(
-													sprache.getText("nameValidierung", "Name angeben")),
-											Validator.createPredicateValidator(
-													tf -> methode.getParameterListe().stream()
-															.filter(p -> Objects.equals(p.getName(), name.getText()))
-															.count() <= 1,
-													sprache.getText("parameterValidierung",
-															"Ein Parameter mit diesem Namen ist bereits vorhanden"))));
+							eingabeValidierung.registerValidator(name, Validator.combine(
+									Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")),
+									Validator.createPredicateValidator(tf -> methode.getParameterListe().stream()
+											.filter(p -> Objects.equals(p.getName(), name.getText())).count() <= 1,
+											sprache.getText("parameterValidierung",
+													"Ein Parameter mit diesem Namen ist bereits vorhanden"))));
 							NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
 						} else {
 							eingabeValidierung.registerValidator(name,
@@ -810,14 +804,16 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	}
 	
 	private void updateSuperklasse(TextField superklasse, KlassifiziererTyp typ) {
-		boolean superklasseErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften().erlaubtSuperklasse(typ);
+		boolean superklasseErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+				.erlaubtSuperklasse(typ);
 		if (!superklasseErlaubt) {
 			superklasse.setText("");
 		}
 		superklasse.setDisable(!superklasseErlaubt);
 	}
 	
-	private void updateStatischAttribut(CheckBox statisch, KlassifiziererTyp typ) {
+	private void updateAttribut(ComboBox<Modifizierer> sichtbarkeit, CheckBox statisch, Attribut attribut,
+			KlassifiziererTyp typ) {
 		boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
 				.erlaubtInstanzAttribute(typ);
 		if (!instanzAttributeErlaubt) {
@@ -827,9 +823,20 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			statisch.setSelected(true);
 		}
 		statisch.setDisable(!instanzAttributeErlaubt);
+		
+		List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+				.getAttributModifizierer(getKlassifizierer().getTyp());
+		var aktuellerModifizierer = attribut.getSichtbarkeit();
+		sichtbarkeit.getItems().setAll(modifizierer);
+		if (aktuellerModifizierer != null && modifizierer.contains(aktuellerModifizierer)) {
+			sichtbarkeit.getSelectionModel().select(aktuellerModifizierer);
+		} else {
+			sichtbarkeit.getSelectionModel().selectFirst();
+		}
 	}
 	
-	private void updateMethode(CheckBox abstrakt, CheckBox statisch, KlassifiziererTyp typ, Methode methode) {
+	private void updateMethode(ComboBox<Modifizierer> sichtbarkeit, CheckBox abstrakt, CheckBox statisch,
+			Methode methode, KlassifiziererTyp typ) {
 		boolean abstraktErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
 				.erlaubtAbstrakteMethode(typ);
 		boolean abstraktErzwungen = !getKlassifizierer().getProgrammiersprache().getEigenschaften()
@@ -853,6 +860,16 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		} else if (typ.equals(KlassifiziererTyp.Interface) && (methode.istGetter() || methode.istSetter())) {
 			abstrakt.setDisable(true);
 			statisch.setDisable(true);
+		}
+		
+		List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+				.getMethodenModifizierer(getKlassifizierer().getTyp(), methode.istStatisch(), methode.istAbstrakt());
+		var aktuellerModifizierer = methode.getSichtbarkeit();
+		sichtbarkeit.getItems().setAll(modifizierer);
+		if (aktuellerModifizierer != null && modifizierer.contains(aktuellerModifizierer)) {
+			sichtbarkeit.getSelectionModel().select(aktuellerModifizierer);
+		} else {
+			sichtbarkeit.getSelectionModel().selectFirst();
 		}
 	}
 	

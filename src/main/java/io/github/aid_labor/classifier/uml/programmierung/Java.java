@@ -62,16 +62,9 @@ public class Java implements ProgrammierEigenschaften {
 	}
 	
 	public static List<Datentyp> PRIMITIVE_DATENTYPEN() {
-		return Collections.unmodifiableList(List.of(
-				BOOLEAN_PRIMITIV(),
-				BYTE_PRIMITIV(),
-				SHORT_PRIMITIV(),
-				INT_PRIMITIV(),
-				LONG_PRIMITIV(),
-				FLOAT_PRIMITIV(),
-				DOUBLE_PRIMITIV(),
-				CHAR_PRIMITIV(),
-				VOID_PRIMITIV()));
+		return Collections
+				.unmodifiableList(List.of(BOOLEAN_PRIMITIV(), BYTE_PRIMITIV(), SHORT_PRIMITIV(), INT_PRIMITIV(),
+						LONG_PRIMITIV(), FLOAT_PRIMITIV(), DOUBLE_PRIMITIV(), CHAR_PRIMITIV(), VOID_PRIMITIV()));
 	}
 	
 	public static Datentyp STRING() {
@@ -153,15 +146,14 @@ public class Java implements ProgrammierEigenschaften {
 	}
 	
 	@Override
-	public Modifizierer[] getAttributModifizierer(KlassifiziererTyp typ) {
+	public List<Modifizierer> getAttributModifizierer(KlassifiziererTyp typ) {
 		return switch (typ) {
-			case Interface -> new Modifizierer[] { Modifizierer.PUBLIC };
+			case Interface -> List.of(Modifizierer.PUBLIC);
 			case Klasse, AbstrakteKlasse, Enumeration ->
-				new Modifizierer[] { Modifizierer.PUBLIC, Modifizierer.PROTECTED,
-					Modifizierer.PACKAGE, Modifizierer.PRIVATE };
+				List.of(Modifizierer.PUBLIC, Modifizierer.PROTECTED, Modifizierer.PACKAGE, Modifizierer.PRIVATE);
 			default -> {
 				log.warning(() -> "unbekannter typ: " + typ);
-				yield new Modifizierer[0];
+				yield Collections.emptyList();
 			}
 		};
 	}
@@ -177,15 +169,30 @@ public class Java implements ProgrammierEigenschaften {
 	}
 	
 	@Override
-	public Modifizierer[] getMethodenModifizierer(KlassifiziererTyp typ) {
+	public List<Modifizierer> getMethodenModifizierer(KlassifiziererTyp typ, boolean istStatisch, boolean istAbstrakt) {
 		return switch (typ) {
-			case Interface -> new Modifizierer[] { Modifizierer.PUBLIC };
-			case Klasse, AbstrakteKlasse, Enumeration ->
-				new Modifizierer[] { Modifizierer.PUBLIC, Modifizierer.PROTECTED,
-					Modifizierer.PACKAGE, Modifizierer.PRIVATE };
+			case Interface -> {
+				if(istStatisch) {
+					yield List.of(Modifizierer.PUBLIC, Modifizierer.PRIVATE);
+				} else if (istAbstrakt) {
+					yield List.of(Modifizierer.PUBLIC);
+				} else {
+					yield List.of(Modifizierer.PUBLIC, Modifizierer.PRIVATE);
+				}
+			}
+			case Klasse, Enumeration ->
+				List.of(Modifizierer.PUBLIC, Modifizierer.PROTECTED, Modifizierer.PACKAGE, Modifizierer.PRIVATE);
+			case AbstrakteKlasse -> {
+				if (istAbstrakt) {
+					yield List.of(Modifizierer.PUBLIC, Modifizierer.PROTECTED, Modifizierer.PACKAGE);
+				} else {
+					yield List.of(Modifizierer.PUBLIC, Modifizierer.PROTECTED, Modifizierer.PACKAGE,
+							Modifizierer.PRIVATE);
+				}
+			}
 			default -> {
 				log.warning(() -> "unbekannter typ: " + typ);
-				yield new Modifizierer[0];
+				yield Collections.emptyList();
 			}
 		};
 	}
@@ -213,8 +220,7 @@ public class Java implements ProgrammierEigenschaften {
 	
 	@Override
 	public boolean erlaubtAbstrakteMethode(KlassifiziererTyp typ) {
-		return typ.equals(KlassifiziererTyp.Interface)
-				|| typ.equals(KlassifiziererTyp.AbstrakteKlasse);
+		return typ.equals(KlassifiziererTyp.Interface) || typ.equals(KlassifiziererTyp.AbstrakteKlasse);
 	}
 	
 	@Override

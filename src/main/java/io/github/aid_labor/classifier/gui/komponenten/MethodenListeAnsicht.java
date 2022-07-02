@@ -13,6 +13,7 @@ import com.dlsc.gemsfx.EnhancedLabel;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.binding.StringExpression;
@@ -72,7 +73,32 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 		methode.getSichtbarkeitProperty().addListener((p, alt, neu) -> {
 			sichtbarkeit.textProperty().unbind();
 			sichtbarkeit.textProperty()
-					.bind(methode.getSichtbarkeitProperty().get().getKurzform());
+					.bind(new StringBinding() {
+						
+						Observable x;
+						
+						{
+							super.bind(methode.getSichtbarkeitProperty());
+						}
+						
+						@Override
+						protected String computeValue() {
+							if (x != null) {
+								super.unbind(x);
+							}
+							var prop = methode.getSichtbarkeitProperty().get();
+							
+							if (prop == null) {
+								x = null;
+								return "";
+							} else {
+								x = prop.getKurzform();
+								super.bind(prop.getKurzform());
+								return prop.getKurzform().get();
+							}
+						}
+						
+					});
 		});
 		
 		var beschreibung = new EnhancedLabel();
