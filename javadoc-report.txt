@@ -96,10 +96,10 @@ Generating /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/doc/1.0.4/classifier
 	public void setStatisch(boolean istStatisch) {
 	            ^
 Generating /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/doc/1.0.4/classifier/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.html...
-/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.java:18: warning: no comment
+/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.java:20: warning: no comment
 public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
        ^
-/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.java:49: warning: no comment
+/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.java:51: warning: no comment
 	public AttributListeAnsicht(ObservableList<Attribut> attributListe) {
 	       ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/ListenAnsicht.java:89: warning: no comment
@@ -300,8 +300,8 @@ public class Java implements ProgrammierEigenschaften {
 	public static Datentyp FLOAT_PRIMITIV() {
 	                       ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/ProgrammierEigenschaften.java:37: warning: no comment
-	public Modifizierer[] getAttributModifizierer(KlassifiziererTyp typ);
-	                      ^
+	public List<Modifizierer> getAttributModifizierer(KlassifiziererTyp typ);
+	                          ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/ProgrammierEigenschaften.java:52: warning: no comment
 	public List<Datentyp> getBekannteDatentypen();
 	                      ^
@@ -309,8 +309,8 @@ public class Java implements ProgrammierEigenschaften {
 	public Datentyp getLetzerDatentyp();
 	                ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/ProgrammierEigenschaften.java:38: warning: no comment
-	public Modifizierer[] getMethodenModifizierer(KlassifiziererTyp typ);
-	                      ^
+	public List<Modifizierer> getMethodenModifizierer(KlassifiziererTyp typ, boolean istStatisch, boolean istAbstrakt);
+	                          ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/ProgrammierEigenschaften.java:50: warning: no comment
 	public List<Datentyp> getPrimitiveDatentypen();
 	                      ^
@@ -350,7 +350,7 @@ public class Java implements ProgrammierEigenschaften {
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/Java.java:36: warning: no comment
 	public static Datentyp SHORT_PRIMITIV() {
 	                       ^
-/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/Java.java:77: warning: no comment
+/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/Java.java:70: warning: no comment
 	public static Datentyp STRING() {
 	                       ^
 Generating /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/doc/1.0.4/classifier/io/github/aid_labor/classifier/basis/json/JsonBooleanProperty.html...
@@ -658,10 +658,10 @@ Generating /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/doc/1.0.4/classifier
 	public void setStatisch(boolean istStatisch) {
 	            ^
 Generating /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/doc/1.0.4/classifier/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.html...
-/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.java:18: warning: no comment
+/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.java:20: warning: no comment
 public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
        ^
-/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.java:49: warning: no comment
+/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/AttributListeAnsicht.java:51: warning: no comment
 	public AttributListeAnsicht(ObservableList<Attribut> attributListe) {
 	       ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/gui/komponenten/ListenAnsicht.java:89: warning: no comment
@@ -862,8 +862,8 @@ public class Java implements ProgrammierEigenschaften {
 	public static Datentyp FLOAT_PRIMITIV() {
 	                       ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/ProgrammierEigenschaften.java:37: warning: no comment
-	public Modifizierer[] getAttributModifizierer(KlassifiziererTyp typ);
-	                      ^
+	public List<Modifizierer> getAttributModifizierer(KlassifiziererTyp typ);
+	                          ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/ProgrammierEigenschaften.java:52: warning: no comment
 	public List<Datentyp> getBekannteDatentypen();
 	                      ^
@@ -871,8 +871,8 @@ public class Java implements ProgrammierEigenschaften {
 	public Datentyp getLetzerDatentyp();
 	                ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/ProgrammierEigenschaften.java:38: warning: no comment
-	public Modifizierer[] getMethodenModifizierer(KlassifiziererTyp typ);
-	                      ^
+	public List<Modifizierer> getMethodenModifizierer(KlassifiziererTyp typ, boolean istStatisch, boolean istAbstrakt);
+	                          ^
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/ProgrammierEigenschaften.java:50: warning: no comment
 	public List<Datentyp> getPrimitiveDatentypen();
 	                      ^
@@ -912,7 +912,7 @@ public class Java implements ProgrammierEigenschaften {
 /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/Java.java:36: warning: no comment
 	public static Datentyp SHORT_PRIMITIV() {
 	                       ^
-/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/Java.java:77: warning: no comment
+/Users/tim/sciebo/Bachelorarbeit/Repo/classifier/src/main/java/io/github/aid_labor/classifier/uml/programmierung/Java.java:70: warning: no comment
 	public static Datentyp STRING() {
 	                       ^
 Generating /Users/tim/sciebo/Bachelorarbeit/Repo/classifier/doc/1.0.4/classifier/io/github/aid_labor/classifier/basis/json/JsonBooleanProperty.html...
@@ -1167,6 +1167,6 @@ Refer to the generated Javadoc files in '/Users/tim/sciebo/Bachelorarbeit/Repo/c
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time:  4.778 s
-[INFO] Finished at: 2022-06-23T22:05:11+02:00
+[INFO] Total time:  5.230 s
+[INFO] Finished at: 2022-07-06T16:25:51+02:00
 [INFO] ------------------------------------------------------------------------

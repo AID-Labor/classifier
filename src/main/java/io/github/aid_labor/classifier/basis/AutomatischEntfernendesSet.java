@@ -17,10 +17,11 @@ import java.util.logging.Logger;
  * 
  * @author Tim Muehle
  *
+ * @param <E> Typ der Elemente, die in diesem Set gespeichert werden
  */
 public class AutomatischEntfernendesSet<E> extends TreeSet<E> {
-	private static final Logger log = Logger.getLogger(AutomatischEntfernendesSet.class.getName());
 	
+	private static final Logger log = Logger.getLogger(AutomatischEntfernendesSet.class.getName());
 	private static final long serialVersionUID = -3027636633260070772L;
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -45,6 +46,7 @@ public class AutomatischEntfernendesSet<E> extends TreeSet<E> {
 	 * an Elementen.
 	 * 
 	 * @param maximaleAnzahl maximale Größe des Sets
+	 * @throws IllegalArgumentException wenn der Parameter {@code maximaleAnzahl} kleiner oder gleich {@code 0} ist
 	 */
 	public AutomatischEntfernendesSet(int maximaleAnzahl) {
 		super();
