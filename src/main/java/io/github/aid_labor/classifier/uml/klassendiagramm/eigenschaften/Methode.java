@@ -44,6 +44,16 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	public static Methode erstelleGetter(Attribut attribut, Programmiersprache programmiersprache) {
+		return new Methode(Modifizierer.PUBLIC, attribut.getDatentyp(), attribut.istStatisch(), true, false, attribut,
+				null, programmiersprache);
+	}
+	
+	public static Methode erstelleSetter(Attribut attribut, Programmiersprache programmiersprache) {
+		return new Methode(Modifizierer.PUBLIC, attribut.getDatentyp(), attribut.istStatisch(), false, true, null,
+				attribut, programmiersprache);
+	}
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
@@ -280,8 +290,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	
 	@Override
 	public int hashCode() {
-		return ClassifierUtil.hashAlle(istAbstrakt(), istFinal(), getName(), parameterListeProperty(), getRueckgabeTyp(),
-				getSichtbarkeit(), istStatisch(), istGetter(), istSetter());
+		return ClassifierUtil.hashAlle(istAbstrakt(), istFinal(), getName(), parameterListeProperty(),
+				getRueckgabeTyp(), getSichtbarkeit(), istStatisch(), istGetter(), istSetter());
 	}
 	
 	@Override
@@ -300,7 +310,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		boolean istAbstraktGleich = istAbstrakt() == m.istAbstrakt();
 		boolean istFinalGleich = istFinal() == m.istFinal();
 		boolean nameGleich = Objects.equals(getName(), m.getName());
-		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(this.parameterListeProperty(), m.parameterListeProperty());
+		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(this.parameterListeProperty(),
+				m.parameterListeProperty());
 		boolean rueckgabeTypGleich = Objects.equals(getRueckgabeTyp(), m.getRueckgabeTyp());
 		boolean sichtbarkeitGleich = Objects.equals(getSichtbarkeit(), m.getSichtbarkeit());
 		boolean statischGleich = this.istStatisch() == m.istStatisch();
@@ -330,15 +341,18 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		return istGleich;
 	}
 	
-	public Methode erzeugeTiefeKopie() {
-		Attribut getterAttributKopie = null;
-		Attribut setterAttributKopie = null;
-		if (getterAttribut != null) {
-			getterAttributKopie = getterAttribut.erzeugeTiefeKopie();
+	public Methode erzeugeTiefeKopie(Attribut attribut) {
+		if (getterAttribut != null && !getterAttribut.equals(attribut)) {
+			throw new IllegalArgumentException(
+					"Uebergebenes Attribut %s und Getter %s stimmen nicht überein".formatted(attribut, getterAttribut));
 		}
-		if (setterAttribut != null) {
-			setterAttributKopie = setterAttribut.erzeugeTiefeKopie();
+		if (setterAttribut != null && !setterAttribut.equals(attribut)) {
+			throw new IllegalArgumentException(
+					"Uebergebenes Attribut %s und Setter %s stimmen nicht überein".formatted(attribut, setterAttribut));
 		}
+		
+		Attribut getterAttributKopie = getterAttribut == null ? null : attribut;
+		Attribut setterAttributKopie = setterAttribut == null ? null : attribut;
 		
 		var kopie = new Methode(getSichtbarkeit(), getRueckgabeTyp().erzeugeTiefeKopie(), istStatisch(), istGetter(),
 				istSetter(), getterAttributKopie, setterAttributKopie, programmiersprache);
@@ -355,20 +369,10 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		return kopie;
 	}
 	
-	public static Methode erstelleGetter(Attribut attribut, Programmiersprache programmiersprache) {
-		return new Methode(Modifizierer.PUBLIC, attribut.getDatentyp(), attribut.istStatisch(), true, false, attribut,
-				null, programmiersprache);
-	}
-	
-	public static Methode erstelleSetter(Attribut attribut, Programmiersprache programmiersprache) {
-		return new Methode(Modifizierer.PUBLIC, attribut.getDatentyp(), attribut.istStatisch(), false, true, null,
-				attribut, programmiersprache);
-	}
-	
 	@Override
 	public void close() throws Exception {
 		log.finest(() -> this + " leere Parameter");
-		for(var param : parameterListe) {
+		for (var param : parameterListe) {
 			param.close();
 		}
 		try {

@@ -7,12 +7,16 @@
 package io.github.aid_labor.classifier.uml.klassendiagramm;
 
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -29,9 +33,13 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizi
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.collections.WeakListChangeListener;
 
 
 public class UMLKlassifizierer extends UMLBasisElement {
@@ -66,13 +74,14 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	private final ObservableList<Attribut> attribute;
 	@JsonManagedReference
 	private final ObservableList<Methode> methoden;
+	@JsonIgnore
+	private final List<Object> schwacheUeberwacher;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public UMLKlassifizierer(KlassifiziererTyp typ, Programmiersprache programmiersprache,
-			String name) {
+	public UMLKlassifizierer(KlassifiziererTyp typ, Programmiersprache programmiersprache, String name) {
 		this.typ = new JsonEnumProperty<>(this, "typ", typ);
 		this.sichtbarkeit = new JsonObjectProperty<>(this, "sichtbarkeit", Modifizierer.PUBLIC);
 		this.programmiersprache = Objects.requireNonNull(programmiersprache);
@@ -82,6 +91,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.interfaces = new JsonStringProperty(this, "interface", "");
 		this.attribute = FXCollections.observableList(new LinkedList<>());
 		this.methoden = FXCollections.observableList(new LinkedList<>());
+		this.schwacheUeberwacher = new LinkedList<>();
 		
 		this.attribute.addListener(new ListenUeberwacher<>(this.attribute, this));
 		this.methoden.addListener(new ListenUeberwacher<>(this.methoden, this));
@@ -91,19 +101,16 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.ueberwachePropertyAenderung(this.superklasse, getId() + "_superklasse");
 		this.ueberwachePropertyAenderung(this.interfaces, getId() + "_interfaces");
 		ueberwacheGetterUndSetter();
+		ueberwacheTyp();
 	}
 	
 	@JsonCreator
-	protected UMLKlassifizierer(
-			@JsonProperty("typ") KlassifiziererTyp typ,
+	protected UMLKlassifizierer(@JsonProperty("typ") KlassifiziererTyp typ,
 			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
 			@JsonProperty("programmiersprache") Programmiersprache programmiersprache,
-			@JsonProperty("paket") String paket,
-			@JsonProperty("name") String name,
-			@JsonProperty("superklasse") String superklasse,
-			@JsonProperty("interfaces") String interfaces,
-			@JsonProperty("position") Position position,
-			@JsonProperty("attribute") List<Attribut> attribute,
+			@JsonProperty("paket") String paket, @JsonProperty("name") String name,
+			@JsonProperty("superklasse") String superklasse, @JsonProperty("interfaces") String interfaces,
+			@JsonProperty("position") Position position, @JsonProperty("attribute") List<Attribut> attribute,
 			@JsonProperty("methoden") List<Methode> methoden) {
 		this(typ, programmiersprache, name);
 		this.getPosition().setPosition(position);
@@ -114,55 +121,59 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		
 		for (var attribut : attribute) {
 			if (attribut.hatGetter()) {
-				var mList = methoden.stream()
-						.filter(m -> m.istGetter() && m.getAttribut().equals(attribut))
-						.toList();
-				if (!mList.isEmpty()) {
-					var methode = mList.get(0);
-					var getter = Methode.erstelleGetter(attribut, programmiersprache);
-					getter.setName(methode.getName());
-					getter.setSichtbarkeit(methode.getSichtbarkeit());
-					getter.setzeFinal(methode.istFinal());
-					getter.setzeAbstrakt(methode.istAbstrakt());
-					attribut.setGetter(getter);
-					int index = methoden.indexOf(methode);
-					methoden.set(index, getter);
-					for (var m : mList) {
-						try {
-							m.close();
-						} catch (Exception e) {
-							//
-						}
-					}
-				}
+				initialisiereGetterBindung(attribut, methoden);
 			}
 			if (attribut.hatSetter()) {
-				var mList = methoden.stream()
-						.filter(m -> m.istSetter() && m.getAttribut().equals(attribut))
-						.toList();
-				if (!mList.isEmpty()) {
-					var methode = mList.get(0);
-					var setter = Methode.erstelleSetter(attribut, programmiersprache);
-					setter.setName(methode.getName());
-					setter.setSichtbarkeit(methode.getSichtbarkeit());
-					setter.setzeFinal(methode.istFinal());
-					setter.setzeAbstrakt(methode.istAbstrakt());
-					attribut.setSetter(setter);
-					int index = methoden.indexOf(methode);
-					methoden.set(index, setter);
-					for (var m : mList) {
-						try {
-							m.close();
-						} catch (Exception e) {
-							//
-						}
-					}
-				}
+				initialisiereSetterBindung(attribut, methoden);
 			}
 		}
 		
 		this.attribute.addAll(attribute);
 		this.methoden.addAll(methoden);
+	}
+	
+	private void initialisiereGetterBindung(Attribut attribut, List<Methode> methoden) {
+		var mList = methoden.stream().filter(m -> m.istGetter() && m.getAttribut().equals(attribut)).toList();
+		if (!mList.isEmpty()) {
+			var methode = mList.get(0);
+			var getter = Methode.erstelleGetter(attribut, programmiersprache);
+			getter.setName(methode.getName());
+			getter.setSichtbarkeit(methode.getSichtbarkeit());
+			getter.setzeFinal(methode.istFinal());
+			getter.setzeAbstrakt(methode.istAbstrakt());
+			attribut.setGetter(getter);
+			int index = methoden.indexOf(methode);
+			methoden.set(index, getter);
+			for (var m : mList) {
+				try {
+					m.close();
+				} catch (Exception e) {
+					//
+				}
+			}
+		}
+	}
+	
+	private void initialisiereSetterBindung(Attribut attribut, List<Methode> methoden) {
+		var mList = methoden.stream().filter(m -> m.istSetter() && m.getAttribut().equals(attribut)).toList();
+		if (!mList.isEmpty()) {
+			var methode = mList.get(0);
+			var setter = Methode.erstelleSetter(attribut, programmiersprache);
+			setter.setName(methode.getName());
+			setter.setSichtbarkeit(methode.getSichtbarkeit());
+			setter.setzeFinal(methode.istFinal());
+			setter.setzeAbstrakt(methode.istAbstrakt());
+			attribut.setSetter(setter);
+			int index = methoden.indexOf(methode);
+			methoden.set(index, setter);
+			for (var m : mList) {
+				try {
+					m.close();
+				} catch (Exception e) {
+					//
+				}
+			}
+		}
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -275,8 +286,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	@Override
 	public String toString() {
 		return "%s@%s [ %s '%s' ]".formatted(this.getClass().getSimpleName(),
-				Integer.toHexString(((Object) this).hashCode()), this.getTyp().name(),
-				this.getName());
+				Integer.toHexString(((Object) this).hashCode()), this.getTyp().name(), this.getName());
 	}
 	
 	@Override
@@ -304,13 +314,12 @@ public class UMLKlassifizierer extends UMLBasisElement {
 				klassifizierer.methodenProperty());
 		boolean nameGleich = Objects.equals(getName(), klassifizierer.getName());
 		boolean paketGleich = Objects.equals(getPaket(), klassifizierer.getPaket());
-		boolean programmierspracheGleich = getProgrammiersprache()
-				.equals(klassifizierer.getProgrammiersprache());
+		boolean programmierspracheGleich = getProgrammiersprache().equals(klassifizierer.getProgrammiersprache());
 		boolean typGleich = getTyp().equals(klassifizierer.getTyp());
 		boolean positionGleich = getPosition().equals(klassifizierer.getPosition());
 		
-		boolean istGleich = attributeGleich && methodenGleich && nameGleich && paketGleich
-				&& programmierspracheGleich && positionGleich && typGleich;
+		boolean istGleich = attributeGleich && methodenGleich && nameGleich && paketGleich && programmierspracheGleich
+				&& positionGleich && typGleich;
 		
 		log.finest(() -> """
 				istGleich: %s
@@ -320,9 +329,8 @@ public class UMLKlassifizierer extends UMLBasisElement {
 				   |-- paketGleich: %s
 				   |-- programmierspracheGleich: %s
 				   |-- positionGleich: %s
-				   ╰-- typGleich: %s"""
-				.formatted(istGleich, attributeGleich, methodenGleich, nameGleich, paketGleich,
-						programmierspracheGleich, positionGleich, typGleich));
+				   ╰-- typGleich: %s""".formatted(istGleich, attributeGleich, methodenGleich, nameGleich, paketGleich,
+				programmierspracheGleich, positionGleich, typGleich));
 		
 		return istGleich;
 	}
@@ -333,12 +341,21 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		kopie.setPaket(getPaket());
 		kopie.getPosition().set(getPosition());
 		
+		Map<String, Attribut> getterUndSetterPosition = new HashMap<>();
 		for (var attribut : attribute) {
-			kopie.attribute.add(attribut.erzeugeTiefeKopie());
+			var attributKopie = attribut.erzeugeTiefeKopie();
+			kopie.attribute.add(attributKopie);
+			
+			if(attributKopie.hatGetter() ||  attributKopie.hatSetter()) {
+				getterUndSetterPosition.put(attributKopie.getName(), attributKopie);
+			}
 		}
 		
 		for (var methode : methoden) {
-			kopie.methoden.add(methode.erzeugeTiefeKopie());
+			String name = methode.getAttribut() == null ? "" : methode.getAttribut().getName();
+			Attribut attributKopie = getterUndSetterPosition.getOrDefault(name, null);
+			var methodeKopie = methode.erzeugeTiefeKopie(attributKopie);
+			kopie.methoden.add(methodeKopie);
 		}
 		
 		return kopie;
@@ -346,6 +363,9 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	
 	@Override
 	public void close() throws Exception {
+		log.finest(() -> this + " leere ueberwacher");
+		this.schwacheUeberwacher.clear();
+		
 		log.finest(() -> this + " leere inhalt");
 		for (var attribut : attribute) {
 			attribut.close();
@@ -357,7 +377,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		attribute.clear();
 		super.close();
 		
-		for(var attribut : this.getClass().getDeclaredFields()) {
+		for (var attribut : this.getClass().getDeclaredFields()) {
 			try {
 				if (!Modifier.isStatic(attribut.getModifiers())) {
 					attribut.setAccessible(true);
@@ -376,9 +396,12 @@ public class UMLKlassifizierer extends UMLBasisElement {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void ueberwacheGetterUndSetter() {
-		this.attribute.addListener((Change<? extends Attribut> aenderung) -> {
+		ListChangeListener<Attribut> ueberwacher = (Change<? extends Attribut> aenderung) -> {
+			final Map<Attribut, List<ChangeListener<?>>> attributUeberwacher = new HashMap<>();
 			while (aenderung.next()) {
 				for (var attribut : aenderung.getRemoved()) {
+					try { attributUeberwacher.remove(attribut).clear(); } catch (Exception e) { /* ignorieren */ }
+					
 					if (attribut.getGetter() != null) {
 						methoden.remove(attribut.getGetter());
 					}
@@ -387,40 +410,85 @@ public class UMLKlassifizierer extends UMLBasisElement {
 					}
 				}
 				for (var attribut : aenderung.getAddedSubList()) {
-					attribut.hatGetterProperty().addListener((p, hatteGet, hatGetter) -> {
+					List<ChangeListener<?>> ueberwacherListe = new ArrayList<>(2);
+					final ChangeListener<Boolean> getterUeberwacher = (p, hatteGet, hatGetter) -> {
 						if (hatGetter == hatteGet) {
 							return;
 						}
 						
 						if (hatGetter) {
 							if (attribut.getGetter() == null) {
-								attribut.setGetter(Methode.erstelleGetter(attribut,
-										getProgrammiersprache()));
+								attribut.setGetter(Methode.erstelleGetter(attribut, getProgrammiersprache()));
 							}
 							methoden.add(attribut.getGetter());
 						} else {
 							methoden.remove(attribut.getGetter());
 						}
-					});
+					};
+					attribut.hatGetterProperty().addListener(getterUeberwacher);
 					
-					attribut.hatSetterProperty().addListener((p, hatteSet, hatSetter) -> {
+					final ChangeListener<Boolean> setterUeberwacher = (p, hatteSet, hatSetter) -> {
 						if (hatSetter == hatteSet) {
 							return;
 						}
 						
 						if (hatSetter) {
 							if (attribut.getSetter() == null) {
-								attribut.setSetter(
-										Methode.erstelleSetter(attribut,
-												getProgrammiersprache()));
+								attribut.setSetter(Methode.erstelleSetter(attribut, getProgrammiersprache()));
 							}
 							methoden.add(attribut.getSetter());
 						} else {
 							methoden.remove(attribut.getSetter());
 						}
-					});
+					};
+					attribut.hatSetterProperty().addListener(setterUeberwacher);
+					
+					ueberwacherListe.add(getterUeberwacher);
+					ueberwacherListe.add(setterUeberwacher);
+					attributUeberwacher.put(attribut, ueberwacherListe);
 				}
 			}
-		});
+		};
+		
+		this.attribute.addListener(new WeakListChangeListener<>(ueberwacher));
+		this.schwacheUeberwacher.add(ueberwacher);
+	}
+	
+	private void ueberwacheTyp() {
+		ChangeListener<KlassifiziererTyp> ueberwacher = (p, alt, neuerKlassifizierer) -> {
+			if (alt != neuerKlassifizierer) {
+				this.attribute.forEach(a -> updateAttribut(a, neuerKlassifizierer));
+				this.methoden.forEach(m -> updateMethode(m, neuerKlassifizierer));
+			}
+		};
+		
+		this.typ.addListener(new WeakChangeListener<>(ueberwacher));
+		this.schwacheUeberwacher.add(ueberwacher);
+	}
+	
+	private void updateAttribut(Attribut attribut, KlassifiziererTyp typ) {
+		boolean instanzAttributeErlaubt = this.programmiersprache.getEigenschaften().erlaubtInstanzAttribute(typ);
+		if (!instanzAttributeErlaubt) {
+			attribut.setStatisch(true);
+		}
+	}
+	
+	private void updateMethode(Methode methode, KlassifiziererTyp typ) {
+		boolean abstraktErlaubt = this.programmiersprache.getEigenschaften().erlaubtAbstrakteMethode(typ);
+		boolean abstraktErzwungen = !this.programmiersprache.getEigenschaften().erlaubtNichtAbstrakteMethode(typ);
+		
+		if (abstraktErzwungen) {
+			methode.setzeAbstrakt(true);
+		}
+		
+		if (!abstraktErlaubt) {
+			methode.setzeAbstrakt(false);
+		}
+		
+		if (typ.equals(KlassifiziererTyp.Interface) && !methode.istGetter() && !methode.istSetter()
+				&& !methode.istStatisch()) {
+			// Methoden in Interface standardmaessig abstrakt setzen
+			methode.setzeAbstrakt(true);
+		}
 	}
 }

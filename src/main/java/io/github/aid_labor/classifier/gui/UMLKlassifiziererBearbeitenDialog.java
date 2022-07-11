@@ -801,12 +801,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			KlassifiziererTyp typ) {
 		boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
 				.erlaubtInstanzAttribute(typ);
-		if (!instanzAttributeErlaubt) {
-			statisch.setSelected(true);
-		}
-		if (typ.equals(KlassifiziererTyp.Interface)) {
-			statisch.setSelected(true);
-		}
 		statisch.setDisable(!instanzAttributeErlaubt);
 		
 		List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
@@ -827,22 +821,16 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		boolean abstraktErzwungen = !getKlassifizierer().getProgrammiersprache().getEigenschaften()
 				.erlaubtNichtAbstrakteMethode(typ);
 		
+		abstrakt.setDisable(!abstraktErlaubt);
+
 		if (abstraktErzwungen) {
-			abstrakt.setSelected(true);
 			abstrakt.setDisable(true);
 		}
 		
-		if (!abstraktErlaubt) {
-			abstrakt.setSelected(false);
-			abstrakt.setDisable(true);
-		} else {
-			abstrakt.setDisable(false);
-		}
-		
-		if (typ.equals(KlassifiziererTyp.Interface) && !methode.istGetter() && !methode.istSetter()
-				&& !methode.istStatisch()) {
-			abstrakt.setSelected(true);
-		} else if (typ.equals(KlassifiziererTyp.Interface) && (methode.istGetter() || methode.istSetter())) {
+		boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+				.erlaubtInstanzAttribute(typ);
+		if (!instanzAttributeErlaubt && (methode.istGetter() || methode.istSetter())) {
+			// Getter und Setter werden über Attribut gesteuert
 			abstrakt.setDisable(true);
 			statisch.setDisable(true);
 		}
