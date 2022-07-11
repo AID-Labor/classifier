@@ -107,7 +107,7 @@ public class HauptAnsicht {
 		this.controller = new HauptKontrolle(this, sprache);
 		this.projekteAnsicht = new ProjekteAnsicht(overlayDialog, programm);
 		this.rechnerService = rechnerService;
-		this.hatKeinProjekt = projekteAnsicht.getAngezeigtesProjektProperty().isNull();
+		this.hatKeinProjekt = projekteAnsicht.angezeigtesProjektProperty().isNull();
 		this.kopiePuffer = FXCollections.observableArrayList();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
@@ -237,7 +237,7 @@ public class HauptAnsicht {
 		menue.getDateiUmbenennen().setOnAction(this.controller::projektUmbenennen);
 		
 		// Menue Bearbeiten
-		var aktuellesProjekt = this.projekteAnsicht.getAngezeigtesProjektProperty().get();
+		var aktuellesProjekt = this.projekteAnsicht.angezeigtesProjektProperty().get();
 		updateRueckgaengigWiederholen(menue, aktuellesProjekt);
 		menue.getKopieren().setOnAction(e -> auswahlKopieren());
 		menue.getEinfuegen().setOnAction(e -> auswahlEinfuegen());
@@ -328,12 +328,12 @@ public class HauptAnsicht {
 		menue.getDateiUmbenennen().disableProperty().bind(hatKeinProjekt);
 		
 		// Menue Bearbeiten
-		this.projekteAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
+		this.projekteAnsicht.angezeigtesProjektProperty().addListener((p, alt, projekt) -> {
 			updateRueckgaengigWiederholen(menue, projekt);
 		});
 		
-		updateSelektionButtons(menue, projekteAnsicht.getProjektAnsichtProperty().get());
-		this.projekteAnsicht.getProjektAnsichtProperty()
+		updateSelektionButtons(menue, projekteAnsicht.projektAnsichtProperty().get());
+		this.projekteAnsicht.projektAnsichtProperty()
 				.addListener((__, alt, neueAnzeige) -> {
 					updateSelektionButtons(menue, neueAnzeige);
 				});
@@ -357,8 +357,8 @@ public class HauptAnsicht {
 		menue.getDarstellungKleiner().disableProperty().bind(hatKeinProjekt);
 		menue.getDarstellungOriginalgroesse().disableProperty().bind(hatKeinProjekt);
 		
-		updateZoomKleinerButton(menue, this.projekteAnsicht.getProjektAnsichtProperty().get());
-		this.projekteAnsicht.getProjektAnsichtProperty().addListener((__, ___, anzeige) -> {
+		updateZoomKleinerButton(menue, this.projekteAnsicht.projektAnsichtProperty().get());
+		this.projekteAnsicht.projektAnsichtProperty().addListener((__, ___, anzeige) -> {
 			updateZoomKleinerButton(menue, anzeige);
 		});
 		
@@ -475,9 +475,9 @@ public class HauptAnsicht {
 		ribbon.getZoomGroesser().setOnAction(this.controller::zoomeGroesser);
 		ribbon.getZoomKleiner().setOnAction(this.controller::zoomeKleiner);
 		ribbon.getZoomOriginalgroesse().setOnAction(this.controller::resetZoom);
-		updateZoomKleinerButton(ribbon, projekteAnsicht.getProjektAnsichtProperty().get());
+		updateZoomKleinerButton(ribbon, projekteAnsicht.projektAnsichtProperty().get());
 		
-		this.projekteAnsicht.getProjektAnsichtProperty().addListener((p, a, neueAnzeige) -> {
+		this.projekteAnsicht.projektAnsichtProperty().addListener((p, a, neueAnzeige) -> {
 			updateZoomKleinerButton(ribbon, neueAnzeige);
 		});
 		
@@ -495,14 +495,14 @@ public class HauptAnsicht {
 		ribbon.getKommentar().disableProperty().bind(hatKeinProjekt);
 		
 		updateRueckgaengigWiederholen(ribbon,
-				projekteAnsicht.getAngezeigtesProjektProperty().get());
-		this.projekteAnsicht.getAngezeigtesProjektProperty().addListener((p, alt, projekt) -> {
+				projekteAnsicht.angezeigtesProjektProperty().get());
+		this.projekteAnsicht.angezeigtesProjektProperty().addListener((p, alt, projekt) -> {
 			updateSpeichernHervorhebeung(ribbon, projekt);
 			updateRueckgaengigWiederholen(ribbon, projekt);
 		});
 		
-		updateSelektionButtons(ribbon, projekteAnsicht.getProjektAnsichtProperty().get());
-		this.projekteAnsicht.getProjektAnsichtProperty()
+		updateSelektionButtons(ribbon, projekteAnsicht.projektAnsichtProperty().get());
+		this.projekteAnsicht.projektAnsichtProperty()
 				.addListener((__, alt, neueAnzeige) -> {
 					updateSelektionButtons(ribbon, neueAnzeige);
 				});
@@ -626,7 +626,7 @@ public class HauptAnsicht {
 	}
 	
 	private void auswahlLoeschen() {
-		projekteAnsicht.getProjektAnsichtProperty().get().entferneAuswahl();
+		projekteAnsicht.projektAnsichtProperty().get().entferneAuswahl();
 	}
 	
 	private SortedSet<Integer> getIndizes() {

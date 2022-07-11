@@ -142,10 +142,10 @@ class UMLSpeichertest {
 		
 		var attribut = new Attribut(Modifizierer.PACKAGE, Java.STRING());
 		attribut.setName("testAttribut");
-		umlKlasse.getAttribute().add(attribut);
+		umlKlasse.attributeProperty().add(attribut);
 		testeSpeichernUndOeffnen();
 		
-		umlKlasse.getAttribute()
+		umlKlasse.attributeProperty()
 				.add(new Attribut(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV()));
 		testeSpeichernUndOeffnen();
 		
@@ -180,10 +180,10 @@ class UMLSpeichertest {
 		var methode = new Methode(Modifizierer.PUBLIC, Java.INT_PRIMITIV(),
 				umlKlasse.getProgrammiersprache());
 		methode.setName("testMethode");
-		umlKlasse.getMethoden().add(methode);
+		umlKlasse.methodenProperty().add(methode);
 		testeSpeichernUndOeffnen();
 		
-		umlKlasse.getMethoden()
+		umlKlasse.methodenProperty()
 				.add(new Methode(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV(),
 						umlKlasse.getProgrammiersprache()));
 		testeSpeichernUndOeffnen();
@@ -204,7 +204,7 @@ class UMLSpeichertest {
 		testeSpeichernUndOeffnen();
 		
 		var parameter = new Parameter(Java.STRING(), "arg");
-		methode.getParameterListe().add(parameter);
+		methode.parameterListeProperty().add(parameter);
 		testeSpeichernUndOeffnen();
 		
 		parameter.setName("param");

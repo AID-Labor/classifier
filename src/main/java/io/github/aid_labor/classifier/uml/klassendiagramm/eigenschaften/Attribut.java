@@ -111,7 +111,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.id = naechsteId++;
 		
 		this.ueberwachePropertyAenderung(this.sichtbarkeit, id + "_attribut_sichtbarkeit");
-		this.ueberwachePropertyAenderung(this.datentyp.getTypNameProperty(), id + "_attribut_datentyp");
+		this.ueberwachePropertyAenderung(this.datentyp.typNameProperty(), id + "_attribut_datentyp");
 		this.ueberwachePropertyAenderung(this.name, id + "_attribut_name");
 		this.ueberwachePropertyAenderung(this.initialwert, id + "_attribut_initialwert");
 		this.ueberwachePropertyAenderung(this.hatGetter, id + "_attribut_getter");

@@ -173,7 +173,7 @@ class HauptKontrolle {
 	}
 	
 	void projektSpeichern(Event event) {
-		UMLProjekt projekt = ansicht.get().getProjektAnsicht().getAngezeigtesProjektProperty().get();
+		UMLProjekt projekt = ansicht.get().getProjektAnsicht().angezeigtesProjektProperty().get();
 		
 		if (projekt.getSpeicherort() == null) {
 			projektSpeichernUnter(event);
@@ -275,7 +275,7 @@ class HauptKontrolle {
 	}
 	
 	void projektUmbenennen(Event event) {
-		UMLProjekt projekt = ansicht.get().getProjektAnsicht().getAngezeigtesProjektProperty().get();
+		UMLProjekt projekt = ansicht.get().getProjektAnsicht().angezeigtesProjektProperty().get();
 		
 		MessageFormat format = new MessageFormat(
 				sprache.getText("umbenennenTitel", "Neuen Namen f%cr Projekt {0} festlegen".formatted(ue)));
@@ -296,17 +296,17 @@ class HauptKontrolle {
 	}
 	
 	void zoomeGroesser(Event event) {
-		var projekt = ansicht.get().getProjektAnsicht().getProjektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjektAnsicht().projektAnsichtProperty().get();
 		projekt.skaliere(projekt.getSkalierung() + 0.1);
 	}
 	
 	void zoomeKleiner(Event event) {
-		var projekt = ansicht.get().getProjektAnsicht().getProjektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjektAnsicht().projektAnsichtProperty().get();
 		projekt.skaliere(projekt.getSkalierung() - 0.1);
 	}
 	
 	void resetZoom(Event event) {
-		var projekt = ansicht.get().getProjektAnsicht().getProjektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjektAnsicht().projektAnsichtProperty().get();
 		projekt.skaliere(projekt.getStandardSkalierung());
 	}
 	

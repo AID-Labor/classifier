@@ -78,7 +78,7 @@ public enum Modifizierer {
 		return true;
 	}
 	
-	public ReadOnlyStringProperty getKurzform() {
+	public ReadOnlyStringProperty kurzformProperty() {
 		return kurzformProperty.getReadOnlyProperty();
 	}
 	

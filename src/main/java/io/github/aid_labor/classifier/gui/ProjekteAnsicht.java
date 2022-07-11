@@ -120,7 +120,7 @@ public class ProjekteAnsicht {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	public ReadOnlyObjectProperty<UMLProjekt> getAngezeigtesProjektProperty() {
+	public ReadOnlyObjectProperty<UMLProjekt> angezeigtesProjektProperty() {
 		return angezeigtesProjekt.getReadOnlyProperty();
 	}
 	
@@ -132,7 +132,7 @@ public class ProjekteAnsicht {
 		return this.tabAnsicht;
 	}
 	
-	public ReadOnlyObjectProperty<ProjektAnsicht> getProjektAnsichtProperty() {
+	public ReadOnlyObjectProperty<ProjektAnsicht> projektAnsichtProperty() {
 		return anzeige.getReadOnlyProperty();
 	}
 	

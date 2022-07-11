@@ -100,7 +100,7 @@ public class UMLKommentar extends UMLBasisElement {
 		this.inhaltProperty.set(inhalt);
 	}
 	
-	public StringProperty getInhaltProperty() {
+	public StringProperty inhaltProperty() {
 		return inhaltProperty;
 	}
 	

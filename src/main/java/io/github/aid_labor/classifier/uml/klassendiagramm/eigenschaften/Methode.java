@@ -99,7 +99,7 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		this.istStatisch = new JsonBooleanProperty(this, "istStatisch", istStatisch);
 		if (istGetter) {
 			this.rueckgabeTyp = Objects.requireNonNull(getterAttribut.getDatentyp().erzeugeTiefeKopie());
-			this.rueckgabeTyp.getTypNameProperty().bind(getterAttribut.getDatentyp().getTypNameProperty());
+			this.rueckgabeTyp.typNameProperty().bind(getterAttribut.getDatentyp().typNameProperty());
 			this.istStatisch.bindBidirectional(getterAttribut.istStatischProperty());
 			this.name.set("get" + Character.toUpperCase(getterAttribut.getName().charAt(0))
 					+ getterAttribut.getName().substring(1));
@@ -111,13 +111,13 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 			this.name.set("set" + Character.toUpperCase(setterAttribut.getName().charAt(0))
 					+ setterAttribut.getName().substring(1));
 			var param = new Parameter(setterAttribut.getDatentyp().erzeugeTiefeKopie(), setterAttribut.getName());
-			param.getNameProperty().bind(setterAttribut.nameProperty());
-			param.getDatentyp().getTypNameProperty().bind(setterAttribut.getDatentyp().getTypNameProperty());
+			param.nameProperty().bind(setterAttribut.nameProperty());
+			param.getDatentyp().typNameProperty().bind(setterAttribut.getDatentyp().typNameProperty());
 			this.parameterListe = FXCollections.unmodifiableObservableList(FXCollections.observableArrayList(param));
 			setterAttribut.setSetter(this);
 		} else {
 			this.rueckgabeTyp = Objects.requireNonNull(rueckgabeTyp);
-			this.ueberwachePropertyAenderung(this.rueckgabeTyp.getTypNameProperty(), id + "_methode_rueckgabetyp");
+			this.ueberwachePropertyAenderung(this.rueckgabeTyp.typNameProperty(), id + "_methode_rueckgabetyp");
 			this.parameterListe = FXCollections.observableList(new LinkedList<>());
 			this.ueberwachePropertyAenderung(this.istStatisch, id + "_methode_statisch");
 		}
@@ -232,29 +232,29 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		return null;
 	}
 	
-	public ObservableList<Parameter> getParameterListe() {
+	public ObservableList<Parameter> parameterListeProperty() {
 		return parameterListe;
 	}
 	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public ObjectProperty<Modifizierer> getSichtbarkeitProperty() {
+	public ObjectProperty<Modifizierer> sichtbarkeitProperty() {
 		return sichtbarkeit;
 	}
 	
-	public StringProperty getNameProperty() {
+	public StringProperty nameProperty() {
 		return name;
 	}
 	
-	public BooleanProperty getIstAbstraktProperty() {
+	public BooleanProperty istAbstraktProperty() {
 		return istAbstrakt;
 	}
 	
-	public BooleanProperty getIstFinalProperty() {
+	public BooleanProperty istFinalProperty() {
 		return istFinal;
 	}
 	
-	public BooleanProperty getIstStatischProperty() {
+	public BooleanProperty istStatischProperty() {
 		return istStatisch;
 	}
 	
@@ -273,14 +273,14 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 	@Override
 	public String toString() {
 		return "Methode <%s %s %s(%s) {%s %s}>".formatted(getSichtbarkeit(), getRueckgabeTyp().getTypName(), getName(),
-				getParameterListe().stream().map(p -> String.join(" ", p.getDatentyp().getTypName(), p.getName()))
+				parameterListeProperty().stream().map(p -> String.join(" ", p.getDatentyp().getTypName(), p.getName()))
 						.collect(Collectors.joining(", ")),
 				istAbstrakt() ? " abstract" : "", istFinal() ? "final " : "");
 	}
 	
 	@Override
 	public int hashCode() {
-		return ClassifierUtil.hashAlle(istAbstrakt(), istFinal(), getName(), getParameterListe(), getRueckgabeTyp(),
+		return ClassifierUtil.hashAlle(istAbstrakt(), istFinal(), getName(), parameterListeProperty(), getRueckgabeTyp(),
 				getSichtbarkeit(), istStatisch(), istGetter(), istSetter());
 	}
 	
@@ -300,7 +300,7 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		boolean istAbstraktGleich = istAbstrakt() == m.istAbstrakt();
 		boolean istFinalGleich = istFinal() == m.istFinal();
 		boolean nameGleich = Objects.equals(getName(), m.getName());
-		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(this.getParameterListe(), m.getParameterListe());
+		boolean parameterListeGleich = ClassifierUtil.pruefeGleichheit(this.parameterListeProperty(), m.parameterListeProperty());
 		boolean rueckgabeTypGleich = Objects.equals(getRueckgabeTyp(), m.getRueckgabeTyp());
 		boolean sichtbarkeitGleich = Objects.equals(getSichtbarkeit(), m.getSichtbarkeit());
 		boolean statischGleich = this.istStatisch() == m.istStatisch();

@@ -69,7 +69,7 @@ public class Einstellungen {
 	 * 
 	 * @return Ausgangs-Einstellungen
 	 */
-	public static Einstellungen getDefault() {
+	public static Einstellungen getStandard() {
 		return new Einstellungen();
 	}
 	

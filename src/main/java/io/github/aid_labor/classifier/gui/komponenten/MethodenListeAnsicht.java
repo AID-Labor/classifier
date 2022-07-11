@@ -69,8 +69,8 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 	protected Node[] erstelleZeile(Methode methode) {
 		var sichtbarkeit = new EnhancedLabel();
 		sichtbarkeit.textProperty()
-				.bind(methode.getSichtbarkeitProperty().get().getKurzform());
-		methode.getSichtbarkeitProperty().addListener((p, alt, neu) -> {
+				.bind(methode.sichtbarkeitProperty().get().kurzformProperty());
+		methode.sichtbarkeitProperty().addListener((p, alt, neu) -> {
 			sichtbarkeit.textProperty().unbind();
 			sichtbarkeit.textProperty()
 					.bind(new StringBinding() {
@@ -78,7 +78,7 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 						Observable x;
 						
 						{
-							super.bind(methode.getSichtbarkeitProperty());
+							super.bind(methode.sichtbarkeitProperty());
 						}
 						
 						@Override
@@ -86,15 +86,15 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 							if (x != null) {
 								super.unbind(x);
 							}
-							var prop = methode.getSichtbarkeitProperty().get();
+							var prop = methode.sichtbarkeitProperty().get();
 							
 							if (prop == null) {
 								x = null;
 								return "";
 							} else {
-								x = prop.getKurzform();
-								super.bind(prop.getKurzform());
-								return prop.getKurzform().get();
+								x = prop.kurzformProperty();
+								super.bind(prop.kurzformProperty());
+								return prop.kurzformProperty().get();
 							}
 						}
 						
@@ -103,11 +103,11 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 		
 		var beschreibung = new EnhancedLabel();
 		beschreibung.textProperty().bind(
-				methode.getNameProperty()
+				methode.nameProperty()
 						.concat("(")
 						.concat(new StringBinding() {
 							{
-								super.bind(methode.getParameterListe());
+								super.bind(methode.parameterListeProperty());
 							}
 							StringExpression stringExpr = null;
 							@Override
@@ -115,12 +115,12 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 								if (stringExpr != null) {
 									super.unbind(stringExpr);
 								}
-								var params = methode.getParameterListe().stream().map(param -> {
+								var params = methode.parameterListeProperty().stream().map(param -> {
 									return Bindings.concat(new When(Einstellungen
 													.getBenutzerdefiniert().zeigeParameterNamenProperty())
-													.then(param.getNameProperty().concat(": "))
+													.then(param.nameProperty().concat(": "))
 													.otherwise(""), 
-													param.getDatentyp().getTypNameProperty());
+													param.getDatentyp().typNameProperty());
 								}).toArray();
 								
 								if(params.length < 1) {
@@ -140,7 +140,7 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 						.concat(")")
 						.concat(new StringBinding() {
 							{
-								super.bind(methode.getRueckgabeTyp().getTypNameProperty(),
+								super.bind(methode.getRueckgabeTyp().typNameProperty(),
 										Einstellungen.getBenutzerdefiniert().zeigeVoidProperty());
 							}
 							
@@ -168,7 +168,7 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 			beschreibung.getStyleClass().remove(CSS_STATISCH_KLASSE);
 		}
 		
-		methode.getIstStatischProperty().addListener((property, alt, istStatisch) -> {
+		methode.istStatischProperty().addListener((property, alt, istStatisch) -> {
 			if (istStatisch) {
 				beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);
 			} else {
@@ -182,7 +182,7 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 			beschreibung.getStyleClass().remove(CSS_ABSTRAKT_KLASSE);
 		}
 		
-		methode.getIstAbstraktProperty().addListener((property, alt, istAbstrakt) -> {
+		methode.istAbstraktProperty().addListener((property, alt, istAbstrakt) -> {
 			if (istAbstrakt) {
 				beschreibung.getStyleClass().add(CSS_ABSTRAKT_KLASSE);
 			} else {

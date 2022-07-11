@@ -76,13 +76,13 @@ class ProjekteKontrolle {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	void legeNeuenKlassifiziererAn(KlassifiziererTyp typ) {
-		var projekt = this.ansicht.get().getAngezeigtesProjektProperty().get();
+		var projekt = this.ansicht.get().angezeigtesProjektProperty().get();
 		legeNeuenKlassifiziererAn(
 				new UMLKlassifizierer(typ, projekt.getProgrammiersprache(), ""));
 	}
 	
 	void legeNeuenKlassifiziererAn(UMLKlassifizierer klassifizierer) {
-		var projekt = this.ansicht.get().getAngezeigtesProjektProperty().get();
+		var projekt = this.ansicht.get().angezeigtesProjektProperty().get();
 		
 		legeDiagrammElementAn(klassifizierer, () -> {
 			var dialog = new UMLKlassifiziererBearbeitenDialog(klassifizierer, projekt);
@@ -100,7 +100,7 @@ class ProjekteKontrolle {
 	}
 	
 	void legeKommentarAn(UMLKommentar kommentar) {
-		var projekt = this.ansicht.get().getAngezeigtesProjektProperty().get();
+		var projekt = this.ansicht.get().angezeigtesProjektProperty().get();
 		
 		legeDiagrammElementAn(kommentar, () -> {
 			var dialog = new UMLKommentarBearbeitenDialog(kommentar);
@@ -115,7 +115,7 @@ class ProjekteKontrolle {
 	
 	private void legeDiagrammElementAn(UMLDiagrammElement element,
 			Supplier<Alert> dialogKonstruktor) {
-		var projekt = this.ansicht.get().getAngezeigtesProjektProperty().get();
+		var projekt = this.ansicht.get().angezeigtesProjektProperty().get();
 		var alterStatus = projekt.getUeberwachungsStatus();
 		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
 		

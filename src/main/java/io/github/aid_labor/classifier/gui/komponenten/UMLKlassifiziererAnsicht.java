@@ -68,8 +68,8 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		this.stereotyp = new Label(klassifizierer.getTyp().getStereotyp());
 		this.name = new Label(klassifizierer.getName());
 		
-		this.attribute = new AttributListeAnsicht(klassifizierer.getAttribute());
-		this.methoden = new MethodenListeAnsicht(klassifizierer.getMethoden(),
+		this.attribute = new AttributListeAnsicht(klassifizierer.attributeProperty());
+		this.methoden = new MethodenListeAnsicht(klassifizierer.methodenProperty(),
 				klassifizierer.getProgrammiersprache());
 		this.attributeTrenner = new Separator();
 		this.methodenTrenner = new Separator();
@@ -141,12 +141,12 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 				return typ == null || typ.isBlank() ? "" : "\u00AB" + typ + "\u00BB";
 			}
 		});
-		var paket = new When(umlElementModel.get().getPaketProperty().isNotEmpty())
-				.then(umlElementModel.get().getPaketProperty().concat("::")).otherwise("");
+		var paket = new When(umlElementModel.get().paketProperty().isNotEmpty())
+				.then(umlElementModel.get().paketProperty().concat("::")).otherwise("");
 		this.name.textProperty()
 				.bind(paket.concat(umlElementModel.get().nameProperty()));
 		trennerBeobachter = this::checkeTrenner;
-		umlElementModel.get().getAttribute().addListener(new WeakInvalidationListener(trennerBeobachter));
+		umlElementModel.get().attributeProperty().addListener(new WeakInvalidationListener(trennerBeobachter));
 		methoden.getChildren().addListener(new WeakInvalidationListener(trennerBeobachter));
 	}
 	
@@ -170,8 +170,8 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 	}
 	
 	private void checkeTrenner(Observable o) {
-		boolean hatAttributOderMethode = !umlElementModel.get().getAttribute().isEmpty()
-				|| !umlElementModel.get().getMethoden().isEmpty();
+		boolean hatAttributOderMethode = !umlElementModel.get().attributeProperty().isEmpty()
+				|| !umlElementModel.get().methodenProperty().isEmpty();
 		if (hatAttributOderMethode) {
 			if (!this.inhalt.getChildren().contains(this.eigenschaften)) {
 				this.inhalt.getChildren().add(eigenschaften);

@@ -66,7 +66,7 @@ public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter 
 		this.typName.set(typName);
 	}
 	
-	public StringProperty getTypNameProperty() {
+	public StringProperty typNameProperty() {
 		return typName;
 	}
 	

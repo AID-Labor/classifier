@@ -62,7 +62,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 		this.beobachterListe = new LinkedList<>();
 		this.id = naechsteId++;
 		
-		this.ueberwachePropertyAenderung(datentyp.getTypNameProperty(), id + "_parameter_typ");
+		this.ueberwachePropertyAenderung(datentyp.typNameProperty(), id + "_parameter_typ");
 		this.ueberwachePropertyAenderung(this.name, id + "_parameter_name");
 	}
 	
@@ -95,7 +95,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public StringProperty getNameProperty() {
+	public StringProperty nameProperty() {
 		return name;
 	}
 	

@@ -96,7 +96,7 @@ public final class SprachUtil {
 	public static boolean setUpSprache(Sprache sprache, Path suchordner, String dateiPraefix) {
 		return setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				dateiPraefix, Einstellungen.getBenutzerdefiniert().sprachProperty().get(),
-				Einstellungen.getDefault().sprachProperty().get(), Locale.GERMAN,
+				Einstellungen.getStandard().sprachProperty().get(), Locale.GERMAN,
 				Locale.GERMANY, Locale.ENGLISH, Locale.UK, Locale.US);
 	}
 	

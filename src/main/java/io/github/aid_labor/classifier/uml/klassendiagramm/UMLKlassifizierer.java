@@ -244,7 +244,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.paket.set(paket);
 	}
 	
-	public StringProperty getPaketProperty() {
+	public StringProperty paketProperty() {
 		return paket;
 	}
 	
@@ -252,11 +252,11 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		return programmiersprache;
 	}
 	
-	public ObservableList<Attribut> getAttribute() {
+	public ObservableList<Attribut> attributeProperty() {
 		return attribute;
 	}
 	
-	public ObservableList<Methode> getMethoden() {
+	public ObservableList<Methode> methodenProperty() {
 		return methoden;
 	}
 	
@@ -281,7 +281,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	
 	@Override
 	public int hashCode() {
-		return ClassifierUtil.hashAlle(getAttribute(), getMethoden(), getName(), getPaket(),
+		return ClassifierUtil.hashAlle(attributeProperty(), methodenProperty(), getName(), getPaket(),
 				getProgrammiersprache(), getPosition(), getTyp());
 	}
 	
@@ -298,10 +298,10 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		}
 		UMLKlassifizierer klassifizierer = (UMLKlassifizierer) obj;
 		
-		boolean attributeGleich = ClassifierUtil.pruefeGleichheit(this.getAttribute(),
-				klassifizierer.getAttribute());
-		boolean methodenGleich = ClassifierUtil.pruefeGleichheit(this.getMethoden(),
-				klassifizierer.getMethoden());
+		boolean attributeGleich = ClassifierUtil.pruefeGleichheit(this.attributeProperty(),
+				klassifizierer.attributeProperty());
+		boolean methodenGleich = ClassifierUtil.pruefeGleichheit(this.methodenProperty(),
+				klassifizierer.methodenProperty());
 		boolean nameGleich = Objects.equals(getName(), klassifizierer.getName());
 		boolean paketGleich = Objects.equals(getPaket(), klassifizierer.getPaket());
 		boolean programmierspracheGleich = getProgrammiersprache()

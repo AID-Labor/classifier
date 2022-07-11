@@ -57,7 +57,7 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 	protected Node[] erstelleZeile(Attribut attribut) {
 		var sichtbarkeit = new EnhancedLabel();
 		sichtbarkeit.textProperty()
-				.bind(attribut.sichtbarkeitProperty().get().getKurzform());
+				.bind(attribut.sichtbarkeitProperty().get().kurzformProperty());
 		attribut.sichtbarkeitProperty().addListener((p, alt, neu) -> {
 			sichtbarkeit.textProperty().unbind();
 			sichtbarkeit.textProperty()
@@ -79,9 +79,9 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 								x = null;
 								return "";
 							} else {
-								x = prop.getKurzform();
-								super.bind(prop.getKurzform());
-								return prop.getKurzform().get();
+								x = prop.kurzformProperty();
+								super.bind(prop.kurzformProperty());
+								return prop.kurzformProperty().get();
 							}
 						}
 						
@@ -92,7 +92,7 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 		beschreibung.textProperty().bind(
 				attribut.nameProperty()
 				.concat(": ")
-				.concat(attribut.getDatentyp().getTypNameProperty())
+				.concat(attribut.getDatentyp().typNameProperty())
 				.concat(new When(attribut.initialwertProperty().isEmpty())
 						.then("")
 						.otherwise(

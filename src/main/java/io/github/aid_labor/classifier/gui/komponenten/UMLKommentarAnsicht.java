@@ -65,7 +65,7 @@ public class UMLKommentarAnsicht extends UMLElementBasisAnsicht<UMLKommentar> {
 		engine.setJavaScriptEnabled(false);
 		
 		engine.loadContent(kommentar.getInhalt());
-		kommentar.getInhaltProperty()
+		kommentar.inhaltProperty()
 				.addListener((p, alt, neuerInhalt) -> engine.loadContent(neuerInhalt));
 		
 		htmlAnsicht.setContextMenuEnabled(false);
