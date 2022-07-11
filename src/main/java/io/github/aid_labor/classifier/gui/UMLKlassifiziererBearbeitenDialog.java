@@ -39,7 +39,6 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Parameter;
-import io.github.aid_labor.classifier.uml.programmierung.ProgrammierEigenschaften;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
@@ -523,7 +522,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		for (Modifizierer m : modifizierer) {
 			RadioButton rb = new RadioButton(m.toString());
 			rb.setUserData(m);
-			rb.setDisable(!ProgrammierEigenschaften.get(getKlassifizierer().getProgrammiersprache())
+			rb.setDisable(!getKlassifizierer().getProgrammiersprache().getEigenschaften()
 					.istTypModifiziererErlaubt(getKlassifizierer().getTyp(), m));
 			sichtbarkeitGruppe.getToggles().add(rb);
 			sichtbarkeit.getChildren().add(rb);

@@ -28,7 +28,7 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
-import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
+import io.github.aid_labor.classifier.uml.programmierung.JavaProvider;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 
@@ -44,7 +44,7 @@ class UMLProjektTest {
 	
 	@BeforeEach
 	void setUp() throws Exception {
-		projekt = new UMLProjekt("Test", Programmiersprache.Java, false);
+		projekt = new UMLProjekt("Test", JavaProvider.provider(), false);
 		projekt.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
 	}
 	
@@ -115,7 +115,7 @@ class UMLProjektTest {
 			testName(geoeffnet);
 			assertEquals(datei, geoeffnet.getSpeicherort());
 			testSpeicherOrt(geoeffnet);
-			assertEquals(Programmiersprache.Java, geoeffnet.getProgrammiersprache());
+			assertEquals(JavaProvider.provider(), geoeffnet.getProgrammiersprache());
 			assertEquals(projekt.getDiagrammElemente().size(),
 					geoeffnet.getDiagrammElemente().size());
 			for (int i = 0; i < projekt.getDiagrammElemente().size(); i++) {
@@ -136,7 +136,7 @@ class UMLProjektTest {
 	
 	@Test
 	void testProgrammiersprache() {
-		assertEquals(Programmiersprache.Java, projekt.getProgrammiersprache());
+		assertEquals(JavaProvider.provider(), projekt.getProgrammiersprache());
 	}
 	
 	@Test

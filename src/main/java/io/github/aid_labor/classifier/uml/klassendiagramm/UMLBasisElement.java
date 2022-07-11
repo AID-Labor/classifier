@@ -49,6 +49,7 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 			this(0, 0, 0, 0);
 		}
 		
+		@SuppressWarnings("exports")
 		public Position(Position position) {
 			this();
 			setPosition(position);
@@ -121,6 +122,7 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 		}
 		
 		@JsonIgnore
+		@SuppressWarnings("exports")
 		public void setPosition(Position position) {
 			this.setX(position.getX());
 			this.setY(position.getY());
@@ -129,6 +131,7 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 		}
 		
 		@JsonIgnore
+		@SuppressWarnings("exports")
 		public void set(Position position) {
 			this.setX(position.getX());
 			this.setY(position.getY());
@@ -186,7 +189,7 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public UMLBasisElement() {
+	UMLBasisElement() {
 		this.position = new Position(10, 10, -1, -1, this);
 		this.beobachterListe = new LinkedList<>();
 		this.ueberwachePropertyAenderung(this.position.x, getId() + "_x_position");
@@ -196,7 +199,7 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 	}
 	
 	@JsonCreator
-	public UMLBasisElement(Position position) {
+	UMLBasisElement(Position position) {
 		this();
 		position.set(position);
 	}

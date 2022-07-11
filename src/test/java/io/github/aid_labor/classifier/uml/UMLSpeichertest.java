@@ -32,7 +32,7 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Parameter;
 import io.github.aid_labor.classifier.uml.programmierung.Java;
-import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
+import io.github.aid_labor.classifier.uml.programmierung.JavaProvider;
 
 
 class UMLSpeichertest {
@@ -48,8 +48,8 @@ class UMLSpeichertest {
 	@BeforeAll
 	static void setUpClass() {
 		LoggingEinstellung.initialisiereTestLogging();
-		Ressourcen.setProgrammDetails(new ProgrammDetails(null, UMLProjektTest.class.getName(),
-				null, null, UMLProjektTest.class, null));
+		Ressourcen.setProgrammDetails(
+				new ProgrammDetails(null, UMLProjektTest.class.getName(), null, null, UMLProjektTest.class, null));
 	}
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
@@ -72,7 +72,7 @@ class UMLSpeichertest {
 	@BeforeEach
 	void setUp() throws Exception {
 		datei = Files.createTempFile("test", ".projekt");
-		projekt = new UMLProjekt("Test", Programmiersprache.Java, false);
+		projekt = new UMLProjekt("Test", JavaProvider.provider(), false);
 		projekt.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN);
 		projekt.setSpeicherort(datei);
 	}
@@ -98,17 +98,17 @@ class UMLSpeichertest {
 		projekt.getDiagrammElemente().add(new UMLKommentar());
 		testeSpeichernUndOeffnen();
 		
-		projekt.getDiagrammElemente().add(new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "TestKlasse_1"));
+		projekt.getDiagrammElemente()
+				.add(new UMLKlassifizierer(KlassifiziererTyp.Klasse, JavaProvider.provider(), "TestKlasse_1"));
 		testeSpeichernUndOeffnen();
 		
-		projekt.getDiagrammElemente().add(new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "TestKlasse_2"));
+		projekt.getDiagrammElemente()
+				.add(new UMLKlassifizierer(KlassifiziererTyp.Klasse, JavaProvider.provider(), "TestKlasse_2"));
 		testeSpeichernUndOeffnen();
 		
 		// Teste Verschiebung
-		projekt.getDiagrammElemente().add(1, new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "TestKlasse_3"));
+		projekt.getDiagrammElemente().add(1,
+				new UMLKlassifizierer(KlassifiziererTyp.Klasse, JavaProvider.provider(), "TestKlasse_3"));
 		testeSpeichernUndOeffnen();
 		
 		// Teste Entfernen
@@ -118,8 +118,8 @@ class UMLSpeichertest {
 	
 	@Test
 	void testeUMLKlassifizierer() {
-		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Interface,
-				Programmiersprache.Java, "TestUMLKlassifizierer_Interface");
+		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Interface, JavaProvider.provider(),
+				"TestUMLKlassifizierer_Interface");
 		umlKlasse.setPaket("testPaket");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		testeSpeichernUndOeffnen();
@@ -136,8 +136,7 @@ class UMLSpeichertest {
 	
 	@Test
 	void testeAttributeUeberwachung() {
-		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "TestKlasseAttribute");
+		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse, JavaProvider.provider(), "TestKlasseAttribute");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		
 		var attribut = new Attribut(Modifizierer.PACKAGE, Java.STRING());
@@ -145,8 +144,7 @@ class UMLSpeichertest {
 		umlKlasse.attributeProperty().add(attribut);
 		testeSpeichernUndOeffnen();
 		
-		umlKlasse.attributeProperty()
-				.add(new Attribut(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV()));
+		umlKlasse.attributeProperty().add(new Attribut(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV()));
 		testeSpeichernUndOeffnen();
 		
 		attribut.setName("testAttributNeu");
@@ -173,19 +171,16 @@ class UMLSpeichertest {
 	
 	@Test
 	void testeMethodenUeberwachung() {
-		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse,
-				Programmiersprache.Java, "TestKlasseMethoden");
+		var umlKlasse = new UMLKlassifizierer(KlassifiziererTyp.Klasse, JavaProvider.provider(), "TestKlasseMethoden");
 		projekt.getDiagrammElemente().add(umlKlasse);
 		
-		var methode = new Methode(Modifizierer.PUBLIC, Java.INT_PRIMITIV(),
-				umlKlasse.getProgrammiersprache());
+		var methode = new Methode(Modifizierer.PUBLIC, Java.INT_PRIMITIV(), umlKlasse.getProgrammiersprache());
 		methode.setName("testMethode");
 		umlKlasse.methodenProperty().add(methode);
 		testeSpeichernUndOeffnen();
 		
 		umlKlasse.methodenProperty()
-				.add(new Methode(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV(),
-						umlKlasse.getProgrammiersprache()));
+				.add(new Methode(Modifizierer.PROTECTED, Java.DOUBLE_PRIMITIV(), umlKlasse.getProgrammiersprache()));
 		testeSpeichernUndOeffnen();
 		
 		methode.setName("testMethodeNeu");
@@ -216,7 +211,6 @@ class UMLSpeichertest {
 		methode.setzeStatisch(true);
 		testeSpeichernUndOeffnen();
 	}
-	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*

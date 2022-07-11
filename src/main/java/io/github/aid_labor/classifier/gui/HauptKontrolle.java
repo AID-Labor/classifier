@@ -34,6 +34,7 @@ import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.programmierung.ProgrammiersprachenVerwaltung;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 import javafx.application.Platform;
 import javafx.event.Event;
@@ -127,8 +128,8 @@ class HauptKontrolle {
 		dialog.add(eingabeName, 1, 0);
 		
 		ChoiceBox<Programmiersprache> wahlProgrammiersprache = new ChoiceBox<>();
-		wahlProgrammiersprache.getItems().addAll(Programmiersprache.values());
-		wahlProgrammiersprache.getSelectionModel().select(Programmiersprache.Java);
+		wahlProgrammiersprache.getItems().addAll(ProgrammiersprachenVerwaltung.getProgrammiersprachen());
+		wahlProgrammiersprache.getSelectionModel().select(ProgrammiersprachenVerwaltung.getStandardProgrammiersprache());
 		dialog.add(new EnhancedLabel(sprache.getText("programmiersprache", "Programmiersprache") + ":"), 0, 1);
 		dialog.add(wahlProgrammiersprache, 1, 1);
 		dialog.setHgap(10);

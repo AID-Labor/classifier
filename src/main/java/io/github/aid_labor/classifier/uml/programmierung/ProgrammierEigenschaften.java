@@ -14,21 +14,6 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizi
 
 
 public interface ProgrammierEigenschaften {
-
-	/**
-	 * Gibt eine passende Instanz fuer die uebergebene Programmiersprache zurueck
-	 * 
-	 * @param programmiersprache gewuenschte Programmiersprache
-	 * @return passende Instanz fuer die uebergebene Programmiersprache oder {@code null},
-	 *         falls keine passende Implementierung gefunden wurde
-	 */
-	public static ProgrammierEigenschaften get(Programmiersprache programmiersprache) {
-		return switch (programmiersprache) {
-			case Java -> Java.getInstanz();
-			default -> null;
-		};
-	}
-	
 	
 	public boolean istTypModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
 	public boolean istAttributModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m);
