@@ -482,7 +482,7 @@ public final class NodeUtil {
 	private static final String LISTENERS_KEY = "UeberwacherListe";
 	
 	public static <T> void beobachteSchwach(Node node, ObservableValue<T> property, Runnable aktion) {
-		beobachteSchwach(node, property, (p, a, n) -> aktion.run());
+		beobachteSchwach(node, property, (p, alt, neu) -> aktion.run());
 	}
 	
 	public static <T> void beobachteSchwach(Node node, ObservableValue<T> property,
