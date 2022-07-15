@@ -208,12 +208,16 @@ class HauptKontrolle {
 			return null;
 		}
 		
+		// Probleme mit Linux und Dateierweiterung beheben
+		speicherOrt = DateiUtil.pruefeUndKorrigiereDateierweiterung(speicherOrt, dateiDialog.getExtensionFilters());
+		
 		BufferedImage bild = SwingFXUtils.fromFXImage(ergebnis.getImage(), null);
 		try (var out = new FileOutputStream(speicherOrt)) {
 			ImageIO.write(bild, "png", out);
 		} catch (IOException e) {
+			String pfadname = speicherOrt.getPath();
 			log.log(Level.WARNING, e,
-					() -> "Datei %s konnte nicht geschrieben werden".formatted(speicherOrt.getPath()));
+					() -> "Datei %s konnte nicht geschrieben werden".formatted(pfadname));
 		}
 		
 		return null;
