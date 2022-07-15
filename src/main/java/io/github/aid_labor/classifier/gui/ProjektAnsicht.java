@@ -156,6 +156,10 @@ public class ProjektAnsicht extends Tab {
 		return selektion.stream().map(UMLElementBasisAnsicht::getUmlElement).toList();
 	}
 	
+	public boolean hatSelektion() {
+		return !selektion.isEmpty();
+	}
+	
 	public BooleanBinding hatSelektionProperty() {
 		return Bindings.isEmpty(selektion);
 	}

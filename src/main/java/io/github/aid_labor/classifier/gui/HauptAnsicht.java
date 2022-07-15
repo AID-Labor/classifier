@@ -223,8 +223,7 @@ public class HauptAnsicht {
 	
 	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
 		// Menue Datei
-		NodeUtil.deaktivieren(menue.getDateiImportieren(),
-				menue.getExportierenBild(), menue.getExportierenQuellcode());
+		NodeUtil.deaktivieren(menue.getDateiImportieren(), menue.getExportierenQuellcode());
 		
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
 		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
@@ -235,6 +234,7 @@ public class HauptAnsicht {
 		menue.getDateiAlleSpeichern().setOnAction(e -> this.projekteAnsicht.allesSpeichern());
 		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
 		menue.getDateiUmbenennen().setOnAction(this.controller::projektUmbenennen);
+		menue.getExportierenBild().setOnAction(controller::exportiereAlsBild);
 		
 		// Menue Bearbeiten
 		var aktuellesProjekt = this.projekteAnsicht.angezeigtesProjektProperty().get();
@@ -326,6 +326,7 @@ public class HauptAnsicht {
 		menue.getDateiSchliessen().disableProperty().bind(hatKeinProjekt);
 		menue.getDateiAlleSpeichern().disableProperty().bind(hatKeinProjekt);
 		menue.getDateiUmbenennen().disableProperty().bind(hatKeinProjekt);
+		menue.getExportierenBild().disableProperty().bind(hatKeinProjekt);
 		
 		// Menue Bearbeiten
 		this.projekteAnsicht.angezeigtesProjektProperty().addListener((p, alt, projekt) -> {
@@ -446,9 +447,9 @@ public class HauptAnsicht {
 		ribbon.getSpeichern().setOnAction(controller::projektSpeichern);
 		ribbon.getSpeichernSchnellzugriff().setOnAction(controller::projektSpeichern);
 		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
+		ribbon.getScreenshot().setOnAction(controller::exportiereAlsBild);
 		
-		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getScreenshot(),
-				ribbon.getExportieren());
+		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getExportieren());
 		
 		ribbon.getKopieren().setOnAction(e -> auswahlKopieren());
 		ribbon.getEinfuegen().setOnAction(e -> auswahlEinfuegen());
@@ -493,6 +494,7 @@ public class HauptAnsicht {
 		ribbon.getNeuesInterface().disableProperty().bind(hatKeinProjekt);
 		ribbon.getNeueEnumeration().disableProperty().bind(hatKeinProjekt);
 		ribbon.getKommentar().disableProperty().bind(hatKeinProjekt);
+		ribbon.getScreenshot().disableProperty().bind(hatKeinProjekt);
 		
 		updateRueckgaengigWiederholen(ribbon,
 				projekteAnsicht.angezeigtesProjektProperty().get());
@@ -752,6 +754,13 @@ public class HauptAnsicht {
 		var text = new TextFlow(beschreibung);
 		text.getStyleClass().add("dialog-text");
 		this.overlayDialog.showNode(Type.WARNING, dialogTitel, text, false, List.of(ButtonType.OK));
+	}
+	
+	void zeigeExportFehlerDialog(String beschreibung) {
+		String titel = sprache.getText("exportFehlerTitel", "Fehler beim Exportieren");
+		var text = new TextFlow(new Text(beschreibung));
+		text.getStyleClass().add("dialog-text-warnung");
+		this.overlayDialog.showNode(Type.ERROR, titel, text);
 	}
 	
 }

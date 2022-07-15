@@ -267,6 +267,22 @@ public final class NodeUtil {
 		}
 	}
 	
+	public static void setzeBreite(double breite, Region... elemente) {
+		for (var element: elemente) {
+			element.setMinWidth(breite);
+			element.setPrefWidth(breite);
+			element.setMaxWidth(breite);
+		}
+	}
+	
+	public static void setzeHoehe(double hoehe, Region... elemente) {
+		for (var element: elemente) {
+			element.setMinHeight(hoehe);
+			element.setPrefHeight(hoehe);
+			element.setMaxHeight(hoehe);
+		}
+	}
+	
 	public static boolean wirdBewegt(Node n) {
 		Object obj = n.getProperties().getOrDefault("bewegungsEinstellung", new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {

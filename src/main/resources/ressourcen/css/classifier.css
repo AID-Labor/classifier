@@ -133,3 +133,10 @@
     -fx-border-color: blue;
     */
 }
+
+.vorschau {
+    -fx-border-width: 2;
+    -fx-border-style: solid;
+    -fx-border-color: black;
+    -fx-background-color: white;
+}

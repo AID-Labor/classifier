@@ -25,6 +25,7 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.Theme;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
+import io.github.aid_labor.classifier.basis.json.JsonDoubleProperty;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
 import io.github.aid_labor.classifier.basis.json.JsonIntegerProperty;
 import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
@@ -158,6 +159,11 @@ public class Einstellungen {
 	private final JsonBooleanProperty zeigeVoidProperty;
 	private final JsonBooleanProperty zeigeParameterNamenProperty;
 	private final JsonBooleanProperty erweiterteValidierungAktivierenProperty;
+	private final JsonEnumProperty<Theme> exportThemeProperty;
+	private final JsonDoubleProperty exportSkalierungProperty;
+	private final JsonStringProperty letzterBildSpeicherortProperty;
+	private final JsonStringProperty letzterQuellcodeSpeicherortProperty;
+	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -208,6 +214,10 @@ public class Einstellungen {
 		this.zeigeVoidProperty = new JsonBooleanProperty(false);
 		this.zeigeParameterNamenProperty = new JsonBooleanProperty(true);
 		this.erweiterteValidierungAktivierenProperty = new JsonBooleanProperty(true);
+		this.exportThemeProperty = new JsonEnumProperty<Theme>(Theme.LIGHT);
+		this.exportSkalierungProperty = new JsonDoubleProperty(1);
+		this.letzterBildSpeicherortProperty = new JsonStringProperty(OS.getDefault().getBilderOrdner());
+		this.letzterQuellcodeSpeicherortProperty = new JsonStringProperty(OS.getDefault().getDokumenteOrdner());
 	}
 	
 	/**
@@ -300,6 +310,21 @@ public class Einstellungen {
 		return erweiterteValidierungAktivierenProperty;
 	}
 	
+	public final JsonEnumProperty<Theme> exportThemeProperty() {
+		return exportThemeProperty;
+	}
+	
+	public final JsonDoubleProperty exportSkalierungProperty() {
+		return exportSkalierungProperty;
+	}
+	
+	public final JsonStringProperty letzterBildSpeicherortProperty() {
+		return letzterBildSpeicherortProperty;
+	}
+	
+	public final JsonStringProperty letzterQuellcodeSpeicherortProperty() {
+		return letzterQuellcodeSpeicherortProperty;
+	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																		*

@@ -58,6 +58,7 @@ module classifier {
 	requires org.controlsfx.controls;
 	requires javafx.web;
 	requires java.xml;
+	requires javafx.swing;
 	
 	uses Programmiersprache;
 	

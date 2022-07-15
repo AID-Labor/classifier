@@ -195,6 +195,52 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 	}
 	
 	/**
+	 * Ermittelt den Speicherort fuer Bilder
+	 * 
+	 * @apiNote Gibt {@code null} zurueck, falls kein passender Ordner gefunden wird.
+	 * 
+	 * @implNote Sucht den Ordner im Nutzerordner (siehe {@link getNutzerOrdner}) anhand der
+	 *           gaengigen deutschen und englischen Namen in folgender Reihenfolge:
+	 *           "Bilder", "bilder", "Pictures", "pictures", "Images", "images"
+	 * 			
+	 * @return Bilder-Ordner des Nutzers
+	 */
+	public String getBilderOrdner() {
+		String[] pfade = {
+			this.pfadAus(new StringBuilder(this.nutzerOrdner), "Bilder").toString(),
+			this.pfadAus(new StringBuilder(this.nutzerOrdner), "bilder").toString(),
+			this.pfadAus(new StringBuilder(this.nutzerOrdner), "Pictures").toString(),
+			this.pfadAus(new StringBuilder(this.nutzerOrdner), "pictures").toString(),
+			this.pfadAus(new StringBuilder(this.nutzerOrdner), "Images").toString(),
+			this.pfadAus(new StringBuilder(this.nutzerOrdner), "images").toString()
+		};
+		for (String ordner : pfade) {
+			if (Files.isDirectory(Path.of(ordner))) {
+				return ordner;
+			}
+		}
+		
+		return getDokumenteOrdner();
+	}
+	
+
+	/**
+	 * Ermittelt den Speicherort fuer Bilder
+	 * 
+	 * @apiNote Gibt {@code null} zurueck, falls kein passender Ordner gefunden wird.
+	 * 
+	 * @return Bilder-Ordner des Nutzers
+	 */
+	public Path getBilderOrdnerPath(final ProgrammDetails programm) {
+		var pfad = this.getBilderOrdner();
+		if (pfad != null) {
+			return Path.of(this.getBilderOrdner());
+		} else {
+			return null;
+		}
+	}
+	
+	/**
 	 * Ermittelt den Speicherort fuer Dokumente
 	 * 
 	 * @apiNote Gibt {@code null} zurueck, falls kein passender Ordner gefunden wird.
