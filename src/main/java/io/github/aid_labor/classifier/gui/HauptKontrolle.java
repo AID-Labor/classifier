@@ -150,6 +150,8 @@ class HauptKontrolle {
 			double skalierung = parameter.getSkalierung();
 			gruppe.setScaleX(skalierung);
 			gruppe.setScaleY(skalierung);
+			Einstellungen.getBenutzerdefiniert().exportThemeProperty().set(parameter.getFarbe());
+			Einstellungen.getBenutzerdefiniert().exportSkalierungProperty().set(parameter.getSkalierung());
 			
 			// Workaround fuer Webview
 			// Quelle: https://stackoverflow.com/a/60746994/1534698
@@ -210,14 +212,15 @@ class HauptKontrolle {
 		
 		// Probleme mit Linux und Dateierweiterung beheben
 		speicherOrt = DateiUtil.pruefeUndKorrigiereDateierweiterung(speicherOrt, dateiDialog.getExtensionFilters());
+		Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty()
+				.set(speicherOrt.getAbsoluteFile().getParent());
 		
 		BufferedImage bild = SwingFXUtils.fromFXImage(ergebnis.getImage(), null);
 		try (var out = new FileOutputStream(speicherOrt)) {
 			ImageIO.write(bild, "png", out);
 		} catch (IOException e) {
 			String pfadname = speicherOrt.getPath();
-			log.log(Level.WARNING, e,
-					() -> "Datei %s konnte nicht geschrieben werden".formatted(pfadname));
+			log.log(Level.WARNING, e, () -> "Datei %s konnte nicht geschrieben werden".formatted(pfadname));
 		}
 		
 		return null;

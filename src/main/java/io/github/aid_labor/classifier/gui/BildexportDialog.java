@@ -193,6 +193,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		skalierungAuswahl.setConverter(new StringConverter<Double>() {
 			@Override
 			public String toString(Double d) {
+				d = d == null ? 0.0 : d;
 				return String.format("%.2f%%", d * 100);
 			}
 			
@@ -208,9 +209,12 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 				}
 			}
 		});
-		skalierungAuswahl.getSelectionModel().select(skalierung.get());
+		skalierungAuswahl.getSelectionModel().select(Double.NaN);
+		Platform.runLater(() -> {
+			skalierungAuswahl.getSelectionModel().select(skalierung.get());
+		});
 		skalierungAuswahl.getSelectionModel().selectedItemProperty().addListener((p, alt, neu) -> {
-			if (neu.compareTo(alt) != 0) {
+			if (neu != null && neu.compareTo(alt) != 0) {
 				skalierung.set(neu);
 			}
 		});
@@ -246,10 +250,10 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 			}
 		});
 		
-		Platform.runLater(() -> {
-			var bild = vorschau.snapshot(new SnapshotParameters(), null);
-			breiteEingabe.setText(String.format("%.2f", bild.getWidth()));
-		});
+//		Platform.runLater(() -> {
+//			var bild = vorschau.snapshot(new SnapshotParameters(), null);
+//			breiteEingabe.setText(String.format("%.2f", bild.getWidth()*skalierung.doubleValue()));
+//		});
 		return breiteEingabe;
 	}
 	
@@ -275,10 +279,10 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 			}
 		});
 		
-		Platform.runLater(() -> {
-			var bild = vorschau.snapshot(new SnapshotParameters(), null);
-			hoeheEingabe.setText(String.format("%.2f", bild.getHeight()));
-		});
+//		Platform.runLater(() -> {
+//			var bild = vorschau.snapshot(new SnapshotParameters(), null);
+//			hoeheEingabe.setText(String.format("%.2f", bild.getHeight()*skalierung.doubleValue()));
+//		});
 		return hoeheEingabe;
 	}
 	
@@ -313,10 +317,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		this.setResultConverter(button -> {
 			return switch (button.getButtonData()) {
 				case APPLY -> {
-					Einstellungen.getBenutzerdefiniert().exportThemeProperty().set(farbe);
-					Einstellungen.getBenutzerdefiniert().exportSkalierungProperty().set(skalierung.get());
 					var ergebnis = new ExportParameter(farbe, skalierung.get(), vorschau.getScene());
-					setResult(ergebnis);
 					yield ergebnis;
 				}
 				default -> null;
