@@ -9,7 +9,6 @@ package io.github.aid_labor.classifier.uml;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -318,16 +317,18 @@ public class UMLProjekt extends ProjektBasis {
 						neueSuperklasse);
 				vererbung.verbindungsStartProperty().bind(klassifizierer.nameProperty());
 				vererbung.ausgebelendetProperty().bind(Bindings.isEmpty(superklassen));
-		
+				
 				verbindungen.add(vererbung);
 			} else {
-				verbindungen.stream().filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG) 
-						&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName()) 
-						&& Objects.equals(v.getVerbindungsEnde(), alteSuperklasse)).forEach(vererbung -> {
+				verbindungen.stream()
+						.filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
+								&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
+								&& Objects.equals(v.getVerbindungsEnde(), alteSuperklasse))
+						.forEach(vererbung -> {
 							vererbung.setVerbindungsEnde(neueSuperklasse);
-					var superklassen = diagrammElemente.filtered(e -> e.getName().equals(neueSuperklasse));
-					vererbung.ausgebelendetProperty().bind(Bindings.isEmpty(superklassen));
-				});
+							var superklassen = diagrammElemente.filtered(e -> e.getName().equals(neueSuperklasse));
+							vererbung.ausgebelendetProperty().bind(Bindings.isEmpty(superklassen));
+						});
 			}
 		};
 		klassifizierer.superklasseProperty().addListener(superklassenUeberwacher);
@@ -336,15 +337,18 @@ public class UMLProjekt extends ProjektBasis {
 	
 	private ChangeListener<String> ueberwacheName(UMLKlassifizierer klassifizierer) {
 		ChangeListener<String> nameUeberwacher = (p, alterName, neuerName) -> {
-			if (Objects.equals(alterName, neuerName)) {
+			if (Objects.equals(alterName, neuerName) || diagrammElemente.stream().
+					filter(e -> e instanceof UMLKlassifizierer k && Objects.equals(k.getName(), alterName) 
+						&& k.getId() != klassifizierer.getId())	// Anderes Element mit gleichem Namen -> Kein Update!!!
+					.count() > 0) {
 				return;
 			}
 			
-			diagrammElemente.stream()
-				.filter(e -> e instanceof UMLKlassifizierer k && Objects.equals(k.getSuperklasse(), alterName))
-				.forEach(subklasse -> {
-					((UMLKlassifizierer) subklasse).setSuperklasse(neuerName);
-				});
+			diagrammElemente.stream().filter(e -> e instanceof UMLKlassifizierer k
+					&& k.getId() != klassifizierer.getId() && Objects.equals(k.getSuperklasse(), alterName))
+					.forEach(subklasse -> {
+						((UMLKlassifizierer) subklasse).setSuperklasse(neuerName);
+					});
 		};
 		klassifizierer.nameProperty().addListener(nameUeberwacher);
 		return nameUeberwacher;

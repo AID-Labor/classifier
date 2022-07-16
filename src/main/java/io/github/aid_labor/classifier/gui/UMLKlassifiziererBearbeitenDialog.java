@@ -106,6 +106,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final WeakReference<UMLKlassifizierer> klassifiziererRef;
+	private final WeakReference<UMLProjekt> umlProjektRef;
 	private final Sprache sprache;
 	private final SegmentedButton buttonBar;
 	private final ToggleButton allgemein;
@@ -133,6 +134,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.loeseBindungen = new LinkedList<>();
 		this.vorhandeneElementNamen = projekt.getDiagrammElemente().parallelStream()
 				.filter(element -> element.getId() != klassifizierer.getId()).map(UMLDiagrammElement::getName).toList();
+		this.umlProjektRef = new WeakReference<>(projekt);
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"UMLKlassifiziererBearbeitenDialog");
@@ -275,6 +277,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		anzeige.visibleProperty().bind(button.selectedProperty());
 	}
 	
+	@SuppressWarnings("resource")
 	private GridPane erzeugeAllgemeinAnzeige() {
 		GridPane tabelle = new GridPane();
 		
@@ -325,7 +328,32 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							Validator.createPredicateValidator(tf -> !vorhandeneElementNamen.contains(name.getText()),
 									sprache.getText("klassennameValidierung2",
 											"Ein Element mit diesem Namen ist bereits vorhanden"))));
+//			eingabeValidierung.registerValidator(superklasse, Validator.createPredicateValidator(tf -> {
+//				var projekt = umlProjektRef.get();
+//				if (projekt == null) {
+//					return false;
+//				}
+//				var elemente = projekt.getDiagrammElemente();
+//				var superKl = getKlassifizierer();
+//				boolean istZirkular = false;
+//				while (superKl != null && superKl.getSuperklasse() != null) {
+//					if (superKl.getSuperklasse().equals(getKlassifizierer().getName())) {
+//						istZirkular = true;
+//						break;
+//					}
+//					String superName = superKl.getName();
+//					var gefunden = elemente.stream().filter(e -> e instanceof UMLKlassifizierer
+//							&& Objects.equals(e.getName(), superName)).findFirst();
+//					if (gefunden.isPresent() && gefunden.get() instanceof UMLKlassifizierer k) {
+//						superKl = k;
+//					} else {
+//						break;
+//					}
+//				}
+//				return !istZirkular;
+//			}, sprache.getText("superklasseValidierung", "Die Vererbungshierarchie darf nicht zirkular sein!")));
 			setzePlatzhalter(name);
+//			setzePlatzhalter(superklasse);
 		});
 		
 		updateSuperklasse(superklasse, getKlassifizierer().getTyp());
@@ -513,7 +541,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			setzePlatzhalter(datentyp);
 		});
 	}
-
+	
 	private HBox erzeugeSichtbarkeit() {
 		HBox sichtbarkeit = new HBox();
 		ToggleGroup sichtbarkeitGruppe = new ToggleGroup();
@@ -578,7 +606,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		GridPane.setHalignment(statisch, HPos.CENTER);
 		
 		validiereMethode(parameter, name, rueckgabetyp, methode);
-		
 		
 		updateMethode(sichtbarkeit, abstrakt, statisch, methode, getKlassifizierer().getTyp());
 		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateMethode(sichtbarkeit,
@@ -691,7 +718,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			setzePlatzhalter(rueckgabetyp);
 		});
 	}
-
+	
 	private void bearbeiteParameter(TextField parameter, Methode methode) {
 		var parameterListe = erzeugeTabellenAnzeige(new String[] { "Parametername", "Datentyp" },
 				methode.parameterListeProperty(), (param, kontrollelemente) -> {
@@ -733,31 +760,32 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private void validiereParameter(TextField name, TextField datentyp, Methode methode) {
 		Platform.runLater(() -> {
 			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
-				eingabeValidierung.registerValidator(name, Validator.combine(
-						Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")),
-						Validator.createPredicateValidator(tf -> methode.parameterListeProperty().stream()
-								.filter(p -> Objects.equals(p.getName(), name.getText())).count() <= 1,
-								sprache.getText("parameterValidierung",
-										"Ein Parameter mit diesem Namen ist bereits vorhanden"))));
+				eingabeValidierung.registerValidator(name,
+						Validator.combine(
+								Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")),
+								Validator.createPredicateValidator(
+										tf -> methode.parameterListeProperty().stream()
+												.filter(p -> Objects.equals(p.getName(), name.getText())).count() <= 1,
+										sprache.getText("parameterValidierung",
+												"Ein Parameter mit diesem Namen ist bereits vorhanden"))));
 				NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
 			} else {
 				eingabeValidierung.registerValidator(name,
 						Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
 			}
 			
-			eingabeValidierung.registerValidator(datentyp, Validator
-					.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
+			eingabeValidierung.registerValidator(datentyp,
+					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
 			setzePlatzhalter(name);
 			setzePlatzhalter(datentyp);
 			
 			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 				NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
-				NodeUtil.beobachteSchwach(datentyp, datentyp.textProperty(),
-						() -> eingabeValidierung.revalidate());
+				NodeUtil.beobachteSchwach(datentyp, datentyp.textProperty(), () -> eingabeValidierung.revalidate());
 			}
 		});
 	}
-
+	
 	private void initialisiereButtons() {
 		ButtonType[] buttons = { new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.FINISH),
 			new ButtonType(sprache.getText("CANCEL_CLOSE", "Abbrechen"), ButtonData.BACK_PREVIOUS) };
@@ -821,7 +849,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				.erlaubtNichtAbstrakteMethode(typ);
 		
 		abstrakt.setDisable(!abstraktErlaubt);
-
+		
 		if (abstraktErzwungen) {
 			abstrakt.setDisable(true);
 		}
