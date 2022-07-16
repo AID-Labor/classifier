@@ -111,7 +111,7 @@ public interface EditierBeobachter extends AutoCloseable {
 	}
 	
 	public default <E extends Editierbar> void ueberwacheListenAenderung(ObservableList<E> liste) {
-		var beobachter = new ListenUeberwacher<>(liste, this);
+		var beobachter = new ListenEditierUeberwacher<>(liste, this);
 		getBeobachterListe().add(beobachter);
 		liste.addListener(new WeakListChangeListener<>(beobachter));
 	}

@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
 import io.github.aid_labor.classifier.basis.projekt.Editierbar;
-import io.github.aid_labor.classifier.uml.klassendiagramm.UMLBasisElement.Position;
 
 // @formatter:off
 @JsonTypeInfo(

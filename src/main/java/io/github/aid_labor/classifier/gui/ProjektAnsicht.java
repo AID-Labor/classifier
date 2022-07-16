@@ -24,11 +24,13 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.komponenten.UMLElementBasisAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKlassifiziererAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKommentarAnsicht;
+import io.github.aid_labor.classifier.gui.komponenten.UMLVerbindungAnsicht;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.When;
@@ -77,6 +79,7 @@ public class ProjektAnsicht extends Tab {
 	private final Pane zeichenflaeche;
 	private final Group zeichenflaecheGruppe;
 	private final Map<Long, Node> ansichten;
+	private final Map<Long, Node> verbindungsAnsichten;
 	private final ObservableList<UMLElementBasisAnsicht<? extends UMLDiagrammElement>> selektion;
 	private final Sprache sprache;
 	private final ScrollPane inhalt;
@@ -86,8 +89,7 @@ public class ProjektAnsicht extends Tab {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public ProjektAnsicht(UMLProjekt projekt, Sprache sprache, DialogPane overlayDialog,
-			ProgrammDetails programm) {
+	public ProjektAnsicht(UMLProjekt projekt, Sprache sprache, DialogPane overlayDialog, ProgrammDetails programm) {
 		this.projekt = projekt;
 		this.sprache = sprache;
 		this.overlayDialog = overlayDialog;
@@ -95,6 +97,7 @@ public class ProjektAnsicht extends Tab {
 		this.controller = new ProjektKontrolle(this, sprache);
 		this.zeichenflaeche = new Pane();
 		this.ansichten = new HashMap<>();
+		this.verbindungsAnsichten = new HashMap<>();
 		this.selektion = FXCollections.observableArrayList();
 		zeichenflaecheGruppe = new Group(zeichenflaeche);
 		this.inhalt = new ScrollPane(zeichenflaecheGruppe);
@@ -112,8 +115,8 @@ public class ProjektAnsicht extends Tab {
 		initialisiereProjekt();
 		ueberwacheSelektion();
 		
-		this.textProperty().bind(new When(projekt.istGespeichertProperty()).then("")
-				.otherwise("*").concat(projekt.nameProperty()));
+		this.textProperty().bind(
+				new When(projekt.istGespeichertProperty()).then("").otherwise("*").concat(projekt.nameProperty()));
 		
 		this.setOnCloseRequest(this.controller::checkSchliessen);
 		
@@ -124,6 +127,7 @@ public class ProjektAnsicht extends Tab {
 		});
 		
 		fuegeAlleHinzu(projekt.getDiagrammElemente(), 0);
+		fuegeAlleHinzu(projekt.getVerbindungen());
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -194,13 +198,11 @@ public class ProjektAnsicht extends Tab {
 	
 	public void entferneAuswahl() {
 		var elemente = this.getSelektion();
-		log.fine(() -> "[%s] entferne %s".formatted(projekt,
-				Arrays.toString(elemente.toArray())));
+		log.fine(() -> "[%s] entferne %s".formatted(projekt, Arrays.toString(elemente.toArray())));
 		var entfernenIds = elemente.stream().map(e -> e.getId()).toList();
 		var status = this.projekt.getUeberwachungsStatus();
 		this.projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
-		this.projekt.getDiagrammElemente()
-				.removeIf(element -> entfernenIds.contains(element.getId()));
+		this.projekt.getDiagrammElemente().removeIf(element -> entfernenIds.contains(element.getId()));
 		this.projekt.uebernehmeEditierungen();
 		this.projekt.setUeberwachungsStatus(status);
 	}
@@ -240,10 +242,12 @@ public class ProjektAnsicht extends Tab {
 			}
 		});
 		
-		projekt.getDiagrammElemente()
-				.addListener((Change<? extends UMLDiagrammElement> aenderung) -> {
-					this.ueberwacheDiagrammElemente(aenderung);
-				});
+		projekt.getDiagrammElemente().addListener((Change<? extends UMLDiagrammElement> aenderung) -> {
+			this.ueberwacheDiagrammElemente(aenderung);
+		});
+		projekt.getVerbindungen().addListener((Change<? extends UMLVerbindung> aenderung) -> {
+			this.ueberwacheVerbindungen(aenderung);
+		});
 	}
 	
 	private void ueberwacheSelektion() {
@@ -251,15 +255,13 @@ public class ProjektAnsicht extends Tab {
 			log.finer(() -> "Selektion geandert: ");
 			while (aenderung.next()) {
 				if (aenderung.wasRemoved()) {
-					log.finer(() -> "deselektiert: "
-							+ Arrays.toString(aenderung.getRemoved().toArray()));
+					log.finer(() -> "deselektiert: " + Arrays.toString(aenderung.getRemoved().toArray()));
 					for (Node n : aenderung.getRemoved()) {
 						n.setId("");
 					}
 				}
 				if (aenderung.wasAdded()) {
-					log.finer(() -> "selektiert: "
-							+ Arrays.toString(aenderung.getAddedSubList().toArray()));
+					log.finer(() -> "selektiert: " + Arrays.toString(aenderung.getAddedSubList().toArray()));
 					for (Node n : aenderung.getAddedSubList()) {
 						n.setId("selektiert");
 					}
@@ -270,12 +272,10 @@ public class ProjektAnsicht extends Tab {
 	
 	private long idZaehler = 0;
 	
-	private <E extends UMLDiagrammElement> void ueberwacheDiagrammElemente(
-			Change<E> aenderung) {
+	private <E extends UMLDiagrammElement> void ueberwacheDiagrammElemente(Change<E> aenderung) {
 		while (aenderung.next()) {
 			if (aenderung.wasPermutated()) {
-				var kopie = zeichenflaeche.getChildren()
-						.toArray(new Node[zeichenflaeche.getChildren().size()]);
+				var kopie = zeichenflaeche.getChildren().toArray(new Node[zeichenflaeche.getChildren().size()]);
 				for (int i = aenderung.getFrom(); i < aenderung.getTo(); i++) {
 					zeichenflaeche.getChildren().set(aenderung.getPermutation(i), kopie[i]);
 				}
@@ -309,8 +309,7 @@ public class ProjektAnsicht extends Tab {
 		}
 	}
 	
-	private void fuegeHinzu(UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht,
-			int index) {
+	private void fuegeHinzu(UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht, int index) {
 		this.zeichenflaeche.getChildren().add(index, ansicht);
 		ansicht.getUmlElement().setId(idZaehler);
 		this.ansichten.put(idZaehler, ansicht);
@@ -336,16 +335,13 @@ public class ProjektAnsicht extends Tab {
 		
 		if (ansicht.getUmlElement() instanceof UMLKlassifizierer klassifizierer) {
 			bearbeitenDialogOeffnen(ansicht, klassifizierer,
-					projekt.nameProperty().concat(" > ")
-							.concat(new When(klassifizierer.nameProperty().isEmpty())
-									.then(sprache.getText("unbenannt", "Unbenannt"))
-									.otherwise(klassifizierer.nameProperty())),
+					projekt.nameProperty().concat(" > ").concat(new When(klassifizierer.nameProperty().isEmpty())
+							.then(sprache.getText("unbenannt", "Unbenannt")).otherwise(klassifizierer.nameProperty())),
 					() -> new UMLKlassifiziererBearbeitenDialog(klassifizierer, projekt));
 		} else if (ansicht.getUmlElement() instanceof UMLKommentar kommentar) {
 			bearbeitenDialogOeffnen(ansicht, kommentar,
 					projekt.nameProperty().concat(" > ")
-							.concat(sprache.getTextProperty("kommentarBearbeitenTitel",
-									"Kommentar bearbeiten")),
+							.concat(sprache.getTextProperty("kommentarBearbeitenTitel", "Kommentar bearbeiten")),
 					() -> new UMLKommentarBearbeitenDialog(kommentar));
 		}
 		
@@ -363,15 +359,13 @@ public class ProjektAnsicht extends Tab {
 			updateZeichenflaechenGroesse();
 		};
 		
-		NodeUtil.macheGroessenVeraenderlich(ansicht, vorPositionBearbeitung,
-				nachPositionBearbeitung);
+		NodeUtil.macheGroessenVeraenderlich(ansicht, vorPositionBearbeitung, nachPositionBearbeitung);
 		NodeUtil.macheBeweglich(ansicht, vorPositionBearbeitung, nachPositionBearbeitung);
 		updateZeichenflaechenGroesse();
 	}
 	
-	private <T extends UMLDiagrammElement> void bearbeitenDialogOeffnen(Node ansicht,
-			T element, ObservableValue<String> titel,
-			Supplier<? extends Alert> dialogKonstruktor) {
+	private <T extends UMLDiagrammElement> void bearbeitenDialogOeffnen(Node ansicht, T element,
+			ObservableValue<String> titel, Supplier<? extends Alert> dialogKonstruktor) {
 		ansicht.addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
 			if (event.getClickCount() == 2 && !event.isConsumed()) {
 				event.consume();
@@ -387,8 +381,7 @@ public class ProjektAnsicht extends Tab {
 							projekt.verwerfeEditierungen();
 						}
 						case FINISH -> {
-							log.fine(() -> "Aenderungen an " + element
-									+ " uebernommen");
+							log.fine(() -> "Aenderungen an " + element + " uebernommen");
 							projekt.uebernehmeEditierungen();
 						}
 						default -> log.severe(() -> "Unbekannter Buttontyp: " + button);
@@ -401,14 +394,34 @@ public class ProjektAnsicht extends Tab {
 	
 	private void updateZeichenflaechenGroesse() {
 		var maxX = projekt.getDiagrammElemente().stream()
-				.mapToDouble(element -> element.getPosition().getX()
-						+ element.getPosition().getBreite())
-				.max();
+				.mapToDouble(element -> element.getPosition().getX() + element.getPosition().getBreite()).max();
 		var maxY = projekt.getDiagrammElemente().stream()
-				.mapToDouble(element -> element.getPosition().getY()
-						+ element.getPosition().getHoehe())
-				.max();
+				.mapToDouble(element -> element.getPosition().getY() + element.getPosition().getHoehe()).max();
 		this.zeichenflaeche.setPrefSize(maxX.orElse(100) + 100, maxY.orElse(100) + 100);
+	}
+	
+	private void ueberwacheVerbindungen(Change<? extends UMLVerbindung> aenderung) {
+		while (aenderung.next()) {
+			if (aenderung.wasRemoved()) {
+				for (UMLVerbindung entfernt : aenderung.getRemoved()) {
+					var ansicht = this.verbindungsAnsichten.remove(entfernt.getId());
+					this.zeichenflaeche.getChildren().remove(ansicht);
+				}
+			}
+			if (aenderung.wasAdded()) {
+				fuegeAlleHinzu(aenderung.getAddedSubList());
+			}
+		}
+	}
+	
+	private void fuegeAlleHinzu(List<? extends UMLVerbindung> verbindungen) {
+		for (var verbindung : verbindungen) {
+			UMLVerbindungAnsicht ansicht = new UMLVerbindungAnsicht(verbindung, projekt);
+			ansicht.setViewOrder(Double.MAX_VALUE);
+			this.verbindungsAnsichten.put(verbindung.getId(), ansicht);
+			this.zeichenflaeche.getChildren().add(ansicht);
+			System.out.println("Verbindung " + verbindung + " hinzugefügt");
+		}
 	}
 	
 }

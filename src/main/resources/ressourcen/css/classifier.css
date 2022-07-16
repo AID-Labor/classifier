@@ -140,3 +140,15 @@
     -fx-border-color: black;
     -fx-background-color: white;
 }
+
+
+.verbindungslinie {
+    -fx-stroke: black;
+    -fx-stroke-width: 3;
+}
+
+.vererbungs-pfeil {
+    -fx-fill: white;
+    -fx-stroke: black;
+    -fx-stroke-width: 3;
+}

@@ -25,8 +25,8 @@ import javafx.collections.ListChangeListener;
  *
  * @param <E> Typ der Elemente in der zu beobachtenden Liste
  */
-public class ListenUeberwacher<E extends Editierbar> implements ListChangeListener<E> {
-	private static final Logger log = Logger.getLogger(ListenUeberwacher.class.getName());
+public class ListenEditierUeberwacher<E extends Editierbar> implements ListChangeListener<E> {
+	private static final Logger log = Logger.getLogger(ListenEditierUeberwacher.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -60,9 +60,9 @@ public class ListenUeberwacher<E extends Editierbar> implements ListChangeListen
 	 * @param liste      Liste, die beobachtet wird
 	 * @param beobachter Objekt, das die Liste beobachtet und informiert werden moechte
 	 */
-	public ListenUeberwacher(List<E> liste, EditierBeobachter beobachter) {
+	public ListenEditierUeberwacher(List<E> liste, EditierBeobachter beobachter) {
 		this.liste = liste;
-		this.beobachter = new WeakReference<EditierBeobachter>(beobachter);
+		this.beobachter = new WeakReference<>(beobachter);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

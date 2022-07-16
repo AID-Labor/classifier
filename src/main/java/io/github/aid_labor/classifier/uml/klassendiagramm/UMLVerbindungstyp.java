@@ -4,25 +4,35 @@
  *
  */
 
-package io.github.aid_labor.classifier.gui.komponenten;
+package io.github.aid_labor.classifier.uml.klassendiagramm;
 
-import java.lang.ref.WeakReference;
-
-import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-
-
-public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackPane {
-//	private static final Logger log = Logger.getLogger(UMLElementBasisAnsicht.class.getName());
+public enum UMLVerbindungstyp {
+	
+	VERERBUNG, ASSOZIATION;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -33,60 +43,49 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	protected final WeakReference<E> umlElementModel;
-	
+
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	public UMLElementBasisAnsicht(E umlElementModel) {
-		this.umlElementModel = new WeakReference<>(umlElementModel);
-		this.translateXProperty()
-				.bindBidirectional(umlElementModel.getPosition().xProperty());
-		this.translateYProperty()
-				.bindBidirectional(umlElementModel.getPosition().yProperty());
-		if (umlElementModel.getPosition().getBreite() > 0) {
-			this.setPrefWidth(umlElementModel.getPosition().getBreite());
-		}
-		if (umlElementModel.getPosition().getHoehe() > 0) {
-			this.setPrefHeight(umlElementModel.getPosition().getHoehe());
-		}
-		
-		umlElementModel.getPosition().breiteProperty()
-				.bindBidirectional(this.prefWidthProperty());
-		umlElementModel.getPosition().hoeheProperty()
-				.bindBidirectional(this.prefHeightProperty());
-		this.setMinSize(80, 30);
-		this.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-	}
-	
+
+// public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	public E getUmlElement() {
-		return umlElementModel.get();
-	}
-	
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 }

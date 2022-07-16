@@ -26,7 +26,7 @@ import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty.EnumPropertyZuStringKonverter;
 import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
-import io.github.aid_labor.classifier.basis.projekt.ListenUeberwacher;
+import io.github.aid_labor.classifier.basis.projekt.ListenEditierUeberwacher;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
@@ -93,8 +93,8 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.methoden = FXCollections.observableList(new LinkedList<>());
 		this.schwacheUeberwacher = new LinkedList<>();
 		
-		this.attribute.addListener(new ListenUeberwacher<>(this.attribute, this));
-		this.methoden.addListener(new ListenUeberwacher<>(this.methoden, this));
+		this.attribute.addListener(new ListenEditierUeberwacher<>(this.attribute, this));
+		this.methoden.addListener(new ListenEditierUeberwacher<>(this.methoden, this));
 		this.ueberwachePropertyAenderung(this.name, getId() + "_klassifizierername");
 		this.ueberwachePropertyAenderung(this.paket, getId() + "_paket");
 		this.ueberwachePropertyAenderung(this.typ, getId() + "_klassifizierertyp");
