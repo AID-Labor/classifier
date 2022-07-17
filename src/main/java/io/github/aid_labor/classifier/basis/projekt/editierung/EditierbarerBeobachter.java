@@ -3,7 +3,7 @@
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
-package io.github.aid_labor.classifier.basis.projekt;
+package io.github.aid_labor.classifier.basis.projekt.editierung;
 
 import java.util.logging.Logger;
 

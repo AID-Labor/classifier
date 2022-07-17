@@ -4,23 +4,20 @@
  *
  */
 
-package io.github.aid_labor.classifier.uml.klassendiagramm;
+package io.github.aid_labor.classifier.basis.projekt.editierung;
 
-import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-
-import io.github.aid_labor.classifier.basis.projekt.editierung.EditierBefehl;
-import io.github.aid_labor.classifier.basis.projekt.editierung.EditierBeobachter;
-import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 
 
 /**
- * Basis-Implementierung fuer UML-Diagrammelemente.
+ * Basis-Implementierung fuer Editierbar-Objekte.
  * 
  * Diese Klasse stellt die Funktion zum Registrieren, Entfernen und Informieren von
  * Beobachtern
@@ -31,9 +28,16 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
  * @author Tim Muehle
  *
  */
-@JsonSubTypes({ @JsonSubTypes.Type(value = UMLKlassifizierer.class), @JsonSubTypes.Type(value = UMLKommentar.class) })
-abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammElement, EditierBeobachter {
-//	private static final Logger log = Logger.getLogger(UMLBasisElement.class.getName());
+//@formatter:off
+@JsonAutoDetect(
+		getterVisibility = Visibility.NONE,
+		isGetterVisibility = Visibility.NONE,
+		setterVisibility = Visibility.NONE,
+		fieldVisibility = Visibility.ANY
+)
+//@formatter:on
+public abstract class EditierbarBasis implements Editierbar {
+	private static final Logger log = Logger.getLogger(EditierbarBasis.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -53,29 +57,15 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private final Position position;
 	@JsonIgnore
-	private long id;
-	@JsonIgnore
-	private final List<Object> beobachterListe;
+	private final List<EditierBeobachter> beobachterListe;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	UMLBasisElement() {
-		this.position = new Position(10, 10, -1, -1, this);
+	protected EditierbarBasis() {
 		this.beobachterListe = new LinkedList<>();
-		this.ueberwachePropertyAenderung(this.position.xProperty(), getId() + "_x_position");
-		this.ueberwachePropertyAenderung(this.position.yProperty(), getId() + "_y_position");
-		this.ueberwachePropertyAenderung(this.position.hoeheProperty(), getId() + "_hoehe");
-		this.ueberwachePropertyAenderung(this.position.breiteProperty(), getId() + "_breite");
-	}
-	
-	@JsonCreator
-	UMLBasisElement(Position position) {
-		this();
-		position.set(position);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -83,26 +73,6 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	@Override
-	public Position getPosition() {
-		return position;
-	}
-	
-	@Override
-	public long getId() {
-		return id;
-	}
-	
-	@Override
-	public void setId(long id) {
-		this.id = id;
-	}
-	
-	@Override
-	public List<Object> getBeobachterListe() {
-		return beobachterListe;
-	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -116,30 +86,32 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	/**
-	 * Dieses Objekt leitet alle Informationen zu Editierungen weiter an seine eigenen
-	 * Beobachter
-	 */
 	@Override
-	public void verarbeiteEditierung(EditierBefehl editierung) {
-		log.finest(() -> "verarbeite " + editierung);
-		informiere(editierung);
+	public final void meldeAn(EditierBeobachter beobachter) {
+		log.config(() -> this + " -- Melde Beobachter an: " + beobachter);
+		this.beobachterListe.add(beobachter);
 	}
 	
 	@Override
-	public void close() throws Exception {
-		log.finest(() -> this + " leere editierBeobachter");
-		beobachterListe.clear();
-		
-		for(var attribut : this.getClass().getDeclaredFields()) {
-			try {
-				if (!Modifier.isStatic(attribut.getModifiers())) {
-					attribut.setAccessible(true);
-					attribut.set(this, null);
+	public final void meldeAb(EditierBeobachter beobachter) {
+		while (this.beobachterListe.contains(beobachter)) {
+			log.config(() -> {
+				try {
+					return this + " -- Melde Beobachter ab: " + beobachter;
+				} catch (Exception e) {
+					return "";
 				}
-			} catch (Exception e) {
-				// ignore
-			}
+			});
+			this.beobachterListe.remove(beobachter);
+		}
+	}
+	
+	@Override
+	public final void informiere(EditierBefehl editierung) {
+		log.finer(() -> "%s\n   |-> informiere Beobachter ueber [%s]\n   ╰--> Beobachter: %s"
+				.formatted(this, editierung, Arrays.toString(beobachterListe.toArray())));
+		for (EditierBeobachter beobachter : this.beobachterListe) {
+			beobachter.verarbeiteEditierung(editierung);
 		}
 	}
 	

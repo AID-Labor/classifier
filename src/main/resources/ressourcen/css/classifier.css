@@ -152,3 +152,17 @@
     -fx-stroke: black;
     -fx-stroke-width: 3;
 }
+
+#ROT {
+    -fx-stroke: red;
+    -fx-stroke-width: 3;
+}
+
+#SCHWARZ {
+    -fx-stroke: blue;
+    -fx-stroke-width: 3;
+}
+
+.tag {
+    -fx-icon-color: derive(-fx-light-text-color, -10%);
+}

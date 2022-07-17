@@ -21,9 +21,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
-import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
-import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
+import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
+import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 
 
 //@formatter:off
@@ -84,7 +87,31 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.typ = typ;
 		this.verbindungsStartProperty = new JsonStringProperty(this, "verbindungsStart", verbindungsStart);
 		this.verbindungsEndeProperty = new JsonStringProperty(this, "verbindungsEnde", verbindungsEnde);
-		this.ausgebelendetProperty = new JsonBooleanProperty(this, "ausgeblendet", ausgeblendet);
+		this.ausgebelendetProperty = new JsonBooleanProperty(this, "ausgeblendet", ausgeblendet) {
+			ChangeListener<Boolean> bindungsBeobachter;
+			ObservableValue<? extends Boolean> observable;
+			
+			@Override
+			public void bind(ObservableValue<? extends Boolean> observable) {
+				Objects.requireNonNull(observable);
+				if (this.observable != null) {
+					throw new IllegalStateException("Mehr als eine Bindung nicht möglich!");
+				}
+				bindungsBeobachter = (p, alt, neu) -> set(neu);
+				observable.addListener(new WeakChangeListener<>(bindungsBeobachter));
+				this.observable = observable;
+				this.set(observable.getValue());
+			}
+			
+			@Override
+			public void unbind() {
+				if (observable != null) {
+					observable.removeListener(bindungsBeobachter);
+					observable = null;
+					bindungsBeobachter = null;
+				}
+			}
+		};
 		this.startPosition = Objects.requireNonNull(startPosition);
 		this.endPosition = Objects.requireNonNull(endPosition);
 		this.id = naechsteId++;

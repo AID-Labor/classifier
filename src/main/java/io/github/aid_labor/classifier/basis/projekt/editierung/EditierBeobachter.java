@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis.projekt;
+package io.github.aid_labor.classifier.basis.projekt.editierung;
 
 import java.lang.ref.WeakReference;
 import java.util.List;

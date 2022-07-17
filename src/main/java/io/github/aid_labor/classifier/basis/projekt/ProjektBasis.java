@@ -26,6 +26,8 @@ import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
+import io.github.aid_labor.classifier.basis.projekt.editierung.EditierBefehl;
+import io.github.aid_labor.classifier.basis.projekt.editierung.SammelEditierung;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;

@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis.projekt;
+package io.github.aid_labor.classifier.basis.projekt.editierung;
 
 import java.util.function.Consumer;
 import java.util.logging.Level;

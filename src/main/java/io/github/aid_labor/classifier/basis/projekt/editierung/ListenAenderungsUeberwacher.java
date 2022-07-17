@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis.projekt;
+package io.github.aid_labor.classifier.basis.projekt.editierung;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -25,8 +25,8 @@ import javafx.collections.ListChangeListener;
  *
  * @param <E> Typ der Elemente in der zu beobachtenden Liste
  */
-public class ListenEditierUeberwacher<E extends Editierbar> implements ListChangeListener<E> {
-	private static final Logger log = Logger.getLogger(ListenEditierUeberwacher.class.getName());
+public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
+	private static final Logger log = Logger.getLogger(ListenAenderungsUeberwacher.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -46,8 +46,8 @@ public class ListenEditierUeberwacher<E extends Editierbar> implements ListChang
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private final List<E> liste;
-	private final WeakReference<EditierBeobachter> beobachter;
+	protected final List<E> liste;
+	protected final WeakReference<EditierBeobachter> beobachter;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -60,7 +60,7 @@ public class ListenEditierUeberwacher<E extends Editierbar> implements ListChang
 	 * @param liste      Liste, die beobachtet wird
 	 * @param beobachter Objekt, das die Liste beobachtet und informiert werden moechte
 	 */
-	public ListenEditierUeberwacher(List<E> liste, EditierBeobachter beobachter) {
+	public ListenAenderungsUeberwacher(List<E> liste, EditierBeobachter beobachter) {
 		this.liste = liste;
 		this.beobachter = new WeakReference<>(beobachter);
 	}
@@ -117,7 +117,7 @@ public class ListenEditierUeberwacher<E extends Editierbar> implements ListChang
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private void behandlePermutation(Change<? extends E> aenderung,
+	protected void behandlePermutation(Change<? extends E> aenderung,
 			List<EditierBefehl> befehle) {
 		int[] neueOrdnung = new int[aenderung.getList().size()];
 		for (int i = 0; i < neueOrdnung.length; i++) {
@@ -148,7 +148,7 @@ public class ListenEditierUeberwacher<E extends Editierbar> implements ListChang
 		// TODO EditierBefehl fuer Permutated implementieren!!!
 	}
 	
-	private void behandleEntfernung(Change<? extends E> aenderung,
+	protected void behandleEntfernung(Change<? extends E> aenderung,
 			List<EditierBefehl> befehle) {
 		log.finer(() -> {
 			try {
@@ -158,9 +158,6 @@ public class ListenEditierUeberwacher<E extends Editierbar> implements ListChang
 			}
 		});
 				
-		for (E entfernt : aenderung.getRemoved()) {
-			entfernt.meldeAb(beobachter.get());
-		}
 		var befehl = new EditierBefehl() {
 			
 			int startIndex = aenderung.getFrom();
@@ -190,13 +187,10 @@ public class ListenEditierUeberwacher<E extends Editierbar> implements ListChang
 		befehle.add(befehl);
 	}
 	
-	private void behandleHinzugefuegt(Change<? extends E> aenderung,
+	protected void behandleHinzugefuegt(Change<? extends E> aenderung,
 			List<EditierBefehl> befehle) {
 		log.finer(() -> "%s:  -> hinzugefuegt [%s]".formatted(beobachter,
 				Arrays.toString(aenderung.getAddedSubList().toArray())));
-		for (E hinzu : aenderung.getAddedSubList()) {
-			hinzu.meldeAn(beobachter.get());
-		}
 		var befehl = new EditierBefehl() {
 			
 			int startIndex = aenderung.getFrom();
@@ -222,7 +216,7 @@ public class ListenEditierUeberwacher<E extends Editierbar> implements ListChang
 		befehle.add(befehl);
 	}
 	
-	private void behandleUpdate(Change<? extends E> aenderung, List<EditierBefehl> befehle) {
+	protected void behandleUpdate(Change<? extends E> aenderung, List<EditierBefehl> befehle) {
 		log.finer(() -> "%s:  -> Update [%d bis %d]".formatted(beobachter,
 				aenderung.getFrom(), aenderung.getTo()));
 		

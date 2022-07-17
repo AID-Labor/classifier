@@ -22,9 +22,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize.Typing;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
-import io.github.aid_labor.classifier.basis.projekt.ListenEditierUeberwacher;
 import io.github.aid_labor.classifier.basis.projekt.ProjektBasis;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
+import io.github.aid_labor.classifier.basis.projekt.editierung.ListenEditierUeberwacher;
+import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
@@ -95,6 +96,8 @@ public class UMLProjekt extends ProjektBasis {
 	private final ObservableList<UMLVerbindung> verbindungen;
 	@JsonIgnore
 	private final Map<String, ChangeListener<String>> superklassenBeobachter = new HashMap<>();
+	@JsonIgnore
+	private final Map<String, ListChangeListener<String>> interfaceBeobachter = new HashMap<>();
 	@JsonIgnore
 	private final Map<String, ChangeListener<String>> namenBeobachter = new HashMap<>();
 	@JsonIgnore
@@ -279,6 +282,11 @@ public class UMLProjekt extends ProjektBasis {
 						klassifizierer.superklasseProperty().removeListener(superklassenUeberwacher);
 					}
 					
+					var interfaceUeberwacher = interfaceBeobachter.get(klassifizierer.getName());
+					if (interfaceUeberwacher != null) {
+						klassifizierer.getInterfaces().removeListener(interfaceUeberwacher);
+					}
+					
 					var nameUeberwacher = namenBeobachter.get(klassifizierer.getName());
 					if (nameUeberwacher != null) {
 						klassifizierer.superklasseProperty().removeListener(nameUeberwacher);
@@ -293,6 +301,9 @@ public class UMLProjekt extends ProjektBasis {
 					
 					var superklassenUeberwacher = ueberwacheSuperklasse(klassifizierer);
 					superklassenBeobachter.put(klassifizierer.getName(), superklassenUeberwacher);
+					
+					var interfaceUeberwacher = ueberwacheInterfaces(klassifizierer);
+					interfaceBeobachter.put(klassifizierer.getName(), interfaceUeberwacher);
 					
 					var nameUeberwacher = ueberwacheName(klassifizierer);
 					namenBeobachter.put(klassifizierer.getName(), nameUeberwacher);
@@ -311,11 +322,11 @@ public class UMLProjekt extends ProjektBasis {
 						&& Objects.equals(alteSuperklasse, v.getVerbindungsEnde())
 						&& Objects.equals(klassifizierer.getName(), v.getVerbindungsStart()));
 			} else if (alteSuperklasse == null || alteSuperklasse.isBlank()) {
-				var superklassen = diagrammElemente.filtered(e -> e.getName().equals(neueSuperklasse));
-				
 				UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, klassifizierer.getName(),
 						neueSuperklasse);
-				vererbung.verbindungsStartProperty().bind(klassifizierer.nameProperty());
+				vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
+				
+				var superklassen = diagrammElemente.filtered(e -> e.getName().equals(vererbung.getVerbindungsEnde()));
 				vererbung.ausgebelendetProperty().bind(Bindings.isEmpty(superklassen));
 				
 				verbindungen.add(vererbung);
@@ -335,11 +346,38 @@ public class UMLProjekt extends ProjektBasis {
 		return superklassenUeberwacher;
 	}
 	
+	private ListChangeListener<String> ueberwacheInterfaces(UMLKlassifizierer klassifizierer) {
+		ListChangeListener<String> interfaceUeberwacher = (Change<? extends String> aenderung) -> {
+			while (aenderung.next()) {
+				for (String interfaceHinzu : aenderung.getAddedSubList()) {
+					UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, klassifizierer.getName(),
+							interfaceHinzu);
+					vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
+					
+					var interfaces = diagrammElemente.filtered(
+							e -> e instanceof UMLKlassifizierer k && k.getTyp().equals(KlassifiziererTyp.Interface)
+									&& k.getName().equals(vererbung.getVerbindungsEnde()));
+					vererbung.ausgebelendetProperty().bind(Bindings.isEmpty(interfaces));
+					
+					verbindungen.add(vererbung);
+				}
+				for (String interfaceEntfernt : aenderung.getRemoved()) {
+					verbindungen.removeIf(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
+							&& Objects.equals(interfaceEntfernt, v.getVerbindungsEnde())
+							&& Objects.equals(klassifizierer.getName(), v.getVerbindungsStart()));
+				}
+			}
+		};
+		klassifizierer.getInterfaces().addListener(interfaceUeberwacher);
+		return interfaceUeberwacher;
+	}
+	
 	private ChangeListener<String> ueberwacheName(UMLKlassifizierer klassifizierer) {
 		ChangeListener<String> nameUeberwacher = (p, alterName, neuerName) -> {
-			if (Objects.equals(alterName, neuerName) || diagrammElemente.stream().
-					filter(e -> e instanceof UMLKlassifizierer k && Objects.equals(k.getName(), alterName) 
-						&& k.getId() != klassifizierer.getId())	// Anderes Element mit gleichem Namen -> Kein Update!!!
+			if (Objects.equals(alterName, neuerName) || diagrammElemente.stream()
+					.filter(e -> e instanceof UMLKlassifizierer k && Objects.equals(k.getName(), alterName)
+							&& k.getId() != klassifizierer.getId())	// Anderes Element mit gleichem Namen -> Kein
+																		// Update!!!
 					.count() > 0 || alterName == null || alterName.isBlank()) {
 				return;
 			}

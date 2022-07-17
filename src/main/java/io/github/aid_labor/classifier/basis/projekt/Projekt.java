@@ -8,6 +8,7 @@ package io.github.aid_labor.classifier.basis.projekt;
 
 import java.nio.file.Path;
 
+import io.github.aid_labor.classifier.basis.projekt.editierung.EditierBeobachter;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.StringProperty;
 

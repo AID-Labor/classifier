@@ -7,6 +7,8 @@
 package io.github.aid_labor.classifier.gui;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,9 +28,12 @@ import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
+import org.kordamp.ikonli.remixicon.RemixiconAL;
 import org.kordamp.ikonli.typicons.Typicons;
 
 import com.dlsc.gemsfx.EnhancedLabel;
+import com.dlsc.gemsfx.SearchField;
+import com.dlsc.gemsfx.TagsField;
 
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
@@ -59,6 +64,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
@@ -67,10 +73,12 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.Toggle;
@@ -123,6 +131,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private final List<String> vorhandeneElementNamen;
 	private final List<Runnable> loeseBindungen;
 	private final SortedMap<String, UMLKlassifizierer> klassenSuchBaum;
+	private final List<String> vorhandeneKlassen;
+	private final List<String> vorhandeneInterfaces;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -140,10 +150,18 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.vorhandeneElementNamen = projekt.getDiagrammElemente().parallelStream()
 				.filter(element -> element.getId() != klassifizierer.getId()).map(UMLDiagrammElement::getName).toList();
 		this.umlProjektRef = new WeakReference<>(projekt);
-		List<UMLKlassifizierer> klassen = umlProjektRef.get().getDiagrammElemente().stream()
+		List<UMLKlassifizierer> klassen = projekt.getDiagrammElemente().stream()
 				.filter(UMLKlassifizierer.class::isInstance).map(UMLKlassifizierer.class::cast).toList();
 		this.klassenSuchBaum = new TreeMap<>(
 				klassen.parallelStream().collect(Collectors.toMap(UMLKlassifizierer::getName, Function.identity())));
+		this.vorhandeneKlassen = projekt.getDiagrammElemente().parallelStream()
+				.filter(e -> e instanceof UMLKlassifizierer k && k.getId() != klassifizierer.getId()
+						&& !KlassifiziererTyp.Interface.equals(k.getTyp()))
+				.map(UMLDiagrammElement::getName).sorted().toList();
+		this.vorhandeneInterfaces = projekt.getDiagrammElemente().parallelStream()
+				.filter(e -> e instanceof UMLKlassifizierer k && k.getId() != klassifizierer.getId()
+						&& KlassifiziererTyp.Interface.equals(k.getTyp()))
+				.map(UMLDiagrammElement::getName).sorted().toList();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"UMLKlassifiziererBearbeitenDialog");
@@ -286,15 +304,20 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		anzeige.visibleProperty().bind(button.selectedProperty());
 	}
 	
-	@SuppressWarnings("resource")
+	@SuppressWarnings({ "resource", "null" })
 	private GridPane erzeugeAllgemeinAnzeige() {
 		GridPane tabelle = new GridPane();
 		
 		String[] labelBezeichnungen = { "Typ", "Paket", "Name", "Sichtbarkeit", "Superklasse", "Interfaces" };
-		
+		Label interfaceLabel = null;
 		for (int zeile = 0; zeile < labelBezeichnungen.length; zeile++) {
 			String bezeichnung = labelBezeichnungen[zeile];
 			var label = SprachUtil.bindText(new Label(), sprache, bezeichnung, bezeichnung + ":");
+			if (zeile == labelBezeichnungen.length - 1) {
+				// Label Interfaces oben
+				GridPane.setValignment(label, VPos.TOP);
+				interfaceLabel = label;
+			}
 			tabelle.add(label, 0, zeile);
 		}
 		
@@ -312,18 +335,30 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		var sichtbarkeit = erzeugeSichtbarkeit();
 		tabelle.add(sichtbarkeit, 1, 3);
 		
-		TextField superklasse = new TextField(this.getKlassifizierer().getSuperklasse());
+//		TextField superklasse = new TextField(this.getKlassifizierer().getSuperklasse());
+		SearchField<String> superklasse = erzeugeSuperklasseEingabe();
 		tabelle.add(superklasse, 1, 4);
 		
-		// TODO nutze GemsFX Tags Field
-		TextField interfaces = new TextField(this.getKlassifizierer().getInterfaces());
+		TagsField<String> interfaces = erzeugeInterfacesEingabe();
+		ScrollPane interfacesScroll = new ScrollPane(interfaces);
+		interfacesScroll.setVbarPolicy(ScrollBarPolicy.NEVER);
 		tabelle.add(interfaces, 1, 5);
+		var interfaceL = interfaceLabel;
+		interfaceLabel.paddingProperty()
+				.bind(Bindings.createObjectBinding(
+						() -> new Insets((name.getHeight() - interfaceL.getHeight()) / 2, 0, 0, 0),
+						name.heightProperty(), interfaceLabel.heightProperty()));
+		Platform.runLater(() -> {
+			var tf = interfaces.getEditor();
+			interfaces.setMaxSize(name.getWidth(), 800);
+			NodeUtil.setzeBreite(name.getWidth(), tf);
+			NodeUtil.setzeBreite(name.getWidth(), superklasse);
+		});
 		
 		NodeUtil.beobachteSchwach(typ, typ.getSelectionModel().selectedItemProperty(), getKlassifizierer()::setTyp);
 		bindeBidirektional(getKlassifizierer().paketProperty(), paket.textProperty());
 		bindeBidirektional(getKlassifizierer().nameProperty(), name.textProperty());
-		bindeBidirektional(getKlassifizierer().superklasseProperty(), superklasse.textProperty());
-		bindeBidirektional(getKlassifizierer().interfacesProperty(), interfaces.textProperty());
+		name.setOnKeyTyped(e -> eingabeValidierung.revalidate());
 		
 		tabelle.setHgap(5);
 		tabelle.setVgap(15);
@@ -342,7 +377,81 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		return tabelle;
 	}
 	
-	private void validiereAllgemein(TextField name, TextField superklasse, TextField interfaces) {
+	private TagsField<String> erzeugeInterfacesEingabe() {
+		TagsField<String> interfaces = new TagsField<>() {
+			@Override
+			protected void update(Collection<String> newSuggestions) {
+				super.update(newSuggestions);
+				eingabeValidierung.revalidate();
+			}
+		};
+		interfaces.getEditor().setOnKeyTyped(e -> eingabeValidierung.revalidate());
+		interfaces.addTags(
+				getKlassifizierer().getInterfaces().toArray(new String[getKlassifizierer().getInterfaces().size()]));
+		Bindings.bindContentBidirectional(interfaces.getTags(), getKlassifizierer().getInterfaces());
+		interfaces.setSuggestionProvider(request -> {
+			var vorschlaege = new ArrayList<String>();
+			vorschlaege.add(request.getUserText());
+			vorschlaege.addAll(vorhandeneInterfaces.stream()
+					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
+			return vorschlaege;
+		});
+		interfaces.setTagViewFactory(text -> {
+			Label tag = new Label(text);
+			Label loeschen = new Label();
+			loeschen.setOnMouseClicked(e -> {
+				interfaces.removeTags(text);
+				getKlassifizierer().getInterfaces().remove(text);
+				eingabeValidierung.revalidate();
+				interfaces.setSelectedItem(null);
+				interfaces.getTagSelectionModel().clearSelection();
+			});
+			var icon = NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.CLOSE_FILL, 18, ContentDisplay.GRAPHIC_ONLY);
+			icon.getStyleClass().add("tag");
+			tag.setGraphic(loeschen);
+			tag.setContentDisplay(ContentDisplay.RIGHT);
+			tag.setGraphicTextGap(5);
+			tag.getStyleClass().add("tag");
+			return tag;
+		});
+		interfaces.setNewItemProducer(String::strip);
+		interfaces.setShowSearchIcon(false);
+		interfaces.setHidePopupWithSingleChoice(false);
+		return interfaces;
+	}
+	
+	private SearchField<String> erzeugeSuperklasseEingabe() {
+		SearchField<String> superklasse = new SearchField<>() {
+			@Override
+			protected void update(Collection<String> newSuggestions) {
+				super.update(newSuggestions);
+				eingabeValidierung.revalidate();
+			}
+		};
+		superklasse.setSelectedItem(getKlassifizierer().getSuperklasse());
+		superklasse.setText(getKlassifizierer().getSuperklasse());
+		superklasse.cancel();
+		bindeBidirektional(superklasse.selectedItemProperty(), getKlassifizierer().superklasseProperty());
+		Button loeschen = new Button();
+		loeschen.setOnMouseClicked(e -> superklasse.select(""));
+		NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.DELETE_BACK_2_LINE, 18, ContentDisplay.GRAPHIC_ONLY);
+		loeschen.setPadding(new Insets(0, 5, 0, 5));
+		loeschen.prefHeightProperty().bind(superklasse.getEditor().heightProperty());
+		superklasse.setRight(loeschen);
+		superklasse.setSuggestionProvider(request -> {
+			var vorschlaege = new ArrayList<String>();
+			vorschlaege.add(request.getUserText());
+			vorschlaege.addAll(vorhandeneKlassen.stream()
+					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
+			return vorschlaege;
+		});
+		superklasse.setNewItemProducer(String::strip);
+		superklasse.setShowSearchIcon(false);
+		superklasse.setHidePopupWithSingleChoice(false);
+		return superklasse;
+	}
+	
+	private void validiereAllgemein(TextField name, SearchField<?> superklasse, TagsField<String> interfaces) {
 		Platform.runLater(() -> {
 			eingabeValidierung.registerValidator(name,
 					Validator.combine(
@@ -354,30 +463,62 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			setzePlatzhalter(name);
 			if (umlProjektRef.get().getProgrammiersprache().getEigenschaften()
 					.erlaubtSuperklasse(getKlassifizierer().getTyp())) {
-				eingabeValidierung.registerValidator(superklasse, Validator.combine(
-						Validator.createPredicateValidator(tf -> !istZirkular(getKlassifizierer(), klassenSuchBaum), 
-								sprache.getText("superklasseValidierungZirkular", 
-										"Die Vererbungshierarchie darf nicht zirkular sein!")),
-						Validator.createPredicateValidator(tf -> {
-							var sk = klassenSuchBaum.get(superklasse.getText());
-							boolean istInterface = sk == null ? false
-									: Objects.equals(sk.getTyp(), KlassifiziererTyp.Interface);
-							return !istInterface;
-						}, sprache.getText("superklasseValidierungInterface", 
-								"Die Superklasse darf kein interface sein!"))));
-				setzePlatzhalter(superklasse);
+				eingabeValidierung.registerValidator(superklasse.getEditor(),
+						Validator.combine(Validator.createPredicateValidator(tf -> {
+							boolean gleich = Objects.equals(name.getText(), superklasse.getEditor().getText());
+							return gleich ? name.getText().isBlank()
+									: !istZirkular(getKlassifizierer(), klassenSuchBaum);
+						}, sprache.getText("superklasseValidierungZirkular",
+								"Die Vererbungshierarchie darf nicht zirkular sein!")),
+								Validator.createPredicateValidator(tf -> {
+									String superName = getKlassifizierer().getSuperklasse() == null ? ""
+											: getKlassifizierer().getSuperklasse();
+									var sk = klassenSuchBaum.get(superName);
+									boolean istInterface = sk == null ? false
+											: Objects.equals(sk.getTyp(), KlassifiziererTyp.Interface);
+									return !istInterface;
+								}, sprache.getText("superklasseValidierungInterface",
+										"Die Superklasse darf kein interface sein!"))));
+				setzePlatzhalter(superklasse.getEditor());
 			}
+			eingabeValidierung.registerValidator(interfaces.getEditor(),
+					Validator.combine(Validator.createPredicateValidator(tf -> {
+						for (String interfaceName : interfaces.getTags()) {
+							if (Objects.equals(interfaceName, name.getText())) {
+								return false;
+							}
+						}
+						return !istZirkularInterface(getKlassifizierer(), name.getText(), klassenSuchBaum);
+					}, sprache.getText("superklasseValidierungZirkular",
+							"Die Vererbungshierarchie darf nicht zirkular sein!")),
+							Validator.createPredicateValidator(tf -> {
+								for (String interfaceName : interfaces.getTags()) {
+									var interf = klassenSuchBaum.get(interfaceName);
+									if (interf != null
+											&& !Objects.equals(interf.getTyp(), KlassifiziererTyp.Interface)) {
+										return false;
+									}
+								}
+								return true;
+							}, sprache.getText("interfaceValidierung", "Es dürfen nur Interfaces angegeben werden!"))));
+			setzePlatzhalter(interfaces);
 		});
 	}
 	
 	private boolean istZirkular(UMLKlassifizierer startklasse, SortedMap<String, UMLKlassifizierer> klassenSuchBaum) {
+		if (startklasse == null || startklasse.getSuperklasse() == null) {
+			return false;
+		}
+		if (startklasse.getName() != null && !startklasse.getName().isBlank()
+				&& Objects.equals(startklasse.getName(), startklasse.getSuperklasse())) {
+			return true;
+		}
 		var superklasse = klassenSuchBaum.get(startklasse.getSuperklasse());
 		return pruefeZirkular(superklasse, startklasse.getName(), klassenSuchBaum);
 	}
 	
 	private boolean pruefeZirkular(UMLKlassifizierer superklasse, String startname,
 			SortedMap<String, UMLKlassifizierer> klassenSuchBaum) {
-		System.out.println(superklasse + " =? '" + startname + "'");
 		if (superklasse == null) {
 			return false;
 		} else if (startname.equals(superklasse.getName())) {
@@ -385,6 +526,38 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		
 		return pruefeZirkular(klassenSuchBaum.get(superklasse.getSuperklasse()), startname, klassenSuchBaum);
+	}
+	
+	private boolean istZirkularInterface(UMLKlassifizierer startklasse, String startname,
+			SortedMap<String, UMLKlassifizierer> klassenSuchBaum) {
+		if (startklasse == null || startklasse.getInterfaces().isEmpty()) {
+			return false;
+		}
+		for (var interfaceName : startklasse.getInterfaces()) {
+			var interf = klassenSuchBaum.get(interfaceName);
+			boolean istZirkular = pruefeZirkularInterface(interf, startname, klassenSuchBaum);
+			if (istZirkular) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean pruefeZirkularInterface(UMLKlassifizierer interf, String startname,
+			SortedMap<String, UMLKlassifizierer> klassenSuchBaum) {
+		if (interf == null) {
+			return false;
+		} else if (startname.equals(interf.getName())) {
+			return !startname.isBlank();
+		}
+		
+		for (String interfaceName : interf.getInterfaces()) {
+			boolean zirkular = pruefeZirkularInterface(klassenSuchBaum.get(interfaceName), startname, klassenSuchBaum);
+			if (zirkular) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private <T> Pane erzeugeTabellenAnzeige(String[] labelBezeichnungen, ObservableList<T> inhalt,
@@ -835,11 +1008,32 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		validierungsBeobachter.add(beobachter);
 	}
 	
-	private void updateSuperklasse(TextField superklasse, KlassifiziererTyp typ) {
+	private void setzePlatzhalter(SearchField<?> eingabefeld) {
+		ChangeListener<ValidationResult> beobachter = (p, alt, neu) -> {
+			var fehler = eingabeValidierung.getHighestMessage(eingabefeld.getEditor());
+			if (fehler.isPresent()) {
+				eingabefeld.getEditor().setPromptText(fehler.get().getText());
+				if (!eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
+					eingabefeld.getStyleClass().add(CSS_EINGABE_FEHLER);
+				}
+				eingabefeld.setTooltip(new Tooltip(fehler.get().getText()));
+			} else {
+				eingabefeld.getEditor().setPromptText(null);
+				if (eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
+					eingabefeld.getStyleClass().remove(CSS_EINGABE_FEHLER);
+				}
+				eingabefeld.setTooltip(null);
+			}
+		};
+		eingabeValidierung.validationResultProperty().addListener(beobachter);
+		validierungsBeobachter.add(beobachter);
+	}
+	
+	private void updateSuperklasse(SearchField<?> superklasse, KlassifiziererTyp typ) {
 		boolean superklasseErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
 				.erlaubtSuperklasse(typ);
 		if (!superklasseErlaubt) {
-			superklasse.setText("");
+			superklasse.clear();
 		}
 		superklasse.setDisable(!superklasseErlaubt);
 	}

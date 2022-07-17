@@ -4,40 +4,20 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis.projekt;
+package io.github.aid_labor.classifier.basis.projekt.editierung;
 
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
-
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 
 /**
- * Basis-Implementierung fuer Editierbar-Objekte.
- * 
- * Diese Klasse stellt die Funktion zum Registrieren, Entfernen und Informieren von
- * Beobachtern
- * bereit. Unterklassen muessen bei Editierung die Methode
- * {@link #informiere(EditierBefehl)}
- * aufrufen, um ihre Beobachter zu informieren.
+ * {@code ListChangeListener} fuer Aenderungen an einer {code ObservableList}, der einen
+ * {@link EditierBeobachter} ueber Editierungen an der Liste informiert.
  * 
  * @author Tim Muehle
  *
+ * @param <E> Typ der Elemente in der zu beobachtenden Liste
  */
-//@formatter:off
-@JsonAutoDetect(
-		getterVisibility = Visibility.NONE,
-		isGetterVisibility = Visibility.NONE,
-		setterVisibility = Visibility.NONE,
-		fieldVisibility = Visibility.ANY
-)
-//@formatter:on
-public abstract class EditierbarBasis implements Editierbar {
-	private static final Logger log = Logger.getLogger(EditierbarBasis.class.getName());
+public class ListenEditierUeberwacher<E extends Editierbar> extends ListenAenderungsUeberwacher<E> {
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -57,15 +37,19 @@ public abstract class EditierbarBasis implements Editierbar {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	@JsonIgnore
-	private final List<EditierBeobachter> beobachterListe;
-	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	protected EditierbarBasis() {
-		this.beobachterListe = new LinkedList<>();
+	/**
+	 * Neuer ListenUeberwacher, der aus einer Listenaenderung verschiedene EditierBefehle
+	 * erzeugt und den Beobachter darueber informiert.
+	 * 
+	 * @param liste      Liste, die beobachtet wird
+	 * @param beobachter Objekt, das die Liste beobachtet und informiert werden moechte
+	 */
+	public ListenEditierUeberwacher(List<E> liste, EditierBeobachter beobachter) {
+		super(liste, beobachter);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -86,39 +70,28 @@ public abstract class EditierbarBasis implements Editierbar {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	@Override
-	public final void meldeAn(EditierBeobachter beobachter) {
-		log.config(() -> this + " -- Melde Beobachter an: " + beobachter);
-		this.beobachterListe.add(beobachter);
-	}
-	
-	@Override
-	public final void meldeAb(EditierBeobachter beobachter) {
-		while (this.beobachterListe.contains(beobachter)) {
-			log.config(() -> {
-				try {
-					return this + " -- Melde Beobachter ab: " + beobachter;
-				} catch (Exception e) {
-					return "";
-				}
-			});
-			this.beobachterListe.remove(beobachter);
-		}
-	}
-	
-	@Override
-	public final void informiere(EditierBefehl editierung) {
-		log.finer(() -> "%s\n   |-> informiere Beobachter ueber [%s]\n   ╰--> Beobachter: %s"
-				.formatted(this, editierung, Arrays.toString(beobachterListe.toArray())));
-		for (EditierBeobachter beobachter : this.beobachterListe) {
-			beobachter.verarbeiteEditierung(editierung);
-		}
-	}
-	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@Override
+	protected void behandleEntfernung(Change<? extends E> aenderung,
+			List<EditierBefehl> befehle) {
+		for (E entfernt : aenderung.getRemoved()) {
+			entfernt.meldeAb(beobachter.get());
+		}
+		super.behandleEntfernung(aenderung, befehle);
+	}
+	
+	@Override
+	protected void behandleHinzugefuegt(Change<? extends E> aenderung,
+			List<EditierBefehl> befehle) {
+		for (E hinzu : aenderung.getAddedSubList()) {
+			hinzu.meldeAn(beobachter.get());
+		}
+		super.behandleHinzugefuegt(aenderung, befehle);
+	}
 	
 }

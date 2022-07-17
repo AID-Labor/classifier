@@ -18,8 +18,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
-import io.github.aid_labor.classifier.basis.projekt.EditierbarBasis;
-import io.github.aid_labor.classifier.basis.projekt.EditierbarerBeobachter;
+import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
+import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 import javafx.beans.property.StringProperty;
 
 //@formatter:off

@@ -74,7 +74,7 @@ public class UMLVerbindungAnsicht extends Pane {
 		this.startYProperty = new SimpleDoubleProperty();
 		this.endeXProperty = new SimpleDoubleProperty();
 		this.endeYProperty = new SimpleDoubleProperty();
-		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
+//		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
 		this.linie = new Path();
 		this.pfeil = new Path();
 		
@@ -103,6 +103,18 @@ public class UMLVerbindungAnsicht extends Pane {
 		
 		this.linie.getStyleClass().add(VERBINDUNGSLINIE_CSS_KLASSE);
 		this.getChildren().addAll(linie, pfeil);
+		if (verbindung.istAusgebelendet()) {
+			this.linie.setId("ROT");
+		} else {
+			this.linie.setId("SCHWARZ");
+		}
+		verbindung.ausgebelendetProperty().addListener((p, a, n) -> {
+			if (n) {
+				this.linie.setId("ROT");
+			} else {
+				this.linie.setId("SCHWARZ");
+			}
+		});
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

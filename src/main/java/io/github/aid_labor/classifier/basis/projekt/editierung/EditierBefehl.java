@@ -4,7 +4,7 @@
  *
  */
 
-package io.github.aid_labor.classifier.basis.projekt;
+package io.github.aid_labor.classifier.basis.projekt.editierung;
 
 /**
  * Abbild einer Editierung, die rückgängig gemacht und wiederholt werden kann. Implementierungen sollten

@@ -26,7 +26,8 @@ import io.github.aid_labor.classifier.basis.json.JsonEnumProperty;
 import io.github.aid_labor.classifier.basis.json.JsonEnumProperty.EnumPropertyZuStringKonverter;
 import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
-import io.github.aid_labor.classifier.basis.projekt.ListenEditierUeberwacher;
+import io.github.aid_labor.classifier.basis.projekt.editierung.ListenAenderungsUeberwacher;
+import io.github.aid_labor.classifier.basis.projekt.editierung.ListenEditierUeberwacher;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
@@ -70,7 +71,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	private final JsonStringProperty paket;
 	private final JsonStringProperty name;
 	private final JsonStringProperty superklasse;
-	private final JsonStringProperty interfaces;
+	private final ObservableList<String> interfaceListe;
 	private final ObservableList<Attribut> attribute;
 	@JsonManagedReference
 	private final ObservableList<Methode> methoden;
@@ -88,7 +89,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.paket = new JsonStringProperty(this, "paket", "");
 		this.name = new JsonStringProperty(this, "name", name);
 		this.superklasse = new JsonStringProperty(this, "superklasse", "");
-		this.interfaces = new JsonStringProperty(this, "interface", "");
+		this.interfaceListe = FXCollections.observableList(new LinkedList<>());
 		this.attribute = FXCollections.observableList(new LinkedList<>());
 		this.methoden = FXCollections.observableList(new LinkedList<>());
 		this.schwacheUeberwacher = new LinkedList<>();
@@ -99,9 +100,9 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.ueberwachePropertyAenderung(this.paket, getId() + "_paket");
 		this.ueberwachePropertyAenderung(this.typ, getId() + "_klassifizierertyp");
 		this.ueberwachePropertyAenderung(this.superklasse, getId() + "_superklasse");
-		this.ueberwachePropertyAenderung(this.interfaces, getId() + "_interfaces");
 		ueberwacheGetterUndSetter();
 		ueberwacheTyp();
+		this.interfaceListe.addListener(new ListenAenderungsUeberwacher<>(this.interfaceListe, this));
 	}
 	
 	@JsonCreator
@@ -109,15 +110,22 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
 			@JsonProperty("programmiersprache") Programmiersprache programmiersprache,
 			@JsonProperty("paket") String paket, @JsonProperty("name") String name,
-			@JsonProperty("superklasse") String superklasse, @JsonProperty("interfaces") String interfaces,
+			@JsonProperty("superklasse") String superklasse, 
+			@JsonProperty("interfaceListe") List<String> interfaceListe,
+			@JsonProperty("interfaces") String interfaces,
 			@JsonProperty("position") Position position, @JsonProperty("attribute") List<Attribut> attribute,
 			@JsonProperty("methoden") List<Methode> methoden) {
 		this(typ, programmiersprache, name);
 		this.getPosition().setPosition(position);
 		this.setPaket(paket);
-		this.setInterfaces(interfaces);
 		this.setSuperklasse(superklasse);
 		this.setSichtbarkeit(sichtbarkeit);
+		if (interfaceListe != null) {
+			this.interfaceListe.addAll(interfaceListe);
+		}
+		if (interfaces != null) {
+			this.interfaceListe.add(interfaces);
+		}
 		
 		for (var attribut : attribute) {
 			if (attribut.hatGetter()) {
@@ -219,16 +227,8 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		return superklasse;
 	}
 	
-	public String getInterfaces() {
-		return interfaces.get();
-	}
-	
-	public void setInterfaces(String interfaces) {
-		this.interfaces.set(interfaces);
-	}
-	
-	public StringProperty interfacesProperty() {
-		return interfaces;
+	public ObservableList<String> getInterfaces() {
+		return interfaceListe;
 	}
 	
 	public Modifizierer getSichtbarkeit() {
@@ -346,7 +346,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			var attributKopie = attribut.erzeugeTiefeKopie();
 			kopie.attribute.add(attributKopie);
 			
-			if(attributKopie.hatGetter() ||  attributKopie.hatSetter()) {
+			if (attributKopie.hatGetter() || attributKopie.hatSetter()) {
 				getterUndSetterPosition.put(attributKopie.getName(), attributKopie);
 			}
 		}
@@ -400,8 +400,11 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			final Map<Attribut, List<ChangeListener<?>>> attributUeberwacher = new HashMap<>();
 			while (aenderung.next()) {
 				for (var attribut : aenderung.getRemoved()) {
-					try { attributUeberwacher.remove(attribut).clear(); } catch (Exception e) { /* ignorieren */ }
-					
+					try {
+						attributUeberwacher.remove(attribut).clear();
+					} catch (Exception e) {
+						/* ignorieren */ }
+						
 					if (attribut.getGetter() != null) {
 						methoden.remove(attribut.getGetter());
 					}

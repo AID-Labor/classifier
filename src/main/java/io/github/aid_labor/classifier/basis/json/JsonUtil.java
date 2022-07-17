@@ -62,8 +62,7 @@ public final class JsonUtil {
 	 */
 	public static JsonGenerator getUTF8JsonGenerator(Path zielDateipfad) throws IOException {
 		Files.createDirectories(zielDateipfad.getParent());
-		BufferedWriter speicherziel = Files.newBufferedWriter(zielDateipfad,
-				StandardCharsets.UTF_8);
+		BufferedWriter speicherziel = Files.newBufferedWriter(zielDateipfad, StandardCharsets.UTF_8);
 		return getJsonFabrik().createGenerator(speicherziel).useDefaultPrettyPrinter();
 	}
 	
@@ -77,8 +76,7 @@ public final class JsonUtil {
 	 * @throws IOException Falls kein Stream fuer den uebergebenen Pfad geoeffnet werden kann
 	 */
 	public static JsonParser getUTF8JsonParser(Path quellDateipfad) throws IOException {
-		BufferedReader quelle = Files.newBufferedReader(quellDateipfad,
-				StandardCharsets.UTF_8);
+		BufferedReader quelle = Files.newBufferedReader(quellDateipfad, StandardCharsets.UTF_8);
 		return getJsonFabrik().createParser(quelle);
 	}
 	
