@@ -340,7 +340,7 @@ public class UMLProjekt extends ProjektBasis {
 			if (Objects.equals(alterName, neuerName) || diagrammElemente.stream().
 					filter(e -> e instanceof UMLKlassifizierer k && Objects.equals(k.getName(), alterName) 
 						&& k.getId() != klassifizierer.getId())	// Anderes Element mit gleichem Namen -> Kein Update!!!
-					.count() > 0) {
+					.count() > 0 || alterName == null || alterName.isBlank()) {
 				return;
 			}
 			

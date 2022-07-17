@@ -12,7 +12,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.controlsfx.control.PopOver;
 import org.controlsfx.control.PopOver.ArrowLocation;
@@ -118,6 +122,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private final List<ListChangeListener<?>> listenBeobachter;
 	private final List<String> vorhandeneElementNamen;
 	private final List<Runnable> loeseBindungen;
+	private final SortedMap<String, UMLKlassifizierer> klassenSuchBaum;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -135,6 +140,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.vorhandeneElementNamen = projekt.getDiagrammElemente().parallelStream()
 				.filter(element -> element.getId() != klassifizierer.getId()).map(UMLDiagrammElement::getName).toList();
 		this.umlProjektRef = new WeakReference<>(projekt);
+		List<UMLKlassifizierer> klassen = umlProjektRef.get().getDiagrammElemente().stream()
+				.filter(UMLKlassifizierer.class::isInstance).map(UMLKlassifizierer.class::cast).toList();
+		this.klassenSuchBaum = new TreeMap<>(
+				klassen.parallelStream().collect(Collectors.toMap(UMLKlassifizierer::getName, Function.identity())));
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"UMLKlassifiziererBearbeitenDialog");
@@ -320,41 +329,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		tabelle.setVgap(15);
 		tabelle.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 		
-		Platform.runLater(() -> {
-			eingabeValidierung.registerValidator(name,
-					Validator.combine(
-							Validator.createEmptyValidator(
-									sprache.getText("klassennameValidierung", "Der Klassenname muss angegeben werden")),
-							Validator.createPredicateValidator(tf -> !vorhandeneElementNamen.contains(name.getText()),
-									sprache.getText("klassennameValidierung2",
-											"Ein Element mit diesem Namen ist bereits vorhanden"))));
-//			eingabeValidierung.registerValidator(superklasse, Validator.createPredicateValidator(tf -> {
-//				var projekt = umlProjektRef.get();
-//				if (projekt == null) {
-//					return false;
-//				}
-//				var elemente = projekt.getDiagrammElemente();
-//				var superKl = getKlassifizierer();
-//				boolean istZirkular = false;
-//				while (superKl != null && superKl.getSuperklasse() != null) {
-//					if (superKl.getSuperklasse().equals(getKlassifizierer().getName())) {
-//						istZirkular = true;
-//						break;
-//					}
-//					String superName = superKl.getName();
-//					var gefunden = elemente.stream().filter(e -> e instanceof UMLKlassifizierer
-//							&& Objects.equals(e.getName(), superName)).findFirst();
-//					if (gefunden.isPresent() && gefunden.get() instanceof UMLKlassifizierer k) {
-//						superKl = k;
-//					} else {
-//						break;
-//					}
-//				}
-//				return !istZirkular;
-//			}, sprache.getText("superklasseValidierung", "Die Vererbungshierarchie darf nicht zirkular sein!")));
-			setzePlatzhalter(name);
-//			setzePlatzhalter(superklasse);
-		});
+		validiereAllgemein(name, superklasse, interfaces);
 		
 		updateSuperklasse(superklasse, getKlassifizierer().getTyp());
 		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateSuperklasse(superklasse,
@@ -365,6 +340,51 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.setOnShown(e -> Platform.runLater(name::requestFocus));
 		
 		return tabelle;
+	}
+	
+	private void validiereAllgemein(TextField name, TextField superklasse, TextField interfaces) {
+		Platform.runLater(() -> {
+			eingabeValidierung.registerValidator(name,
+					Validator.combine(
+							Validator.createEmptyValidator(
+									sprache.getText("klassennameValidierung", "Der Klassenname muss angegeben werden")),
+							Validator.createPredicateValidator(tf -> !vorhandeneElementNamen.contains(name.getText()),
+									sprache.getText("klassennameValidierung2",
+											"Ein Element mit diesem Namen ist bereits vorhanden"))));
+			setzePlatzhalter(name);
+			if (umlProjektRef.get().getProgrammiersprache().getEigenschaften()
+					.erlaubtSuperklasse(getKlassifizierer().getTyp())) {
+				eingabeValidierung.registerValidator(superklasse, Validator.combine(
+						Validator.createPredicateValidator(tf -> !istZirkular(getKlassifizierer(), klassenSuchBaum), 
+								sprache.getText("superklasseValidierungZirkular", 
+										"Die Vererbungshierarchie darf nicht zirkular sein!")),
+						Validator.createPredicateValidator(tf -> {
+							var sk = klassenSuchBaum.get(superklasse.getText());
+							boolean istInterface = sk == null ? false
+									: Objects.equals(sk.getTyp(), KlassifiziererTyp.Interface);
+							return !istInterface;
+						}, sprache.getText("superklasseValidierungInterface", 
+								"Die Superklasse darf kein interface sein!"))));
+				setzePlatzhalter(superklasse);
+			}
+		});
+	}
+	
+	private boolean istZirkular(UMLKlassifizierer startklasse, SortedMap<String, UMLKlassifizierer> klassenSuchBaum) {
+		var superklasse = klassenSuchBaum.get(startklasse.getSuperklasse());
+		return pruefeZirkular(superklasse, startklasse.getName(), klassenSuchBaum);
+	}
+	
+	private boolean pruefeZirkular(UMLKlassifizierer superklasse, String startname,
+			SortedMap<String, UMLKlassifizierer> klassenSuchBaum) {
+		System.out.println(superklasse + " =? '" + startname + "'");
+		if (superklasse == null) {
+			return false;
+		} else if (startname.equals(superklasse.getName())) {
+			return !startname.isBlank();
+		}
+		
+		return pruefeZirkular(klassenSuchBaum.get(superklasse.getSuperklasse()), startname, klassenSuchBaum);
 	}
 	
 	private <T> Pane erzeugeTabellenAnzeige(String[] labelBezeichnungen, ObservableList<T> inhalt,

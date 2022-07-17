@@ -420,7 +420,6 @@ public class ProjektAnsicht extends Tab {
 			ansicht.setViewOrder(Double.MAX_VALUE);
 			this.verbindungsAnsichten.put(verbindung.getId(), ansicht);
 			this.zeichenflaeche.getChildren().add(ansicht);
-			System.out.println("Verbindung " + verbindung + " hinzugefügt");
 		}
 	}
 	
