@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -31,7 +33,10 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -101,7 +106,9 @@ public class UMLProjekt extends ProjektBasis {
 	@JsonIgnore
 	private final Map<String, ChangeListener<String>> namenBeobachter = new HashMap<>();
 	@JsonIgnore
-	private final ListChangeListener<UMLDiagrammElement> verbindungenBeobachter;
+	private final ListChangeListener<UMLDiagrammElement> elementeBeobachter;
+	@JsonIgnore
+	private final ListChangeListener<UMLVerbindung> verbindungenBeobachter;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -123,15 +130,23 @@ public class UMLProjekt extends ProjektBasis {
 			throws NullPointerException {
 		super(name, automatischSpeichern);
 		this.programmiersprache = Objects.requireNonNull(programmiersprache);
-		this.diagrammElemente = FXCollections.observableArrayList();
+		this.diagrammElemente = FXCollections.observableArrayList(e -> {
+			if (e instanceof UMLKlassifizierer k) {
+				return new Observable[] { k.nameProperty(), k.typProperty() };	// Liste bei Namensaenderung updaten
+			} else {
+				return new Observable[0];
+			}
+		});
 		this.verbindungen = FXCollections.observableArrayList();
 		
 		// Diagramm-Elemente auf Aenderung Ueberwachen (sowhol die Liste als auch geaenderte
 		// Objekte in der Liste)
 		this.diagrammElemente.addListener(new ListenEditierUeberwacher<>(this.diagrammElemente, this));
 		this.verbindungen.addListener(new ListenEditierUeberwacher<>(this.verbindungen, this));
-		verbindungenBeobachter = this::ueberwacheDiagrammVerbindungen;
-		this.diagrammElemente.addListener(new WeakListChangeListener<>(verbindungenBeobachter));
+		elementeBeobachter = this::ueberwacheDiagrammElemente;
+		this.diagrammElemente.addListener(new WeakListChangeListener<>(elementeBeobachter));
+		verbindungenBeobachter = this::ueberwacheVerbindungen;
+		this.verbindungen.addListener(new WeakListChangeListener<>(verbindungenBeobachter));
 	}
 	
 	/**
@@ -269,7 +284,7 @@ public class UMLProjekt extends ProjektBasis {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private void ueberwacheDiagrammVerbindungen(Change<? extends UMLDiagrammElement> aenderung) {
+	private void ueberwacheDiagrammElemente(Change<? extends UMLDiagrammElement> aenderung) {
 		while (aenderung.next()) {
 			if (aenderung.wasRemoved()) {
 				for (UMLDiagrammElement element : aenderung.getRemoved()) {
@@ -290,6 +305,13 @@ public class UMLProjekt extends ProjektBasis {
 					var nameUeberwacher = namenBeobachter.get(klassifizierer.getName());
 					if (nameUeberwacher != null) {
 						klassifizierer.superklasseProperty().removeListener(nameUeberwacher);
+					}
+					
+					String elementStr = element.toString();
+					try {
+						element.close();
+					} catch (Exception e) {
+						log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen von " + elementStr);
 					}
 				}
 			}
@@ -325,10 +347,6 @@ public class UMLProjekt extends ProjektBasis {
 				UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, klassifizierer.getName(),
 						neueSuperklasse);
 				vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
-				
-				var superklassen = diagrammElemente.filtered(e -> e.getName().equals(vererbung.getVerbindungsEnde()));
-				vererbung.ausgebelendetProperty().bind(Bindings.isEmpty(superklassen));
-				
 				verbindungen.add(vererbung);
 			} else {
 				verbindungen.stream()
@@ -350,15 +368,9 @@ public class UMLProjekt extends ProjektBasis {
 		ListChangeListener<String> interfaceUeberwacher = (Change<? extends String> aenderung) -> {
 			while (aenderung.next()) {
 				for (String interfaceHinzu : aenderung.getAddedSubList()) {
-					UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, klassifizierer.getName(),
-							interfaceHinzu);
+					UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG,
+							klassifizierer.getName(), interfaceHinzu);
 					vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
-					
-					var interfaces = diagrammElemente.filtered(
-							e -> e instanceof UMLKlassifizierer k && k.getTyp().equals(KlassifiziererTyp.Interface)
-									&& k.getName().equals(vererbung.getVerbindungsEnde()));
-					vererbung.ausgebelendetProperty().bind(Bindings.isEmpty(interfaces));
-					
 					verbindungen.add(vererbung);
 				}
 				for (String interfaceEntfernt : aenderung.getRemoved()) {
@@ -390,6 +402,62 @@ public class UMLProjekt extends ProjektBasis {
 		};
 		klassifizierer.nameProperty().addListener(nameUeberwacher);
 		return nameUeberwacher;
+	}
+	
+	private void ueberwacheVerbindungen(Change<? extends UMLVerbindung> aenderung) {
+		while (aenderung.next()) {
+			if (aenderung.wasRemoved()) {
+				for (UMLVerbindung entfernteVerbindung : aenderung.getRemoved()) {
+					String verbindungStr = entfernteVerbindung.toString();
+					try {
+						entfernteVerbindung.close();
+					} catch (Exception e) {
+						log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen der Verbindung " + verbindungStr);
+					}
+				}
+			}
+			if (aenderung.wasAdded()) {
+				for (UMLVerbindung neueVerbindung : aenderung.getAddedSubList()) {
+					bindeElementeAnVerbindung(neueVerbindung);
+				}
+			}
+		}
+	}
+	
+	private void bindeElementeAnVerbindung(UMLVerbindung verbindung) {
+		switch (verbindung.getTyp()) {
+			case SCHNITTSTELLEN_VERERBUNG ->
+				verbindung.endElementProperty().bind(sucheInterface(verbindung.verbindungsEndeProperty()));
+			default -> verbindung.endElementProperty().bind(sucheKlassifizierer(verbindung.verbindungsEndeProperty()));
+		}
+		verbindung.startElementProperty().bind(sucheKlassifizierer(verbindung.verbindungsStartProperty()));
+		verbindung.ausgebelendetProperty().bind(verbindung.endElementProperty().isNull());
+	}
+	
+	private ObjectBinding<UMLKlassifizierer> sucheKlassifizierer(StringProperty name) {
+		var startelemente = diagrammElemente.filtered(erzeugeNameVergleich(name.get()));
+		startelemente.predicateProperty()
+				.bind(Bindings.createObjectBinding(() -> erzeugeNameVergleich(name.get()), name));
+		var hilfe = Bindings.valueAt(startelemente, 0);
+		return Bindings.createObjectBinding(() -> (UMLKlassifizierer) hilfe.get(), hilfe, startelemente);
+	}
+	
+	private Predicate<UMLDiagrammElement> erzeugeNameVergleich(String gesuchterName) {
+		return e -> e instanceof UMLKlassifizierer k && !KlassifiziererTyp.Interface.equals(k.getTyp())
+				&& Objects.equals(gesuchterName, e.getName());
+	}
+	
+	private ObjectBinding<UMLKlassifizierer> sucheInterface(StringProperty name) {
+		var startelemente = diagrammElemente.filtered(erzeugeNameVergleichInterface(name.get()));
+		startelemente.predicateProperty()
+				.bind(Bindings.createObjectBinding(() -> erzeugeNameVergleichInterface(name.get()), name));
+		var hilfe = Bindings.valueAt(startelemente, 0);
+		return Bindings.createObjectBinding(() -> (UMLKlassifizierer) hilfe.get(), hilfe, startelemente);
+	}
+	
+	private Predicate<UMLDiagrammElement> erzeugeNameVergleichInterface(String gesuchterName) {
+		return e -> e instanceof UMLKlassifizierer k && KlassifiziererTyp.Interface.equals(k.getTyp())
+				&& Objects.equals(gesuchterName, e.getName());
 	}
 	
 }

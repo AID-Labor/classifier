@@ -102,6 +102,16 @@ public class Position {
 	}
 	
 	@JsonIgnore
+	public double getMaxX() {
+		return getX() + getBreite();
+	}
+	
+	@JsonIgnore
+	public double getMaxY() {
+		return getY() + getHoehe();
+	}
+	
+	@JsonIgnore
 	public JsonDoubleProperty xProperty() {
 		return x;
 	}
@@ -119,6 +129,26 @@ public class Position {
 	@JsonIgnore
 	public JsonDoubleProperty breiteProperty() {
 		return breite;
+	}
+	
+	@JsonIgnore
+	public boolean istRechtsVon(Position p) {
+		return this.getX() > p.getMaxX();
+	}
+	
+	@JsonIgnore
+	public boolean istLinksVon(Position p) {
+		return this.getMaxX() < p.getX();
+	}
+	
+	@JsonIgnore
+	public boolean istOberhalbVon(Position p) {
+		return this.getMaxY() < p.getY();
+	}
+	
+	@JsonIgnore
+	public boolean istUnterhalbVon(Position p) {
+		return this.getY() > p.getMaxY();
 	}
 	
 	@JsonIgnore
@@ -163,6 +193,9 @@ public class Position {
 				&& Objects.equals(x, other.x) && Objects.equals(y, other.y);
 	}
 	
-	
+	@Override
+	public String toString() {
+		return "Position(x=%.1f; y=%.1f)[hoehe=%.1f; breite=%.1f]".formatted(getX(), getY(), getBreite(), getHoehe());
+	}
 	
 }

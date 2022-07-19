@@ -23,6 +23,8 @@ import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -62,11 +64,15 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private final UMLVerbindungstyp typ;
-	private JsonStringProperty verbindungsStartProperty;
-	private JsonStringProperty verbindungsEndeProperty;
+	private final JsonStringProperty verbindungsStartProperty;
+	private final JsonStringProperty verbindungsEndeProperty;
 	private final JsonBooleanProperty ausgebelendetProperty;
 	private final Position startPosition;
 	private final Position endPosition;
+	@JsonIgnore
+	private final ObjectProperty<UMLKlassifizierer> startElementProperty;
+	@JsonIgnore
+	private final ObjectProperty<UMLKlassifizierer> endElementProperty;
 	@JsonIgnore
 	private final long id;
 	@JsonIgnore
@@ -112,6 +118,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 				}
 			}
 		};
+		this.startElementProperty = new SimpleObjectProperty<>(this, "startElement", null);
+		this.endElementProperty = new SimpleObjectProperty<>(this, "endElement", null);
 		this.startPosition = Objects.requireNonNull(startPosition);
 		this.endPosition = Objects.requireNonNull(endPosition);
 		this.id = naechsteId++;
@@ -137,7 +145,6 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	
 	public UMLVerbindung(UMLVerbindungstyp typ, String verbindungsStart, String verbindungsEnde) {
 		this(typ, verbindungsStart, verbindungsEnde, new Position(), new Position());
-		
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -172,6 +179,30 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	
 	public void setVerbindungsEnde(String verbindungsEnde) {
 		this.verbindungsEndeProperty.set(verbindungsEnde);
+	}
+	
+	public ObjectProperty<UMLKlassifizierer> startElementProperty() {
+		return startElementProperty;
+	}
+	
+	public UMLKlassifizierer getStartElement() {
+		return startElementProperty.get();
+	}
+	
+	public void setStartElement(UMLKlassifizierer startElement) {
+		startElementProperty.set(startElement);
+	}
+	
+	public ObjectProperty<UMLKlassifizierer> endElementProperty() {
+		return endElementProperty;
+	}
+	
+	public UMLKlassifizierer getEndElement() {
+		return endElementProperty.get();
+	}
+	
+	public void setEndElement(UMLKlassifizierer endElement) {
+		endElementProperty.set(endElement);
 	}
 	
 	public JsonBooleanProperty ausgebelendetProperty() {

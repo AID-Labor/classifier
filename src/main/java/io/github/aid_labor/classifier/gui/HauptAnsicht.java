@@ -41,6 +41,7 @@ import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.application.HostServices;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -615,6 +616,8 @@ public class HauptAnsicht {
 	}
 	
 	private void auswahlEinfuegen() {
+		var klassenSuchBaum = new TreeSet<>(getProjektAnsicht().getAngezeigtesProjekt().getDiagrammElemente().stream()
+				.filter(UMLKlassifizierer.class::isInstance).map(k -> k.getName()).toList());
 		var kopie = kopiePuffer.stream()
 				.map(umlElement -> {
 					var umlKopie = umlElement.erzeugeTiefeKopie();
@@ -622,6 +625,19 @@ public class HauptAnsicht {
 					var y = umlKopie.getPosition().getY() + 20;
 					umlKopie.getPosition().setX(x);
 					umlKopie.getPosition().setY(y);
+					if (umlKopie instanceof UMLKlassifizierer k && klassenSuchBaum.contains(k.getName())) {
+						k.setName(k.getName() + "_kopie");
+						int i = 1;
+						String name = k.getName();
+						while (klassenSuchBaum.contains(k.getName())) {
+							k.setName(name + i);
+							i++;
+						}
+						
+					}
+					if (umlKopie instanceof UMLKlassifizierer k) {
+						klassenSuchBaum.add(k.getName());
+					}
 					return umlKopie;
 				}).toList();
 		projekteAnsicht.fuegeEin(kopie);

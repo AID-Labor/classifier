@@ -8,6 +8,7 @@ package io.github.aid_labor.classifier.gui.komponenten;
 
 import java.lang.ref.WeakReference;
 
+import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -57,6 +58,20 @@ public class UMLElementBasisAnsicht<E extends UMLDiagrammElement> extends StackP
 				.bindBidirectional(this.prefWidthProperty());
 		umlElementModel.getPosition().hoeheProperty()
 				.bindBidirectional(this.prefHeightProperty());
+		
+		NodeUtil.beobachteSchwach(this, this.widthProperty(), b -> {
+			double breite = b.doubleValue();
+			if (breite != getPrefWidth() && breite > getMinWidth()) {
+				setPrefWidth(breite);
+			}
+		});
+		NodeUtil.beobachteSchwach(this, this.heightProperty(), h -> {
+			double hoehe = h.doubleValue();
+			if (hoehe != getPrefHeight() && hoehe > getMinHeight()) {
+				setPrefHeight(hoehe);
+			}
+		});
+		
 		this.setMinSize(80, 30);
 		this.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 	}

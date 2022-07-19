@@ -168,7 +168,6 @@ class HauptKontrolle {
 //			            public void handle(long l) {
 //			                // capture at exactly two frames
 //			                if (++frames == 2) {
-////			                    System.out.println("Attempting image capture");
 //			                	vorschau.snapshot(kontrolle::snapshotSpeichern, null, null);
 //
 //			                    //stop timer after snapshot

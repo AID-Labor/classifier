@@ -50,7 +50,6 @@ final class KlassenpfadRessource extends Ressource {
 	@Override
 	public InputStream oeffneStream() {
 		log.finest(() -> "oeffneStream fuer " + pfad);
-		System.out.println(this.getClass().getResourceAsStream("LICENSE.txt"));
 		return this.getClass().getResourceAsStream(pfad);
 	}
 	

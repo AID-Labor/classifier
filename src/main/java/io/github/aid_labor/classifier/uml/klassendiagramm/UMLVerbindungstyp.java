@@ -8,7 +8,7 @@ package io.github.aid_labor.classifier.uml.klassendiagramm;
 
 public enum UMLVerbindungstyp {
 	
-	VERERBUNG, ASSOZIATION;
+	VERERBUNG, SCHNITTSTELLEN_VERERBUNG, ASSOZIATION;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*

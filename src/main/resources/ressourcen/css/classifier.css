@@ -163,6 +163,37 @@
     -fx-stroke-width: 3;
 }
 
+#ROT-1 {
+    -fx-stroke: red;
+    -fx-stroke-width: 3;
+}
+
+#SCHWARZ-1 {
+    -fx-stroke: green;
+    -fx-stroke-width: 3;
+    -fx-border-color: black;
+}
+
+#ROT-2 {
+    -fx-stroke: red;
+    -fx-stroke-width: 3;
+}
+
+#SCHWARZ-2 {
+    -fx-stroke: yellow;
+    -fx-stroke-width: 3;
+}
+
+#ROT-3 {
+    -fx-stroke: red;
+    -fx-stroke-width: 3;
+}
+
+#SCHWARZ-3 {
+    -fx-stroke: purple;
+    -fx-stroke-width: 3;
+}
+
 .tag {
     -fx-icon-color: derive(-fx-light-text-color, -10%);
 }

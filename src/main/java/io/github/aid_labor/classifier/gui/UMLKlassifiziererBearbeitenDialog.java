@@ -335,7 +335,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		var sichtbarkeit = erzeugeSichtbarkeit();
 		tabelle.add(sichtbarkeit, 1, 3);
 		
-//		TextField superklasse = new TextField(this.getKlassifizierer().getSuperklasse());
 		SearchField<String> superklasse = erzeugeSuperklasseEingabe();
 		tabelle.add(superklasse, 1, 4);
 		
@@ -465,6 +464,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					.erlaubtSuperklasse(getKlassifizierer().getTyp())) {
 				eingabeValidierung.registerValidator(superklasse.getEditor(),
 						Validator.combine(Validator.createPredicateValidator(tf -> {
+							if (superklasse.getEditor().getText().isBlank()) {
+								return true;
+							}
 							boolean gleich = Objects.equals(name.getText(), superklasse.getEditor().getText());
 							return gleich ? name.getText().isBlank()
 									: !istZirkular(getKlassifizierer(), klassenSuchBaum);
