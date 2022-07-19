@@ -152,6 +152,26 @@ public class Position {
 	}
 	
 	@JsonIgnore
+	public boolean istRechtsVon(Position p, double deltaMin) {
+		return this.getX() - deltaMin > p.getMaxX();
+	}
+	
+	@JsonIgnore
+	public boolean istLinksVon(Position p, double deltaMin) {
+		return this.getMaxX() + deltaMin < p.getX();
+	}
+	
+	@JsonIgnore
+	public boolean istOberhalbVon(Position p, double deltaMin) {
+		return this.getMaxY() + deltaMin < p.getY();
+	}
+	
+	@JsonIgnore
+	public boolean istUnterhalbVon(Position p, double deltaMin) {
+		return this.getY() - deltaMin > p.getMaxY();
+	}
+	
+	@JsonIgnore
 	public void setPosition(Position position) {
 		this.setX(position.getX());
 		this.setY(position.getY());

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
+import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
@@ -69,6 +70,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	private final JsonBooleanProperty ausgebelendetProperty;
 	private final Position startPosition;
 	private final Position endPosition;
+	private final JsonObjectProperty<Orientierung> orientierungStartProperty;
+	private final JsonObjectProperty<Orientierung> orientierungEndeProperty;
 	@JsonIgnore
 	private final ObjectProperty<UMLKlassifizierer> startElementProperty;
 	@JsonIgnore
@@ -83,13 +86,13 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	@JsonCreator
-	public UMLVerbindung(
-			@JsonProperty("typ") UMLVerbindungstyp typ,
+	public UMLVerbindung(@JsonProperty("typ") UMLVerbindungstyp typ,
 			@JsonProperty("verbindungsStartProperty") String verbindungsStart,
 			@JsonProperty("verbindungsEndeProperty") String verbindungsEnde,
-			@JsonProperty("startPosition") Position startPosition,
-			@JsonProperty("endPosition") Position endPosition,
-			@JsonProperty("ausgebelendetProperty") boolean ausgeblendet) {
+			@JsonProperty("startPosition") Position startPosition, @JsonProperty("endPosition") Position endPosition,
+			@JsonProperty("ausgebelendetProperty") boolean ausgeblendet,
+			@JsonProperty(value = "orientierungStartProperty", defaultValue = "UNBEKANNT") Orientierung orientierungStart,
+			@JsonProperty(value = "orientierungEndeProperty", defaultValue = "UNBEKANNT") Orientierung orientierungEnde) {
 		this.typ = typ;
 		this.verbindungsStartProperty = new JsonStringProperty(this, "verbindungsStart", verbindungsStart);
 		this.verbindungsEndeProperty = new JsonStringProperty(this, "verbindungsEnde", verbindungsEnde);
@@ -122,6 +125,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.endElementProperty = new SimpleObjectProperty<>(this, "endElement", null);
 		this.startPosition = Objects.requireNonNull(startPosition);
 		this.endPosition = Objects.requireNonNull(endPosition);
+		this.orientierungStartProperty = new JsonObjectProperty<>(this, "orientierungStart", orientierungStart);
+		this.orientierungEndeProperty = new JsonObjectProperty<>(this, "orientierungEnde", orientierungEnde);
 		this.id = naechsteId++;
 		this.beobachterListe = new LinkedList<>();
 		
@@ -136,11 +141,14 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.ueberwachePropertyAenderung(endPosition.yProperty(), id + "_endeY");
 		this.ueberwachePropertyAenderung(endPosition.hoeheProperty(), id + "_endeHoehe");
 		this.ueberwachePropertyAenderung(endPosition.breiteProperty(), id + "_endeBreite");
+		this.ueberwachePropertyAenderung(this.orientierungStartProperty,  id + "_orientierungStart");
+		this.ueberwachePropertyAenderung(this.orientierungEndeProperty,  id + "_orientierungEnde");
 	}
 	
 	public UMLVerbindung(UMLVerbindungstyp typ, String verbindungsStart, String verbindungsEnde, Position startPosition,
 			Position endPosition) {
-		this(typ, verbindungsStart, verbindungsEnde, startPosition, endPosition, false);
+		this(typ, verbindungsStart, verbindungsEnde, startPosition, endPosition, false, Orientierung.UNBEKANNT,
+				Orientierung.UNBEKANNT);
 	}
 	
 	public UMLVerbindung(UMLVerbindungstyp typ, String verbindungsStart, String verbindungsEnde) {
@@ -229,6 +237,30 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		return id;
 	}
 	
+	public JsonObjectProperty<Orientierung> orientierungStartProperty() {
+		return orientierungStartProperty;
+	}
+	
+	public Orientierung getOrientierungStart() {
+		return orientierungStartProperty.get();
+	}
+	
+	public void setOrientierungStart(Orientierung orientierungStart) {
+		orientierungStartProperty.set(orientierungStart);
+	}
+	
+	public JsonObjectProperty<Orientierung> orientierungEndeProperty() {
+		return orientierungEndeProperty;
+	}
+	
+	public Orientierung getOrientierungEnde() {
+		return orientierungEndeProperty.get();
+	}
+	
+	public void setOrientierungEnde(Orientierung orientierungEnde) {
+		orientierungEndeProperty.set(orientierungEnde);
+	}
+	
 	@Override
 	public List<Object> getBeobachterListe() {
 		return beobachterListe;
@@ -293,7 +325,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	
 	public UMLVerbindung erzeugeTiefeKopie() {
 		return new UMLVerbindung(typ, getVerbindungsStart(), getVerbindungsEnde(), new Position(startPosition),
-				new Position(endPosition), istAusgebelendet());
+				new Position(endPosition), istAusgebelendet(), getOrientierungStart(), getOrientierungEnde());
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

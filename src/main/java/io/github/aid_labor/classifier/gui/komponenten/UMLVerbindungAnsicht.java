@@ -11,6 +11,7 @@ import java.util.Objects;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.klassendiagramm.Orientierung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.Position;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
@@ -99,8 +100,8 @@ public class UMLVerbindungAnsicht extends Pane {
 		this.startYVerschiebungProperty = new SimpleDoubleProperty();
 		this.endeXVerschiebungProperty = new SimpleDoubleProperty();
 		this.endeYVerschiebungProperty = new SimpleDoubleProperty();
-		this.orientierungStartProperty = new SimpleObjectProperty<>(Orientierung.UNBEKANNT);
-		this.orientierungEndeProperty = new SimpleObjectProperty<>(Orientierung.UNBEKANNT);
+		this.orientierungStartProperty = new SimpleObjectProperty<>(verbindung.getOrientierungStart());
+		this.orientierungEndeProperty = new SimpleObjectProperty<>(verbindung.getOrientierungEnde());
 //		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
 		this.linieStart = new Path();
 		this.linieMitte = new Path();
@@ -114,16 +115,18 @@ public class UMLVerbindungAnsicht extends Pane {
 		this.linieC = new LineTo();
 		this.positionsUeberwachungStart = (p, alt, neu) -> {
 			updateStartPosition(verbindung.getStartElement(), verbindung.getEndElement());
+			updateEndPosition(verbindung.getStartElement(), verbindung.getEndElement());
 		};
 		this.positionsUeberwachungEnde = (p, alt, neu) -> {
 			updateEndPosition(verbindung.getStartElement(), verbindung.getEndElement());
+			updateStartPosition(verbindung.getStartElement(), verbindung.getEndElement());
 		};
 		
+		zeichneLinie();
 		erstelleBindungen();
 		updateStartPosition(verbindung.getStartElement(), verbindung.getEndElement());
 		updateEndPosition(verbindung.getStartElement(), verbindung.getEndElement());
 		
-		zeichneLinie();
 		updateLinie(orientierungStartProperty.get(), verbindung.getStartElement(), orientierungEndeProperty.get(),
 				verbindung.getEndElement());
 		
@@ -172,6 +175,8 @@ public class UMLVerbindungAnsicht extends Pane {
 		endeYProperty.bindBidirectional(verbindung.getEndPosition().yProperty());
 		endeXVerschiebungProperty.bindBidirectional(verbindung.getEndPosition().breiteProperty());
 		endeYVerschiebungProperty.bindBidirectional(verbindung.getEndPosition().hoeheProperty());
+		orientierungStartProperty.bindBidirectional(verbindung.orientierungStartProperty());
+		orientierungEndeProperty.bindBidirectional(verbindung.orientierungEndeProperty());
 		
 		NodeUtil.beobachteSchwach(this, verbindung.startElementProperty(),
 				start -> updateStartPosition(start, verbindung.getEndElement()));
@@ -191,6 +196,9 @@ public class UMLVerbindungAnsicht extends Pane {
 		
 		startpunktEnde.xProperty().bind(linieB.xProperty());
 		startpunktEnde.yProperty().bind(linieB.yProperty());
+		
+		linieC.xProperty().bind(verbindung.getEndPosition().xProperty());
+		linieC.yProperty().bind(verbindung.getEndPosition().yProperty());
 		
 		this.linieStart.getElements().add(startpunkt);
 		this.linieStart.getElements().add(linieA);
@@ -235,9 +243,6 @@ public class UMLVerbindungAnsicht extends Pane {
 			UMLKlassifizierer ende) {
 		updateStart(orientierungStart, start, orientierungEnde);
 		updateEnde(orientierungEnde, ende);
-		
-		linieC.xProperty().bind(verbindung.getEndPosition().xProperty());
-		linieC.yProperty().bind(verbindung.getEndPosition().yProperty());
 	}
 	
 	private void updateStart(Orientierung orientierungStart, UMLKlassifizierer start, Orientierung orientierungEnde) {
@@ -259,25 +264,6 @@ public class UMLVerbindungAnsicht extends Pane {
 			}
 			default -> {
 				/**/
-			}
-		}
-		
-//		var yMitte = verbindung.getStartPosition().yProperty().add(verbindung.getEndPosition().yProperty())
-//				.add(VERERBUNGSPFEIL_GROESSE).divide(2);
-		switch (orientierungStart) {
-			case OBEN, UNBEKANNT -> {
-				
-			}
-			case UNTEN -> {
-				var yMitte = verbindung.getStartPosition().yProperty().add(verbindung.getEndPosition().yProperty())
-						.subtract(VERERBUNGSPFEIL_GROESSE).divide(2);
-				linieA.xProperty().bind(startXProperty.add(startXVerschiebungProperty));
-				linieA.yProperty().bind(yMitte);
-				linieB.xProperty().bind(endeXProperty.add(endeXVerschiebungProperty));
-				linieB.yProperty().bind(yMitte);
-			}
-			case LINKS, RECHTS -> {
-				
 			}
 		}
 	}
@@ -316,6 +302,13 @@ public class UMLVerbindungAnsicht extends Pane {
 		startXVerschiebungProperty.set(0);
 		startYProperty.bind(start.getPosition().yProperty().add(start.getPosition().hoeheProperty()));
 		startYVerschiebungProperty.set(0);
+		
+		var yMitte = verbindung.getStartPosition().yProperty().add(verbindung.getEndPosition().yProperty())
+				.subtract(VERERBUNGSPFEIL_GROESSE).divide(2);
+		linieA.xProperty().bind(startXProperty.add(startXVerschiebungProperty));
+		linieA.yProperty().bind(yMitte);
+		linieB.xProperty().bind(endeXProperty.add(endeXVerschiebungProperty));
+		linieB.yProperty().bind(yMitte);
 	}
 	
 	private void setzeStartLinks(UMLKlassifizierer start, Orientierung orientierungEnde) {
@@ -675,8 +668,6 @@ public class UMLVerbindungAnsicht extends Pane {
 		Position posStart = start.getPosition();
 		Position posEnde = ende == null ? new Position() : ende.getPosition();
 		
-//		var xBindung = .add(start.getPosition().breiteProperty().divide(2));
-		// Wechsel auf OBEN => Mittig platzieren
 		if (start != startAlt) {
 			if (startAlt != null) {
 				startAlt.getPosition().xProperty().removeListener(positionsUeberwachungStart);
@@ -688,8 +679,12 @@ public class UMLVerbindungAnsicht extends Pane {
 		}
 		
 		System.out.println(">>>>>>>>>>>>>>>> #" + start + "# -- " + ende);
-		Orientierung prefStartOrientierung = testeOrientierung(posStart, orientierungEndeProperty.get(), posEnde);
+		Orientierung prefStartOrientierung = orientierungStartProperty.get();
 		Orientierung prefEndeOrientierung = orientierungEndeProperty.get();
+		if (!Orientierung.orientierungErlaubt(prefStartOrientierung, prefEndeOrientierung, posStart, posEnde) ||
+				Orientierung.UNBEKANNT.equals(prefStartOrientierung)) {
+			prefStartOrientierung = testeOrientierung(posStart, orientierungEndeProperty.get(), posEnde);
+		}
 		
 		if (prefStartOrientierung == null) {
 			System.out.println(">>>> Test UNTEN ");
