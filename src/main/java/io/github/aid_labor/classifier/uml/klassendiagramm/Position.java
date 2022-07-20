@@ -215,7 +215,7 @@ public class Position {
 	
 	@Override
 	public String toString() {
-		return "Position(x=%.1f; y=%.1f)[hoehe=%.1f; breite=%.1f]".formatted(getX(), getY(), getBreite(), getHoehe());
+		return "Position(x=%.1f; y=%.1f)[breite=%.1f; hoehe=%.1f]".formatted(getX(), getY(), getBreite(), getHoehe());
 	}
 	
 }

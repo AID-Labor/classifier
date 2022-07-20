@@ -119,19 +119,19 @@
 }
 
 .projekt-inhalt {   /* ScrollPane im Tab */
-    /*
+    
     -fx-border-width: 2;
     -fx-border-style: solid;
     -fx-border-color: red;
-    */
+    
 }
 
 .zeichenflaeche {   /* Eltern-Knoten der Diagramm-Elemente (Pane) */
-    /*
+    
     -fx-border-width: 2;
     -fx-border-style: solid;
     -fx-border-color: blue;
-    */
+    
 }
 
 .vorschau {
@@ -196,4 +196,10 @@
 
 .tag {
     -fx-icon-color: derive(-fx-light-text-color, -10%);
+}
+
+.test {
+    -fx-border-width: 2;
+    -fx-border-style: solid;
+    -fx-border-color: red;
 }

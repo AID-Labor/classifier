@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -39,6 +40,7 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKlassifiziererAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKommentarAnsicht;
+import io.github.aid_labor.classifier.gui.komponenten.UMLVerbindungAnsicht;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
@@ -118,33 +120,33 @@ class HauptKontrolle {
 			return;
 		}
 		
-		// TODO:
-		// neue GUI-Objekte erzeugen, in Scene legen und exportieren
 		Group gruppe = new Group();
-//		Group vorschau = new Group();
+		TreeSet<String> klassennamen = new TreeSet<>();
 		for (var element : elemente) {
 			Node node;
-//			Node nodeVorschau;
 			if (element instanceof UMLKlassifizierer k) {
 				node = new UMLKlassifiziererAnsicht(k);
-//				nodeVorschau = new UMLKlassifiziererAnsicht(k);
+				klassennamen.add(k.getName());
 			} else if (element instanceof UMLKommentar k) {
 				node = new UMLKommentarAnsicht(k);
-//				nodeVorschau = new UMLKommentarAnsicht(k);
 			} else {
 				log.warning("unbekannter Elementtyp: " + element.getClass().getName());
 				continue;
 			}
 			
 			gruppe.getChildren().add(node);
-//			vorschau.getChildren().add(nodeVorschau);
 		}
 		
-//		BildexportDialog dialog = new BildexportDialog(vorschau);
+		for (var verbindung : ansicht.get().getProjektAnsicht().getAngezeigtesProjekt().getVerbindungen()) {
+			if (klassennamen.contains(verbindung.getVerbindungsStart())
+					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
+				gruppe.getChildren().add(new UMLVerbindungAnsicht(verbindung, null));
+			}
+		}
+		
 		BildexportDialog dialog = new BildexportDialog(gruppe);
 		FensterUtil.initialisiereElternFenster(ansicht.get().getWurzelknoten().getScene().getWindow(), dialog);
 		dialog.showAndWait().ifPresent(parameter -> {
-//			var snapshotScene = new Scene(gruppe);
 			var snapshotScene = parameter.getSnapshotScene();
 			snapshotScene.getStylesheets().addAll(ansicht.get().getWurzelknoten().getScene().getStylesheets());
 			double skalierung = parameter.getSkalierung();

@@ -263,7 +263,11 @@ public class UMLProjekt extends ProjektBasis {
 		for (var element : getDiagrammElemente()) {
 			element.close();
 		}
-		getDiagrammElemente().clear();
+		try {
+			getDiagrammElemente().clear();
+		} catch (Exception e1) {
+			// ignore
+		}
 		super.close();
 		
 		for (var attribut : this.getClass().getDeclaredFields()) {
@@ -439,7 +443,8 @@ public class UMLProjekt extends ProjektBasis {
 		startelemente.predicateProperty()
 				.bind(Bindings.createObjectBinding(() -> erzeugeNameVergleich(name.get()), name));
 		var hilfe = Bindings.valueAt(startelemente, 0);
-		return Bindings.createObjectBinding(() -> (UMLKlassifizierer) hilfe.get(), hilfe, startelemente);
+		return Bindings.createObjectBinding(() -> startelemente.isEmpty() ? null : (UMLKlassifizierer) hilfe.get(),
+				hilfe, startelemente);
 	}
 	
 	private Predicate<UMLDiagrammElement> erzeugeNameVergleich(String gesuchterName) {
@@ -452,7 +457,7 @@ public class UMLProjekt extends ProjektBasis {
 		startelemente.predicateProperty()
 				.bind(Bindings.createObjectBinding(() -> erzeugeNameVergleichInterface(name.get()), name));
 		var hilfe = Bindings.valueAt(startelemente, 0);
-		return Bindings.createObjectBinding(() -> (UMLKlassifizierer) hilfe.get(), hilfe, startelemente);
+		return Bindings.createObjectBinding(() -> startelemente.isEmpty() ? null : (UMLKlassifizierer) hilfe.get(), hilfe, startelemente);
 	}
 	
 	private Predicate<UMLDiagrammElement> erzeugeNameVergleichInterface(String gesuchterName) {

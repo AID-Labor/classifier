@@ -8,6 +8,7 @@ package io.github.aid_labor.classifier.gui;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -516,18 +517,24 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			return true;
 		}
 		var superklasse = klassenSuchBaum.get(startklasse.getSuperklasse());
+		System.out.println(Arrays.toString(klassenSuchBaum.entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).toArray()));
 		return pruefeZirkular(superklasse, startklasse.getName(), klassenSuchBaum);
 	}
 	
 	private boolean pruefeZirkular(UMLKlassifizierer superklasse, String startname,
 			SortedMap<String, UMLKlassifizierer> klassenSuchBaum) {
+		System.out.println(superklasse + " =? " + startname);
 		if (superklasse == null) {
 			return false;
 		} else if (startname.equals(superklasse.getName())) {
 			return !startname.isBlank();
 		}
 		
-		return pruefeZirkular(klassenSuchBaum.get(superklasse.getSuperklasse()), startname, klassenSuchBaum);
+		String naechsteSuperklasse = superklasse.getSuperklasse();
+		if(naechsteSuperklasse == null || naechsteSuperklasse.isBlank()) {
+			return false;
+		}
+		return pruefeZirkular(klassenSuchBaum.get(naechsteSuperklasse), startname, klassenSuchBaum);
 	}
 	
 	private boolean istZirkularInterface(UMLKlassifizierer startklasse, String startname,
