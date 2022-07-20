@@ -22,7 +22,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
-import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.json.JsonReadOnlyBooleanPropertyWrapper;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
@@ -149,10 +148,10 @@ public abstract class ProjektBasis implements Projekt {
 		this.istGespeichertProperty = new JsonReadOnlyBooleanPropertyWrapper(this,
 				"istGespeichert", false);
 		this.setAutomatischSpeichern(automatischSpeichern);
-		this.rueckgaengigVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
-				Einstellungen.getBenutzerdefiniert().verlaufAnzahlProperty().get());
-		this.wiederholenVerlauf = VerketteterVerlauf.synchronisierterVerlauf(
-				Einstellungen.getBenutzerdefiniert().verlaufAnzahlProperty().get());
+		this.rueckgaengigVerlauf = VerketteterVerlauf.synchronisierterVerlauf(5);
+//				Einstellungen.getBenutzerdefiniert().verlaufAnzahlProperty().get());
+		this.wiederholenVerlauf = VerketteterVerlauf.synchronisierterVerlauf(5);
+//				Einstellungen.getBenutzerdefiniert().verlaufAnzahlProperty().get());
 		this.beobachterListe = new LinkedList<>();
 		
 		this.ueberwachePropertyAenderung(this.name, "projektname");

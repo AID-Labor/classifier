@@ -10,6 +10,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -22,17 +23,20 @@ import java.util.logging.Logger;
  * einer Instanz von VerketteterVerlauf kann {@link #synchronisierterVerlauf()} verwendet werden.
  * </b>
  * 
+ * Bei Elementen, die im Überlauf entfernt werden und {@link AutoCloseable} implementieren wird automatisch
+ * die Methode {@code close()} aufgerufen.
+ * 
  * @author Tim Muehle
  *
  * @param <T> Typ der zu speichernden Elemente
  */
 public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	private static final Logger log = Logger.getLogger(VerketteterVerlauf.class.getName());
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -67,8 +71,7 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 			super();
 		}
 		
-		public SynchronisierterVerketteterVerlauf(int maximaleAnzahl)
-				throws IllegalArgumentException {
+		public SynchronisierterVerketteterVerlauf(int maximaleAnzahl) throws IllegalArgumentException {
 			super(maximaleAnzahl);
 		}
 		
@@ -150,8 +153,7 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	 */
 	public VerketteterVerlauf(int maximaleAnzahl) throws IllegalArgumentException {
 		if (maximaleAnzahl < 1) {
-			throw new IllegalArgumentException(
-					"Die maximale Anzahl darf 1 nicht unterschreiten");
+			throw new IllegalArgumentException("Die maximale Anzahl darf 1 nicht unterschreiten");
 		}
 		this.internerStapel = new LinkedList<>();
 		this.maximaleAnzahl = maximaleAnzahl;
@@ -208,8 +210,7 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 	@Override
 	public void setMaximaleAnzahl(int maximaleAnzahl) throws IllegalArgumentException {
 		if (maximaleAnzahl < 1) {
-			throw new IllegalArgumentException(
-					"Die maximale Anzahl darf 1 nicht unterschreiten");
+			throw new IllegalArgumentException("Die maximale Anzahl darf 1 nicht unterschreiten");
 		}
 		
 		log.finest(() -> "maximaleAnzahl: " + this.maximaleAnzahl + " -> " + maximaleAnzahl);
@@ -271,6 +272,16 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 			var entfernt = internerStapel.pollLast();
 			if (entfernt != null) {
 				log.finest(() -> "    -> " + this + " -> entfernen: " + entfernt);
+				
+				if (entfernt instanceof AutoCloseable ac) {
+					String entferntStr = entfernt.toString();
+					try {
+						ac.close();
+						log.fine(() -> entferntStr + " wurde geschlossen");
+					} catch (Exception e) {
+						log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen von " + entferntStr);
+					}
+				}
 			}
 		}
 	}

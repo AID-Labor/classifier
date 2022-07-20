@@ -13,7 +13,7 @@ package io.github.aid_labor.classifier.basis.projekt.editierung;
  * @author Tim Muehle
  *
  */
-public interface EditierBefehl {
+public interface EditierBefehl extends AutoCloseable {
 	
 	/**
 	 * Macht eine Editierung rueckgaengig

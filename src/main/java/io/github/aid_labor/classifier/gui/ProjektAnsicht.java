@@ -406,6 +406,15 @@ public class ProjektAnsicht extends Tab {
 				for (UMLVerbindung entfernt : aenderung.getRemoved()) {
 					var ansicht = this.verbindungsAnsichten.remove(entfernt.getId());
 					this.zeichenflaeche.getChildren().remove(ansicht);
+					if (ansicht instanceof UMLVerbindungAnsicht va) {
+						String s = va.toString();
+						try {
+							log.info(() -> "Schliesse " + va);
+							va.close();
+						} catch (Exception e) {
+							log.log(Level.WARNING, e, () -> "Fehler beim Schliessen von " + s);
+						}
+					}
 				}
 			}
 			if (aenderung.wasAdded()) {

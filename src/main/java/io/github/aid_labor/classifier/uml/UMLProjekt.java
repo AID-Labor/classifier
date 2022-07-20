@@ -9,12 +9,12 @@ package io.github.aid_labor.classifier.uml;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -165,10 +165,10 @@ public class UMLProjekt extends ProjektBasis {
 			@JsonProperty("diagrammElemente") List<UMLDiagrammElement> diagrammElemente,
 			@JsonProperty("verbindungen") List<UMLVerbindung> verbindungen) {
 		this(name, programmiersprache, automatischSpeichern);
-		this.diagrammElemente.addAll(diagrammElemente);
 		if (verbindungen != null) {	// Support alter Programmdateien ohne Verbindungen
 			this.verbindungen.addAll(verbindungen);
 		}
+		this.diagrammElemente.addAll(diagrammElemente);
 		this.istGespeichertProperty.set(true);
 	}
 	
@@ -261,6 +261,7 @@ public class UMLProjekt extends ProjektBasis {
 		log.finest(() -> this + " leere diagrammelemente");
 		this.setUeberwachungsStatus(UeberwachungsStatus.IGNORIEREN);
 		for (var element : getDiagrammElemente()) {
+			element.setDarfGeschlossenWerden(true);
 			element.close();
 		}
 		try {
@@ -292,9 +293,11 @@ public class UMLProjekt extends ProjektBasis {
 		while (aenderung.next()) {
 			if (aenderung.wasRemoved()) {
 				for (UMLDiagrammElement element : aenderung.getRemoved()) {
+					System.out.println("#------------");
 					if (!(element instanceof UMLKlassifizierer klassifizierer)) {
 						continue;
 					}
+					verbindungen.removeIf(v -> Objects.equals(v.getVerbindungsStart(), klassifizierer.getName()));
 					
 					var superklassenUeberwacher = superklassenBeobachter.get(klassifizierer.getName());
 					if (superklassenUeberwacher != null) {
@@ -311,12 +314,7 @@ public class UMLProjekt extends ProjektBasis {
 						klassifizierer.superklasseProperty().removeListener(nameUeberwacher);
 					}
 					
-					String elementStr = element.toString();
-					try {
-						element.close();
-					} catch (Exception e) {
-						log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen von " + elementStr);
-					}
+					element.setDarfGeschlossenWerden(true);
 				}
 			}
 			if (aenderung.wasAdded()) {
@@ -325,14 +323,46 @@ public class UMLProjekt extends ProjektBasis {
 						continue;
 					}
 					
+					verbindungen.removeAll(zuEntfernendeVerbindungen);
+					zuEntfernendeVerbindungen.clear();
+					
 					var superklassenUeberwacher = ueberwacheSuperklasse(klassifizierer);
 					superklassenBeobachter.put(klassifizierer.getName(), superklassenUeberwacher);
+					
+					String superklasse = klassifizierer.getSuperklasse();
+					if (superklasse != null && !superklasse.isBlank()) {
+						if (verbindungen.stream().filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
+								&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
+								&& Objects.equals(v.getVerbindungsEnde(), superklasse)).count() < 1) {
+							UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, 
+									klassifizierer.getName(), superklasse);
+							vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
+							verbindungen.add(vererbung);
+						}
+					}
 					
 					var interfaceUeberwacher = ueberwacheInterfaces(klassifizierer);
 					interfaceBeobachter.put(klassifizierer.getName(), interfaceUeberwacher);
 					
+					for (String interfaceName: klassifizierer.getInterfaces()) {
+						if (verbindungen.stream().filter(v -> 
+								Objects.equals(v.getTyp(), UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG)
+								&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
+								&& Objects.equals(v.getVerbindungsEnde(), interfaceName)).count() < 1) {
+							UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG,
+									klassifizierer.getName(), interfaceName);
+							vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
+							verbindungen.add(vererbung);
+						}
+					}
+					
+					verbindungen.removeAll(zuEntfernendeVerbindungen);
+					zuEntfernendeVerbindungen.clear();
+					
 					var nameUeberwacher = ueberwacheName(klassifizierer);
 					namenBeobachter.put(klassifizierer.getName(), nameUeberwacher);
+					
+					element.setDarfGeschlossenWerden(false);
 				}
 			}
 		}
@@ -357,11 +387,7 @@ public class UMLProjekt extends ProjektBasis {
 						.filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
 								&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
 								&& Objects.equals(v.getVerbindungsEnde(), alteSuperklasse))
-						.forEach(vererbung -> {
-							vererbung.setVerbindungsEnde(neueSuperklasse);
-							var superklassen = diagrammElemente.filtered(e -> e.getName().equals(neueSuperklasse));
-							vererbung.ausgebelendetProperty().bind(Bindings.isEmpty(superklassen));
-						});
+						.forEach(vererbung -> vererbung.setVerbindungsEnde(neueSuperklasse));
 			}
 		};
 		klassifizierer.superklasseProperty().addListener(superklassenUeberwacher);
@@ -408,21 +434,23 @@ public class UMLProjekt extends ProjektBasis {
 		return nameUeberwacher;
 	}
 	
+	private final List<UMLVerbindung> zuEntfernendeVerbindungen = new ArrayList<>();
 	private void ueberwacheVerbindungen(Change<? extends UMLVerbindung> aenderung) {
 		while (aenderung.next()) {
 			if (aenderung.wasRemoved()) {
 				for (UMLVerbindung entfernteVerbindung : aenderung.getRemoved()) {
-					String verbindungStr = entfernteVerbindung.toString();
-					try {
-						entfernteVerbindung.close();
-					} catch (Exception e) {
-						log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen der Verbindung " + verbindungStr);
-					}
+					entfernteVerbindung.setDarfGeschlossenWerden(true);
+					entfernteVerbindung.ausgebelendetProperty().unbind();
 				}
 			}
 			if (aenderung.wasAdded()) {
 				for (UMLVerbindung neueVerbindung : aenderung.getAddedSubList()) {
-					bindeElementeAnVerbindung(neueVerbindung);
+					if (neueVerbindung.darfGeschlossenWerden()) {
+						zuEntfernendeVerbindungen.add(neueVerbindung);
+					} else {
+						bindeElementeAnVerbindung(neueVerbindung);
+						neueVerbindung.setDarfGeschlossenWerden(false);
+					}
 				}
 			}
 		}
@@ -435,7 +463,6 @@ public class UMLProjekt extends ProjektBasis {
 			default -> verbindung.endElementProperty().bind(sucheKlassifizierer(verbindung.verbindungsEndeProperty()));
 		}
 		verbindung.startElementProperty().bind(sucheKlassifizierer(verbindung.verbindungsStartProperty()));
-		verbindung.ausgebelendetProperty().bind(verbindung.endElementProperty().isNull());
 	}
 	
 	private ObjectBinding<UMLKlassifizierer> sucheKlassifizierer(StringProperty name) {

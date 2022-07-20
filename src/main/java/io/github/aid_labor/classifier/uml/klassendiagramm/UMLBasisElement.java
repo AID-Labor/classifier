@@ -34,21 +34,21 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 @JsonSubTypes({ @JsonSubTypes.Type(value = UMLKlassifizierer.class), @JsonSubTypes.Type(value = UMLKommentar.class) })
 abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammElement, EditierBeobachter {
 //	private static final Logger log = Logger.getLogger(UMLBasisElement.class.getName());
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -75,7 +75,7 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 	@JsonCreator
 	UMLBasisElement(Position position) {
 		this();
-		position.set(position);
+		this.position.set(position);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -127,11 +127,11 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 	}
 	
 	@Override
-	public void close() throws Exception {
+	public void schliesse() throws Exception {
 		log.finest(() -> this + " leere editierBeobachter");
 		beobachterListe.clear();
 		
-		for(var attribut : this.getClass().getDeclaredFields()) {
+		for (var attribut : this.getClass().getDeclaredFields()) {
 			try {
 				if (!Modifier.isStatic(attribut.getModifiers())) {
 					attribut.setAccessible(true);
@@ -141,6 +141,23 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 				// ignore
 			}
 		}
+	}
+	
+	@Override
+	public final void close() throws Exception {
+		UMLDiagrammElement.super.close();
+	}
+	
+	private boolean darfGeschlossenWerden = false;
+	
+	@Override
+	public boolean darfGeschlossenWerden() {
+		return darfGeschlossenWerden;
+	}
+	
+	@Override
+	public void setDarfGeschlossenWerden(boolean wert) {
+		darfGeschlossenWerden = wert;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

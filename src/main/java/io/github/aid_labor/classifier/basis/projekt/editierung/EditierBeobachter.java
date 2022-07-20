@@ -9,11 +9,13 @@ package io.github.aid_labor.classifier.basis.projekt.editierung;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 
@@ -55,7 +57,7 @@ public interface EditierBeobachter extends AutoCloseable {
 	public default <T> void ueberwachePropertyAenderung(Property<T> property, String id) {
 		var beobachter = new PropertyUeberwachung<>(this, property, id);
 		getBeobachterListe().add(beobachter);
-		property.addListener(beobachter);
+		property.addListener(new WeakChangeListener<>(beobachter));
 	}
 	
 	public static class PropertyUeberwachung<T> implements ChangeListener<T> {
@@ -101,8 +103,19 @@ public interface EditierBeobachter extends AutoCloseable {
 					@Override
 					public void set(T wert) {
 						wiederhole = true;
-						propertyRef.get().setValue(wert);
+						try {
+							System.err.println(">>>" + propertyRef.get());
+							propertyRef.get().setValue(wert);
+						} catch (Exception e) {
+							log.log(Level.WARNING, e,
+									() -> "Setzen von Property >%s< fehlgeschlagen".formatted(propertyRef.get()));
+						}
 						wiederhole = false;
+					}
+
+					@Override
+					public void close() throws Exception {
+						// 
 					}
 				});
 			}

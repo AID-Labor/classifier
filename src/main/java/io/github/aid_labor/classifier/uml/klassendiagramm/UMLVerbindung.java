@@ -22,13 +22,13 @@ import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
 import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
+import io.github.aid_labor.classifier.basis.projekt.Schliessbar;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.beans.value.WeakChangeListener;
 
 
@@ -40,7 +40,7 @@ import javafx.beans.value.WeakChangeListener;
 		fieldVisibility = Visibility.ANY
 )
 //@formatter:on
-public final class UMLVerbindung extends EditierbarBasis implements EditierbarerBeobachter {
+public final class UMLVerbindung extends EditierbarBasis implements EditierbarerBeobachter, Schliessbar {
 	
 	private static final Logger log = Logger.getLogger(UMLVerbindung.class.getName());
 	
@@ -79,7 +79,11 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	@JsonIgnore
 	private final long id;
 	@JsonIgnore
+	private final List<Object> schwacheBeobachterListe;
+	@JsonIgnore
 	private final List<Object> beobachterListe;
+	@JsonIgnore
+	private boolean istGeschlossen = false;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -96,53 +100,34 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.typ = typ;
 		this.verbindungsStartProperty = new JsonStringProperty(this, "verbindungsStart", verbindungsStart);
 		this.verbindungsEndeProperty = new JsonStringProperty(this, "verbindungsEnde", verbindungsEnde);
-		this.ausgebelendetProperty = new JsonBooleanProperty(this, "ausgeblendet", ausgeblendet) {
-			ChangeListener<Boolean> bindungsBeobachter;
-			ObservableValue<? extends Boolean> observable;
-			
-			@Override
-			public void bind(ObservableValue<? extends Boolean> observable) {
-				Objects.requireNonNull(observable);
-				if (this.observable != null) {
-					throw new IllegalStateException("Mehr als eine Bindung nicht möglich!");
-				}
-				bindungsBeobachter = (p, alt, neu) -> set(neu);
-				observable.addListener(new WeakChangeListener<>(bindungsBeobachter));
-				this.observable = observable;
-				this.set(observable.getValue());
-			}
-			
-			@Override
-			public void unbind() {
-				if (observable != null) {
-					observable.removeListener(bindungsBeobachter);
-					observable = null;
-					bindungsBeobachter = null;
-				}
-			}
-		};
+		this.ausgebelendetProperty = new JsonBooleanProperty(this, "ausgeblendet", ausgeblendet);
 		this.startElementProperty = new SimpleObjectProperty<>(this, "startElement", null);
 		this.endElementProperty = new SimpleObjectProperty<>(this, "endElement", null);
-		this.startPosition = Objects.requireNonNull(startPosition);
-		this.endPosition = Objects.requireNonNull(endPosition);
+		this.startPosition = startPosition == null ? new Position(this) : new Position(startPosition, this);
+		this.endPosition = endPosition == null ? new Position(this) : new Position(endPosition, this);
 		this.orientierungStartProperty = new JsonObjectProperty<>(this, "orientierungStart", orientierungStart);
 		this.orientierungEndeProperty = new JsonObjectProperty<>(this, "orientierungEnde", orientierungEnde);
 		this.id = naechsteId++;
 		this.beobachterListe = new LinkedList<>();
+		this.schwacheBeobachterListe = new LinkedList<>();
+		ChangeListener<UMLKlassifizierer> beobachterEnde = (p, alt, neu) -> setzeAusgebelendet(neu == null);
+		this.schwacheBeobachterListe.add(beobachterEnde);
+		this.endElementProperty.addListener(new WeakChangeListener<>(beobachterEnde));
+		this.setzeAusgebelendet(endElementProperty.get() == null);
 		
 		this.ueberwachePropertyAenderung(verbindungsStartProperty, id + "_verbindungsStart");
 		this.ueberwachePropertyAenderung(verbindungsEndeProperty, id + "_verbindungsEnde");
 		this.ueberwachePropertyAenderung(ausgebelendetProperty, id + "_ausgeblendet");
-		this.ueberwachePropertyAenderung(startPosition.xProperty(), id + "_startX");
-		this.ueberwachePropertyAenderung(startPosition.yProperty(), id + "_startY");
-		this.ueberwachePropertyAenderung(startPosition.hoeheProperty(), id + "_startHoehe");
-		this.ueberwachePropertyAenderung(startPosition.breiteProperty(), id + "_startBreite");
-		this.ueberwachePropertyAenderung(endPosition.xProperty(), id + "_endeX");
-		this.ueberwachePropertyAenderung(endPosition.yProperty(), id + "_endeY");
-		this.ueberwachePropertyAenderung(endPosition.hoeheProperty(), id + "_endeHoehe");
-		this.ueberwachePropertyAenderung(endPosition.breiteProperty(), id + "_endeBreite");
-		this.ueberwachePropertyAenderung(this.orientierungStartProperty,  id + "_orientierungStart");
-		this.ueberwachePropertyAenderung(this.orientierungEndeProperty,  id + "_orientierungEnde");
+		this.ueberwachePropertyAenderung(this.startPosition.xProperty(), id + "_startX");
+		this.ueberwachePropertyAenderung(this.startPosition.yProperty(), id + "_startY");
+		this.ueberwachePropertyAenderung(this.startPosition.hoeheProperty(), id + "_startHoehe");
+		this.ueberwachePropertyAenderung(this.startPosition.breiteProperty(), id + "_startBreite");
+		this.ueberwachePropertyAenderung(this.endPosition.xProperty(), id + "_endeX");
+		this.ueberwachePropertyAenderung(this.endPosition.yProperty(), id + "_endeY");
+		this.ueberwachePropertyAenderung(this.endPosition.hoeheProperty(), id + "_endeHoehe");
+		this.ueberwachePropertyAenderung(this.endPosition.breiteProperty(), id + "_endeBreite");
+		this.ueberwachePropertyAenderung(orientierungStartProperty, id + "_orientierungStart");
+		this.ueberwachePropertyAenderung(orientierungEndeProperty, id + "_orientierungEnde");
 	}
 	
 	public UMLVerbindung(UMLVerbindungstyp typ, String verbindungsStart, String verbindungsEnde, Position startPosition,
@@ -152,7 +137,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public UMLVerbindung(UMLVerbindungstyp typ, String verbindungsStart, String verbindungsEnde) {
-		this(typ, verbindungsStart, verbindungsEnde, new Position(), new Position());
+		this(typ, verbindungsStart, verbindungsEnde, null, null);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -166,10 +151,16 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public StringProperty verbindungsStartProperty() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return verbindungsStartProperty;
 	}
 	
 	public String getVerbindungsStart() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return verbindungsStartProperty.get();
 	}
 	
@@ -178,10 +169,16 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public StringProperty verbindungsEndeProperty() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return verbindungsEndeProperty;
 	}
 	
 	public String getVerbindungsEnde() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return verbindungsEndeProperty.get();
 	}
 	
@@ -190,10 +187,16 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public ObjectProperty<UMLKlassifizierer> startElementProperty() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return startElementProperty;
 	}
 	
 	public UMLKlassifizierer getStartElement() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return startElementProperty.get();
 	}
 	
@@ -202,10 +205,16 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public ObjectProperty<UMLKlassifizierer> endElementProperty() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return endElementProperty;
 	}
 	
 	public UMLKlassifizierer getEndElement() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return endElementProperty.get();
 	}
 	
@@ -214,6 +223,9 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public JsonBooleanProperty ausgebelendetProperty() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return ausgebelendetProperty;
 	}
 	
@@ -226,10 +238,16 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public Position getStartPosition() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return startPosition;
 	}
 	
 	public Position getEndPosition() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return endPosition;
 	}
 	
@@ -238,10 +256,16 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public JsonObjectProperty<Orientierung> orientierungStartProperty() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return orientierungStartProperty;
 	}
 	
 	public Orientierung getOrientierungStart() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return orientierungStartProperty.get();
 	}
 	
@@ -250,15 +274,25 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public JsonObjectProperty<Orientierung> orientierungEndeProperty() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return orientierungEndeProperty;
 	}
 	
 	public Orientierung getOrientierungEnde() {
+		if (istGeschlossen) {
+			return null;
+		}
 		return orientierungEndeProperty.get();
 	}
 	
 	public void setOrientierungEnde(Orientierung orientierungEnde) {
 		orientierungEndeProperty.set(orientierungEnde);
+	}
+	
+	public boolean istGeschlossen() {
+		return istGeschlossen;
 	}
 	
 	@Override
@@ -279,11 +313,12 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	@Override
-	public void close() throws Exception {
+	public void schliesse() throws Exception {
 		log.config(() -> "schliesse UMLVerbindung " + this.toString());
+		istGeschlossen = true;
 		for (var attribut : this.getClass().getDeclaredFields()) {
 			try {
-				if (!Modifier.isStatic(attribut.getModifiers())) {
+				if (!Modifier.isStatic(attribut.getModifiers()) && !attribut.getName().equals("istGeschlossen")) {
 					attribut.setAccessible(true);
 					attribut.set(this, null);
 				}
@@ -291,12 +326,26 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 				// ignore
 			}
 		}
+		beobachterListe.clear();
+		schwacheBeobachterListe.clear();
+	}
+	
+	private boolean darfGeschlossenWerden = false;
+	
+	@Override
+	public boolean darfGeschlossenWerden() {
+		return darfGeschlossenWerden;
+	}
+	
+	@Override
+	public void setDarfGeschlossenWerden(boolean wert) {
+		darfGeschlossenWerden = wert;
 	}
 	
 	@Override
 	public int hashCode() {
 		return ClassifierUtil.hashAlle(istAusgebelendet(), getEndPosition(), getStartPosition(), getTyp(),
-				getVerbindungsEnde(), getVerbindungsStart());
+				getVerbindungsEnde(), getVerbindungsStart(), getOrientierungEnde(), getOrientierungStart());
 	}
 	
 	@Override

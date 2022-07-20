@@ -38,14 +38,14 @@ import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
 
 
-public class UMLVerbindungAnsicht extends Group {
+public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private static final double VERERBUNGSPFEIL_GROESSE = 25;
-	private static final double ASSOZIATIONSPFEIL_GROESSE = 20;
+	private static final double ASSOZIATIONSPFEIL_GROESSE = 15;
 	private static final String VERERBUNGSPFEIL_CSS_KLASSE = "vererbungs-pfeil";
 	private static final String ASSOZIATIONSPFEIL_CSS_KLASSE = "assoziations-pfeil";
 	private static final String VERBINDUNGSLINIE_CSS_KLASSE = "verbindungslinie";
@@ -95,16 +95,26 @@ public class UMLVerbindungAnsicht extends Group {
 	public UMLVerbindungAnsicht(UMLVerbindung verbindung, UMLProjekt projekt) {
 		this.verbindung = verbindung;
 		this.projekt = projekt;
-		this.startXProperty = new SimpleDoubleProperty();
-		this.startYProperty = new SimpleDoubleProperty();
-		this.endeXProperty = new SimpleDoubleProperty();
-		this.endeYProperty = new SimpleDoubleProperty();
-		this.startXVerschiebungProperty = new SimpleDoubleProperty();
-		this.startYVerschiebungProperty = new SimpleDoubleProperty();
-		this.endeXVerschiebungProperty = new SimpleDoubleProperty();
-		this.endeYVerschiebungProperty = new SimpleDoubleProperty();
+		this.startXProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getX());
+		this.startYProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getY());
+		this.endeXProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getX());
+		this.endeYProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getY());
+		var startX = verbindung.getStartPosition().getX();
+		var startY = verbindung.getStartPosition().getY();
+		var endeX = verbindung.getEndPosition().getX();
+		var endeY = verbindung.getEndPosition().getY();
+		this.startXVerschiebungProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getBreite());
+		this.startYVerschiebungProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getHoehe());
+		this.endeXVerschiebungProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getBreite());
+		this.endeYVerschiebungProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getHoehe());
+		double startXVerschiebung = verbindung.getStartPosition().getBreite();
+		double startYVerschiebung = verbindung.getStartPosition().getHoehe();
+		double endeXVerschiebung = verbindung.getEndPosition().getBreite();
+		double endeYVerschiebung = verbindung.getEndPosition().getHoehe();
 		this.orientierungStartProperty = new SimpleObjectProperty<>(verbindung.getOrientierungStart());
 		this.orientierungEndeProperty = new SimpleObjectProperty<>(verbindung.getOrientierungEnde());
+		var orientierungStart = verbindung.getOrientierungStart();
+		var orientierungEnde = verbindung.getOrientierungEnde();
 		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
 		this.linieStart = new Path();
 		this.linieMitte = new Path();
@@ -134,10 +144,27 @@ public class UMLVerbindungAnsicht extends Group {
 				zeichneVererbungsPfeil();
 				this.pfeil.getStyleClass().add(VERERBUNGSPFEIL_CSS_KLASSE);
 			}
+			case ASSOZIATION -> {
+				zeichneAssoziationsPfeil();
+				this.pfeil.getStyleClass().add(ASSOZIATIONSPFEIL_CSS_KLASSE);
+			}
 			default -> throw new IllegalArgumentException("Unexpected value: " + verbindung.getTyp());
 		}
 		
 		this.getChildren().add(pfeil);
+		
+		if (orientierungStart != null && orientierungEnde != null && !orientierungStart.equals(Orientierung.UNBEKANNT)
+				&& !orientierungEnde.equals(Orientierung.UNBEKANNT)) {
+			this.orientierungStartProperty.set(orientierungStart);
+			this.orientierungEndeProperty.set(orientierungEnde);
+			updateStart(orientierungStart, verbindung.getStartElement());
+			updateEnde(orientierungEnde, verbindung.getEndElement());
+		}
+		
+		this.startXVerschiebungProperty.set(startXVerschiebung);
+		this.startYVerschiebungProperty.set(startYVerschiebung);
+		this.endeXVerschiebungProperty.set(endeXVerschiebung);
+		this.endeYVerschiebungProperty.set(endeYVerschiebung);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -157,6 +184,25 @@ public class UMLVerbindungAnsicht extends Group {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@Override
+	public void close() throws Exception {
+		loeseVerbindungen();
+	}
+	
+	public void loeseVerbindungen() {
+		startYProperty.unbindBidirectional(verbindung.getStartPosition().yProperty());
+		startXVerschiebungProperty.unbindBidirectional(verbindung.getStartPosition().breiteProperty());
+		startYVerschiebungProperty.unbindBidirectional(verbindung.getStartPosition().hoeheProperty());
+		endeXProperty.unbindBidirectional(verbindung.getEndPosition().xProperty());
+		endeYProperty.unbindBidirectional(verbindung.getEndPosition().yProperty());
+		endeXVerschiebungProperty.unbindBidirectional(verbindung.getEndPosition().breiteProperty());
+		endeYVerschiebungProperty.unbindBidirectional(verbindung.getEndPosition().hoeheProperty());
+		orientierungStartProperty.unbindBidirectional(verbindung.orientierungStartProperty());
+		orientierungEndeProperty.unbindBidirectional(verbindung.orientierungEndeProperty());
+		
+		NodeUtil.entferneSchwacheBeobachtung(this);
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -210,7 +256,7 @@ public class UMLVerbindungAnsicht extends Group {
 			this.getChildren().add(linie);
 		}
 		
-		var linieAPos = new Position();
+		var linieAPos = new Position(this + "_linieAPos");
 		linieAPos.xProperty().bind(startpunkt.xProperty());
 		linieAPos.yProperty().bind(startpunkt.yProperty());
 		linieAPos.breiteProperty().bind(linieA.xProperty());
@@ -221,20 +267,23 @@ public class UMLVerbindungAnsicht extends Group {
 				neueStartOrientierung -> updateLinie(neueStartOrientierung, verbindung.getStartElement(),
 						verbindung.getOrientierungEnde(), verbindung.getEndElement()));
 		
-		var linieCPos = new Position();
+		var linieCPos = new Position(this + "_linieCPos");
 		linieCPos.xProperty().bind(startpunktEnde.xProperty());
 		linieCPos.yProperty().bind(startpunktEnde.yProperty());
 		linieCPos.breiteProperty().bind(linieC.xProperty());
 		linieCPos.hoeheProperty().bind(linieC.yProperty());
 		macheVerschiebbar(linieCPos, endeXVerschiebungProperty, endeYVerschiebungProperty,
 				verbindung.endElementProperty().get(), orientierungEndeProperty,
-				verbindung.startElementProperty().get(), orientierungStartProperty, 
+				verbindung.startElementProperty().get(), orientierungStartProperty,
 				neueEndOrientierung -> updateLinie(verbindung.getOrientierungStart(), verbindung.getStartElement(),
 						neueEndOrientierung, verbindung.getEndElement()));
 	}
 	
 	private void updateLinie(Orientierung orientierungStart, UMLKlassifizierer start, Orientierung orientierungEnde,
 			UMLKlassifizierer ende) {
+		if (verbindung.istGeschlossen()) {
+			return;
+		}
 		verbindung.setOrientierungStart(orientierungStart);
 		verbindung.setOrientierungEnde(orientierungEnde);
 		orientierungStartProperty.set(orientierungStart);
@@ -244,6 +293,9 @@ public class UMLVerbindungAnsicht extends Group {
 	}
 	
 	private void updateStart(Orientierung orientierungStart, UMLKlassifizierer start) {
+		if (verbindung.istGeschlossen()) {
+			return;
+		}
 		if (start == null || orientierungStart == null) {
 			return;
 		}
@@ -339,6 +391,9 @@ public class UMLVerbindungAnsicht extends Group {
 	}
 	
 	private void updateEnde(Orientierung orientierungEnde, UMLKlassifizierer ende) {
+		if (verbindung.istGeschlossen()) {
+			return;
+		}
 		if (ende == null || orientierungEnde == null) {
 			return;
 		}
@@ -395,7 +450,7 @@ public class UMLVerbindungAnsicht extends Group {
 		ueberwacheMausZeiger(linienWahl, orientierungProperty);
 		linienWahl.getStyleClass().add("test");
 		
-		Position start = new Position();
+		Position start = new Position(this + "_macheVerschiebbarStartPos");
 		BooleanProperty wirdBewegt = new SimpleBooleanProperty(false);
 		ObjectProperty<UeberwachungsStatus> status = new SimpleObjectProperty<>();
 		
@@ -444,7 +499,7 @@ public class UMLVerbindungAnsicht extends Group {
 			ObjectProperty<Orientierung> orientierungProperty, Orientierung andereOrientierung, Position elementPos,
 			Position anderePos, BooleanProperty wirdBewegt, Consumer<Orientierung> update) {
 		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
-			x = ((int)x / 10) * 10;	// Raster in 5er-Schritten
+			x = ((int) x / 10) * 10;	// Raster in 5er-Schritten
 		}
 		xVerschiebung.set(x);
 		if (liniePos.xProperty().get() - 2 < elementPos.getX()) {
@@ -481,7 +536,7 @@ public class UMLVerbindungAnsicht extends Group {
 			ObjectProperty<Orientierung> orientierungProperty, Orientierung andereOrientierung, Position elementPos,
 			Position anderePos, BooleanProperty wirdBewegt, Consumer<Orientierung> update) {
 		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
-			y = ((int)y / 10) * 10;	// Raster in 5er-Schritten
+			y = ((int) y / 10) * 10;	// Raster in 5er-Schritten
 		}
 		yVerschiebung.set(y);
 		if (liniePos.yProperty().get() + 2 < elementPos.getY()) {
@@ -589,9 +644,56 @@ public class UMLVerbindungAnsicht extends Group {
 		this.pfeil.getElements().add(new ClosePath());
 	}
 	
+	private void zeichneAssoziationsPfeil() {
+		MoveTo startpunktPfeil = new MoveTo();
+		startpunktPfeil.xProperty().bind(endeXProperty.add(endeXVerschiebungProperty));
+		startpunktPfeil.yProperty().bind(endeYProperty.add(endeYVerschiebungProperty));
+		
+		// @formatter:off
+		LineTo linieAPfeil = new LineTo();
+		linieAPfeil.xProperty().bind(startpunktPfeil.xProperty().add(
+				new When(orientierungEndeProperty.isEqualTo(Orientierung.UNTEN)
+					.or(orientierungEndeProperty.isEqualTo(Orientierung.OBEN)))
+				.then(-ASSOZIATIONSPFEIL_GROESSE / 1.3).otherwise(
+				new When(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS))
+				.then(ASSOZIATIONSPFEIL_GROESSE).otherwise(-ASSOZIATIONSPFEIL_GROESSE))));
+		linieAPfeil.yProperty().bind(startpunktPfeil.yProperty().add(
+				new When(orientierungEndeProperty.isEqualTo(Orientierung.OBEN))
+				.then(-ASSOZIATIONSPFEIL_GROESSE).otherwise(
+				new When(orientierungEndeProperty.isEqualTo(Orientierung.UNTEN))
+				.then(ASSOZIATIONSPFEIL_GROESSE).otherwise(ASSOZIATIONSPFEIL_GROESSE/1.3))));
+		
+		MoveTo linieBPfeil = new MoveTo();
+		linieBPfeil.xProperty().bind(startpunktPfeil.xProperty().add(
+				new When(orientierungEndeProperty.isEqualTo(Orientierung.UNTEN)
+					.or(orientierungEndeProperty.isEqualTo(Orientierung.OBEN)))
+				.then(ASSOZIATIONSPFEIL_GROESSE / 1.3).otherwise(
+				new When(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS))
+				.then(ASSOZIATIONSPFEIL_GROESSE).otherwise(-ASSOZIATIONSPFEIL_GROESSE))));
+		linieBPfeil.yProperty().bind(startpunktPfeil.yProperty().add(
+				new When(orientierungEndeProperty.isEqualTo(Orientierung.OBEN))
+				.then(-ASSOZIATIONSPFEIL_GROESSE).otherwise(
+				new When(orientierungEndeProperty.isEqualTo(Orientierung.UNTEN))
+				.then(ASSOZIATIONSPFEIL_GROESSE).otherwise(-ASSOZIATIONSPFEIL_GROESSE/1.3))));
+		
+		LineTo linieCPfeil = new LineTo();
+		linieCPfeil.xProperty().bind(startpunktPfeil.xProperty());
+		linieCPfeil.yProperty().bind(startpunktPfeil.yProperty());
+		// @formatter:on
+		
+		this.pfeil.getElements().add(startpunktPfeil);
+		this.pfeil.getElements().add(linieAPfeil);
+		this.pfeil.getElements().add(linieBPfeil);
+		this.pfeil.getElements().add(linieCPfeil);
+		this.pfeil.getElements().add(new ClosePath());
+	}
+	
 	private UMLKlassifizierer startAlt = null;
 	
 	private void updateStartPosition(UMLKlassifizierer start, UMLKlassifizierer ende) {
+		if (verbindung.istGeschlossen()) {
+			return;
+		}
 		if (start == null) {
 			startXProperty.unbind();
 			startYProperty.unbind();
@@ -599,7 +701,7 @@ public class UMLVerbindungAnsicht extends Group {
 		}
 		
 		Position posStart = start.getPosition();
-		Position posEnde = ende == null ? new Position() : ende.getPosition();
+		Position posEnde = ende == null ? new Position(this + "_posEnde") : ende.getPosition();
 		
 		if (start != startAlt) {
 			if (startAlt != null) {
@@ -668,13 +770,16 @@ public class UMLVerbindungAnsicht extends Group {
 	private UMLKlassifizierer endeAlt;
 	
 	private void updateEndPosition(UMLKlassifizierer start, UMLKlassifizierer ende) {
+		if (verbindung.istGeschlossen()) {
+			return;
+		}
 		if (ende == null) {
 			endeXProperty.unbind();
 			endeYProperty.unbind();
 			return;
 		}
 		
-		Position posStart = start == null ? new Position() : start.getPosition();
+		Position posStart = start == null ? new Position(this + "_posStart") : start.getPosition();
 		Position posEnde = ende.getPosition();
 		
 		// Wechsel auf OBEN => Mittig platzieren

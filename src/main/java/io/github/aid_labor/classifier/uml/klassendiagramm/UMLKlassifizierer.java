@@ -340,6 +340,8 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		var kopie = new UMLKlassifizierer(getTyp(), getProgrammiersprache(), getName());
 		kopie.setPaket(getPaket());
 		kopie.getPosition().set(getPosition());
+		kopie.setSuperklasse(getSuperklasse());
+		kopie.getInterfaces().addAll(getInterfaces());
 		
 		Map<String, Attribut> getterUndSetterPosition = new HashMap<>();
 		for (var attribut : attribute) {
@@ -362,7 +364,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	}
 	
 	@Override
-	public void close() throws Exception {
+	public void schliesse() throws Exception {
 		log.finest(() -> this + " leere ueberwacher");
 		this.schwacheUeberwacher.clear();
 		
@@ -375,7 +377,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		}
 		methoden.clear();
 		attribute.clear();
-		super.close();
+		super.schliesse();
 		
 		for (var attribut : this.getClass().getDeclaredFields()) {
 			try {

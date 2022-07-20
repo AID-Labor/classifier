@@ -7,7 +7,9 @@ package io.github.aid_labor.classifier.uml.klassendiagramm;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonDoubleProperty;
@@ -41,20 +43,22 @@ public class Position {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Position() {
-		this(0, 0, 0, 0);
+	public Position(Object bean) {
+		this(0, 0, 0, 0, bean);
 	}
 	
-	public Position(Position position) {
-		this();
+	public Position(Position position, Object bean) {
+		this(bean);
 		setPosition(position);
 	}
 	
-	public Position(double x, double y, double hoehe, double breite) {
-		this.x = new JsonDoubleProperty(x);
-		this.y = new JsonDoubleProperty(y);
-		this.hoehe = new JsonDoubleProperty(hoehe);
-		this.breite = new JsonDoubleProperty(breite);
+	@JsonCreator
+	private Position(@JsonProperty("x") double x, @JsonProperty("y") double y, 
+			@JsonProperty("hoehe") double hoehe, @JsonProperty("breite") double breite) {
+		this.x = new JsonDoubleProperty(null, "x", x);
+		this.y = new JsonDoubleProperty(null, "y", y);
+		this.hoehe = new JsonDoubleProperty(null, "hoehe", hoehe);
+		this.breite = new JsonDoubleProperty(null, "breite", breite);
 	}
 	
 	public Position(double x, double y, double hoehe, double breite, Object bean) {
@@ -194,7 +198,7 @@ public class Position {
 	
 	@Override
 	public int hashCode() {
-		return ClassifierUtil.hashAlle(breite, hoehe, x, y);
+		return ClassifierUtil.hashAlle(getX(), getY(), getBreite(), getHoehe());
 	}
 	
 	@Override

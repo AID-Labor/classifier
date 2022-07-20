@@ -16,6 +16,7 @@ import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import javafx.beans.property.StringProperty;
 
+
 /**
  * Model-Klasse fuer Kommentare im UML Klassendiagramm
  * 
@@ -68,7 +69,7 @@ public class UMLKommentar extends UMLBasisElement {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public UMLKommentar() {
-		super(new Position());
+		super(new Position(null));
 		this.inhaltProperty = new JsonStringProperty(this, "inhalt", "");
 		this.ueberwachePropertyAenderung(this.inhaltProperty, getId() + "_inhalt");
 	}
@@ -139,6 +140,11 @@ public class UMLKommentar extends UMLBasisElement {
 	@Override
 	public UMLKommentar erzeugeTiefeKopie() {
 		return new UMLKommentar(getInhalt(), new Position(getPosition()));
+	}
+	
+	@Override
+	public boolean darfGeschlossenWerden() {
+		return true;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

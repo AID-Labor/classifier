@@ -107,6 +107,11 @@ public class EinfacherEditierBefehl<T> implements WertEditierBefehl<T> {
 	public void set(T wert) {
 		setter.accept(wert);
 	}
+
+	@Override
+	public void close() throws Exception {
+		// 
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -77,6 +78,11 @@ public class SammelEditierung implements EditierBefehl {
 		@Override
 		public String toString() {
 			return "%s {%s -> %s}".formatted(id, vorher, nachher);
+		}
+
+		@Override
+		public void close() throws Exception {
+			// nichts zum Schliessen
 		}
 	}
 	
@@ -147,7 +153,12 @@ public class SammelEditierung implements EditierBefehl {
 		while (!rueckgaengigSchlange.isEmpty()) {
 			var befehl = rueckgaengigSchlange.pollLast();
 			log.finest(() -> "Mache rueckgaengig: " + befehl);
-			befehl.macheRueckgaengig();
+			try {
+				befehl.macheRueckgaengig();
+			} catch (Exception e) {
+				log.log(Level.WARNING, e,
+						() -> "Ruckgaengig machen von Befehl >%s< fehlgeschlagen".formatted(befehl));
+			}
 		}
 	}
 	
@@ -157,13 +168,31 @@ public class SammelEditierung implements EditierBefehl {
 		while (!wiederholSchlange.isEmpty()) {
 			var befehl = wiederholSchlange.pollFirst();
 			log.finest(() -> "Wiederhole: " + befehl);
-			befehl.wiederhole();
+			try {
+				befehl.wiederhole();
+			} catch (Exception e) {
+				log.log(Level.WARNING, e,
+						() -> "Wiederholen von Befehl >%s< fehlgeschlagen".formatted(befehl));
+			}
 		}
 	}
 	
 	@Override
 	public String toString() {
 		return "Sammeleditierung: \n    " + Arrays.toString(befehle.toArray());
+	}
+
+	@Override
+	public void close() throws Exception {
+		for (var befehl : befehle) {
+			String entferntStr = befehl.toString();
+			try {
+				befehl.close();
+				log.fine(() -> entferntStr + " wurde geschlossen");
+			} catch (Exception e) {
+				log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen von " + entferntStr);
+			}
+		}
 	}
 
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

@@ -5,6 +5,9 @@
  */
 package io.github.aid_labor.classifier.basis.projekt.editierung;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * EditierBefehl fuer einfache Wertaenderung, die mit einem Setter
  * angewendet und rueckgaengig gemacht werden kann.
@@ -14,13 +17,19 @@ package io.github.aid_labor.classifier.basis.projekt.editierung;
  * @param <T> Typ des Editierbaren Wertes
  */
 public interface WertEditierBefehl<T> extends EditierBefehl {
+	static final Logger log = Logger.getLogger(WertEditierBefehl.class.getName());
 	
 	/**
 	 * Macht eine Editierung rueckgaengig
 	 */
 	@Override
 	public default void macheRueckgaengig() {
-		set(getVorher());
+		try {
+			set(getVorher());
+		} catch (Exception e) {
+			log.log(Level.WARNING, e,
+					() -> "Setzen von >%s< fehlgeschlagen".formatted(id()));
+		}
 	}
 	
 	/**
@@ -28,7 +37,12 @@ public interface WertEditierBefehl<T> extends EditierBefehl {
 	 */
 	@Override
 	public default void wiederhole() {
-		set(getNachher());
+		try {
+			set(getNachher());
+		} catch (Exception e) {
+			log.log(Level.WARNING, e,
+					() -> "Setzen von >%s< fehlgeschlagen".formatted(id()));
+		}
 	}
 	
 	public T getVorher();

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
+import io.github.aid_labor.classifier.basis.projekt.Schliessbar;
 import io.github.aid_labor.classifier.basis.projekt.editierung.Editierbar;
 
 // @formatter:off
@@ -31,7 +32,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.Editierbar;
 		fieldVisibility = Visibility.ANY
 )
 // @formatter:on
-public interface UMLDiagrammElement extends Editierbar, AutoCloseable {
+public interface UMLDiagrammElement extends Editierbar, Schliessbar {
 	
 	String getName();
 	
