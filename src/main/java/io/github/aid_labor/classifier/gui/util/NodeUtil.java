@@ -16,6 +16,7 @@ import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.javafx.FontIcon;
 
+import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.Ressource;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -334,6 +335,10 @@ public final class NodeUtil {
 				double deltaY = event.getSceneY() - bewegung.mausStartY;
 				double x = bewegung.positionStartX + deltaX / element.getParent().getScaleX();
 				double y = bewegung.positionStartY + deltaY / element.getParent().getScaleY();
+				if (Einstellungen.getBenutzerdefiniert().positionRasterungAktivierenProperty().get()) {
+					x = ((int)x / 10) * 10.0;	// Raster in 10er-Schritten
+					y = ((int)y / 10) * 10.0;	// Raster in 10er-Schritten
+				}
 				element.setTranslateX(x < 0 ? 0 : x);
 				element.setTranslateY(y < 0 ? 0 : y);
 			}
@@ -401,6 +406,9 @@ public final class NodeUtil {
 				
 				if (bewegung.aktionPosition.istObenSelektiert()) {
 					double minYNeu = mausposition.getY();
+					if (Einstellungen.getBenutzerdefiniert().groesseRasterungAktivierenProperty().get()) {
+						minYNeu = ((int)minYNeu / 10) * 10.0;	// Raster in 10er-Schritten
+					}
 					double deltaY = element.getBoundsInParent().getMinY() - minYNeu;
 					double hoehe = element.getHeight() + deltaY;
 					if (hoehe >= element.minHeight(Double.NaN) && minYNeu >= 0) {
@@ -411,6 +419,9 @@ public final class NodeUtil {
 				if (bewegung.aktionPosition.istRechtsSelektiert()) {
 					double maxXNeu = element.parentToLocal(mausposition).getX();
 					double breite = maxXNeu - element.getBoundsInLocal().getMinX();
+					if (Einstellungen.getBenutzerdefiniert().groesseRasterungAktivierenProperty().get()) {
+						breite = ((int)breite / 10) * 10.0;	// Raster in 10er-Schritten
+					}
 					if (breite >= element.getMinWidth()) {
 						element.setPrefWidth(breite);
 					}
@@ -418,12 +429,18 @@ public final class NodeUtil {
 				if (bewegung.aktionPosition.istUntenSelektiert()) {
 					double maxYNeu = element.parentToLocal(mausposition).getY();
 					double hoehe = maxYNeu - element.getBoundsInLocal().getMinY();
+					if (Einstellungen.getBenutzerdefiniert().groesseRasterungAktivierenProperty().get()) {
+						hoehe = ((int)hoehe / 10) * 10.0;	// Raster in 10er-Schritten
+					}
 					if (hoehe >= element.getMinHeight()) {
 						element.setPrefHeight(hoehe);
 					}
 				}
 				if (bewegung.aktionPosition.istLinksSelektiert()) {
 					double minXNeu = mausposition.getX();
+					if (Einstellungen.getBenutzerdefiniert().groesseRasterungAktivierenProperty().get()) {
+						minXNeu = ((int)minXNeu / 10) * 10.0;	// Raster in 10er-Schritten
+					}
 					double deltaX = element.getBoundsInParent().getMinX() - minXNeu;
 					double breite = element.getWidth() + deltaX;
 					if (breite >= element.minWidth(Double.NaN) && minXNeu >= 0) {

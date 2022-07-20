@@ -163,7 +163,9 @@ public class Einstellungen {
 	private final JsonDoubleProperty exportSkalierungProperty;
 	private final JsonStringProperty letzterBildSpeicherortProperty;
 	private final JsonStringProperty letzterQuellcodeSpeicherortProperty;
-	
+	private final JsonBooleanProperty linienRasterungAktivierenProperty;
+	private final JsonBooleanProperty positionRasterungAktivierenProperty;
+	private final JsonBooleanProperty groesseRasterungAktivierenProperty;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																	*
@@ -218,6 +220,9 @@ public class Einstellungen {
 		this.exportSkalierungProperty = new JsonDoubleProperty(1);
 		this.letzterBildSpeicherortProperty = new JsonStringProperty(OS.getDefault().getBilderOrdner());
 		this.letzterQuellcodeSpeicherortProperty = new JsonStringProperty(OS.getDefault().getDokumenteOrdner());
+		this.linienRasterungAktivierenProperty = new JsonBooleanProperty(true);
+		this.positionRasterungAktivierenProperty = new JsonBooleanProperty(true);
+		this.groesseRasterungAktivierenProperty = new JsonBooleanProperty(true);
 	}
 	
 	/**
@@ -308,6 +313,18 @@ public class Einstellungen {
 	 */
 	public final JsonBooleanProperty erweiterteValidierungAktivierenProperty() {
 		return erweiterteValidierungAktivierenProperty;
+	}
+	
+	public JsonBooleanProperty linienRasterungAktivierenProperty() {
+		return linienRasterungAktivierenProperty;
+	}
+	
+	public JsonBooleanProperty positionRasterungAktivierenProperty() {
+		return positionRasterungAktivierenProperty;
+	}
+	
+	public JsonBooleanProperty groesseRasterungAktivierenProperty() {
+		return groesseRasterungAktivierenProperty;
 	}
 	
 	public final JsonEnumProperty<Theme> exportThemeProperty() {

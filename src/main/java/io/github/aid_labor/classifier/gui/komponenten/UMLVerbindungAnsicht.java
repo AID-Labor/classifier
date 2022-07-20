@@ -9,6 +9,7 @@ package io.github.aid_labor.classifier.gui.komponenten;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
@@ -85,8 +86,7 @@ public class UMLVerbindungAnsicht extends Group {
 	private final LineTo linieA;
 	private final LineTo linieB;
 	private final LineTo linieC;
-	private final ChangeListener<Number> positionsUeberwachungStart;
-	private final ChangeListener<Number> positionsUeberwachungEnde;
+	private final ChangeListener<Number> positionsUeberwachung;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -105,7 +105,7 @@ public class UMLVerbindungAnsicht extends Group {
 		this.endeYVerschiebungProperty = new SimpleDoubleProperty();
 		this.orientierungStartProperty = new SimpleObjectProperty<>(verbindung.getOrientierungStart());
 		this.orientierungEndeProperty = new SimpleObjectProperty<>(verbindung.getOrientierungEnde());
-//		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
+		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
 		this.linieStart = new Path();
 		this.linieMitte = new Path();
 		this.linieEnde = new Path();
@@ -116,13 +116,9 @@ public class UMLVerbindungAnsicht extends Group {
 		this.linieA = new LineTo();
 		this.linieB = new LineTo();
 		this.linieC = new LineTo();
-		this.positionsUeberwachungStart = (p, alt, neu) -> {
+		this.positionsUeberwachung = (p, alt, neu) -> {
 			updateStartPosition(verbindung.getStartElement(), verbindung.getEndElement());
 			updateEndPosition(verbindung.getStartElement(), verbindung.getEndElement());
-		};
-		this.positionsUeberwachungEnde = (p, alt, neu) -> {
-			updateEndPosition(verbindung.getStartElement(), verbindung.getEndElement());
-			updateStartPosition(verbindung.getStartElement(), verbindung.getEndElement());
 		};
 		
 		zeichneLinie();
@@ -144,7 +140,6 @@ public class UMLVerbindungAnsicht extends Group {
 		this.getChildren().add(pfeil);
 	}
 	
-	int i = 1;
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -213,19 +208,6 @@ public class UMLVerbindungAnsicht extends Group {
 			linie.getStyleClass().add(VERBINDUNGSLINIE_CSS_KLASSE);
 			linie.setViewOrder(Double.MAX_VALUE);
 			this.getChildren().add(linie);
-			if (verbindung.istAusgebelendet()) {
-				linie.setId("ROT" + "-" + i);
-			} else {
-				linie.setId("SCHWARZ" + "-" + i);
-			}
-			verbindung.ausgebelendetProperty().addListener((p, a, n) -> {
-				if (n.booleanValue()) {
-					linie.setId("ROT" + "-" + i);
-				} else {
-					linie.setId("SCHWARZ" + "-" + i);
-				}
-			});
-			i++;
 		}
 		
 		var linieAPos = new Position();
@@ -461,12 +443,14 @@ public class UMLVerbindungAnsicht extends Group {
 	private void verschiebeX(double x, Position liniePos, DoubleProperty xVerschiebung,
 			ObjectProperty<Orientierung> orientierungProperty, Orientierung andereOrientierung, Position elementPos,
 			Position anderePos, BooleanProperty wirdBewegt, Consumer<Orientierung> update) {
+		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
+			x = ((int)x / 10) * 10;	// Raster in 5er-Schritten
+		}
 		xVerschiebung.set(x);
 		if (liniePos.xProperty().get() - 2 < elementPos.getX()) {
 			if (Orientierung.orientierungErlaubt(Orientierung.LINKS, andereOrientierung, elementPos, anderePos)) {
 				orientierungProperty.set(Orientierung.LINKS);
 				update.accept(Orientierung.LINKS);
-//				xVerschiebung.set(-elementPos.getBreite() / 2);
 			} else {
 				x += 3;
 				xVerschiebung.set(x);
@@ -479,7 +463,6 @@ public class UMLVerbindungAnsicht extends Group {
 			if (Orientierung.orientierungErlaubt(Orientierung.RECHTS, andereOrientierung, elementPos, anderePos)) {
 				orientierungProperty.set(Orientierung.RECHTS);
 				update.accept(Orientierung.RECHTS);
-//				xVerschiebung.set(liniePos.breiteProperty().get() - elementPos.getX() - elementPos.getBreite());
 			} else {
 				x -= 3;
 				xVerschiebung.set(x);
@@ -497,12 +480,14 @@ public class UMLVerbindungAnsicht extends Group {
 	private void verschiebeY(double y, Position liniePos, DoubleProperty yVerschiebung,
 			ObjectProperty<Orientierung> orientierungProperty, Orientierung andereOrientierung, Position elementPos,
 			Position anderePos, BooleanProperty wirdBewegt, Consumer<Orientierung> update) {
+		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
+			y = ((int)y / 10) * 10;	// Raster in 5er-Schritten
+		}
 		yVerschiebung.set(y);
 		if (liniePos.yProperty().get() + 2 < elementPos.getY()) {
 			if (Orientierung.orientierungErlaubt(Orientierung.OBEN, andereOrientierung, elementPos, anderePos)) {
 				orientierungProperty.set(Orientierung.OBEN);
 				update.accept(Orientierung.OBEN);
-//				yVerschiebung.set(elementPos.getY());
 			} else {
 				y += 3;
 				yVerschiebung.set(y);
@@ -515,7 +500,6 @@ public class UMLVerbindungAnsicht extends Group {
 			if (Orientierung.orientierungErlaubt(Orientierung.UNTEN, andereOrientierung, elementPos, anderePos)) {
 				orientierungProperty.set(Orientierung.UNTEN);
 				update.accept(Orientierung.UNTEN);
-//				yVerschiebung.set(elementPos.getY() + elementPos.getHoehe());
 			} else {
 				y -= 3;
 				yVerschiebung.set(y);
@@ -535,10 +519,6 @@ public class UMLVerbindungAnsicht extends Group {
 		var deltaY = liniePos.yProperty().subtract(liniePos.hoeheProperty()).add(10);
 		var deltaXAbs = new When(Bindings.lessThan(0, deltaX)).then(deltaX).otherwise(deltaX.negate().add(10));
 		var deltaYAbs = new When(Bindings.lessThan(0, deltaY)).then(deltaY).otherwise(deltaY.negate().add(10));
-		deltaX.addListener((p, a, n) -> System.out.println(verbindung.getVerbindungsStart() + "--"
-				+ verbindung.getVerbindungsEnde() + ": " + liniePos + " dx=" + n + " dy=" + deltaY.get()));
-		deltaY.addListener((p, a, n) -> System.out.println(verbindung.getVerbindungsStart() + "--"
-				+ verbindung.getVerbindungsEnde() + ": " + liniePos + " dx=" + deltaX.get() + " dy=" + n));
 		
 		Pane p = new Pane();
 		p.translateXProperty().bind(Bindings.min(liniePos.xProperty(), liniePos.breiteProperty().subtract(5)));
@@ -562,60 +542,54 @@ public class UMLVerbindungAnsicht extends Group {
 				default -> this.setCursor(Cursor.V_RESIZE);
 			}
 		});
-		linienWahl.addEventFilter(MouseEvent.MOUSE_EXITED_TARGET, event -> {
-			this.setCursor(Cursor.DEFAULT);
-		});
+		linienWahl.addEventFilter(MouseEvent.MOUSE_EXITED_TARGET, event -> this.setCursor(Cursor.DEFAULT));
 	}
 	
 	private void zeichneVererbungsPfeil() {
-		MoveTo startpunkt = new MoveTo();
-		startpunkt.xProperty().bind(endeXProperty.add(endeXVerschiebungProperty));
-		startpunkt.yProperty().bind(endeYProperty.add(endeYVerschiebungProperty));
+		MoveTo startpunktPfeil = new MoveTo();
+		startpunktPfeil.xProperty().bind(endeXProperty.add(endeXVerschiebungProperty));
+		startpunktPfeil.yProperty().bind(endeYProperty.add(endeYVerschiebungProperty));
 		
 		// @formatter:off
-		LineTo linieA = new LineTo();
-		linieA.xProperty().bind(startpunkt.xProperty().add(
+		LineTo linieAPfeil = new LineTo();
+		linieAPfeil.xProperty().bind(startpunktPfeil.xProperty().add(
 				new When(orientierungEndeProperty.isEqualTo(Orientierung.UNTEN)
 					.or(orientierungEndeProperty.isEqualTo(Orientierung.OBEN)))
 				.then(-VERERBUNGSPFEIL_GROESSE / 2).otherwise(
 				new When(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS))
 				.then(VERERBUNGSPFEIL_GROESSE).otherwise(-VERERBUNGSPFEIL_GROESSE))));
-		linieA.yProperty().bind(startpunkt.yProperty().add(
+		linieAPfeil.yProperty().bind(startpunktPfeil.yProperty().add(
 				new When(orientierungEndeProperty.isEqualTo(Orientierung.OBEN))
 				.then(-VERERBUNGSPFEIL_GROESSE).otherwise(
 				new When(orientierungEndeProperty.isEqualTo(Orientierung.UNTEN))
 				.then(VERERBUNGSPFEIL_GROESSE).otherwise(VERERBUNGSPFEIL_GROESSE/2))));
 		
-		LineTo linieB = new LineTo();
-		linieB.xProperty().bind(startpunkt.xProperty().add(
+		LineTo linieBPfeil = new LineTo();
+		linieBPfeil.xProperty().bind(startpunktPfeil.xProperty().add(
 				new When(orientierungEndeProperty.isEqualTo(Orientierung.UNTEN)
 					.or(orientierungEndeProperty.isEqualTo(Orientierung.OBEN)))
 				.then(VERERBUNGSPFEIL_GROESSE / 2).otherwise(
 				new When(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS))
 				.then(VERERBUNGSPFEIL_GROESSE).otherwise(-VERERBUNGSPFEIL_GROESSE))));
-		linieB.yProperty().bind(startpunkt.yProperty().add(
+		linieBPfeil.yProperty().bind(startpunktPfeil.yProperty().add(
 				new When(orientierungEndeProperty.isEqualTo(Orientierung.OBEN))
 				.then(-VERERBUNGSPFEIL_GROESSE).otherwise(
 				new When(orientierungEndeProperty.isEqualTo(Orientierung.UNTEN))
 				.then(VERERBUNGSPFEIL_GROESSE).otherwise(-VERERBUNGSPFEIL_GROESSE/2))));
 		
-		LineTo linieC = new LineTo();
-		linieC.xProperty().bind(startpunkt.xProperty());
-		linieC.yProperty().bind(startpunkt.yProperty());
+		LineTo linieCPfeil = new LineTo();
+		linieCPfeil.xProperty().bind(startpunktPfeil.xProperty());
+		linieCPfeil.yProperty().bind(startpunktPfeil.yProperty());
 		// @formatter:on
 		
-		this.pfeil.getElements().add(startpunkt);
-		this.pfeil.getElements().add(linieA);
-		this.pfeil.getElements().add(linieB);
-		this.pfeil.getElements().add(linieC);
+		this.pfeil.getElements().add(startpunktPfeil);
+		this.pfeil.getElements().add(linieAPfeil);
+		this.pfeil.getElements().add(linieBPfeil);
+		this.pfeil.getElements().add(linieCPfeil);
 		this.pfeil.getElements().add(new ClosePath());
 	}
 	
 	private UMLKlassifizierer startAlt = null;
-	boolean obenErlaubt;
-	boolean rechtsErlaubt;
-	boolean untenErlaubt;
-	boolean linksErlaubt;
 	
 	private void updateStartPosition(UMLKlassifizierer start, UMLKlassifizierer ende) {
 		if (start == null) {
@@ -629,11 +603,11 @@ public class UMLVerbindungAnsicht extends Group {
 		
 		if (start != startAlt) {
 			if (startAlt != null) {
-				startAlt.getPosition().xProperty().removeListener(positionsUeberwachungStart);
-				startAlt.getPosition().yProperty().removeListener(positionsUeberwachungStart);
+				startAlt.getPosition().xProperty().removeListener(positionsUeberwachung);
+				startAlt.getPosition().yProperty().removeListener(positionsUeberwachung);
 			}
-			start.getPosition().xProperty().addListener(positionsUeberwachungStart);
-			start.getPosition().yProperty().addListener(positionsUeberwachungStart);
+			start.getPosition().xProperty().addListener(positionsUeberwachung);
+			start.getPosition().yProperty().addListener(positionsUeberwachung);
 			startAlt = start;
 		}
 		
@@ -703,15 +677,14 @@ public class UMLVerbindungAnsicht extends Group {
 		Position posStart = start == null ? new Position() : start.getPosition();
 		Position posEnde = ende.getPosition();
 		
-//		var xBindung = .add(start.getPosition().breiteProperty().divide(2));
 		// Wechsel auf OBEN => Mittig platzieren
 		if (ende != endeAlt) {
 			if (endeAlt != null) {
-				endeAlt.getPosition().xProperty().removeListener(positionsUeberwachungStart);
-				endeAlt.getPosition().yProperty().removeListener(positionsUeberwachungStart);
+				endeAlt.getPosition().xProperty().removeListener(positionsUeberwachung);
+				endeAlt.getPosition().yProperty().removeListener(positionsUeberwachung);
 			}
-			ende.getPosition().xProperty().addListener(positionsUeberwachungStart);
-			ende.getPosition().yProperty().addListener(positionsUeberwachungStart);
+			ende.getPosition().xProperty().addListener(positionsUeberwachung);
+			ende.getPosition().yProperty().addListener(positionsUeberwachung);
 			endeAlt = ende;
 		}
 		

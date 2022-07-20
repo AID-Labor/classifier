@@ -299,6 +299,12 @@ public class HauptAnsicht {
 		menue.getErweiterteValidierungAktivieren().selectedProperty()
 				.bindBidirectional(
 						Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty());
+		menue.getLinienRasterungAktivieren().selectedProperty()
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty());
+		menue.getPositionsRasterungAktivieren().selectedProperty()
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().positionRasterungAktivierenProperty());
+		menue.getGroessenRasterungAktivieren().selectedProperty()
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().groesseRasterungAktivierenProperty());
 		menue.getInfo().setOnAction(e -> {
 			var info = new InfoAnsicht(programm, rechnerService);
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);

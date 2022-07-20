@@ -110,6 +110,9 @@ public class MenueLeisteKomponente {
 	private CheckMenuItem voidAnzeigen;
 	private CheckMenuItem parameternamenAnzeigen;
 	private CheckMenuItem erweiterteValidierungAktivieren;
+	private CheckMenuItem linienRasterungAktivieren;
+	private CheckMenuItem positionsRasterungAktivieren;
+	private CheckMenuItem groessenRasterungAktivieren;
 	private Menu theme;
 	private MenuItem info;
 	private MenuItem konfigurationsordnerOeffnen;
@@ -122,8 +125,8 @@ public class MenueLeisteKomponente {
 	public MenueLeisteKomponente() {
 		this.sprache = new Sprache();
 		
-		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
-				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "MenueLeisteAnsicht");
+		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
+				"MenueLeisteAnsicht");
 		if (!spracheGesetzt) {
 			sprache.ignoriereSprachen();
 		}
@@ -136,8 +139,8 @@ public class MenueLeisteKomponente {
 		Menu fensterMenue = erstelleFensterMenue();
 		Menu einstellungenMenue = erstelleEinstellungenMenue();
 		
-		MenuBar menueleiste = new MenuBar(dateiMenue, bearbeitenMenue, einfuegenMenue,
-				anordnenMenue, darstellungMenue, fensterMenue, einstellungenMenue);
+		MenuBar menueleiste = new MenuBar(dateiMenue, bearbeitenMenue, einfuegenMenue, anordnenMenue, darstellungMenue,
+				fensterMenue, einstellungenMenue);
 		this.menueleiste = menueleiste;
 	}
 	
@@ -299,6 +302,18 @@ public class MenueLeisteKomponente {
 		return erweiterteValidierungAktivieren;
 	}
 	
+	public CheckMenuItem getLinienRasterungAktivieren() {
+		return linienRasterungAktivieren;
+	}
+	
+	public CheckMenuItem getPositionsRasterungAktivieren() {
+		return positionsRasterungAktivieren;
+	}
+	
+	public CheckMenuItem getGroessenRasterungAktivieren() {
+		return groessenRasterungAktivieren;
+	}
+	
 	public Menu getTheme() {
 		return theme;
 	}
@@ -336,35 +351,23 @@ public class MenueLeisteKomponente {
 	private Menu erstelleDateiMenue() {
 		Menu dateiMenue = SprachUtil.bindText(new Menu(), sprache, "dateiMenue", "Datei");
 		dateiNeu = SprachUtil.bindText(new MenuItem(), sprache, "neu", "Neu...");
-		dateiOeffnen = SprachUtil.bindText(new MenuItem(), sprache, "oeffnen",
-				"%cffnen...".formatted(OE));
-		dateiLetzeOeffnen = SprachUtil.bindText(new Menu(), sprache, "letzteOeffnen",
-				"Letzte Dateien");
-		dateiSchliessen = SprachUtil.bindText(new MenuItem(), sprache, "schliessen",
-				"Schlie%cen".formatted(sz));
-		dateiSpeichern = SprachUtil.bindText(new MenuItem(), sprache, "speichern",
-				"Speichern");
-		dateiAlleSpeichern = SprachUtil.bindText(new MenuItem(), sprache,
-				"allesSpeichern", "Alles Speichern");
-		dateiSpeichernUnter = SprachUtil.bindText(new MenuItem(), sprache,
-				"speichernUnter", "Speichern unter...");
-		dateiUmbenennen = SprachUtil.bindText(new MenuItem(), sprache, "umbenennen",
-				"Umbenennen...");
-		dateiImportieren = SprachUtil.bindText(new MenuItem(), sprache, "importieren",
-				"Importieren...");
-		Menu dateiExportieren = SprachUtil.bindText(new Menu(), sprache, "exportieren",
-				"Exportieren");
+		dateiOeffnen = SprachUtil.bindText(new MenuItem(), sprache, "oeffnen", "%cffnen...".formatted(OE));
+		dateiLetzeOeffnen = SprachUtil.bindText(new Menu(), sprache, "letzteOeffnen", "Letzte Dateien");
+		dateiSchliessen = SprachUtil.bindText(new MenuItem(), sprache, "schliessen", "Schlie%cen".formatted(sz));
+		dateiSpeichern = SprachUtil.bindText(new MenuItem(), sprache, "speichern", "Speichern");
+		dateiAlleSpeichern = SprachUtil.bindText(new MenuItem(), sprache, "allesSpeichern", "Alles Speichern");
+		dateiSpeichernUnter = SprachUtil.bindText(new MenuItem(), sprache, "speichernUnter", "Speichern unter...");
+		dateiUmbenennen = SprachUtil.bindText(new MenuItem(), sprache, "umbenennen", "Umbenennen...");
+		dateiImportieren = SprachUtil.bindText(new MenuItem(), sprache, "importieren", "Importieren...");
+		Menu dateiExportieren = SprachUtil.bindText(new Menu(), sprache, "exportieren", "Exportieren");
 		
-		exportierenBild = SprachUtil.bindText(new MenuItem(), sprache,
-				"exportierenBild", "als Bild...");
-		exportierenQuellcode = SprachUtil.bindText(new MenuItem(), sprache,
-				"exportierenQuellcode", "als Quellcode...");
+		exportierenBild = SprachUtil.bindText(new MenuItem(), sprache, "exportierenBild", "als Bild...");
+		exportierenQuellcode = SprachUtil.bindText(new MenuItem(), sprache, "exportierenQuellcode", "als Quellcode...");
 		dateiExportieren.getItems().addAll(exportierenBild, exportierenQuellcode);
 		
-		dateiMenue.getItems().addAll(dateiNeu, dateiOeffnen, dateiLetzeOeffnen,
-				new SeparatorMenuItem(), dateiSchliessen, dateiSpeichern, dateiAlleSpeichern,
-				dateiSpeichernUnter, dateiUmbenennen, new SeparatorMenuItem(),
-				dateiImportieren, dateiExportieren);
+		dateiMenue.getItems().addAll(dateiNeu, dateiOeffnen, dateiLetzeOeffnen, new SeparatorMenuItem(),
+				dateiSchliessen, dateiSpeichern, dateiAlleSpeichern, dateiSpeichernUnter, dateiUmbenennen,
+				new SeparatorMenuItem(), dateiImportieren, dateiExportieren);
 		
 		return dateiMenue;
 	}
@@ -372,22 +375,16 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private Menu erstelleBearbeitenMenue() {
-		Menu bearbeitenMenue = SprachUtil.bindText(new Menu(), sprache, "bearbeitenMenue",
-				"Bearbeiten");
+		Menu bearbeitenMenue = SprachUtil.bindText(new Menu(), sprache, "bearbeitenMenue", "Bearbeiten");
 		
-		rueckgaengig = SprachUtil.bindText(new MenuItem(), sprache, "rueckgaengig",
-				"R%ckg%cngig".formatted(ue, ae));
-		wiederholen = SprachUtil.bindText(new MenuItem(), sprache, "wiederholen",
-				"Wiederholen");
-		kopieren = SprachUtil.bindText(new MenuItem(), sprache, "kopieren",
-				"Kopieren");
-		einfuegen = SprachUtil.bindText(new MenuItem(), sprache, "einfuegen",
-				"Einfuegen");
-		loeschen = SprachUtil.bindText(new MenuItem(), sprache, "loeschen",
-				"L%cschen".formatted(oe));
+		rueckgaengig = SprachUtil.bindText(new MenuItem(), sprache, "rueckgaengig", "R%ckg%cngig".formatted(ue, ae));
+		wiederholen = SprachUtil.bindText(new MenuItem(), sprache, "wiederholen", "Wiederholen");
+		kopieren = SprachUtil.bindText(new MenuItem(), sprache, "kopieren", "Kopieren");
+		einfuegen = SprachUtil.bindText(new MenuItem(), sprache, "einfuegen", "Einfuegen");
+		loeschen = SprachUtil.bindText(new MenuItem(), sprache, "loeschen", "L%cschen".formatted(oe));
 		
-		bearbeitenMenue.getItems().addAll(rueckgaengig, wiederholen, new SeparatorMenuItem(),
-				kopieren, einfuegen, loeschen);
+		bearbeitenMenue.getItems().addAll(rueckgaengig, wiederholen, new SeparatorMenuItem(), kopieren, einfuegen,
+				loeschen);
 		
 		return bearbeitenMenue;
 	}
@@ -395,26 +392,21 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private Menu erstelleEinfuegenMenue() {
-		Menu einfuegenMenue = SprachUtil.bindText(new Menu(), sprache, "einfuegenMenue",
-				"Einf%cgen".formatted(ue));
-		klasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuKlasse",
-				"Neue Klasse...");
-		abstraktelasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuAbstakteKlasse", "Neue abstrakte Klasse...");
-		interfaceEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuInterface", "Neues Interface...");
-		enumEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuEnum",
-				"Neue Enumeration...");
-		vererbungEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuVererbung", "Vererbung hinzuf%cgen".formatted(ue));
-		assoziationEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuAssoziation", "Assoziation hinzuf%cgen".formatted(ue));
-		kommentarEinfuegen = SprachUtil.bindText(new MenuItem(), sprache,
-				"neuKommentar", "Neuer Kommentar...");
+		Menu einfuegenMenue = SprachUtil.bindText(new Menu(), sprache, "einfuegenMenue", "Einf%cgen".formatted(ue));
+		klasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuKlasse", "Neue Klasse...");
+		abstraktelasseEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuAbstakteKlasse",
+				"Neue abstrakte Klasse...");
+		interfaceEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuInterface", "Neues Interface...");
+		enumEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuEnum", "Neue Enumeration...");
+		vererbungEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuVererbung",
+				"Vererbung hinzuf%cgen".formatted(ue));
+		assoziationEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuAssoziation",
+				"Assoziation hinzuf%cgen".formatted(ue));
+		kommentarEinfuegen = SprachUtil.bindText(new MenuItem(), sprache, "neuKommentar", "Neuer Kommentar...");
 		
-		einfuegenMenue.getItems().addAll(klasseEinfuegen, abstraktelasseEinfuegen,
-				interfaceEinfuegen, enumEinfuegen, new SeparatorMenuItem(), vererbungEinfuegen,
-				assoziationEinfuegen, new SeparatorMenuItem(), kommentarEinfuegen);
+		einfuegenMenue.getItems().addAll(klasseEinfuegen, abstraktelasseEinfuegen, interfaceEinfuegen, enumEinfuegen,
+				new SeparatorMenuItem(), vererbungEinfuegen, assoziationEinfuegen, new SeparatorMenuItem(),
+				kommentarEinfuegen);
 		
 		return einfuegenMenue;
 	}
@@ -422,19 +414,14 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private Menu erstelleAnordnenMenue() {
-		Menu anordnenMenue = SprachUtil.bindText(new Menu(), sprache, "anordnenMenue",
-				"Anordnen");
-		anordnenNachVorne = SprachUtil.bindText(new MenuItem(), sprache,
-				"nachVorne", "Eine Ebene nach vorne");
-		anordnenNachGanzVorne = SprachUtil.bindText(new MenuItem(), sprache,
-				"nachGanzVorne", "In den Vordergrund");
-		anordnenNachHinten = SprachUtil.bindText(new MenuItem(), sprache,
-				"nachHinten", "Eine Ebene nach vorne");
-		anordnenNachGanzHinten = SprachUtil.bindText(new MenuItem(), sprache,
-				"nachGanzHinten", "In den Hintergrund");
+		Menu anordnenMenue = SprachUtil.bindText(new Menu(), sprache, "anordnenMenue", "Anordnen");
+		anordnenNachVorne = SprachUtil.bindText(new MenuItem(), sprache, "nachVorne", "Eine Ebene nach vorne");
+		anordnenNachGanzVorne = SprachUtil.bindText(new MenuItem(), sprache, "nachGanzVorne", "In den Vordergrund");
+		anordnenNachHinten = SprachUtil.bindText(new MenuItem(), sprache, "nachHinten", "Eine Ebene nach vorne");
+		anordnenNachGanzHinten = SprachUtil.bindText(new MenuItem(), sprache, "nachGanzHinten", "In den Hintergrund");
 		
-		anordnenMenue.getItems().addAll(anordnenNachVorne, anordnenNachGanzVorne,
-				anordnenNachHinten, anordnenNachGanzHinten);
+		anordnenMenue.getItems().addAll(anordnenNachVorne, anordnenNachGanzVorne, anordnenNachHinten,
+				anordnenNachGanzHinten);
 		
 		return anordnenMenue;
 	}
@@ -442,25 +429,21 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private Menu erstelleDarstellungMenue() {
-		Menu darstellungMenue = SprachUtil.bindText(new Menu(), sprache, "darstellungMenue",
-				"Darstellung");
+		Menu darstellungMenue = SprachUtil.bindText(new Menu(), sprache, "darstellungMenue", "Darstellung");
 		Menu zoomen = SprachUtil.bindText(new Menu(), sprache, "zoomen", "Zoomen");
-		darstellungGroesser = SprachUtil.bindText(new MenuItem(), sprache,
-				"vergroessern", "Vergr%c%cern".formatted(oe, sz));
-		darstellungKleiner = SprachUtil.bindText(new MenuItem(), sprache,
-				"verkleinern", "Verkleinern");
-		darstellungOriginalgroesse = SprachUtil.bindText(new MenuItem(), sprache,
-				"originalgroesse", "Originalgr%c%ce".formatted(oe, sz));
-		zoomen.getItems().addAll(darstellungGroesser, darstellungKleiner,
-				darstellungOriginalgroesse);
+		darstellungGroesser = SprachUtil.bindText(new MenuItem(), sprache, "vergroessern",
+				"Vergr%c%cern".formatted(oe, sz));
+		darstellungKleiner = SprachUtil.bindText(new MenuItem(), sprache, "verkleinern", "Verkleinern");
+		darstellungOriginalgroesse = SprachUtil.bindText(new MenuItem(), sprache, "originalgroesse",
+				"Originalgr%c%ce".formatted(oe, sz));
+		zoomen.getItems().addAll(darstellungGroesser, darstellungKleiner, darstellungOriginalgroesse);
 		
-		vollbild = SprachUtil.bindText(new CheckMenuItem(), sprache,
-				"vollbild", "Vollbild");
-		symbolleisteAusblenden = SprachUtil.bindText(new CheckMenuItem(), sprache,
-				"symbolleisteAusblenden", "Symbolleiste ausblenden");
+		vollbild = SprachUtil.bindText(new CheckMenuItem(), sprache, "vollbild", "Vollbild");
+		symbolleisteAusblenden = SprachUtil.bindText(new CheckMenuItem(), sprache, "symbolleisteAusblenden",
+				"Symbolleiste ausblenden");
 		
-		darstellungMenue.getItems().addAll(zoomen, new SeparatorMenuItem(), vollbild,
-				new SeparatorMenuItem(), symbolleisteAusblenden);
+		darstellungMenue.getItems().addAll(zoomen, new SeparatorMenuItem(), vollbild, new SeparatorMenuItem(),
+				symbolleisteAusblenden);
 		
 		return darstellungMenue;
 	}
@@ -468,12 +451,9 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private Menu erstelleFensterMenue() {
-		Menu fensterMenue = SprachUtil.bindText(new Menu(), sprache, "fensterMenue",
-				"Fenster");
-		vorherigerTab = SprachUtil.bindText(new MenuItem(), sprache,
-				"vorherigerTab", "vorheriger Tab");
-		naechsterTab = SprachUtil.bindText(new MenuItem(), sprache,
-				"naechsterTab", "n%cchster Tab".formatted(ae));
+		Menu fensterMenue = SprachUtil.bindText(new Menu(), sprache, "fensterMenue", "Fenster");
+		vorherigerTab = SprachUtil.bindText(new MenuItem(), sprache, "vorherigerTab", "vorheriger Tab");
+		naechsterTab = SprachUtil.bindText(new MenuItem(), sprache, "naechsterTab", "n%cchster Tab".formatted(ae));
 		
 		fensterMenue.getItems().addAll(vorherigerTab, naechsterTab);
 		
@@ -483,26 +463,28 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private Menu erstelleEinstellungenMenue() {
-		Menu einstellungenMenue = SprachUtil.bindText(new Menu(), sprache,
-				"einstellungenMenue", "Einstellungen");
-		voidAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "voidAnzeigen",
-				"void Anzeigen");
-		parameternamenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache,
-				"parameternamenAnzeigen", "Parameternamen Anzeigen");
+		Menu einstellungenMenue = SprachUtil.bindText(new Menu(), sprache, "einstellungenMenue", "Einstellungen");
+		voidAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "voidAnzeigen", "void Anzeigen");
+		parameternamenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "parameternamenAnzeigen",
+				"Parameternamen Anzeigen");
 		erweiterteValidierungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache,
 				"erweiterteValidierungAktivieren", "Erweiterte Validierung");
-		theme = SprachUtil.bindText(new Menu(), sprache, "theme",
-				"Farbschema");
-		info = SprachUtil.bindText(new MenuItem(), sprache, "info",
-				"Info");
-		konfigurationsordnerOeffnen = SprachUtil.bindText(new MenuItem(), sprache,
-				"konfigOeffnen", "Konfigurationsordner %cffnen".formatted(oe));
-		konfigurationsordnerBereinigen = SprachUtil.bindText(new MenuItem(), sprache,
-				"konfigBereinigen", "Konfigurationsordner bereinigen".formatted(oe));
+		linienRasterungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache, "linienRasterungAktivieren",
+				"Linienraster");
+		positionsRasterungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache, "positionsRasterungAktivieren",
+				"Positionsraster");
+		groessenRasterungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache, "groessenRasterungAktivieren",
+				"Gr%c%cenraster".formatted(oe, sz));
+		theme = SprachUtil.bindText(new Menu(), sprache, "theme", "Farbschema");
+		info = SprachUtil.bindText(new MenuItem(), sprache, "info", "Info");
+		konfigurationsordnerOeffnen = SprachUtil.bindText(new MenuItem(), sprache, "konfigOeffnen",
+				"Konfigurationsordner %cffnen".formatted(oe));
+		konfigurationsordnerBereinigen = SprachUtil.bindText(new MenuItem(), sprache, "konfigBereinigen",
+				"Konfigurationsordner bereinigen".formatted(oe));
 		
-		einstellungenMenue.getItems().addAll(voidAnzeigen, parameternamenAnzeigen, 
-				erweiterteValidierungAktivieren, new SeparatorMenuItem(), theme,
-				new SeparatorMenuItem(), info, konfigurationsordnerOeffnen,
+		einstellungenMenue.getItems().addAll(voidAnzeigen, parameternamenAnzeigen, erweiterteValidierungAktivieren,
+				linienRasterungAktivieren, positionsRasterungAktivieren, groessenRasterungAktivieren,
+				new SeparatorMenuItem(), theme, new SeparatorMenuItem(), info, konfigurationsordnerOeffnen,
 				konfigurationsordnerBereinigen);
 		
 		return einstellungenMenue;
