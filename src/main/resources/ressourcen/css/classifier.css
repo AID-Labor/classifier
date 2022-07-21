@@ -153,6 +153,11 @@
     -fx-stroke-width: 3;
 }
 
+.assoziations-pfeil {
+    -fx-stroke: black;
+    -fx-stroke-width: 3;
+}
+
 .tag {
     -fx-icon-color: derive(-fx-light-text-color, -10%);
 }

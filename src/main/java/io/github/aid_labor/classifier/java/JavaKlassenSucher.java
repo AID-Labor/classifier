@@ -30,7 +30,7 @@ public class JavaKlassenSucher {
 	public static void main(String[] args) {
 		
 		SortedMap<String, SortedMap<String, SortedSet<String>>> module = findeKlassenUndInterfacesNachModul();
-		schreibeModuleInDatei(module, "pakete_und_klassen");
+//		schreibeModuleInDatei(module, "pakete_und_klassen");
 		
 		SortedMap<String, SortedMap<String, SortedSet<String>>> interfaces = extrahiereInterfaces(module);
 		SortedMap<String, SortedMap<String, SortedSet<String>>> klassen = extrahiereKlassen(module);

@@ -414,7 +414,7 @@ public class UMLProjekt extends ProjektBasis {
 					verbindungen.add(vererbung);
 				}
 				for (String interfaceEntfernt : aenderung.getRemoved()) {
-					verbindungen.removeIf(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
+					verbindungen.removeIf(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG)
 							&& Objects.equals(interfaceEntfernt, v.getVerbindungsEnde())
 							&& Objects.equals(klassifizierer.getName(), v.getVerbindungsStart()));
 				}

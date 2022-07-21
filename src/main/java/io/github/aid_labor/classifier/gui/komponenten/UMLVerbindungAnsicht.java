@@ -502,7 +502,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		}
 		xVerschiebung.set(x);
 		if (liniePos.xProperty().get() - 2 < elementPos.getX()) {
-			if (Orientierung.orientierungErlaubt(Orientierung.LINKS, andereOrientierung, elementPos, anderePos)) {
+			if (Orientierung.orientierungErlaubt(Orientierung.LINKS, andereOrientierung, elementPos, anderePos, 0)) {
 				orientierungProperty.set(Orientierung.LINKS);
 				update.accept(Orientierung.LINKS);
 			} else {
@@ -514,7 +514,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			}
 			wirdBewegt.set(false);
 		} else if (liniePos.xProperty().get() + 2 > elementPos.getMaxX()) {
-			if (Orientierung.orientierungErlaubt(Orientierung.RECHTS, andereOrientierung, elementPos, anderePos)) {
+			if (Orientierung.orientierungErlaubt(Orientierung.RECHTS, andereOrientierung, elementPos, anderePos, 0)) {
 				orientierungProperty.set(Orientierung.RECHTS);
 				update.accept(Orientierung.RECHTS);
 			} else {
@@ -539,7 +539,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		}
 		yVerschiebung.set(y);
 		if (liniePos.yProperty().get() + 2 < elementPos.getY()) {
-			if (Orientierung.orientierungErlaubt(Orientierung.OBEN, andereOrientierung, elementPos, anderePos)) {
+			if (Orientierung.orientierungErlaubt(Orientierung.OBEN, andereOrientierung, elementPos, anderePos, 0)) {
 				orientierungProperty.set(Orientierung.OBEN);
 				update.accept(Orientierung.OBEN);
 			} else {
@@ -551,7 +551,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			}
 			wirdBewegt.set(false);
 		} else if (liniePos.yProperty().get() + 2 > elementPos.getMaxY()) {
-			if (Orientierung.orientierungErlaubt(Orientierung.UNTEN, andereOrientierung, elementPos, anderePos)) {
+			if (Orientierung.orientierungErlaubt(Orientierung.UNTEN, andereOrientierung, elementPos, anderePos, 0)) {
 				orientierungProperty.set(Orientierung.UNTEN);
 				update.accept(Orientierung.UNTEN);
 			} else {

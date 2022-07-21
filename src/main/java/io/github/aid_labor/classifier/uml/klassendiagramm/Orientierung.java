@@ -39,8 +39,22 @@ public enum Orientierung {
 		};
 	}
 	
-	static Orientierung getBesteOrientierung(Position pos1, Position pos2) {
-		return null;
+	public static boolean orientierungErlaubt(Orientierung neu, Orientierung andere, Position pos1, Position pos2, 
+			int deltaMin) {
+		if (neu == null || neu.equals(andere)) {
+			return false;
+		}
+		Punkt pos1_OL = new Punkt(pos1.getX(), pos1.getY());
+		Punkt pos2_OL = new Punkt(pos2.getX(), pos2.getY());
+		Punkt pos1_UR = new Punkt(pos1.getMaxX(), pos1.getMaxY());
+		Punkt pos2_UR = new Punkt(pos2.getMaxX(), pos2.getMaxY());
+		return switch (neu) {
+			case OBEN -> pos1_OL.istUnterhalbVon(pos2_UR, deltaMin);
+			case RECHTS -> pos1_UR.istLinksVon(pos2_UR, deltaMin);
+			case UNTEN -> pos1_UR.istOberhalbVon(pos2_OL, deltaMin);
+			case LINKS -> pos1_OL.istRechtsVon(pos2_OL, deltaMin);
+			case UNBEKANNT -> true;
+		};
 	}
 	
 	// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
