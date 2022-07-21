@@ -77,8 +77,7 @@ class ProjekteKontrolle {
 	
 	void legeNeuenKlassifiziererAn(KlassifiziererTyp typ) {
 		var projekt = this.ansicht.get().angezeigtesProjektProperty().get();
-		legeNeuenKlassifiziererAn(
-				new UMLKlassifizierer(typ, projekt.getProgrammiersprache(), ""));
+		legeNeuenKlassifiziererAn(new UMLKlassifizierer(typ, projekt.getProgrammiersprache(), ""));
 	}
 	
 	void legeNeuenKlassifiziererAn(UMLKlassifizierer klassifizierer) {
@@ -86,11 +85,9 @@ class ProjekteKontrolle {
 		
 		legeDiagrammElementAn(klassifizierer, () -> {
 			var dialog = new UMLKlassifiziererBearbeitenDialog(klassifizierer, projekt);
-			dialog.titleProperty().bind(
-					projekt.nameProperty().concat(" > ")
-							.concat(new When(klassifizierer.nameProperty().isEmpty())
-									.then(sprache.getText("unbenannt", "Unbenannt"))
-									.otherwise(klassifizierer.nameProperty())));
+			dialog.titleProperty()
+					.bind(projekt.nameProperty().concat(" > ").concat(new When(klassifizierer.nameProperty().isEmpty())
+							.then(sprache.getText("unbenannt", "Unbenannt")).otherwise(klassifizierer.nameProperty())));
 			return dialog;
 		});
 	}
@@ -108,6 +105,32 @@ class ProjekteKontrolle {
 					.concat(sprache.getTextProperty("kommentarBearbeitenTitel",
 							"Kommentar bearbeiten")));
 			return dialog;
+		});
+	}
+	
+	void bearbeiteVerbindungen(boolean starteMitAssoziation) {
+		var projekt = this.ansicht.get().angezeigtesProjektProperty().get();
+		var alterStatus = projekt.getUeberwachungsStatus();
+		projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+		
+		var dialog = new UMLVerbindungenBearbeitenDialog(projekt, starteMitAssoziation);
+		dialog.titleProperty()
+				.bind(projekt.nameProperty().concat(" > ")
+						.concat(sprache.getText("verbindungenBearbeiten", "Verbindungen Bearbeiten")));
+		dialog.initOwner(this.ansicht.get().getAnsicht().getScene().getWindow());
+		dialog.showAndWait().ifPresent(button -> {
+			switch (button.getButtonData()) {
+				case BACK_PREVIOUS -> {
+					projekt.verwerfeEditierungen();
+				}
+				case FINISH -> {
+					projekt.uebernehmeEditierungen();
+				}
+				default -> {
+					log.severe(() -> "Unbekannter Buttontyp: " + button);
+				}
+			}
+			projekt.setUeberwachungsStatus(alterStatus);
 		});
 	}
 	

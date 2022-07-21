@@ -68,6 +68,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	private final JsonStringProperty verbindungsStartProperty;
 	private final JsonStringProperty verbindungsEndeProperty;
 	private final JsonBooleanProperty ausgebelendetProperty;
+	private final JsonBooleanProperty automatischProperty;
 	private final Position startPosition;
 	private final Position endPosition;
 	private final JsonObjectProperty<Orientierung> orientierungStartProperty;
@@ -95,12 +96,14 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 			@JsonProperty("verbindungsEndeProperty") String verbindungsEnde,
 			@JsonProperty("startPosition") Position startPosition, @JsonProperty("endPosition") Position endPosition,
 			@JsonProperty("ausgebelendetProperty") boolean ausgeblendet,
+			@JsonProperty(value = "automatischProperty", defaultValue = "true") boolean automatisch,
 			@JsonProperty(value = "orientierungStartProperty", defaultValue = "UNBEKANNT") Orientierung orientierungStart,
 			@JsonProperty(value = "orientierungEndeProperty", defaultValue = "UNBEKANNT") Orientierung orientierungEnde) {
 		this.typ = typ;
 		this.verbindungsStartProperty = new JsonStringProperty(this, "verbindungsStart", verbindungsStart);
 		this.verbindungsEndeProperty = new JsonStringProperty(this, "verbindungsEnde", verbindungsEnde);
 		this.ausgebelendetProperty = new JsonBooleanProperty(this, "ausgeblendet", ausgeblendet);
+		this.automatischProperty = new JsonBooleanProperty(this, "automatisch", automatisch);
 		this.startElementProperty = new SimpleObjectProperty<>(this, "startElement", null);
 		this.endElementProperty = new SimpleObjectProperty<>(this, "endElement", null);
 		this.startPosition = startPosition == null ? new Position(this) : new Position(startPosition, this);
@@ -118,6 +121,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.ueberwachePropertyAenderung(verbindungsStartProperty, id + "_verbindungsStart");
 		this.ueberwachePropertyAenderung(verbindungsEndeProperty, id + "_verbindungsEnde");
 		this.ueberwachePropertyAenderung(ausgebelendetProperty, id + "_ausgeblendet");
+		this.ueberwachePropertyAenderung(automatischProperty, id + "_automatisch");
 		this.ueberwachePropertyAenderung(this.startPosition.xProperty(), id + "_startX");
 		this.ueberwachePropertyAenderung(this.startPosition.yProperty(), id + "_startY");
 		this.ueberwachePropertyAenderung(this.startPosition.hoeheProperty(), id + "_startHoehe");
@@ -132,7 +136,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	
 	public UMLVerbindung(UMLVerbindungstyp typ, String verbindungsStart, String verbindungsEnde, Position startPosition,
 			Position endPosition) {
-		this(typ, verbindungsStart, verbindungsEnde, startPosition, endPosition, false, Orientierung.UNBEKANNT,
+		this(typ, verbindungsStart, verbindungsEnde, startPosition, endPosition, false, true, Orientierung.UNBEKANNT,
 				Orientierung.UNBEKANNT);
 	}
 	
@@ -235,6 +239,21 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	
 	public void setzeAusgebelendet(boolean ausblenden) {
 		ausgebelendetProperty.set(ausblenden);
+	}
+	
+	public JsonBooleanProperty automatischProperty() {
+		if (istGeschlossen) {
+			return null;
+		}
+		return automatischProperty;
+	}
+	
+	public boolean istAutomatisch() {
+		return automatischProperty.get();
+	}
+	
+	public void setzeAutomatisch(boolean automatisch) {
+		automatischProperty.set(automatisch);
 	}
 	
 	public Position getStartPosition() {
@@ -374,7 +393,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	
 	public UMLVerbindung erzeugeTiefeKopie() {
 		return new UMLVerbindung(typ, getVerbindungsStart(), getVerbindungsEnde(), new Position(startPosition),
-				new Position(endPosition), istAusgebelendet(), getOrientierungStart(), getOrientierungEnde());
+				new Position(endPosition), istAusgebelendet(), istAutomatisch(), getOrientierungStart(),
+				getOrientierungEnde());
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

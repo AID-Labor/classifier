@@ -294,6 +294,10 @@ public class ProjekteAnsicht {
 		this.kontroller.legeNeuenKlassifiziererAn(typ);
 	}
 	
+	public void bearbeiteVerbindungen(boolean starteMitAssoziation) {
+		this.kontroller.bearbeiteVerbindungen(starteMitAssoziation);
+	}
+	
 	public void legeKommentarAn() {
 		this.kontroller.legeKommentarAn();
 	}
