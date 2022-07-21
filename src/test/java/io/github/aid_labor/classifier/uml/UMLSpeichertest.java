@@ -24,6 +24,8 @@ import io.github.aid_labor.classifier.LoggingEinstellung;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
+import io.github.aid_labor.classifier.java.Java;
+import io.github.aid_labor.classifier.java.JavaProvider;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
@@ -31,8 +33,6 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Parameter;
-import io.github.aid_labor.classifier.uml.programmierung.Java;
-import io.github.aid_labor.classifier.uml.programmierung.JavaProvider;
 
 
 class UMLSpeichertest {

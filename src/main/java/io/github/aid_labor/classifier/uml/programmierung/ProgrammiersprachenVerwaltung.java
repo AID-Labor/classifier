@@ -8,6 +8,8 @@ package io.github.aid_labor.classifier.uml.programmierung;
 import java.util.List;
 import java.util.ServiceLoader;
 
+import io.github.aid_labor.classifier.java.JavaProvider;
+
 public class ProgrammiersprachenVerwaltung {
 //	private static final Logger log = Logger.getLogger(Programmiersprache.class.getName());
 	

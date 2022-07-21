@@ -3,7 +3,11 @@
  * Copyright (c) 2022 - Tim Muehle (GitHub: @encrypTimM)
  *
  */
-package io.github.aid_labor.classifier.uml.programmierung;
+package io.github.aid_labor.classifier.java;
+
+import io.github.aid_labor.classifier.uml.programmierung.ExportImportVerarbeitung;
+import io.github.aid_labor.classifier.uml.programmierung.ProgrammierEigenschaften;
+import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 
 public class JavaProvider implements Programmiersprache {
 	

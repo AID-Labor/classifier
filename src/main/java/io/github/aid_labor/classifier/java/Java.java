@@ -4,15 +4,17 @@
  *
  */
 
-package io.github.aid_labor.classifier.uml.programmierung;
+package io.github.aid_labor.classifier.java;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
 import java.util.logging.Logger;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Datentyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
+import io.github.aid_labor.classifier.uml.programmierung.ProgrammierEigenschaften;
 
 
 public class Java implements ProgrammierEigenschaften {
@@ -257,6 +259,35 @@ public class Java implements ProgrammierEigenschaften {
 	public List<Datentyp> getBekannteDatentypen() {
 		log.severe(() -> "getBekannteDatentypen noch nicht implementiert !!! !!! !!! !!! !!!");
 		return Collections.emptyList();
+	}
+	
+	
+	private SortedSet<String> bekannteKlassen;
+	private SortedSet<String> bekannteInterfaces;
+	private SortedSet<String> bekannteEnumerationen;
+	
+	@Override
+	public SortedSet<String> getBekannteKlassen() {
+		if (bekannteKlassen == null) {
+			bekannteKlassen = JavaKlassenSucher.ladeKlassen();
+		}
+		return bekannteKlassen;
+	}
+	
+	@Override
+	public SortedSet<String> getBekannteInterfaces() {
+		if (bekannteInterfaces == null) {
+			bekannteInterfaces = JavaKlassenSucher.ladeInterfaces();
+		}
+		return bekannteInterfaces;
+	}
+	
+	@Override
+	public SortedSet<String> getBekannteEnumerationen() {
+		if (bekannteEnumerationen == null) {
+			bekannteEnumerationen = JavaKlassenSucher.ladeEnumerationen();
+		}
+		return bekannteEnumerationen;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

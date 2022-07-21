@@ -99,10 +99,6 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		this.startYProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getY());
 		this.endeXProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getX());
 		this.endeYProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getY());
-		var startX = verbindung.getStartPosition().getX();
-		var startY = verbindung.getStartPosition().getY();
-		var endeX = verbindung.getEndPosition().getX();
-		var endeY = verbindung.getEndPosition().getY();
 		this.startXVerschiebungProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getBreite());
 		this.startYVerschiebungProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getHoehe());
 		this.endeXVerschiebungProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getBreite());

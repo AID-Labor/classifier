@@ -393,6 +393,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			vorschlaege.add(request.getUserText());
 			vorschlaege.addAll(vorhandeneInterfaces.stream()
 					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
+			vorschlaege.addAll(umlProjektRef.get().getProgrammiersprache().getEigenschaften()
+					.getBekannteInterfaces().stream()
+					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
 			return vorschlaege;
 		});
 		interfaces.setTagViewFactory(text -> {
@@ -441,6 +444,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			var vorschlaege = new ArrayList<String>();
 			vorschlaege.add(request.getUserText());
 			vorschlaege.addAll(vorhandeneKlassen.stream()
+					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
+			vorschlaege.addAll(umlProjektRef.get().getProgrammiersprache().getEigenschaften()
+					.getBekannteKlassen().stream()
 					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
 			return vorschlaege;
 		});

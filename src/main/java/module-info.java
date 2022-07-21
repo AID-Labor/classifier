@@ -1,4 +1,4 @@
-import io.github.aid_labor.classifier.uml.programmierung.JavaProvider;
+import io.github.aid_labor.classifier.java.JavaProvider;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 
 /*
@@ -61,6 +61,5 @@ module classifier {
 	requires javafx.swing;
 	
 	uses Programmiersprache;
-	
 	provides Programmiersprache with JavaProvider;
 }
