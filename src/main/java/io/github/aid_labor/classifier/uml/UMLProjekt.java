@@ -475,8 +475,7 @@ public class UMLProjekt extends ProjektBasis {
 	}
 	
 	private Predicate<UMLDiagrammElement> erzeugeNameVergleich(String gesuchterName) {
-		return e -> e instanceof UMLKlassifizierer k && !KlassifiziererTyp.Interface.equals(k.getTyp())
-				&& Objects.equals(gesuchterName, e.getName());
+		return e -> e instanceof UMLKlassifizierer k && Objects.equals(gesuchterName, e.getName());
 	}
 	
 	private ObjectBinding<UMLKlassifizierer> sucheInterface(StringProperty name) {
