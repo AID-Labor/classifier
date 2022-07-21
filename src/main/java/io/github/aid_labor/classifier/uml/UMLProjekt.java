@@ -331,10 +331,12 @@ public class UMLProjekt extends ProjektBasis {
 					
 					String superklasse = klassifizierer.getSuperklasse();
 					if (superklasse != null && !superklasse.isBlank()) {
-						if (verbindungen.stream().filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
-								&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
-								&& Objects.equals(v.getVerbindungsEnde(), superklasse)).count() < 1) {
-							UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, 
+						if (verbindungen.stream()
+								.filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
+										&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
+										&& Objects.equals(v.getVerbindungsEnde(), superklasse))
+								.count() < 1) {
+							UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG,
 									klassifizierer.getName(), superklasse);
 							vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
 							verbindungen.add(vererbung);
@@ -344,11 +346,12 @@ public class UMLProjekt extends ProjektBasis {
 					var interfaceUeberwacher = ueberwacheInterfaces(klassifizierer);
 					interfaceBeobachter.put(klassifizierer.getName(), interfaceUeberwacher);
 					
-					for (String interfaceName: klassifizierer.getInterfaces()) {
-						if (verbindungen.stream().filter(v -> 
-								Objects.equals(v.getTyp(), UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG)
-								&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
-								&& Objects.equals(v.getVerbindungsEnde(), interfaceName)).count() < 1) {
+					for (String interfaceName : klassifizierer.getInterfaces()) {
+						if (verbindungen.stream()
+								.filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG)
+										&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
+										&& Objects.equals(v.getVerbindungsEnde(), interfaceName))
+								.count() < 1) {
 							UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG,
 									klassifizierer.getName(), interfaceName);
 							vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
@@ -378,10 +381,13 @@ public class UMLProjekt extends ProjektBasis {
 						&& Objects.equals(alteSuperklasse, v.getVerbindungsEnde())
 						&& Objects.equals(klassifizierer.getName(), v.getVerbindungsStart()));
 			} else if (alteSuperklasse == null || alteSuperklasse.isBlank()) {
-				UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, klassifizierer.getName(),
-						neueSuperklasse);
-				vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
-				verbindungen.add(vererbung);
+				if (!klassifizierer.getName().equals(neueSuperklasse)
+						&& ! klassifizierer.getNameVollstaendig().equals(neueSuperklasse)) {
+					UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, klassifizierer.getName(),
+							neueSuperklasse);
+					vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
+					verbindungen.add(vererbung);
+				}
 			} else {
 				verbindungen.stream()
 						.filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
@@ -398,6 +404,10 @@ public class UMLProjekt extends ProjektBasis {
 		ListChangeListener<String> interfaceUeberwacher = (Change<? extends String> aenderung) -> {
 			while (aenderung.next()) {
 				for (String interfaceHinzu : aenderung.getAddedSubList()) {
+					if (klassifizierer.getName().equals(interfaceHinzu)
+							|| klassifizierer.getNameVollstaendig().equals(interfaceHinzu)) {
+						continue;
+					}
 					UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG,
 							klassifizierer.getName(), interfaceHinzu);
 					vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
@@ -435,6 +445,7 @@ public class UMLProjekt extends ProjektBasis {
 	}
 	
 	private final List<UMLVerbindung> zuEntfernendeVerbindungen = new ArrayList<>();
+	
 	private void ueberwacheVerbindungen(Change<? extends UMLVerbindung> aenderung) {
 		while (aenderung.next()) {
 			if (aenderung.wasRemoved()) {
@@ -466,29 +477,51 @@ public class UMLProjekt extends ProjektBasis {
 	}
 	
 	private ObjectBinding<UMLKlassifizierer> sucheKlassifizierer(StringProperty name) {
-		var startelemente = diagrammElemente.filtered(erzeugeNameVergleich(name.get()));
-		startelemente.predicateProperty()
-				.bind(Bindings.createObjectBinding(() -> erzeugeNameVergleich(name.get()), name));
+		var startelemente = diagrammElemente.filtered(erzeugeNameVergleich(name));
+		startelemente.predicateProperty().bind(Bindings.createObjectBinding(() -> erzeugeNameVergleich(name), name));
 		var hilfe = Bindings.valueAt(startelemente, 0);
 		return Bindings.createObjectBinding(() -> startelemente.isEmpty() ? null : (UMLKlassifizierer) hilfe.get(),
 				hilfe, startelemente);
 	}
 	
-	private Predicate<UMLDiagrammElement> erzeugeNameVergleich(String gesuchterName) {
-		return e -> e instanceof UMLKlassifizierer k && Objects.equals(gesuchterName, e.getName());
+	private Predicate<UMLDiagrammElement> erzeugeNameVergleich(StringProperty gesuchterName) {
+		return e -> {
+			if (!(e instanceof UMLKlassifizierer k) || gesuchterName.get() == null || gesuchterName.get().isBlank()) {
+				return false;
+			}
+			String vergleich;
+			if (gesuchterName.get().contains(":")) {
+				vergleich = k.getPaket() + ":" + k.getName();
+			} else {
+				vergleich = k.getName();
+			}
+			return Objects.equals(gesuchterName.get(), vergleich);
+		};
 	}
 	
 	private ObjectBinding<UMLKlassifizierer> sucheInterface(StringProperty name) {
-		var startelemente = diagrammElemente.filtered(erzeugeNameVergleichInterface(name.get()));
+		var startelemente = diagrammElemente.filtered(erzeugeNameVergleichInterface(name));
 		startelemente.predicateProperty()
-				.bind(Bindings.createObjectBinding(() -> erzeugeNameVergleichInterface(name.get()), name));
+				.bind(Bindings.createObjectBinding(() -> erzeugeNameVergleichInterface(name), name));
 		var hilfe = Bindings.valueAt(startelemente, 0);
-		return Bindings.createObjectBinding(() -> startelemente.isEmpty() ? null : (UMLKlassifizierer) hilfe.get(), hilfe, startelemente);
+		return Bindings.createObjectBinding(() -> startelemente.isEmpty() ? null : (UMLKlassifizierer) hilfe.get(),
+				hilfe, startelemente);
 	}
 	
-	private Predicate<UMLDiagrammElement> erzeugeNameVergleichInterface(String gesuchterName) {
-		return e -> e instanceof UMLKlassifizierer k && KlassifiziererTyp.Interface.equals(k.getTyp())
-				&& Objects.equals(gesuchterName, e.getName());
+	private Predicate<UMLDiagrammElement> erzeugeNameVergleichInterface(StringProperty gesuchterName) {
+		return e -> {
+			if (!(e instanceof UMLKlassifizierer k) || !KlassifiziererTyp.Interface.equals(k.getTyp())
+					|| gesuchterName.get() == null || gesuchterName.get().isBlank()) {
+				return false;
+			}
+			String vergleich;
+			if (gesuchterName.get().contains(":")) {
+				vergleich = k.getPaket() + ":" + k.getName();
+			} else {
+				vergleich = k.getName();
+			}
+			return Objects.equals(gesuchterName.get(), vergleich);
+		};
 	}
 	
 }

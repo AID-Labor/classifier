@@ -473,7 +473,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							if (superklasse.getEditor().getText().isBlank()) {
 								return true;
 							}
-							boolean gleich = Objects.equals(name.getText(), superklasse.getEditor().getText());
+							String superName = superklasse.getEditor().getText();
+							if (superName.contains(":")) {
+								superName = superName.substring(superName.lastIndexOf(":")+1);
+							}
+							boolean gleich = Objects.equals(name.getText(), superName);
 							return gleich ? name.getText().isBlank()
 									: !istZirkular(getKlassifizierer(), klassenSuchBaum);
 						}, sprache.getText("superklasseValidierungZirkular",
@@ -481,6 +485,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 								Validator.createPredicateValidator(tf -> {
 									String superName = getKlassifizierer().getSuperklasse() == null ? ""
 											: getKlassifizierer().getSuperklasse();
+									if (superName.contains(":")) {
+										superName = superName.substring(superName.lastIndexOf(":")+1);
+									}
 									var sk = klassenSuchBaum.get(superName);
 									boolean istInterface = sk == null ? false
 											: Objects.equals(sk.getTyp(), KlassifiziererTyp.Interface);
@@ -492,6 +499,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			eingabeValidierung.registerValidator(interfaces.getEditor(),
 					Validator.combine(Validator.createPredicateValidator(tf -> {
 						for (String interfaceName : interfaces.getTags()) {
+							if (interfaceName.contains(":")) {
+								interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":")+1);
+							}
 							if (Objects.equals(interfaceName, name.getText())) {
 								return false;
 							}
@@ -501,6 +511,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							"Die Vererbungshierarchie darf nicht zirkular sein!")),
 							Validator.createPredicateValidator(tf -> {
 								for (String interfaceName : interfaces.getTags()) {
+									if (interfaceName.contains(":")) {
+										interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":")+1);
+									}
 									var interf = klassenSuchBaum.get(interfaceName);
 									if (interf != null
 											&& !Objects.equals(interf.getTyp(), KlassifiziererTyp.Interface)) {
@@ -517,11 +530,15 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		if (startklasse == null || startklasse.getSuperklasse() == null) {
 			return false;
 		}
+		String superName = startklasse.getSuperklasse();
+		if (superName.contains(":")) {
+			superName = superName.substring(superName.lastIndexOf(":")+1);
+		}
 		if (startklasse.getName() != null && !startklasse.getName().isBlank()
-				&& Objects.equals(startklasse.getName(), startklasse.getSuperklasse())) {
+				&& Objects.equals(startklasse.getName(), superName)) {
 			return true;
 		}
-		var superklasse = klassenSuchBaum.get(startklasse.getSuperklasse());
+		var superklasse = klassenSuchBaum.get(superName);
 		return pruefeZirkular(superklasse, startklasse.getName(), klassenSuchBaum);
 	}
 	
@@ -532,7 +549,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		} else if (startname.equals(superklasse.getName())) {
 			return !startname.isBlank();
 		}
+		
 		String naechsteSuperklasse = superklasse.getSuperklasse();
+		if (naechsteSuperklasse.contains(":")) {
+			naechsteSuperklasse = naechsteSuperklasse.substring(naechsteSuperklasse.lastIndexOf(":")+1);
+		}
+		
 		if(naechsteSuperklasse == null || naechsteSuperklasse.isBlank()) {
 			return false;
 		}
@@ -545,6 +567,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			return false;
 		}
 		for (var interfaceName : startklasse.getInterfaces()) {
+			if (interfaceName.contains(":")) {
+				interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":")+1);
+			}
 			var interf = klassenSuchBaum.get(interfaceName);
 			boolean istZirkular = pruefeZirkularInterface(interf, startname, klassenSuchBaum);
 			if (istZirkular) {
@@ -563,6 +588,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		
 		for (String interfaceName : interf.getInterfaces()) {
+			if (interfaceName.contains(":")) {
+				interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":")+1);
+			}
 			boolean zirkular = pruefeZirkularInterface(klassenSuchBaum.get(interfaceName), startname, klassenSuchBaum);
 			if (zirkular) {
 				return true;

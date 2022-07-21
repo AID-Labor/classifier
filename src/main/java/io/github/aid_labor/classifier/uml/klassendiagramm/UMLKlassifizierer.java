@@ -203,6 +203,14 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		return name;
 	}
 	
+	public String getNameVollstaendig() {
+		if (getPaket() != null && !getPaket().isBlank()) {
+			return getPaket() + ":" + getName();
+		} else {
+			return getName();
+		}
+	}
+	
 	public KlassifiziererTyp getTyp() {
 		return typ.get();
 	}
