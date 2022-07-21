@@ -258,8 +258,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		linieAPos.breiteProperty().bind(linieA.xProperty());
 		linieAPos.hoeheProperty().bind(linieA.yProperty());
 		macheVerschiebbar(linieAPos, startXVerschiebungProperty, startYVerschiebungProperty,
-				verbindung.startElementProperty().get(), orientierungStartProperty,
-				verbindung.endElementProperty().get(), orientierungEndeProperty,
+				verbindung.startElementProperty(), orientierungStartProperty,
+				verbindung.endElementProperty(), orientierungEndeProperty,
 				neueStartOrientierung -> updateLinie(neueStartOrientierung, verbindung.getStartElement(),
 						verbindung.getOrientierungEnde(), verbindung.getEndElement()));
 		
@@ -269,8 +269,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		linieCPos.breiteProperty().bind(linieC.xProperty());
 		linieCPos.hoeheProperty().bind(linieC.yProperty());
 		macheVerschiebbar(linieCPos, endeXVerschiebungProperty, endeYVerschiebungProperty,
-				verbindung.endElementProperty().get(), orientierungEndeProperty,
-				verbindung.startElementProperty().get(), orientierungStartProperty,
+				verbindung.endElementProperty(), orientierungEndeProperty,
+				verbindung.startElementProperty(), orientierungStartProperty,
 				neueEndOrientierung -> updateLinie(verbindung.getOrientierungStart(), verbindung.getStartElement(),
 						neueEndOrientierung, verbindung.getEndElement()));
 	}
@@ -433,15 +433,13 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	}
 	
 	private Node macheVerschiebbar(Position liniePos, DoubleProperty xVerschiebung, DoubleProperty yVerschiebung,
-			UMLKlassifizierer element, ObjectProperty<Orientierung> orientierungProperty,
-			UMLKlassifizierer anderesElement, ObjectProperty<Orientierung> andereOrientierungProperty,
+			ObjectProperty<UMLKlassifizierer> element, ObjectProperty<Orientierung> orientierungProperty,
+			ObjectProperty<UMLKlassifizierer> anderesElement, ObjectProperty<Orientierung> andereOrientierungProperty,
 			Consumer<Orientierung> update) {
 		
 		if (element == null || anderesElement == null || projekt == null) {
 			return null;
 		}
-		Position elementPos = element.getPosition();
-		Position anderePos = anderesElement.getPosition();
 		Pane linienWahl = erstelleLinienUeberlagerung(liniePos);
 		ueberwacheMausZeiger(linienWahl, orientierungProperty);
 		linienWahl.getStyleClass().add("test");
@@ -462,18 +460,23 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		
 		linienWahl.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
 			if (wirdBewegt.get()) {
+				if (element.get() == null || anderesElement.get() == null) {
+					return;
+				}
+				var elementPos = element.get().getPosition();
+				var anderesElementPos = anderesElement.get().getPosition();
 				switch (orientierungProperty.get()) {
 					case OBEN, UNTEN -> {
 						double dX = event.getSceneX() - start.getX();
 						double x = start.getBreite() + dX / getParent().getScaleX();
 						verschiebeX(x, liniePos, xVerschiebung, orientierungProperty, andereOrientierungProperty.get(),
-								elementPos, anderePos, wirdBewegt, update);
+								elementPos, anderesElementPos, wirdBewegt, update);
 					}
 					case LINKS, RECHTS -> {
 						double dY = event.getSceneY() - start.getY();
 						double y = start.getHoehe() + dY / getParent().getScaleY();
 						verschiebeY(y, liniePos, yVerschiebung, orientierungProperty, andereOrientierungProperty.get(),
-								elementPos, anderePos, wirdBewegt, update);
+								elementPos, anderesElementPos, wirdBewegt, update);
 					}
 					default -> {
 						/**/}

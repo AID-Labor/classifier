@@ -396,6 +396,8 @@ public class UMLVerbindungenBearbeitenDialog extends Alert {
 		start.disableProperty().bind(verbindung.automatischProperty());
 		ende.disableProperty().bind(verbindung.automatischProperty());
 		kontrollelemente.loeschen.disableProperty().bind(verbindung.automatischProperty());
+		kontrollelemente.loeschen.setOnMouseClicked(
+				e -> umlProjekt.getVerbindungen().removeIf(v -> v.getId() == verbindung.getId()));
 		
 		return new Node[] { start, ende, ausgeblendet, kontrollelemente.loeschen };
 	}
