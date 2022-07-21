@@ -7,6 +7,7 @@
 package io.github.aid_labor.classifier.gui;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -39,6 +40,7 @@ import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.gui.komponenten.DatentypFeld;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
@@ -58,7 +60,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.collections.WeakListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -127,7 +128,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private final ValidationSupport eingabeValidierung;
 	private final List<ChangeListener<KlassifiziererTyp>> typBeobachterListe;
 	private final List<ChangeListener<ValidationResult>> validierungsBeobachter;
-	private final List<ListChangeListener<?>> listenBeobachter;
 	private final List<String> vorhandeneElementNamen;
 	private final List<Runnable> loeseBindungen;
 	private final SortedMap<String, UMLKlassifizierer> klassenSuchBaum;
@@ -145,7 +145,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.eingabeValidierung = new ValidationSupport();
 		this.typBeobachterListe = new LinkedList<>();
 		this.validierungsBeobachter = new LinkedList<>();
-		this.listenBeobachter = new LinkedList<>();
 		this.loeseBindungen = new LinkedList<>();
 		this.vorhandeneElementNamen = projekt.getDiagrammElemente().parallelStream()
 				.filter(element -> element.getId() != klassifizierer.getId()).map(UMLDiagrammElement::getName).toList();
@@ -193,10 +192,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			for (var beobachter : validierungsBeobachter) {
 				eingabeValidierung.validationResultProperty().removeListener(beobachter);
 			}
+			
 			for (Node n : this.getDialogPane().getChildren()) {
 				entferneAlleBeobachter(n);
 			}
-			listenBeobachter.clear();
+			
 			for (var c : eingabeValidierung.getRegisteredControls()) {
 				eingabeValidierung.registerValidator(c, Validator.createPredicateValidator(x -> true, ""));
 			}
@@ -204,6 +204,18 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				prop.run();
 			}
 			loeseBindungen.clear();
+			
+			for (var attribut : this.getClass().getDeclaredFields()) {
+				try {
+					if (!Modifier.isStatic(attribut.getModifiers()) && !attribut.getName().equals("istGeschlossen")) {
+						attribut.setAccessible(true);
+						attribut.set(this, null);
+					}
+				} catch (Exception ex) {
+					// ignore
+					ex.printStackTrace();
+				}
+			}
 		});
 	}
 	
@@ -393,9 +405,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			vorschlaege.add(request.getUserText());
 			vorschlaege.addAll(vorhandeneInterfaces.stream()
 					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
-			vorschlaege.addAll(umlProjektRef.get().getProgrammiersprache().getEigenschaften()
-					.getBekannteInterfaces().stream()
-					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
+			vorschlaege.addAll(umlProjektRef.get().getProgrammiersprache().getEigenschaften().getBekannteInterfaces()
+					.stream().filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase()))
+					.toList());
 			return vorschlaege;
 		});
 		interfaces.setTagViewFactory(text -> {
@@ -445,9 +457,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			vorschlaege.add(request.getUserText());
 			vorschlaege.addAll(vorhandeneKlassen.stream()
 					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
-			vorschlaege.addAll(umlProjektRef.get().getProgrammiersprache().getEigenschaften()
-					.getBekannteKlassen().stream()
-					.filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase())).toList());
+			vorschlaege.addAll(umlProjektRef.get().getProgrammiersprache().getEigenschaften().getBekannteKlassen()
+					.stream().filter(iName -> iName.toLowerCase().contains(request.getUserText().toLowerCase()))
+					.toList());
 			return vorschlaege;
 		});
 		superklasse.setNewItemProducer(String::strip);
@@ -475,7 +487,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							}
 							String superName = superklasse.getEditor().getText();
 							if (superName.contains(":")) {
-								superName = superName.substring(superName.lastIndexOf(":")+1);
+								superName = superName.substring(superName.lastIndexOf(":") + 1);
 							}
 							boolean gleich = Objects.equals(name.getText(), superName);
 							return gleich ? name.getText().isBlank()
@@ -486,7 +498,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 									String superName = getKlassifizierer().getSuperklasse() == null ? ""
 											: getKlassifizierer().getSuperklasse();
 									if (superName.contains(":")) {
-										superName = superName.substring(superName.lastIndexOf(":")+1);
+										superName = superName.substring(superName.lastIndexOf(":") + 1);
 									}
 									var sk = klassenSuchBaum.get(superName);
 									boolean istInterface = sk == null ? false
@@ -500,7 +512,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					Validator.combine(Validator.createPredicateValidator(tf -> {
 						for (String interfaceName : interfaces.getTags()) {
 							if (interfaceName.contains(":")) {
-								interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":")+1);
+								interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":") + 1);
 							}
 							if (Objects.equals(interfaceName, name.getText())) {
 								return false;
@@ -512,7 +524,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 							Validator.createPredicateValidator(tf -> {
 								for (String interfaceName : interfaces.getTags()) {
 									if (interfaceName.contains(":")) {
-										interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":")+1);
+										interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":") + 1);
 									}
 									var interf = klassenSuchBaum.get(interfaceName);
 									if (interf != null
@@ -532,7 +544,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		String superName = startklasse.getSuperklasse();
 		if (superName.contains(":")) {
-			superName = superName.substring(superName.lastIndexOf(":")+1);
+			superName = superName.substring(superName.lastIndexOf(":") + 1);
 		}
 		if (startklasse.getName() != null && !startklasse.getName().isBlank()
 				&& Objects.equals(startklasse.getName(), superName)) {
@@ -552,10 +564,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		String naechsteSuperklasse = superklasse.getSuperklasse();
 		if (naechsteSuperklasse.contains(":")) {
-			naechsteSuperklasse = naechsteSuperklasse.substring(naechsteSuperklasse.lastIndexOf(":")+1);
+			naechsteSuperklasse = naechsteSuperklasse.substring(naechsteSuperklasse.lastIndexOf(":") + 1);
 		}
 		
-		if(naechsteSuperklasse == null || naechsteSuperklasse.isBlank()) {
+		if (naechsteSuperklasse == null || naechsteSuperklasse.isBlank()) {
 			return false;
 		}
 		return pruefeZirkular(klassenSuchBaum.get(naechsteSuperklasse), startname, klassenSuchBaum);
@@ -568,7 +580,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		for (var interfaceName : startklasse.getInterfaces()) {
 			if (interfaceName.contains(":")) {
-				interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":")+1);
+				interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":") + 1);
 			}
 			var interf = klassenSuchBaum.get(interfaceName);
 			boolean istZirkular = pruefeZirkularInterface(interf, startname, klassenSuchBaum);
@@ -589,7 +601,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		for (String interfaceName : interf.getInterfaces()) {
 			if (interfaceName.contains(":")) {
-				interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":")+1);
+				interfaceName = interfaceName.substring(interfaceName.lastIndexOf(":") + 1);
 			}
 			boolean zirkular = pruefeZirkularInterface(klassenSuchBaum.get(interfaceName), startname, klassenSuchBaum);
 			if (zirkular) {
@@ -650,8 +662,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
 			}
 		};
-		listenBeobachter.add(beobachter);
-		inhalt.addListener(new WeakListChangeListener<>(beobachter));
+		loeseBindungen.add(() -> inhalt.removeListener(beobachter));
+		inhalt.addListener(beobachter);
 	}
 	
 	private <T> void fuelleListenInhalt(GridPane tabelle, ObservableList<T> inhalt,
@@ -716,8 +728,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		TextField name = new TextField();
 		bindeBidirektional(name.textProperty(), attribut.nameProperty());
 		
-		TextField datentyp = new TextField(attribut.getDatentyp().getTypName());
-		bindeBidirektional(datentyp.textProperty(), attribut.getDatentyp().typNameProperty());
+		SearchField<String> datentyp = new DatentypFeld(attribut.getDatentyp().getTypName(), false,
+				umlProjektRef.get().getProgrammiersprache(), eingabeValidierung);
+		bindeBidirektional(datentyp.selectedItemProperty(), attribut.getDatentyp().typNameProperty());
 		
 		TextField initialwert = new TextField(attribut.getInitialwert());
 		bindeBidirektional(initialwert.textProperty(), attribut.initialwertProperty());
@@ -734,7 +747,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		bindeBidirektional(statisch.selectedProperty(), attribut.istStatischProperty());
 		GridPane.setHalignment(statisch, HPos.CENTER);
 		
-		validiereAttribut(name, datentyp);
+		validiereAttribut(name, datentyp, attribut);
 		
 		updateAttribut(sichtbarkeit, statisch, attribut, getKlassifizierer().getTyp());
 		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateAttribut(sichtbarkeit,
@@ -750,7 +763,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			kontrollelemente.runter, kontrollelemente.loeschen };
 	}
 	
-	private void validiereAttribut(TextField name, TextField datentyp) {
+	private void validiereAttribut(TextField name, SearchField<String> datentyp, Attribut attribut) {
 		Platform.runLater(() -> {
 			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 				eingabeValidierung.registerValidator(name,
@@ -767,8 +780,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
 			}
 			
-			eingabeValidierung.registerValidator(datentyp,
-					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
+			eingabeValidierung.registerValidator(datentyp.getEditor(), Validator.combine(
+					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")),
+					Validator.createPredicateValidator(
+							tf -> !umlProjektRef.get().getProgrammiersprache().getEigenschaften()
+									.istVoid(attribut.getDatentyp()),
+							sprache.getText("attributValidierungVoid", "Der Typ void ist hier nicht erlaubt"))));
 			setzePlatzhalter(name);
 			setzePlatzhalter(datentyp);
 		});
@@ -821,9 +838,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		parameter.setOnMousePressed(e -> bearbeiteParameter(parameter, methode));
 		parameter.setOnAction(e -> bearbeiteParameter(parameter, methode));
 		
-		TextField rueckgabetyp = new TextField(methode.getRueckgabeTyp().getTypName());
-		bindeBidirektional(rueckgabetyp.textProperty(), methode.getRueckgabeTyp().typNameProperty());
-		rueckgabetyp.setPrefWidth(70);
+		SearchField<String> rueckgabetyp = new DatentypFeld(methode.getRueckgabeTyp().getTypName(), true,
+				umlProjektRef.get().getProgrammiersprache(), eingabeValidierung);
+		bindeBidirektional(rueckgabetyp.selectedItemProperty(), methode.getRueckgabeTyp().typNameProperty());
 		
 		CheckBox abstrakt = new CheckBox();
 		bindeBidirektional(abstrakt.selectedProperty(), methode.istAbstraktProperty());
@@ -915,7 +932,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		loeseBindungen.add(parameter.textProperty()::unbind);
 	}
 	
-	private void validiereMethode(TextField parameter, TextField name, TextField rueckgabetyp, Methode methode) {
+	private void validiereMethode(TextField parameter, TextField name, SearchField<String> rueckgabetyp, Methode methode) {
 		Platform.runLater(() -> {
 			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 				eingabeValidierung.registerValidator(parameter, Validator.combine(
@@ -943,7 +960,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			}
 			eingabeValidierung.registerValidator(name,
 					Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
-			eingabeValidierung.registerValidator(rueckgabetyp,
+			eingabeValidierung.registerValidator(rueckgabetyp.getEditor(),
 					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
 			
 			setzePlatzhalter(name);
@@ -957,8 +974,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					TextField name = new TextField();
 					bindeBidirektional(name.textProperty(), param.nameProperty());
 					
-					TextField datentyp = new TextField(param.getDatentyp().getTypName());
-					bindeBidirektional(datentyp.textProperty(), param.getDatentyp().typNameProperty());
+					SearchField<String> datentyp = new DatentypFeld(param.getDatentyp().getTypName(), true,
+							umlProjektRef.get().getProgrammiersprache(), eingabeValidierung);
+					bindeBidirektional(datentyp.selectedItemProperty(), param.getDatentyp().typNameProperty());
 					
 					if (methode.istGetter() || methode.istSetter()) {
 						datentyp.setDisable(true);
@@ -967,7 +985,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						kontrollelemente.loeschen.setDisable(true);
 					}
 					
-					validiereParameter(name, datentyp, methode);
+					validiereParameter(name, datentyp, methode, param);
 					
 					if (name.getText().isEmpty()) {
 						Platform.runLater(name::requestFocus);
@@ -989,7 +1007,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		parameterDialog.show(parameter);
 	}
 	
-	private void validiereParameter(TextField name, TextField datentyp, Methode methode) {
+	private void validiereParameter(TextField name, SearchField<String> datentyp, Methode methode, Parameter param) {
 		Platform.runLater(() -> {
 			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 				eingabeValidierung.registerValidator(name,
@@ -1006,8 +1024,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
 			}
 			
-			eingabeValidierung.registerValidator(datentyp,
-					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
+			eingabeValidierung.registerValidator(datentyp.getEditor(), Validator.combine(
+					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")),
+					Validator.createPredicateValidator(
+							tf -> !umlProjektRef.get().getProgrammiersprache().getEigenschaften()
+									.istVoid(param.getDatentyp()),
+							sprache.getText("attributValidierungVoid", "Der Typ void ist hier nicht erlaubt"))));
 			setzePlatzhalter(name);
 			setzePlatzhalter(datentyp);
 			

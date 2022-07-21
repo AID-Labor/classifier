@@ -7,6 +7,7 @@
 package io.github.aid_labor.classifier.uml.programmierung;
 
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
@@ -33,12 +34,12 @@ public interface ProgrammierEigenschaften {
 	
 	public boolean istVoid(Datentyp datentyp);
 
-	public List<Datentyp> getPrimitiveDatentypen();
-	public Datentyp getVoid();
-	public List<Datentyp> getBekannteDatentypen();
+	public List<String> getPrimitiveDatentypen();
+	public String getVoid();
 	public SortedSet<String> getBekannteKlassen();
 	public SortedSet<String> getBekannteInterfaces();
 	public SortedSet<String> getBekannteEnumerationen();
+	public Map<String, String> getKlassenPaketMap();
 
 
 	public Modifizierer getStandardAttributModifizierer(KlassifiziererTyp typ);

@@ -6,8 +6,11 @@
 
 package io.github.aid_labor.classifier.java;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 import java.util.logging.Logger;
 
@@ -63,15 +66,18 @@ public class Java implements ProgrammierEigenschaften {
 		return new Datentyp("void");
 	}
 	
+	public static Datentyp STRING() {
+		return new Datentyp("String");
+	}
+	
 	public static List<Datentyp> PRIMITIVE_DATENTYPEN() {
 		return Collections
 				.unmodifiableList(List.of(BOOLEAN_PRIMITIV(), BYTE_PRIMITIV(), SHORT_PRIMITIV(), INT_PRIMITIV(),
 						LONG_PRIMITIV(), FLOAT_PRIMITIV(), DOUBLE_PRIMITIV(), CHAR_PRIMITIV(), VOID_PRIMITIV()));
 	}
 	
-	public static Datentyp STRING() {
-		return new Datentyp("String");
-	}
+	private static final List<String> primitiveDatentypen = List.of("boolean", "byte", "short", "char", "int", "long", 
+			"float", "double");
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -242,34 +248,31 @@ public class Java implements ProgrammierEigenschaften {
 	
 	@Override
 	public boolean istVoid(Datentyp datentyp) {
+		if (datentyp == null || datentyp.getTypName() == null) {
+			return false;
+		}
 		return datentyp.getTypName().equals("void");
 	}
 	
 	@Override
-	public List<Datentyp> getPrimitiveDatentypen() {
-		return PRIMITIVE_DATENTYPEN();
+	public List<String> getPrimitiveDatentypen() {
+		return primitiveDatentypen;
 	}
 	
 	@Override
-	public Datentyp getVoid() {
-		return VOID_PRIMITIV();
+	public String getVoid() {
+		return "void";
 	}
-	
-	@Override
-	public List<Datentyp> getBekannteDatentypen() {
-		log.severe(() -> "getBekannteDatentypen noch nicht implementiert !!! !!! !!! !!! !!!");
-		return Collections.emptyList();
-	}
-	
 	
 	private SortedSet<String> bekannteKlassen;
 	private SortedSet<String> bekannteInterfaces;
 	private SortedSet<String> bekannteEnumerationen;
+	private Map<String, String> klassenPaketMap;
 	
 	@Override
 	public SortedSet<String> getBekannteKlassen() {
 		if (bekannteKlassen == null) {
-			bekannteKlassen = JavaKlassenSucher.ladeKlassen();
+			bekannteKlassen = Collections.unmodifiableSortedSet(JavaKlassenSucher.ladeKlassen());
 		}
 		return bekannteKlassen;
 	}
@@ -277,7 +280,7 @@ public class Java implements ProgrammierEigenschaften {
 	@Override
 	public SortedSet<String> getBekannteInterfaces() {
 		if (bekannteInterfaces == null) {
-			bekannteInterfaces = JavaKlassenSucher.ladeInterfaces();
+			bekannteInterfaces = Collections.unmodifiableSortedSet(JavaKlassenSucher.ladeInterfaces());
 		}
 		return bekannteInterfaces;
 	}
@@ -285,9 +288,21 @@ public class Java implements ProgrammierEigenschaften {
 	@Override
 	public SortedSet<String> getBekannteEnumerationen() {
 		if (bekannteEnumerationen == null) {
-			bekannteEnumerationen = JavaKlassenSucher.ladeEnumerationen();
+			bekannteEnumerationen = Collections.unmodifiableSortedSet(JavaKlassenSucher.ladeEnumerationen());
 		}
 		return bekannteEnumerationen;
+	}
+	
+	@Override
+	public Map<String, String> getKlassenPaketMap() {
+		if (klassenPaketMap == null) {
+			klassenPaketMap = new HashMap<>();
+			teileInKlasseUndPaketAuf(getBekannteKlassen(), klassenPaketMap);
+			teileInKlasseUndPaketAuf(getBekannteInterfaces(), klassenPaketMap);
+			teileInKlasseUndPaketAuf(getBekannteEnumerationen(), klassenPaketMap);
+			klassenPaketMap = Collections.unmodifiableMap(klassenPaketMap);
+		}
+		return klassenPaketMap;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -295,6 +310,21 @@ public class Java implements ProgrammierEigenschaften {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	private static void teileInKlasseUndPaketAuf(Collection<String> klassenliste, Map<String, String> klassenPaketMap) {
+		for (String name : klassenliste) {
+			String paket = "";
+			String klasse;
+			if (name.contains(":")) {
+				int index = name.lastIndexOf(":");
+				paket = name.substring(0, index);
+				klasse = name.substring(index+1);
+			} else {
+				klasse = name;
+			}
+			klassenPaketMap.put(klasse, paket);
+		}
+	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*

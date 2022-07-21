@@ -123,7 +123,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		if (interfaceListe != null) {
 			this.interfaceListe.addAll(interfaceListe);
 		}
-		if (interfaces != null) {
+		if (interfaces != null && !interfaces.isBlank()) {
 			this.interfaceListe.add(interfaces);
 		}
 		
