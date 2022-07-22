@@ -10,7 +10,6 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -38,16 +37,16 @@ import javafx.event.Event;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-import javafx.scene.control.ButtonType;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import javafx.stage.Window;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Window;
 
 
 class ProjektKontrolle {
@@ -285,7 +284,7 @@ class ProjektKontrolle {
 					Umlaute.ae, Umlaute.ue));
 			String beschreibung = MessageFormat.format(format, datei.getName());
 			zeigeImportFehlerDialog(beschreibung);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			log.log(Level.WARNING, e, () -> "Importfehler");
 			String format = sprache.getText("importIOFehler", "Die Datei \"{0}\" konnte nicht gelesen werden.");
 			String beschreibung = MessageFormat.format(format, datei.getName());
@@ -295,6 +294,10 @@ class ProjektKontrolle {
 	
 	void importiereAusDatei(DragEvent event) {
 		log.finest(() -> "DragEvent ausgeloest: " + event.getEventType().getName());
+		if (event.isConsumed()) {
+			log.finest(() -> "DragEvent bereits konsumiert");
+			return;
+		}
 		if (event.getEventType().equals(DragEvent.DRAG_OVER)) {
 			UMLProjekt projekt = ansicht.get().getProjekt();
 			var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
@@ -303,8 +306,9 @@ class ProjektKontrolle {
 			if (db.hasFiles()) {
 				for (ExtensionFilter erweiterungen : importVerwaltung.getImportDateierweiterungen()) {
 					for (String erweiterung : erweiterungen.getExtensions()) {
-						akzeptieren |= db.getFiles().stream().filter(datei -> datei.getName().endsWith(erweiterung))
-								.toList().isEmpty();
+						akzeptieren |= !db.getFiles().stream()
+								.filter(datei -> datei.getName().endsWith(erweiterung.replace("*", ""))).toList()
+								.isEmpty();
 					}
 				}
 				String akzeptiert = String.valueOf(akzeptieren);
@@ -316,17 +320,18 @@ class ProjektKontrolle {
 			}
 			if (akzeptieren) {
 				event.acceptTransferModes(TransferMode.COPY);
+				event.consume();
 			}
 		}
 		if (event.getEventType().equals(DragEvent.DRAG_DROPPED)) {
 			Dragboard db = event.getDragboard();
 			if (db.hasFiles()) {
+				event.consume();
 				for (File datei : db.getFiles()) {
 					importiereAusDatei(datei);
 				}
 			}
 		}
-		event.consume();
 	}
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

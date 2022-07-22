@@ -53,6 +53,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.input.DragEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -156,13 +157,7 @@ public class HauptAnsicht {
 		hauptInhalt.setTop(new VBox(menueAnsicht.getMenueleiste(), ribbonKomponente.getRibbon()));
 		hauptInhalt.setCenter(projekteAnsicht.getAnsicht());
 		
-		// TODO Datei(en) oeffnen!!!
-		hauptInhalt.setOnDragDetected(this.controller::projektOeffnen);
-		hauptInhalt.setOnDragDone(this.controller::projektOeffnen);
-		hauptInhalt.setOnDragEntered(this.controller::projektOeffnen);
-		hauptInhalt.setOnDragExited(this.controller::projektOeffnen);
-		hauptInhalt.setOnDragOver(this.controller::projektOeffnen);
-		hauptInhalt.setOnDragDropped(this.controller::projektOeffnen);
+		hauptInhalt.addEventFilter(DragEvent.ANY, this.controller::projektOeffnen);
 		
 		wurzel.getChildren().add(hauptInhalt);
 		wurzel.getChildren().add(overlayDialog);

@@ -386,14 +386,19 @@ class HauptKontrolle {
 	
 	void projektOeffnen(DragEvent event) {
 		log.finest(() -> "DragEvent ausgeloest: " + event.getEventType().getName());
+		if (event.isConsumed()) {
+			log.finest(() -> "DragEvent bereits konsumiert");
+			return;
+		}
 		if (event.getEventType().equals(DragEvent.DRAG_OVER)) {
 			Dragboard db = event.getDragboard();
 			boolean akzeptieren = false;
 			if (db.hasFiles()) {
 				for (ExtensionFilter erweiterungen : this.ansicht.get().getProgrammDetails().dateiZuordnung()) {
 					for (String erweiterung : erweiterungen.getExtensions()) {
-						akzeptieren |= db.getFiles().stream().filter(datei -> datei.getName().endsWith(erweiterung))
-								.toList().isEmpty();
+						akzeptieren |= !db.getFiles().stream()
+								.filter(datei -> datei.getName().endsWith(erweiterung.replace("*", ""))).toList()
+								.isEmpty();
 					}
 				}
 				String akzeptiert = String.valueOf(akzeptieren);
@@ -405,17 +410,18 @@ class HauptKontrolle {
 			}
 			if (akzeptieren) {
 				event.acceptTransferModes(TransferMode.COPY);
+				event.consume();
 			}
 		}
 		if (event.getEventType().equals(DragEvent.DRAG_DROPPED)) {
 			Dragboard db = event.getDragboard();
 			if (db.hasFiles()) {
+				event.consume();
 				for (File datei : db.getFiles()) {
 					projektOeffnen(datei);
 				}
 			}
 		}
-		event.consume();
 	}
 	
 	void projektOeffnen(File datei) {
