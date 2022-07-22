@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -75,12 +74,12 @@ public interface ExportImportVerarbeitung {
 	 * @param quelle       Quelldatei, die importiert wird
 	 * @param verbindungen Liste, in die optionale Assoziationen eingefügt werden
 	 * @return importierter UMLKlassifizierer
-	 * @throws ParseException Wenn die Datei keinen gültigen Programmcode enthält oder aus einem anderen Grund nicht
+	 * @throws ImportException Wenn die Datei keinen gültigen Programmcode enthält oder aus einem anderen Grund nicht
 	 *                        interpretiert werden kann
 	 * @throws IOException    Wenn beim Lesen der Datei ein Fehler auftritt
 	 */
-	public UMLKlassifizierer importiere(File quelle, List<UMLVerbindung> verbindungen)
-			throws ParseException, IOException;
+	public List<UMLKlassifizierer> importiere(File quelle, List<UMLVerbindung> verbindungen)
+			throws ImportException, IOException;
 	
 	/**
 	 * Erzeugt einen Dateinamen für den Export auf Basis der Konventionen für die jeweilige Programmiersprache

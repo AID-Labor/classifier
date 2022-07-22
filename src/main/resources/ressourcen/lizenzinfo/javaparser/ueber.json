@@ -1,0 +1,11 @@
+{
+    "name" : "JavaParser",
+    "version" : "3.24.2",
+    "beschreibung" : "This project contains a set of libraries implementing a Java 1.0 - Java 15 Parser with advanced analysis functionalities.",
+    "github" : "https://github.com/javaparser/javaparser",
+    "link" : "https://javaparser.org",
+    "license" : {
+        "name" : "Apache License 2.0",
+        "link" : "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+}

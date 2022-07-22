@@ -100,6 +100,14 @@
     -fx-font: bold 16 sans-serif;
 }
 
+.fehler-icon {
+    -fx-icon-color:red;
+}
+
+.exception-dialog.dialog-pane {
+    -fx-graphic: null;
+}
+
 .abstrakt {
     -fx-font-style: italic;
 }

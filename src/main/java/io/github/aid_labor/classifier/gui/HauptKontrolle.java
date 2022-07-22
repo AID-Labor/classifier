@@ -19,6 +19,7 @@ import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -394,13 +395,7 @@ class HauptKontrolle {
 			Dragboard db = event.getDragboard();
 			boolean akzeptieren = false;
 			if (db.hasFiles()) {
-				for (ExtensionFilter erweiterungen : this.ansicht.get().getProgrammDetails().dateiZuordnung()) {
-					for (String erweiterung : erweiterungen.getExtensions()) {
-						akzeptieren |= !db.getFiles().stream()
-								.filter(datei -> datei.getName().endsWith(erweiterung.replace("*", ""))).toList()
-								.isEmpty();
-					}
-				}
+				akzeptieren = pruefeDateiErweiterungen(db.getFiles());
 				String akzeptiert = String.valueOf(akzeptieren);
 				log.finer(() -> """
 						DragOver-Dateien: [%s]
@@ -415,13 +410,26 @@ class HauptKontrolle {
 		}
 		if (event.getEventType().equals(DragEvent.DRAG_DROPPED)) {
 			Dragboard db = event.getDragboard();
-			if (db.hasFiles()) {
+			if (db.hasFiles() && pruefeDateiErweiterungen(db.getFiles())) {
 				event.consume();
 				for (File datei : db.getFiles()) {
 					projektOeffnen(datei);
 				}
 			}
 		}
+	}
+	
+	private boolean pruefeDateiErweiterungen(Collection<File> dateien) {
+		boolean akzeptieren = false;
+		for (ExtensionFilter erweiterungen : this.ansicht.get().getProgrammDetails().dateiZuordnung()) {
+			for (String erweiterung : erweiterungen.getExtensions()) {
+				akzeptieren |= !dateien.stream()
+						.filter(datei -> datei.getName().endsWith(erweiterung.replace("*", ""))).toList()
+						.isEmpty();
+			}
+		}
+		
+		return akzeptieren;
 	}
 	
 	void projektOeffnen(File datei) {

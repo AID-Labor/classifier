@@ -59,6 +59,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -727,6 +728,7 @@ public class HauptAnsicht {
 		String titel = sprache.getText("exportFehlerTitel", "Fehler beim Exportieren");
 		var text = new TextFlow(new Text(beschreibung));
 		text.getStyleClass().add("dialog-text-warnung");
+		text.setTextAlignment(TextAlignment.CENTER);
 		this.overlayDialog.showNode(Type.ERROR, titel, text);
 	}
 	
@@ -734,6 +736,7 @@ public class HauptAnsicht {
 		String titel = sprache.getText("importFehlerTitel", "Fehler beim Importieren");
 		var text = new TextFlow(new Text(beschreibung));
 		text.getStyleClass().add("dialog-text-warnung");
+		text.setTextAlignment(TextAlignment.CENTER);
 		this.overlayDialog.showNode(Type.ERROR, titel, text);
 	}
 }

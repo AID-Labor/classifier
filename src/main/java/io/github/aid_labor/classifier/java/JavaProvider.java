@@ -44,7 +44,7 @@ public class JavaProvider implements Programmiersprache {
 
 	@Override
 	public ExportImportVerarbeitung getVerarbeitung() {
-		return null;
+		return JavaExportImportVerarbeitung.getSingletonInstanz();
 	}
 	
 	@Override

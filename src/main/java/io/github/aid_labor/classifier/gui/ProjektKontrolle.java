@@ -13,13 +13,17 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.text.MessageFormat;
-import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.controlsfx.dialog.ExceptionDialog;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
+import org.kordamp.ikonli.javafx.FontIcon;
 
 import com.dlsc.gemsfx.DialogPane.Type;
 
@@ -33,15 +37,19 @@ import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
+import io.github.aid_labor.classifier.uml.programmierung.ImportException;
+import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Labeled;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -270,25 +278,28 @@ class ProjektKontrolle {
 		UMLProjekt projekt = ansicht.get().getProjekt();
 		var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
 		
-		List<UMLVerbindung> assoziationen = new LinkedList<>();
 		try {
-			UMLKlassifizierer klassifizierer = importVerwaltung.importiere(datei, assoziationen);
-			projekt.getDiagrammElemente().add(klassifizierer);
+			List<UMLVerbindung> assoziationen = new LinkedList<>();
+			List<UMLKlassifizierer> klassifizierer = importVerwaltung.importiere(datei, assoziationen);
+			if (klassifizierer == null) {
+				throw new NullPointerException();
+			}
+			projekt.getDiagrammElemente().addAll(klassifizierer);
 			assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
 					.forEach(projekt.getVerbindungen()::add);
-		} catch (ParseException e) {
+		} catch (ImportException e) {
 			log.log(Level.WARNING, e, () -> "Importfehler");
 			String format = sprache.getText("importParseFehler", """
 					Die Datei \"{0}\" konnte nicht interpretiert werden.
 					M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig""".formatted(Umlaute.oe,
 					Umlaute.ae, Umlaute.ue));
 			String beschreibung = MessageFormat.format(format, datei.getName());
-			zeigeImportFehlerDialog(beschreibung);
+			zeigeImportFehlerDialog(beschreibung, e);
 		} catch (Exception e) {
 			log.log(Level.WARNING, e, () -> "Importfehler");
 			String format = sprache.getText("importIOFehler", "Die Datei \"{0}\" konnte nicht gelesen werden.");
 			String beschreibung = MessageFormat.format(format, datei.getName());
-			zeigeImportFehlerDialog(beschreibung);
+			zeigeImportFehlerDialog(beschreibung, e);
 		}
 	}
 	
@@ -304,13 +315,7 @@ class ProjektKontrolle {
 			Dragboard db = event.getDragboard();
 			boolean akzeptieren = false;
 			if (db.hasFiles()) {
-				for (ExtensionFilter erweiterungen : importVerwaltung.getImportDateierweiterungen()) {
-					for (String erweiterung : erweiterungen.getExtensions()) {
-						akzeptieren |= !db.getFiles().stream()
-								.filter(datei -> datei.getName().endsWith(erweiterung.replace("*", ""))).toList()
-								.isEmpty();
-					}
-				}
+				akzeptieren = pruefeDateiErweiterungen(db.getFiles(), importVerwaltung.getImportDateierweiterungen());
 				String akzeptiert = String.valueOf(akzeptieren);
 				log.finer(() -> """
 						DragOver-Dateien: [%s]
@@ -324,8 +329,11 @@ class ProjektKontrolle {
 			}
 		}
 		if (event.getEventType().equals(DragEvent.DRAG_DROPPED)) {
+			UMLProjekt projekt = ansicht.get().getProjekt();
+			var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
 			Dragboard db = event.getDragboard();
-			if (db.hasFiles()) {
+			if (db.hasFiles()
+					&& pruefeDateiErweiterungen(db.getFiles(), importVerwaltung.getImportDateierweiterungen())) {
 				event.consume();
 				for (File datei : db.getFiles()) {
 					importiereAusDatei(datei);
@@ -336,11 +344,56 @@ class ProjektKontrolle {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	void zeigeImportFehlerDialog(String beschreibung) {
+	private boolean pruefeDateiErweiterungen(Collection<File> dateien, Iterable<ExtensionFilter> erweiterungenListe) {
+		boolean akzeptieren = false;
+		for (ExtensionFilter erweiterungen : erweiterungenListe) {
+			for (String erweiterung : erweiterungen.getExtensions()) {
+				akzeptieren |= !dateien.stream().filter(datei -> datei.getName().endsWith(erweiterung.replace("*", "")))
+						.toList().isEmpty();
+			}
+		}
+		return akzeptieren;
+	}
+	
+	private void zeigeImportFehlerDialog(String beschreibung, Throwable fehler) {
 		String titel = sprache.getText("importFehlerTitel", "Fehler beim Importieren");
 		var text = new TextFlow(new Text(beschreibung));
 		text.getStyleClass().add("dialog-text-warnung");
-		this.ansicht.get().getOverlayDialog().showNode(Type.ERROR, titel, text);
+		text.setTextAlignment(TextAlignment.CENTER);
+		if (fehler == null) {
+			this.ansicht.get().getOverlayDialog().showNode(Type.ERROR, titel, text);
+		} else {
+			this.ansicht.get().getOverlayDialog()
+					.showNode(Type.ERROR, titel, text, List.of(ButtonType.OK, new ButtonType("", ButtonData.HELP)))
+					.thenAccept(buttonTyp -> {
+						if (buttonTyp.getButtonData().equals(ButtonData.HELP)) {
+							var hilfeDialog = new ExceptionDialog(fehler);
+							FensterUtil.initialisiereElternFenster(ansicht.get().getTabPane().getScene().getWindow(),
+									hilfeDialog);
+							hilfeDialog.setResizable(true);
+							hilfeDialog.getDialogPane().setExpanded(true);
+							hilfeDialog.getDialogPane().getChildren().forEach(n -> {
+								if (n instanceof Labeled l) {
+									l.setWrapText(false);
+								}
+							});
+							int breite = 1000;
+							int hoehe = 550;
+							hilfeDialog.setWidth(breite);
+							hilfeDialog.setHeight(hoehe);
+							FontIcon symbol = new FontIcon(BootstrapIcons.EXCLAMATION_OCTAGON_FILL);
+							symbol.setIconSize(30);
+							symbol.getStyleClass().add("fehler-icon");
+							hilfeDialog.getDialogPane().setGraphic(symbol);
+							Platform.runLater(() ->{
+								hilfeDialog.setWidth(breite);
+								hilfeDialog.setHeight(hoehe);
+							});
+							hilfeDialog.showAndWait();
+						}
+					});
+			
+		}
 	}
 	
 }

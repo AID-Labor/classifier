@@ -607,5 +607,12 @@
 			<artifactId>cssfx</artifactId>
 			<version>11.5.1</version>
 		</dependency>
+
+		<!-- javaparser -->
+		<dependency>
+			<groupId>com.github.javaparser</groupId>
+			<artifactId>javaparser-core</artifactId>
+			<version>3.24.2</version>
+		</dependency>
 	</dependencies>
 </project>

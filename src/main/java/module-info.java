@@ -59,6 +59,8 @@ module classifier {
 	requires javafx.web;
 	requires java.xml;
 	requires javafx.swing;
+	requires java.compiler;
+	requires com.github.javaparser.core;
 	
 	uses Programmiersprache;
 	provides Programmiersprache with JavaProvider;

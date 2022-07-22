@@ -18,7 +18,8 @@ public enum KlassifiziererTyp {
 	Interface("interface", false),
 	Klasse(null, false),
 	AbstrakteKlasse(null, true),
-	Enumeration("enumeration", false);
+	Enumeration("enumeration", false), 
+	Record("record", false);
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
