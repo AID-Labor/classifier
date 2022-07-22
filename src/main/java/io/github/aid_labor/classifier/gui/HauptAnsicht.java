@@ -248,7 +248,9 @@ public class HauptAnsicht {
 		menue.getEnumEinfuegen().setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Enumeration));
 		menue.getKommentarEinfuegen().setOnAction(e -> erzeugeKommentar());
 		
-		NodeUtil.deaktivieren(menue.getVererbungEinfuegen(), menue.getAssoziationEinfuegen());
+		
+		menue.getVererbungEinfuegen().setOnAction(e -> this.projekteAnsicht.bearbeiteVerbindungen(false));
+		menue.getAssoziationEinfuegen().setOnAction(e -> this.projekteAnsicht.bearbeiteVerbindungen(true));
 		
 		// Menue Anordnen
 		NodeUtil.deaktivieren(menue.getAnordnenNachVorne(), menue.getAnordnenNachGanzVorne(),
@@ -322,6 +324,8 @@ public class HauptAnsicht {
 		menue.getDateiAlleSpeichern().disableProperty().bind(hatKeinProjekt);
 		menue.getDateiUmbenennen().disableProperty().bind(hatKeinProjekt);
 		menue.getExportierenBild().disableProperty().bind(hatKeinProjekt);
+		menue.getVererbungEinfuegen().disableProperty().bind(hatKeinProjekt);
+		menue.getAssoziationEinfuegen().disableProperty().bind(hatKeinProjekt);
 		
 		// Menue Bearbeiten
 		this.projekteAnsicht.angezeigtesProjektProperty().addListener((p, alt, projekt) -> {
