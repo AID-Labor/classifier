@@ -120,6 +120,10 @@ public class Ressourcen {
 	public final Ressource UML_ASSOZIATIONS_PFEIL;
 	public final Ressource UML_KOMMENTAR;
 	
+	public final Ressource JAVA_BEKANNTE_KLASSEN;
+	public final Ressource JAVA_BEKANNTE_INTERFACES;
+	public final Ressource JAVA_BEKANNTE_ENUMERATIONEN;
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	private final ProgrammDetails programm;
 	
@@ -205,6 +209,21 @@ public class Ressourcen {
 		this.SPRACHDATEIEN_ORDNER = erzeuger
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.SPRACHDATEI)
+				.erzeuge();
+		this.JAVA_BEKANNTE_KLASSEN = erzeuger
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.JAVA)
+				.name("bekannte_klassen")
+				.erzeuge();
+		this.JAVA_BEKANNTE_INTERFACES = erzeuger
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.JAVA)
+				.name("bekannte_interfaces")
+				.erzeuge();
+		this.JAVA_BEKANNTE_ENUMERATIONEN = erzeuger
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.JAVA)
+				.name("bekannte_enumerationen")
 				.erzeuge();
 		erstelleRessourcenOrdner();
 	}

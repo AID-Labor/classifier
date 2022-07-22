@@ -10,7 +10,8 @@ enum RessourceTyp {
 	CSS("css"), 
 	KONFIGURATIONSDATEI("konfiguration"),
 	GRAFIK("grafik"),
-	SPRACHDATEI("sprache");
+	SPRACHDATEI("sprache"),
+	JAVA("java");
 	
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

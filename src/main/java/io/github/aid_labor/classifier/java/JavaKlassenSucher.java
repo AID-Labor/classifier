@@ -7,6 +7,7 @@
 package io.github.aid_labor.classifier.java;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -21,6 +22,8 @@ import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
 
 
 public class JavaKlassenSucher {
@@ -68,15 +71,15 @@ public class JavaKlassenSucher {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	static SortedSet<String> ladeKlassen() {
-		return ladeDatei(BEKANNTE_KLASSEN);
+		return ladeDatei(Ressourcen.get().JAVA_BEKANNTE_KLASSEN.alsPath().toFile());
 	}
 	
 	static SortedSet<String> ladeEnumerationen() {
-		return ladeDatei(BEKANNTE_ENUMERATIONEN);
+		return ladeDatei(Ressourcen.get().JAVA_BEKANNTE_ENUMERATIONEN.alsPath().toFile());
 	}
 	
 	static SortedSet<String> ladeInterfaces() {
-		return ladeDatei(BEKANNTE_INTERFACES);
+		return ladeDatei(Ressourcen.get().JAVA_BEKANNTE_INTERFACES.alsPath().toFile());
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -85,7 +88,7 @@ public class JavaKlassenSucher {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private static SortedSet<String> ladeDatei(String datei) {
+	private static SortedSet<String> ladeDatei(File datei) {
 		SortedSet<String> inhalt = new TreeSet<>();
 		try (BufferedReader read = new BufferedReader(new FileReader(datei))) {
 			inhalt.addAll(read.lines().toList());
