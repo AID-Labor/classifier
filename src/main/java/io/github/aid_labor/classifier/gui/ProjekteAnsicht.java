@@ -314,6 +314,18 @@ public class ProjekteAnsicht {
 		} 
 	}
 	
+	public void exportiereAlsQuellcode() throws IllegalStateException, Exception {
+		if (getProjektAnsicht() != null) {
+			getProjektAnsicht().exportiereAlsQuellcode();
+		}
+	}
+	
+	public void importiereAusDatei() throws Exception {
+		if (getProjektAnsicht() != null) {
+			getProjektAnsicht().importiereAusDatei();
+		}
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -377,4 +389,5 @@ public class ProjekteAnsicht {
 			}
 		});
 	}
+
 }

@@ -10,11 +10,19 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.text.MessageFormat;
+import java.text.ParseException;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import com.dlsc.gemsfx.DialogPane.Type;
 
 import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
@@ -23,13 +31,23 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
 import javafx.event.Event;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.scene.control.ButtonType;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 
 class ProjektKontrolle {
@@ -142,7 +160,7 @@ class ProjektKontrolle {
 		
 		dateiDialog.getExtensionFilters().addAll(ansicht.get().getProgrammDetails().dateiZuordnung());
 		
-		String format = sprache.getText("speichernDialogTitel", "Projekt \"{1}\" speichern als...");
+		String format = sprache.getText("speichernDialogTitel", "Projekt \"{0}\" speichern als...");
 		String titel = MessageFormat.format(format, projekt.getName());
 		dateiDialog.setTitle(titel);
 		
@@ -194,6 +212,130 @@ class ProjektKontrolle {
 		return gespeichert;
 	}
 	
+	void exportiereAlsQuellcode(List<UMLKlassifizierer> elemente, UMLProjekt projekt) throws Exception {
+		
+		DirectoryChooser dateiDialog = new DirectoryChooser();
+		
+		if (projekt.getSpeicherort() != null) {
+			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
+		} else {
+			dateiDialog.setInitialDirectory(
+					new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get()));
+		}
+		
+		String titel = sprache.getText("speichernQuellcodeDialogTitel", "Quellcode speichern unter...");
+		dateiDialog.setTitle(titel);
+		
+		File speicherOrt = dateiDialog.showDialog(ansicht.get().getTabPane().getScene().getWindow());
+		if (speicherOrt == null) {
+			// @formatter:off
+			log.info(() -> 
+				"'Speichern Unter' f%cr Projekt %s fehlgeschlagen, da der Speicherort null war"
+					.formatted(Umlaute.ue, projekt));
+			// @formatter:on
+			return;
+		}
+		
+		Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().set(speicherOrt.getAbsolutePath());
+		
+		var exportVerarbeitung = projekt.getProgrammiersprache().getVerarbeitung();
+		exportVerarbeitung.exportiere(elemente, speicherOrt);
+	}
+	
+	void importiereAusDatei() {
+		UMLProjekt projekt = ansicht.get().getProjekt();
+		var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
+		FileChooser dateiDialog = new FileChooser();
+		
+		dateiDialog.setInitialDirectory(
+				new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get()));
+		
+		if (!OS.getDefault().istLinux()) {	// Workaraound, da in Linux die Dateierweitung nicht erkannt wird
+			dateiDialog.getExtensionFilters().addAll(importVerwaltung.getImportDateierweiterungen());
+		}
+		
+		String titel = sprache.getText("oeffnenDialogTitel", "Projekt %cffnen".formatted(Umlaute.OE));
+		dateiDialog.setTitle(titel);
+		
+		List<File> dateien = dateiDialog.showOpenMultipleDialog(ansicht.get().getTabPane().getScene().getWindow());
+		
+		if (dateien != null && !dateien.isEmpty()) {
+			Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty()
+					.set(dateien.get(0).getParentFile().getAbsolutePath());
+			
+			dateien.forEach(this::importiereAusDatei);
+		}
+	}
+	
+	void importiereAusDatei(File datei) {
+		UMLProjekt projekt = ansicht.get().getProjekt();
+		var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
+		
+		List<UMLVerbindung> assoziationen = new LinkedList<>();
+		try {
+			UMLKlassifizierer klassifizierer = importVerwaltung.importiere(datei, assoziationen);
+			projekt.getDiagrammElemente().add(klassifizierer);
+			assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
+					.forEach(projekt.getVerbindungen()::add);
+		} catch (ParseException e) {
+			log.log(Level.WARNING, e, () -> "Importfehler");
+			String format = sprache.getText("importParseFehler", """
+					Die Datei \"{0}\" konnte nicht interpretiert werden.
+					M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig""".formatted(Umlaute.oe,
+					Umlaute.ae, Umlaute.ue));
+			String beschreibung = MessageFormat.format(format, datei.getName());
+			zeigeImportFehlerDialog(beschreibung);
+		} catch (IOException e) {
+			log.log(Level.WARNING, e, () -> "Importfehler");
+			String format = sprache.getText("importIOFehler", "Die Datei \"{0}\" konnte nicht gelesen werden.");
+			String beschreibung = MessageFormat.format(format, datei.getName());
+			zeigeImportFehlerDialog(beschreibung);
+		}
+	}
+	
+	void importiereAusDatei(DragEvent event) {
+		log.finest(() -> "DragEvent ausgeloest: " + event.getEventType().getName());
+		if (event.getEventType().equals(DragEvent.DRAG_OVER)) {
+			UMLProjekt projekt = ansicht.get().getProjekt();
+			var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
+			Dragboard db = event.getDragboard();
+			boolean akzeptieren = false;
+			if (db.hasFiles()) {
+				for (ExtensionFilter erweiterungen : importVerwaltung.getImportDateierweiterungen()) {
+					for (String erweiterung : erweiterungen.getExtensions()) {
+						akzeptieren |= db.getFiles().stream().filter(datei -> datei.getName().endsWith(erweiterung))
+								.toList().isEmpty();
+					}
+				}
+				String akzeptiert = String.valueOf(akzeptieren);
+				log.finer(() -> """
+						DragOver-Dateien: [%s]
+						         Akzeptieren: %s""".formatted(
+						db.getFiles().stream().map(datei -> datei.getAbsolutePath()).collect(Collectors.joining("   ")),
+						akzeptiert));
+			}
+			if (akzeptieren) {
+				event.acceptTransferModes(TransferMode.COPY);
+			}
+		}
+		if (event.getEventType().equals(DragEvent.DRAG_DROPPED)) {
+			Dragboard db = event.getDragboard();
+			if (db.hasFiles()) {
+				for (File datei : db.getFiles()) {
+					importiereAusDatei(datei);
+				}
+			}
+		}
+		event.consume();
+	}
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	void zeigeImportFehlerDialog(String beschreibung) {
+		String titel = sprache.getText("importFehlerTitel", "Fehler beim Importieren");
+		var text = new TextFlow(new Text(beschreibung));
+		text.getStyleClass().add("dialog-text-warnung");
+		this.ansicht.get().getOverlayDialog().showNode(Type.ERROR, titel, text);
+	}
 	
 }

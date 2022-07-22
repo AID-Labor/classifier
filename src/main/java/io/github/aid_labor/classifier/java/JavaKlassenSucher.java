@@ -151,6 +151,7 @@ public class JavaKlassenSucher {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private static void schreibeModuleInDatei(SortedMap<String, SortedMap<String, SortedSet<String>>> module,
 			String dateiname) {
 		try (var pw = new PrintWriter(dateiname)) {

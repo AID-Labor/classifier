@@ -503,4 +503,12 @@ public abstract sealed class OS permits Unix, Windows, OS.Unbekannt {
 		return pfadAus(new StringBuilder(beginn), ordner, rest);
 	}
 	
+	public StringBuilder pfadAus(final CharSequence... namen) {
+		StringBuilder pfad = new StringBuilder(namen[0]);
+		for (var i = 1; i < namen.length; i++) {
+			pfad.append(this.seperator).append(namen[i]);
+		}
+		return pfad;
+	}
+	
 }

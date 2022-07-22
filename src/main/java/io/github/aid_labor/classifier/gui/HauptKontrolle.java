@@ -111,10 +111,10 @@ class HauptKontrolle {
 	
 	void exportiereAlsBild(Event event) {
 		List<? extends UMLDiagrammElement> elemente;
-		if (ansicht.get().getProjektAnsicht().getProjektAnsicht().hatSelektion()) {
-			elemente = ansicht.get().getProjektAnsicht().getProjektAnsicht().getSelektion();
+		if (ansicht.get().getProjekteAnsicht().getProjektAnsicht().hatSelektion()) {
+			elemente = ansicht.get().getProjekteAnsicht().getProjektAnsicht().getSelektion();
 		} else {
-			elemente = ansicht.get().getProjektAnsicht().getAngezeigtesProjekt().getDiagrammElemente();
+			elemente = ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getDiagrammElemente();
 		}
 		if (elemente.isEmpty()) {
 			ansicht.get().zeigeExportFehlerDialog(sprache.getText("exportierenFehlerLeer",
@@ -139,7 +139,7 @@ class HauptKontrolle {
 			gruppe.getChildren().add(node);
 		}
 		
-		for (var verbindung : ansicht.get().getProjektAnsicht().getAngezeigtesProjekt().getVerbindungen()) {
+		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getVerbindungen()) {
 			if (klassennamen.contains(verbindung.getVerbindungsStart())
 					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
 				var verbindungKopie = verbindung.erzeugeTiefeKopie();
@@ -196,10 +196,10 @@ class HauptKontrolle {
 		});
 	}
 	
-	Void snapshotSpeichern(SnapshotResult ergebnis) {
+	private Void snapshotSpeichern(SnapshotResult ergebnis) {
 		FileChooser dateiDialog = new FileChooser();
 		
-		var projekt = ansicht.get().getProjektAnsicht().getAngezeigtesProjekt();
+		var projekt = ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt();
 		if (projekt.getSpeicherort() != null) {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
 			dateiDialog.setInitialFileName(projekt.getSpeicherort().getFileName().toString());
@@ -211,7 +211,7 @@ class HauptKontrolle {
 		
 		dateiDialog.getExtensionFilters().addAll(new ExtensionFilter("Bild", "*.png"));
 		
-		String format = sprache.getText("exportierenDialogTitel", "Projekt \"{1}\" exportieren als...");
+		String format = sprache.getText("exportierenDialogTitel", "Projekt \"{0}\" exportieren als...");
 		String titel = MessageFormat.format(format, projekt.getName());
 		dateiDialog.setTitle(titel);
 		
@@ -236,6 +236,30 @@ class HauptKontrolle {
 		}
 		
 		return null;
+	}
+	
+	void exportiereAlsQuellcode(Event event) {
+		try {
+			ansicht.get().getProjekteAnsicht().exportiereAlsQuellcode();
+		} catch (IllegalStateException e) {
+			ansicht.get().zeigeExportFehlerDialog(sprache.getText("exportierenFehlerLeer",
+					"Das Projekt enth%clt keine exportierbaren Elemente.".formatted(ae)));
+		} catch (Exception e) {
+			log.log(Level.WARNING, e, () -> "Exportfehler");
+			ansicht.get().zeigeExportFehlerDialog(
+					sprache.getText("exportierenFehler", "Beim Export sind Fehler aufgetreten. "
+							+ "Diese k%cnnen dem Log im Konfigurationsorder entnommen werden.".formatted(oe)));
+		}
+	}
+	
+	void importiereAusDatei(Event event) {
+		try {
+			ansicht.get().getProjekteAnsicht().importiereAusDatei();
+		} catch (Exception e) {
+			log.log(Level.WARNING, e, () -> "Importfehler");
+			ansicht.get().zeigeImportFehlerDialog(
+					sprache.getText("importFehler", "Der Import konnte nicht ausgeführt werden."));
+		}
 	}
 	
 	void konigurationsordnerOeffnen(Event event) {
@@ -322,17 +346,17 @@ class HauptKontrolle {
 	}
 	
 	void projektSpeichern(Event event) {
-		UMLProjekt projekt = ansicht.get().getProjektAnsicht().angezeigtesProjektProperty().get();
+		UMLProjekt projekt = ansicht.get().getProjekteAnsicht().angezeigtesProjektProperty().get();
 		
 		if (projekt.getSpeicherort() == null) {
 			projektSpeichernUnter(event);
 		}
 		
-		ansicht.get().getProjektAnsicht().angezeigtesProjektSpeichern();
+		ansicht.get().getProjekteAnsicht().angezeigtesProjektSpeichern();
 	}
 	
 	void projektSpeichernUnter(Event event) {
-		ansicht.get().getProjektAnsicht().angezeigtesProjektSpeicherUnter();
+		ansicht.get().getProjekteAnsicht().angezeigtesProjektSpeicherUnter();
 	}
 	
 	void projektOeffnen(Event event) {
@@ -424,7 +448,7 @@ class HauptKontrolle {
 	}
 	
 	void projektUmbenennen(Event event) {
-		UMLProjekt projekt = ansicht.get().getProjektAnsicht().angezeigtesProjektProperty().get();
+		UMLProjekt projekt = ansicht.get().getProjekteAnsicht().angezeigtesProjektProperty().get();
 		
 		MessageFormat format = new MessageFormat(
 				sprache.getText("umbenennenTitel", "Neuen Namen f%cr Projekt {0} festlegen".formatted(ue)));
@@ -445,17 +469,17 @@ class HauptKontrolle {
 	}
 	
 	void zoomeGroesser(Event event) {
-		var projekt = ansicht.get().getProjektAnsicht().projektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjekteAnsicht().projektAnsichtProperty().get();
 		projekt.skaliere(projekt.getSkalierung() + 0.1);
 	}
 	
 	void zoomeKleiner(Event event) {
-		var projekt = ansicht.get().getProjektAnsicht().projektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjekteAnsicht().projektAnsichtProperty().get();
 		projekt.skaliere(projekt.getSkalierung() - 0.1);
 	}
 	
 	void resetZoom(Event event) {
-		var projekt = ansicht.get().getProjektAnsicht().projektAnsichtProperty().get();
+		var projekt = ansicht.get().getProjekteAnsicht().projektAnsichtProperty().get();
 		projekt.skaliere(projekt.getStandardSkalierung());
 	}
 	

@@ -46,6 +46,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
+import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
@@ -108,6 +109,7 @@ public class ProjektAnsicht extends Tab {
 		this.inhalt.getStyleClass().add("projekt-inhalt");
 		zeichenflaeche.minHeightProperty().bind(inhalt.heightProperty());
 		zeichenflaeche.minWidthProperty().bind(inhalt.widthProperty());
+		zeichenflaeche.addEventFilter(DragEvent.ANY, controller::importiereAusDatei);
 		
 		this.setContent(inhalt);
 		
@@ -205,6 +207,26 @@ public class ProjektAnsicht extends Tab {
 		this.projekt.getDiagrammElemente().removeIf(element -> entfernenIds.contains(element.getId()));
 		this.projekt.uebernehmeEditierungen();
 		this.projekt.setUeberwachungsStatus(status);
+	}
+	
+	public void exportiereAlsQuellcode() throws IllegalStateException, Exception {
+		List<UMLKlassifizierer> elemente;
+		if (this.hatSelektion()) {
+			elemente = this.getSelektion().stream().filter(UMLKlassifizierer.class::isInstance)
+					.map(UMLKlassifizierer.class::cast).toList();
+		} else {
+			elemente = projekt.getDiagrammElemente().stream().filter(UMLKlassifizierer.class::isInstance)
+					.map(UMLKlassifizierer.class::cast).toList();
+		}
+		if (elemente.isEmpty()) {
+			throw new IllegalStateException();
+		}
+		
+		this.controller.exportiereAlsQuellcode(elemente, projekt);
+	}
+	
+	public void importiereAusDatei() {
+		this.controller.importiereAusDatei();
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

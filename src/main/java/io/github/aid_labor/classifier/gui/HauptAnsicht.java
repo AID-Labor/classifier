@@ -189,7 +189,7 @@ public class HauptAnsicht {
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	ProjekteAnsicht getProjektAnsicht() {
+	ProjekteAnsicht getProjekteAnsicht() {
 		return projekteAnsicht;
 	}
 	
@@ -222,7 +222,6 @@ public class HauptAnsicht {
 	
 	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
 		// Menue Datei
-		NodeUtil.deaktivieren(menue.getDateiImportieren(), menue.getExportierenQuellcode());
 		
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
 		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
@@ -233,6 +232,8 @@ public class HauptAnsicht {
 		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
 		menue.getDateiUmbenennen().setOnAction(this.controller::projektUmbenennen);
 		menue.getExportierenBild().setOnAction(controller::exportiereAlsBild);
+		menue.getDateiImportieren().setOnAction(controller::importiereAusDatei);
+		menue.getExportierenQuellcode().setOnAction(controller::exportiereAlsQuellcode);
 		
 		// Menue Bearbeiten
 		var aktuellesProjekt = this.projekteAnsicht.angezeigtesProjektProperty().get();
@@ -325,6 +326,8 @@ public class HauptAnsicht {
 		menue.getDateiAlleSpeichern().disableProperty().bind(hatKeinProjekt);
 		menue.getDateiUmbenennen().disableProperty().bind(hatKeinProjekt);
 		menue.getExportierenBild().disableProperty().bind(hatKeinProjekt);
+		menue.getDateiImportieren().disableProperty().bind(hatKeinProjekt);
+		menue.getExportierenQuellcode().disableProperty().bind(hatKeinProjekt);
 		menue.getVererbungEinfuegen().disableProperty().bind(hatKeinProjekt);
 		menue.getAssoziationEinfuegen().disableProperty().bind(hatKeinProjekt);
 		
@@ -430,7 +433,8 @@ public class HauptAnsicht {
 		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
 		ribbon.getScreenshot().setOnAction(controller::exportiereAlsBild);
 		
-		NodeUtil.deaktivieren(ribbon.getImportieren(), ribbon.getExportieren());
+		ribbon.getImportieren().setOnAction(controller::importiereAusDatei);
+		ribbon.getExportieren().setOnAction(controller::exportiereAlsQuellcode);
 		
 		ribbon.getKopieren().setOnAction(e -> auswahlKopieren());
 		ribbon.getEinfuegen().setOnAction(e -> auswahlEinfuegen());
@@ -474,6 +478,8 @@ public class HauptAnsicht {
 		ribbon.getScreenshot().disableProperty().bind(hatKeinProjekt);
 		ribbon.getVererbung().disableProperty().bind(hatKeinProjekt);
 		ribbon.getAssoziation().disableProperty().bind(hatKeinProjekt);
+		ribbon.getImportieren().disableProperty().bind(hatKeinProjekt);
+		ribbon.getExportieren().disableProperty().bind(hatKeinProjekt);
 		
 		updateRueckgaengigWiederholen(ribbon, projekteAnsicht.angezeigtesProjektProperty().get());
 		this.projekteAnsicht.angezeigtesProjektProperty().addListener((p, alt, projekt) -> {
@@ -575,7 +581,7 @@ public class HauptAnsicht {
 	}
 	
 	private void auswahlEinfuegen() {
-		var klassenSuchBaum = new TreeSet<>(getProjektAnsicht().getAngezeigtesProjekt().getDiagrammElemente().stream()
+		var klassenSuchBaum = new TreeSet<>(getProjekteAnsicht().getAngezeigtesProjekt().getDiagrammElemente().stream()
 				.filter(UMLKlassifizierer.class::isInstance).map(k -> k.getName()).toList());
 		var kopie = kopiePuffer.stream().map(umlElement -> {
 			var umlKopie = umlElement.erzeugeTiefeKopie();
@@ -729,4 +735,10 @@ public class HauptAnsicht {
 		this.overlayDialog.showNode(Type.ERROR, titel, text);
 	}
 	
+	void zeigeImportFehlerDialog(String beschreibung) {
+		String titel = sprache.getText("importFehlerTitel", "Fehler beim Importieren");
+		var text = new TextFlow(new Text(beschreibung));
+		text.getStyleClass().add("dialog-text-warnung");
+		this.overlayDialog.showNode(Type.ERROR, titel, text);
+	}
 }
