@@ -55,6 +55,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.SnapshotResult;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
@@ -64,6 +65,7 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -140,7 +142,11 @@ class HauptKontrolle {
 		for (var verbindung : ansicht.get().getProjektAnsicht().getAngezeigtesProjekt().getVerbindungen()) {
 			if (klassennamen.contains(verbindung.getVerbindungsStart())
 					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
-				gruppe.getChildren().add(new UMLVerbindungAnsicht(verbindung, null));
+				var verbindungKopie = verbindung.erzeugeTiefeKopie();
+				verbindungKopie.setStartElement(verbindung.getStartElement());
+				verbindungKopie.setEndElement(verbindung.getEndElement());
+				verbindungKopie.setzeAusgebelendet(verbindung.istAusgebelendet());
+				gruppe.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
 			}
 		}
 		
@@ -181,7 +187,12 @@ class HauptKontrolle {
 //			});
 			
 			// Achtung: WebView muss mindestens zwei Pulse in einem Fenster angezeigt worden sein!
-			gruppe.snapshot(this::snapshotSpeichern, null, null);
+			SnapshotParameters snapParam = new SnapshotParameters();
+			if (parameter.istHintergrundTransparent()) {
+				snapParam.setFill(Color.TRANSPARENT);
+			}
+			
+			gruppe.snapshot(this::snapshotSpeichern, snapParam, null);
 		});
 	}
 	

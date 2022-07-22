@@ -17,7 +17,9 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -25,6 +27,7 @@ import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -49,11 +52,13 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		private final Theme farbe;
 		private final double skalierung;
 		private final Scene snapshotScene;
+		private final boolean hintergrundTransparent;
 		
-		private ExportParameter(Theme farbe, double skalierung, Scene snapshotScene) {
+		private ExportParameter(Theme farbe, double skalierung, Scene snapshotScene, boolean hintergrundTransparent) {
 			this.farbe = farbe;
 			this.skalierung = skalierung;
 			this.snapshotScene = snapshotScene;
+			this.hintergrundTransparent = hintergrundTransparent;
 		}
 		
 		public Theme getFarbe() {
@@ -66,6 +71,10 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		
 		public Scene getSnapshotScene() {
 			return snapshotScene;
+		}
+		
+		public boolean istHintergrundTransparent() {
+			return hintergrundTransparent;
 		}
 	}
 	
@@ -83,8 +92,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 	private final DoubleProperty skalierung;
 	private final Node vorschau;
 	private final Sprache sprache;
-//	private double bildBreite100;
-//	private double bildHoehe100;
+	private final BooleanProperty hintergrundTransparentProperty;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -95,6 +103,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		this.skalierung = new SimpleDoubleProperty(
 				Einstellungen.getBenutzerdefiniert().exportSkalierungProperty().get());
 		this.vorschau = vorschau;
+		this.hintergrundTransparentProperty = new SimpleBooleanProperty();
 		vorschau.setScaleX(1);
 		vorschau.setScaleY(1);
 		this.sprache = new Sprache();
@@ -142,6 +151,8 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		ComboBox<Double> skalierungAuswahl = erstelleSkalierungWahl();
 		CustomTextField breiteEingabe = erstelleBreiteEingabe();
 		CustomTextField hoeheEingabe = erstelleHoeheEingabe();
+		CheckBox hintergrundTransparent = new CheckBox();
+		this.hintergrundTransparentProperty.bind(hintergrundTransparent.selectedProperty());
 		ScrollPane vorschauBereich = new ScrollPane(new StackPane(vorschau));
 		vorschauBereich.getStyleClass().add("vorschau");
 		int maxBreite = 800;
@@ -157,7 +168,8 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		tabelle.add(skalierungAuswahl, 1, 1);
 		tabelle.add(breiteEingabe, 1, 2);
 		tabelle.add(hoeheEingabe, 1, 3);
-		tabelle.add(vorschauBereich, 1, 4);
+		tabelle.add(hintergrundTransparent, 1, 4);
+		tabelle.add(vorschauBereich, 1, 5);
 		
 		tabelle.setHgap(20);
 		tabelle.setVgap(10);
@@ -298,7 +310,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 	}
 	
 	private void erstelleLabels(GridPane tabelle) {
-		String[] schluessel = { "farbe", "skalierung", "breite", "hoehe", "vorschau" };
+		String[] schluessel = { "farbe", "skalierung", "breite", "hoehe", "hintergrundTransparent", "vorschau" };
 		
 		int zeile = 0;
 		for (String s : schluessel) {
@@ -317,7 +329,8 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		this.setResultConverter(button -> {
 			return switch (button.getButtonData()) {
 				case APPLY -> {
-					var ergebnis = new ExportParameter(farbe, skalierung.get(), vorschau.getScene());
+					var ergebnis = new ExportParameter(farbe, skalierung.get(), vorschau.getScene(),
+							hintergrundTransparentProperty.get());
 					yield ergebnis;
 				}
 				default -> null;

@@ -248,13 +248,14 @@ public class HauptAnsicht {
 		menue.getEnumEinfuegen().setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Enumeration));
 		menue.getKommentarEinfuegen().setOnAction(e -> erzeugeKommentar());
 		
-		
 		menue.getVererbungEinfuegen().setOnAction(e -> this.projekteAnsicht.bearbeiteVerbindungen(false));
 		menue.getAssoziationEinfuegen().setOnAction(e -> this.projekteAnsicht.bearbeiteVerbindungen(true));
 		
 		// Menue Anordnen
-		NodeUtil.deaktivieren(menue.getAnordnenNachVorne(), menue.getAnordnenNachGanzVorne(),
-				menue.getAnordnenNachHinten(), menue.getAnordnenNachGanzHinten());
+		menue.getAnordnenNachVorne().setOnAction(e -> nachVorne());
+		menue.getAnordnenNachHinten().setOnAction(e -> nachHinten());
+		menue.getAnordnenNachGanzVorne().setOnAction(e -> nachGanzVorne());
+		menue.getAnordnenNachGanzHinten().setOnAction(e -> nachGanzHinten());
 		
 		// Menue Darstellung
 		menue.getDarstellungGroesser().setOnAction(this.controller::zoomeGroesser);
@@ -344,12 +345,6 @@ public class HauptAnsicht {
 		menue.getInterfaceEinfuegen().disableProperty().bind(hatKeinProjekt);
 		menue.getEnumEinfuegen().disableProperty().bind(hatKeinProjekt);
 		menue.getKommentarEinfuegen().disableProperty().bind(hatKeinProjekt);
-		
-		// Menue Anordnen
-		menue.getAnordnenNachVorne().setOnAction(e -> nachVorne());
-		menue.getAnordnenNachHinten().setOnAction(e -> nachHinten());
-		menue.getAnordnenNachGanzVorne().setOnAction(e -> nachGanzVorne());
-		menue.getAnordnenNachGanzHinten().setOnAction(e -> nachGanzHinten());
 		
 		// Menue Darstellung
 		menue.getDarstellungGroesser().disableProperty().bind(hatKeinProjekt);
