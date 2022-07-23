@@ -429,8 +429,8 @@ public class UMLVerbindungenBearbeitenDialog extends Alert {
 				if (ausgeblendet.isSelected()) {
 					return true;
 				}
-				var startname = start.getSelectionModel().getSelectedItem();
-				var endname = ende.getSelectionModel().getSelectedItem();
+				var startname = entfernePaketname(start.getSelectionModel().getSelectedItem());
+				var endname =  entfernePaketname(ende.getSelectionModel().getSelectedItem());
 				return vorhandeneElementNamen.contains(startname) && vorhandeneElementNamen.contains(endname);
 			}, sprache.getText("ausgeblendetValidierung",
 					"Es m%cssen alle Klassen/Interfaces vorhanden sein, um die Verbindung einzublenden"
@@ -439,6 +439,18 @@ public class UMLVerbindungenBearbeitenDialog extends Alert {
 			setzePlatzhalter(ende);
 			setzePlatzhalter(ausgeblendet);
 		});
+	}
+	
+	private String entfernePaketname(String name) {
+		if (name == null) {
+			return "";
+		}
+		
+		if (name.contains(":")) {
+			return name.substring(name.indexOf(":")+1);
+		} else {
+			return name;
+		}
 	}
 	
 	private Node[] erstelleVererbungZeile(UMLVerbindung verbindung, KontrollElemente<UMLVerbindung> kontrollelemente) {

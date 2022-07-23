@@ -286,7 +286,10 @@ class ProjektKontrolle {
 			}
 			projekt.getDiagrammElemente().addAll(klassifizierer);
 			assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
-					.forEach(projekt.getVerbindungen()::add);
+					.forEach(assoziation -> {
+						assoziation.setzeAutomatisch(false);
+						projekt.getVerbindungen().add(assoziation);
+					});
 		} catch (ImportException e) {
 			log.log(Level.WARNING, e, () -> "Importfehler");
 			String format = sprache.getText("importParseFehler", """

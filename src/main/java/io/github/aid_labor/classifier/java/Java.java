@@ -273,6 +273,13 @@ public class Java implements ProgrammierEigenschaften {
 		return datentyp.getTypName().equals("void");
 	}
 	
+	public boolean istVoid(String datentyp) {
+		if (datentyp == null) {
+			return false;
+		}
+		return datentyp.equals("void");
+	}
+	
 	@Override
 	public List<String> getPrimitiveDatentypen() {
 		return primitiveDatentypen;

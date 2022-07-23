@@ -592,7 +592,7 @@ public final class NodeUtil {
 		private Cursor letzterCursor;
 		private Bounds ausgangsPosition;
 		
-		public BewegungsEinstellungen() {
+		BewegungsEinstellungen() {
 			wirdBewegt = false;
 			wirdGroesseVeraendert = false;
 			mausStartX = 0;
