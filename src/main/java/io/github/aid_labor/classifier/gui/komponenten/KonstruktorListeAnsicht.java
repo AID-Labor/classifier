@@ -6,13 +6,10 @@
 
 package io.github.aid_labor.classifier.gui.komponenten;
 
-import java.util.Objects;
-
 import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.Einstellungen;
-import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
-import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Konstruktor;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.StringBinding;
@@ -22,22 +19,11 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 
 
-public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
-//	private static final Logger log = Logger.getLogger(AttributListeAnsicht.class.getName());
+public class KonstruktorListeAnsicht extends ListenAnsicht<Konstruktor> {
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	/**
-	 * CSS-Klasse {@code statisch} fuer statische Methoden
-	 */
-	public static String CSS_STATISCH_KLASSE = "statisch";
-	
-	/**
-	 * CSS-Klasse {@code abstrakt} fuer abstrakte Methoden
-	 */
-	public static String CSS_ABSTRAKT_KLASSE = "abstrakt";
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
@@ -53,30 +39,28 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private final Programmiersprache programmiersprache;
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public MethodenListeAnsicht(ObservableList<Methode> methodenListe, Programmiersprache programmiersprache) {
-		super(methodenListe);
-		this.programmiersprache = Objects.requireNonNull(programmiersprache);
+	public KonstruktorListeAnsicht(ObservableList<Konstruktor> konstruktorListe) {
+		super(konstruktorListe);
 		fuelleListe();
-		this.getStyleClass().add("methoden-liste");
+		this.getStyleClass().add("konstruktor-liste");
 	}
 	
 	@Override
-	protected Node[] erstelleZeile(Methode methode) {
+	protected Node[] erstelleZeile(Konstruktor konstruktor) {
 		var sichtbarkeit = new EnhancedLabel();
-		sichtbarkeit.textProperty().bind(methode.sichtbarkeitProperty().get().kurzformProperty());
-		methode.sichtbarkeitProperty().addListener((p, alt, neu) -> {
+		sichtbarkeit.textProperty().bind(konstruktor.sichtbarkeitProperty().get().kurzformProperty());
+		konstruktor.sichtbarkeitProperty().addListener((p, alt, neu) -> {
 			sichtbarkeit.textProperty().unbind();
 			sichtbarkeit.textProperty().bind(new StringBinding() {
 				
 				Observable x;
 				
 				{
-					super.bind(methode.sichtbarkeitProperty());
+					super.bind(konstruktor.sichtbarkeitProperty());
 				}
 				
 				@Override
@@ -84,7 +68,7 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 					if (x != null) {
 						super.unbind(x);
 					}
-					var prop = methode.sichtbarkeitProperty().get();
+					var prop = konstruktor.sichtbarkeitProperty().get();
 					
 					if (prop == null) {
 						x = null;
@@ -100,9 +84,9 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 		});
 		
 		var beschreibung = new EnhancedLabel();
-		beschreibung.textProperty().bind(methode.nameProperty().concat("(").concat(new StringBinding() {
+		beschreibung.textProperty().bind(konstruktor.nameProperty().concat("(").concat(new StringBinding() {
 			{
-				super.bind(methode.parameterListeProperty());
+				super.bind(konstruktor.parameterListeProperty());
 			}
 			StringExpression stringExpr = null;
 			
@@ -111,7 +95,7 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 				if (stringExpr != null) {
 					super.unbind(stringExpr);
 				}
-				var params = methode.parameterListeProperty().stream().map(param -> {
+				var params = konstruktor.parameterListeProperty().stream().map(param -> {
 					return Bindings.concat(
 							new When(Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty())
 									.then(param.nameProperty().concat(": ")).otherwise(""),
@@ -131,55 +115,9 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 				super.bind(stringExpr);
 				return stringExpr.get();
 			}
-		}).concat(")").concat(new StringBinding() {
-			{
-				super.bind(methode.getRueckgabeTyp().typNameProperty(),
-						Einstellungen.getBenutzerdefiniert().zeigeVoidProperty());
-			}
-			
-			@Override
-			protected String computeValue() {
-				if (programmiersprache.getEigenschaften().istVoid(methode.getRueckgabeTyp())
-						&& !Einstellungen.getBenutzerdefiniert().zeigeVoidProperty().get()) {
-					return "";
-				}
-				String typ = methode.getRueckgabeTyp().getTypName();
-				if (typ != null && !typ.isBlank()) {
-					return ": " + typ;
-				}
-				return "";
-			}
-		}));
+		}).concat(")"));
 		
 		sichtbarkeit.getStyleClass().addAll("sichtbarkeit-label");
-		
-		if (methode.istStatisch()) {
-			beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);
-		} else {
-			beschreibung.getStyleClass().remove(CSS_STATISCH_KLASSE);
-		}
-		
-		methode.istStatischProperty().addListener((property, alt, istStatisch) -> {
-			if (istStatisch) {
-				beschreibung.getStyleClass().add(CSS_STATISCH_KLASSE);
-			} else {
-				beschreibung.getStyleClass().remove(CSS_STATISCH_KLASSE);
-			}
-		});
-		
-		if (methode.istAbstrakt()) {
-			beschreibung.getStyleClass().add(CSS_ABSTRAKT_KLASSE);
-		} else {
-			beschreibung.getStyleClass().remove(CSS_ABSTRAKT_KLASSE);
-		}
-		
-		methode.istAbstraktProperty().addListener((property, alt, istAbstrakt) -> {
-			if (istAbstrakt) {
-				beschreibung.getStyleClass().add(CSS_ABSTRAKT_KLASSE);
-			} else {
-				beschreibung.getStyleClass().remove(CSS_ABSTRAKT_KLASSE);
-			}
-		});
 		
 		return new Node[] { sichtbarkeit, beschreibung };
 	}

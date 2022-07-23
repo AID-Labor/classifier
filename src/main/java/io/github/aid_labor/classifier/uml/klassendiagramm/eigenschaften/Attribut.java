@@ -32,7 +32,6 @@ import javafx.beans.property.StringProperty;
  *
  */
 public class Attribut extends EditierbarBasis implements EditierbarerBeobachter {
-//	private static final Logger log = Logger.getLogger(Attribut.class.getName());
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -62,6 +61,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	private final JsonBooleanProperty hatGetter;
 	private final JsonBooleanProperty hatSetter;
 	private final JsonBooleanProperty istStatisch;
+	private final JsonBooleanProperty istFinal;
 	@JsonBackReference("getterAttribut")
 	private Methode getter;
 	@JsonBackReference("setterAttribut")
@@ -84,6 +84,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	 * @param hatGetter		{@code true}, wenn das Attribut einen Getter hat
 	 * @param hatSetter		{@code true}, wenn das Attribut einen Setter hat
 	 * @param istStatisch	{@code true}, wenn das Attribut statisch hat
+	 * @param istFinal		{@code true}, wenn das Attribut final ist
 	 * @param getter		Optionale Getter-Methode
 	 * @param setter		Optionale Setter-Methode
 	 */
@@ -96,6 +97,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 			@JsonProperty("hatGetter") boolean hatGetter,
 			@JsonProperty("hatSetter") boolean hatSetter,
 			@JsonProperty("istStatisch") boolean istStatisch,
+			@JsonProperty(value = "istfinal", defaultValue = "false") boolean istFinal,
 			@JsonProperty("getterAttribut") Methode getter,
 			@JsonProperty("setterAttribut") Methode setter) {
 		this.sichtbarkeit = new JsonObjectProperty<>(this, "sichtbarkeit", sichtbarkeit);
@@ -105,6 +107,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.hatGetter = new JsonBooleanProperty(this, "hatGetter", hatGetter);
 		this.hatSetter = new JsonBooleanProperty(this, "hatSetter", hatSetter);
 		this.istStatisch = new JsonBooleanProperty(this, "istStatisch", istStatisch);
+		this.istFinal = new JsonBooleanProperty(this, "istFinal", istFinal);
 		this.getter = getter;
 		this.setter = setter;
 		this.beobachterListe = new LinkedList<>();
@@ -117,6 +120,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.ueberwachePropertyAenderung(this.hatGetter, id + "_attribut_getter");
 		this.ueberwachePropertyAenderung(this.hatSetter, id + "_attribut_setter");
 		this.ueberwachePropertyAenderung(this.istStatisch, id + "_attribut_statisch");
+		this.ueberwachePropertyAenderung(this.istFinal, id + "_attribut_final");
 	}
 	
 	/**
@@ -127,7 +131,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	 * @param datentyp		Datentyp des Attributes
 	 */
 	public Attribut(Modifizierer sichtbarkeit, Datentyp datentyp) {
-		this(sichtbarkeit, "", datentyp, null, false, false, false, null, null);
+		this(sichtbarkeit, "", datentyp, null, false, false, false, false, null, null);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -194,6 +198,14 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.istStatisch.set(istStatisch);
 	}
 	
+	public boolean istFinal() {
+		return istFinal.get();
+	}
+	
+	public void setFinal(boolean istFinal) {
+		this.istFinal.set(istFinal);
+	}
+	
 	public Methode getGetter() {
 		return getter;
 	}
@@ -234,6 +246,9 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	
 	public BooleanProperty istStatischProperty() {
 		return istStatisch;
+	}
+	public BooleanProperty istFinalProperty() {
+		return istFinal;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

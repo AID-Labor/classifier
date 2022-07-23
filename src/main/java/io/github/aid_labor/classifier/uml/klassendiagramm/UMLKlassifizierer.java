@@ -8,6 +8,7 @@ package io.github.aid_labor.classifier.uml.klassendiagramm;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +30,7 @@ import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.editierung.ListenAenderungsUeberwacher;
 import io.github.aid_labor.classifier.basis.projekt.editierung.ListenEditierUeberwacher;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
+import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Konstruktor;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Modifizierer;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
@@ -54,6 +56,91 @@ public class UMLKlassifizierer extends UMLBasisElement {
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	private class KonstruktorLinkedList extends LinkedList<Konstruktor> {
+		
+		private static final long serialVersionUID = 1628790459929603311L;
+		
+		@Override
+		public boolean add(Konstruktor k) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			return super.add(k);
+		}
+		
+		@Override
+		public void addFirst(Konstruktor e) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			super.addFirst(e);
+		}
+		
+		@Override
+		public void addLast(Konstruktor e) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			super.addLast(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends Konstruktor> c) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			return super.addAll(c);
+		}
+		
+		@Override
+		public boolean addAll(int index, Collection<? extends Konstruktor> c) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			return super.addAll(index, c);
+		}
+		
+		@Override
+		public void add(int index, Konstruktor element) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			super.add(index, element);
+		}
+		
+		@Override
+		public boolean offer(Konstruktor e) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			return super.offer(e);
+		}
+		
+		@Override
+		public boolean offerFirst(Konstruktor e) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			return super.offerFirst(e);
+		}
+		
+		@Override
+		public boolean offerLast(Konstruktor e) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			return super.offerLast(e);
+		}
+		
+		@Override
+		public void push(Konstruktor e) {
+			if (KlassifiziererTyp.Interface.equals(getTyp())) {
+				throw new UnsupportedOperationException("keine Konstruktoren bei Interfaces erlaubt");
+			}
+			super.push(e);
+		}
+	}
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
@@ -75,6 +162,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	private final ObservableList<Attribut> attribute;
 	@JsonManagedReference
 	private final ObservableList<Methode> methoden;
+	private final ObservableList<Konstruktor> konstruktoren;
 	@JsonIgnore
 	private final List<Object> schwacheUeberwacher;
 	
@@ -92,10 +180,12 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.interfaceListe = FXCollections.observableList(new LinkedList<>());
 		this.attribute = FXCollections.observableList(new LinkedList<>());
 		this.methoden = FXCollections.observableList(new LinkedList<>());
+		this.konstruktoren = FXCollections.observableList(new KonstruktorLinkedList());
 		this.schwacheUeberwacher = new LinkedList<>();
 		
 		this.attribute.addListener(new ListenEditierUeberwacher<>(this.attribute, this));
 		this.methoden.addListener(new ListenEditierUeberwacher<>(this.methoden, this));
+		this.konstruktoren.addListener(new ListenEditierUeberwacher<>(this.konstruktoren, this));
 		this.ueberwachePropertyAenderung(this.name, getId() + "_klassifizierername");
 		this.ueberwachePropertyAenderung(this.paket, getId() + "_paket");
 		this.ueberwachePropertyAenderung(this.typ, getId() + "_klassifizierertyp");
@@ -103,6 +193,24 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		ueberwacheGetterUndSetter();
 		ueberwacheTyp();
 		this.interfaceListe.addListener(new ListenAenderungsUeberwacher<>(this.interfaceListe, this));
+		
+		ListChangeListener<Konstruktor> konstruktorUeberwacher = aenderung -> {
+			while (aenderung.next()) {
+				for (var konstruktorHinzu : aenderung.getAddedSubList()) {
+					konstruktorHinzu.setName(getName());
+				}
+			}
+		};
+		this.schwacheUeberwacher.add(konstruktorUeberwacher);
+		this.konstruktoren.addListener(new WeakListChangeListener<>(konstruktorUeberwacher));
+		
+		ChangeListener<String> namenUeberwacher = (p, alt, neuerName) -> {
+			for (Konstruktor k : konstruktoren) {
+				k.setName(neuerName);
+			}
+		};
+		schwacheUeberwacher.add(namenUeberwacher);
+		this.name.addListener(new WeakChangeListener<>(namenUeberwacher));
 	}
 	
 	@JsonCreator
@@ -110,11 +218,11 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			@JsonProperty("sichtbarkeit") Modifizierer sichtbarkeit,
 			@JsonProperty("programmiersprache") Programmiersprache programmiersprache,
 			@JsonProperty("paket") String paket, @JsonProperty("name") String name,
-			@JsonProperty("superklasse") String superklasse, 
-			@JsonProperty("interfaceListe") List<String> interfaceListe,
-			@JsonProperty("interfaces") String interfaces,
+			@JsonProperty("superklasse") String superklasse,
+			@JsonProperty("interfaceListe") List<String> interfaceListe, @JsonProperty("interfaces") String interfaces,
 			@JsonProperty("position") Position position, @JsonProperty("attribute") List<Attribut> attribute,
-			@JsonProperty("methoden") List<Methode> methoden) {
+			@JsonProperty("methoden") List<Methode> methoden,
+			@JsonProperty("konstruktoren") List<Konstruktor> konstruktoren) {
 		this(typ, programmiersprache, name);
 		this.getPosition().setPosition(position);
 		this.setPaket(paket);
@@ -138,6 +246,9 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		
 		this.attribute.addAll(attribute);
 		this.methoden.addAll(methoden);
+		if (!KlassifiziererTyp.Interface.equals(typ) && konstruktoren != null) {
+			this.konstruktoren.addAll(konstruktoren);
+		}
 	}
 	
 	private void initialisiereGetterBindung(Attribut attribut, List<Methode> methoden) {
@@ -279,6 +390,10 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		return methoden;
 	}
 	
+	public ObservableList<Konstruktor> konstruktorProperty() {
+		return konstruktoren;
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -299,8 +414,8 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	
 	@Override
 	public int hashCode() {
-		return ClassifierUtil.hashAlle(attributeProperty(), methodenProperty(), getName(), getPaket(),
-				getProgrammiersprache(), getPosition(), getTyp());
+		return ClassifierUtil.hashAlle(attributeProperty(), methodenProperty(), konstruktorProperty(), getName(),
+				getPaket(), getProgrammiersprache(), getPosition(), getTyp());
 	}
 	
 	@Override
@@ -320,25 +435,28 @@ public class UMLKlassifizierer extends UMLBasisElement {
 				klassifizierer.attributeProperty());
 		boolean methodenGleich = ClassifierUtil.pruefeGleichheit(this.methodenProperty(),
 				klassifizierer.methodenProperty());
+		boolean konstruktorenGleich = ClassifierUtil.pruefeGleichheit(this.konstruktorProperty(),
+				klassifizierer.konstruktorProperty());
 		boolean nameGleich = Objects.equals(getName(), klassifizierer.getName());
 		boolean paketGleich = Objects.equals(getPaket(), klassifizierer.getPaket());
 		boolean programmierspracheGleich = getProgrammiersprache().equals(klassifizierer.getProgrammiersprache());
 		boolean typGleich = getTyp().equals(klassifizierer.getTyp());
 		boolean positionGleich = getPosition().equals(klassifizierer.getPosition());
 		
-		boolean istGleich = attributeGleich && methodenGleich && nameGleich && paketGleich && programmierspracheGleich
-				&& positionGleich && typGleich;
+		boolean istGleich = attributeGleich && methodenGleich && konstruktorenGleich && nameGleich && paketGleich
+				&& programmierspracheGleich && positionGleich && typGleich;
 		
 		log.finest(() -> """
 				istGleich: %s
 				   |-- attributeGleich: %s
 				   |-- methodenGleich: %s
+				   |-- konstruktorenGleich: %s
 				   |-- nameGleich: %s
 				   |-- paketGleich: %s
 				   |-- programmierspracheGleich: %s
 				   |-- positionGleich: %s
-				   ╰-- typGleich: %s""".formatted(istGleich, attributeGleich, methodenGleich, nameGleich, paketGleich,
-				programmierspracheGleich, positionGleich, typGleich));
+				   ╰-- typGleich: %s""".formatted(istGleich, attributeGleich, methodenGleich, konstruktorenGleich,
+				nameGleich, paketGleich, programmierspracheGleich, positionGleich, typGleich));
 		
 		return istGleich;
 	}
@@ -368,6 +486,10 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			kopie.methoden.add(methodeKopie);
 		}
 		
+		for (var konstrukor : konstruktoren) {
+			kopie.konstruktoren.add(konstrukor.erzeugeTiefeKopie());
+		}
+		
 		return kopie;
 	}
 	
@@ -383,8 +505,12 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		for (var methode : methoden) {
 			methode.close();
 		}
+		for (var konstruktor : konstruktoren) {
+			konstruktor.close();
+		}
 		methoden.clear();
 		attribute.clear();
+		konstruktoren.clear();
 		super.schliesse();
 		
 		for (var attribut : this.getClass().getDeclaredFields()) {
@@ -472,6 +598,9 @@ public class UMLKlassifizierer extends UMLBasisElement {
 			if (alt != neuerKlassifizierer) {
 				this.attribute.forEach(a -> updateAttribut(a, neuerKlassifizierer));
 				this.methoden.forEach(m -> updateMethode(m, neuerKlassifizierer));
+				if (KlassifiziererTyp.Interface.equals(neuerKlassifizierer)) {
+					this.konstruktoren.clear();
+				}
 			}
 		};
 		

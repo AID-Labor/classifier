@@ -46,6 +46,7 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 	
 	private final AttributListeAnsicht attribute;
 	private final MethodenListeAnsicht methoden;
+	private final KonstruktorListeAnsicht konstruktoren;
 	private final Label stereotyp;
 	private final Label name;
 	private final Separator attributeTrenner;
@@ -69,6 +70,7 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		this.name = new Label(klassifizierer.getName());
 		
 		this.attribute = new AttributListeAnsicht(klassifizierer.attributeProperty());
+		this.konstruktoren = new KonstruktorListeAnsicht(klassifizierer.konstruktorProperty());
 		this.methoden = new MethodenListeAnsicht(klassifizierer.methodenProperty(),
 				klassifizierer.getProgrammiersprache());
 		this.attributeTrenner = new Separator();
@@ -78,7 +80,7 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		erstelleBindungen();
 		beobachte();
 		
-		eigenschaften = new VBox(attributeTrenner, attribute, methodenTrenner, methoden);
+		eigenschaften = new VBox(attributeTrenner, attribute, methodenTrenner, konstruktoren, methoden);
 		oben = new VBox(name);
 		oben.getStyleClass().add("klassifizierung");
 		inhalt = new VBox(oben, eigenschaften);
@@ -121,7 +123,6 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		this.name.getStyleClass().add("name-label");
 		this.attribute.setMinHeight(20);
 		this.methoden.setMinHeight(20);
-		this.methoden.setPadding(new Insets(0, 10, 0, 10));
 		this.attributeTrenner.getStyleClass().clear();
 		this.attributeTrenner.getStyleClass().add("UML-Klassifizierer-Trennlinie");
 		this.methodenTrenner.getStyleClass().clear();
@@ -143,11 +144,11 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		});
 		var paket = new When(umlElementModel.get().paketProperty().isNotEmpty())
 				.then(umlElementModel.get().paketProperty().concat("::")).otherwise("");
-		this.name.textProperty()
-				.bind(paket.concat(umlElementModel.get().nameProperty()));
+		this.name.textProperty().bind(paket.concat(umlElementModel.get().nameProperty()));
 		trennerBeobachter = this::checkeTrenner;
 		umlElementModel.get().attributeProperty().addListener(new WeakInvalidationListener(trennerBeobachter));
 		methoden.getChildren().addListener(new WeakInvalidationListener(trennerBeobachter));
+		konstruktoren.getChildren().addListener(new WeakInvalidationListener(trennerBeobachter));
 	}
 	
 	private void beobachte() {
@@ -171,7 +172,8 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 	
 	private void checkeTrenner(Observable o) {
 		boolean hatAttributOderMethode = !umlElementModel.get().attributeProperty().isEmpty()
-				|| !umlElementModel.get().methodenProperty().isEmpty();
+				|| !umlElementModel.get().methodenProperty().isEmpty()
+				|| !umlElementModel.get().konstruktorProperty().isEmpty();
 		if (hatAttributOderMethode) {
 			if (!this.inhalt.getChildren().contains(this.eigenschaften)) {
 				this.inhalt.getChildren().add(eigenschaften);

@@ -51,6 +51,7 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 	public AttributListeAnsicht(ObservableList<Attribut> attributListe) {
 		super(attributListe);
 		fuelleListe();
+		this.getStyleClass().add("attribut-liste");
 	}
 	
 	@Override

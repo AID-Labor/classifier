@@ -134,6 +134,7 @@ public class Java implements ProgrammierEigenschaften {
 		return switch (typ) {
 			case Interface -> m.istPublic();
 			case Klasse, AbstrakteKlasse, Enumeration -> m.istPrivate();
+			case Record -> false;
 			default -> {
 				log.warning(() -> "unbekannter typ: " + typ);
 				yield false;
@@ -145,7 +146,7 @@ public class Java implements ProgrammierEigenschaften {
 	public boolean istMethodenModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m) {
 		return switch (typ) {
 			case Interface -> m.istPublic();
-			case Klasse, AbstrakteKlasse, Enumeration -> m.istPrivate();
+			case Klasse, AbstrakteKlasse, Enumeration, Record -> m.istPrivate();
 			default -> {
 				log.warning(() -> "unbekannter typ: " + typ);
 				yield false;
@@ -157,7 +158,7 @@ public class Java implements ProgrammierEigenschaften {
 	public List<Modifizierer> getAttributModifizierer(KlassifiziererTyp typ) {
 		return switch (typ) {
 			case Interface -> List.of(Modifizierer.PUBLIC);
-			case Klasse, AbstrakteKlasse, Enumeration ->
+			case Klasse, AbstrakteKlasse, Enumeration, Record ->
 				List.of(Modifizierer.PUBLIC, Modifizierer.PROTECTED, Modifizierer.PACKAGE, Modifizierer.PRIVATE);
 			default -> {
 				log.warning(() -> "unbekannter typ: " + typ);
@@ -206,6 +207,24 @@ public class Java implements ProgrammierEigenschaften {
 	}
 	
 	@Override
+	public Modifizierer getStandardKonstruktorModifizierer(KlassifiziererTyp typ) {
+		return Modifizierer.PUBLIC;
+	}
+	
+	@Override
+	public List<Modifizierer> getKonstruktorModifizierer(KlassifiziererTyp typ) {
+		return switch (typ) {
+			case Interface -> Collections.emptyList();
+			case Klasse, AbstrakteKlasse, Enumeration, Record ->
+				List.of(Modifizierer.PUBLIC, Modifizierer.PROTECTED, Modifizierer.PACKAGE, Modifizierer.PRIVATE);
+			default -> {
+				log.warning(() -> "unbekannter typ: " + typ);
+				yield Collections.emptyList();
+			}
+		};
+	}
+	
+	@Override
 	public Modifizierer getStandardMethodenModifizierer(KlassifiziererTyp typ) {
 		return Modifizierer.PUBLIC;
 	}
@@ -213,7 +232,7 @@ public class Java implements ProgrammierEigenschaften {
 	@Override
 	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ) {
 		return switch (typ) {
-			case Interface -> false;
+			case Interface, Record -> false;
 			default -> true;
 		};
 	}
@@ -221,7 +240,7 @@ public class Java implements ProgrammierEigenschaften {
 	@Override
 	public boolean erlaubtSuperklasse(KlassifiziererTyp typ) {
 		return switch (typ) {
-			case Interface, Enumeration -> false;
+			case Interface, Enumeration, Record -> false;
 			default -> true;
 		};
 	}

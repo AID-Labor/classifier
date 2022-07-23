@@ -31,7 +31,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 
-public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
+public class Methode extends EditierbarBasis implements EditierbarerBeobachter, HatParameterListe {
 	private static final Logger log = Logger.getLogger(Methode.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -242,11 +242,12 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter {
 		return null;
 	}
 	
+	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	@Override
 	public ObservableList<Parameter> parameterListeProperty() {
 		return parameterListe;
 	}
-	
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public ObjectProperty<Modifizierer> sichtbarkeitProperty() {
 		return sichtbarkeit;

@@ -47,10 +47,8 @@ public abstract class ListenAnsicht<T> extends GridPane {
 		this.setMinSize(0, 0);
 		this.setVisible(!inhaltListe.isEmpty());
 		this.inhaltListeRef = new WeakReference<ObservableList<T>>(inhaltListe);
-		this.getStyleClass().add("attribut-liste");
 		
-		WeakReference<ListenAnsicht<T>> ref = new WeakReference<ListenAnsicht<T>>(
-				this);
+		WeakReference<ListenAnsicht<T>> ref = new WeakReference<ListenAnsicht<T>>(this);
 		listenBeobachter = aenderung -> {
 			ref.get().setVisible(!ref.get().inhaltListeRef.get().isEmpty());
 			fuelleListe();

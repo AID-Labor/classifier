@@ -23,6 +23,7 @@ public interface ProgrammierEigenschaften {
 	
 	public List<Modifizierer> getAttributModifizierer(KlassifiziererTyp typ);
 	public List<Modifizierer> getMethodenModifizierer(KlassifiziererTyp typ, boolean istStatisch, boolean istAbstrakt);
+	public List<Modifizierer> getKonstruktorModifizierer(KlassifiziererTyp typ);
 	
 	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ);
 	public boolean erlaubtSuperklasse(KlassifiziererTyp typ);
@@ -44,6 +45,7 @@ public interface ProgrammierEigenschaften {
 
 	public Modifizierer getStandardAttributModifizierer(KlassifiziererTyp typ);
 	public Modifizierer getStandardMethodenModifizierer(KlassifiziererTyp typ);
+	public Modifizierer getStandardKonstruktorModifizierer(KlassifiziererTyp typ);
 
 	
 }
