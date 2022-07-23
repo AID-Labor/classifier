@@ -130,6 +130,13 @@ public class ProjektAnsicht extends Tab {
 		
 		fuegeAlleHinzu(projekt.getDiagrammElemente(), 0);
 		fuegeAlleHinzu(projekt.getVerbindungen());
+		
+		this.inhalt.setOnZoom(event -> {
+			double skalierung = getSkalierung() * event.getZoomFactor();
+			if (skalierung  >= 0.3) {
+				skaliere(skalierung);
+			}
+		});
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

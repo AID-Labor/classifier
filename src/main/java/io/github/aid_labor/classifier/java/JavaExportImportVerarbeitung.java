@@ -48,8 +48,8 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private static final List<ExtensionFilter> importDateierweiterungen = List
-			.of(new ExtensionFilter("Java", "*.java"));
+	private static final List<ExtensionFilter> importDateierweiterungen = List.of(new ExtensionFilter("Java", "*.java"),
+			new ExtensionFilter("Java", "*.jar"));
 	
 	private static JavaExportImportVerarbeitung instanz;
 	
@@ -131,39 +131,45 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 		JavaParser parser = new JavaParser();
 		ParseResult<CompilationUnit> ergebnis = parser.parse(quelle);
 		
-		if (!ergebnis.isSuccessful()) {
-			Queue<Throwable> exceptions = new LinkedList<>();
-			StringBuilder message = new StringBuilder("[");
-			message.append(ergebnis.getProblems().size());
-			message.append("] Problem(s) in ");
-			message.append(quelle.getName());
-			message.append(":\n");
-			for (var problem : ergebnis.getProblems()) {
-				problem.getCause().ifPresent(exceptions::add);
-				message.append(problem.getVerboseMessage());
-				message.append("\n");
-			}
-			var exc = new ImportException(message.toString());
-			if (!exceptions.isEmpty()) {
-				exc.initCause(exceptions.poll());
-			}
-			while (!exceptions.isEmpty()) {
-				exc.addSuppressed(exceptions.poll());
-			}
-			throw exc;
-		}
-		
 		if (ergebnis.getResult().isPresent()) {
-			List<UMLKlassifizierer> klassifiziererListe = new LinkedList<>();
-			ergebnis.getResult().get().accept(new KlassifiziererBesucher(klassifiziererListe), null);
-			
-			List<UMLVerbindung> assoziationen = sucheAssoziationen(klassifiziererListe);
-			verbindungen.addAll(assoziationen);
-			
-			return klassifiziererListe;
+			try {
+				List<UMLKlassifizierer> klassifiziererListe = new LinkedList<>();
+				ergebnis.getResult().get().accept(new KlassifiziererBesucher(klassifiziererListe), null);
+				
+				List<UMLVerbindung> assoziationen = sucheAssoziationen(klassifiziererListe);
+				verbindungen.addAll(assoziationen);
+				
+				return klassifiziererListe;
+			} catch (Exception e) {
+				throw erzeugeFehler(ergebnis, quelle);
+			}
+		} else if (!ergebnis.isSuccessful()) {
+			throw erzeugeFehler(ergebnis, quelle);
 		} else {
 			throw new ImportException("Kein Ergebnis!");
 		}
+	}
+	
+	private ImportException erzeugeFehler(ParseResult<CompilationUnit> ergebnis, File quelle) {
+		Queue<Throwable> exceptions = new LinkedList<>();
+		StringBuilder message = new StringBuilder("[");
+		message.append(ergebnis.getProblems().size());
+		message.append("] Problem(s) in ");
+		message.append(quelle.getName());
+		message.append(":\n");
+		for (var problem : ergebnis.getProblems()) {
+			problem.getCause().ifPresent(exceptions::add);
+			message.append(problem.getVerboseMessage());
+			message.append("\n");
+		}
+		var exc = new ImportException(message.toString());
+		if (!exceptions.isEmpty()) {
+			exc.initCause(exceptions.poll());
+		}
+		while (!exceptions.isEmpty()) {
+			exc.addSuppressed(exceptions.poll());
+		}
+		return exc;
 	}
 	
 	private List<UMLVerbindung> sucheAssoziationen(List<UMLKlassifizierer> klassifiziererListe) {
@@ -200,9 +206,12 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 		
 		List<UMLVerbindung> assoziationen = new LinkedList<>();
 		for (String verwendeterDatentyp : datentypen) {
-			UMLVerbindung assoziation = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION,
-					klassifizierer.getNameVollstaendig(), verwendeterDatentyp);
-			assoziationen.add(assoziation);
+			if (!klassifizierer.getNameVollstaendig().equals(verwendeterDatentyp)
+					&& !klassifizierer.getName().equals(verwendeterDatentyp)) {
+				UMLVerbindung assoziation = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION,
+						klassifizierer.getNameVollstaendig(), verwendeterDatentyp);
+				assoziationen.add(assoziation);
+			}
 		}
 		
 		return assoziationen;
