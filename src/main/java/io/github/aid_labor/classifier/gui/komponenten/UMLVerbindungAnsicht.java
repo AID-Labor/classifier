@@ -24,7 +24,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Cursor;
@@ -96,22 +95,22 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	public UMLVerbindungAnsicht(UMLVerbindung verbindung, UMLProjekt projekt) {
 		this.verbindung = verbindung;
 		this.projekt = projekt;
-		this.startXProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getX());
-		this.startYProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getY());
-		this.endeXProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getX());
-		this.endeYProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getY());
-		this.startXVerschiebungProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getBreite());
-		this.startYVerschiebungProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getHoehe());
-		this.mitteVerschiebungProperty = new SimpleDoubleProperty(verbindung.getMitteVerschiebung());
+		startXProperty = verbindung.getStartPosition().xProperty();
+		startYProperty = verbindung.getStartPosition().yProperty();
+		startXVerschiebungProperty = verbindung.getStartPosition().breiteProperty();
+		startYVerschiebungProperty = verbindung.getStartPosition().hoeheProperty();
+		endeXProperty = verbindung.getEndPosition().xProperty();
+		endeYProperty = verbindung.getEndPosition().yProperty();
+		endeXVerschiebungProperty = verbindung.getEndPosition().breiteProperty();
+		endeYVerschiebungProperty = verbindung.getEndPosition().hoeheProperty();
+		orientierungStartProperty = verbindung.orientierungStartProperty();
+		orientierungEndeProperty = verbindung.orientierungEndeProperty();
+		mitteVerschiebungProperty = verbindung.mitteVerschiebungProperty();
 		double mitteVerschiebung = verbindung.getMitteVerschiebung();
-		this.endeXVerschiebungProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getBreite());
-		this.endeYVerschiebungProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getHoehe());
 		double startXVerschiebung = verbindung.getStartPosition().getBreite();
 		double startYVerschiebung = verbindung.getStartPosition().getHoehe();
 		double endeXVerschiebung = verbindung.getEndPosition().getBreite();
 		double endeYVerschiebung = verbindung.getEndPosition().getHoehe();
-		this.orientierungStartProperty = new SimpleObjectProperty<>(verbindung.getOrientierungStart());
-		this.orientierungEndeProperty = new SimpleObjectProperty<>(verbindung.getOrientierungEnde());
 		var orientierungStart = verbindung.getOrientierungStart();
 		var orientierungEnde = verbindung.getOrientierungEnde();
 		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
@@ -191,17 +190,6 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	}
 	
 	public void loeseVerbindungen() {
-		startYProperty.unbindBidirectional(verbindung.getStartPosition().yProperty());
-		startXVerschiebungProperty.unbindBidirectional(verbindung.getStartPosition().breiteProperty());
-		startYVerschiebungProperty.unbindBidirectional(verbindung.getStartPosition().hoeheProperty());
-		endeXProperty.unbindBidirectional(verbindung.getEndPosition().xProperty());
-		endeYProperty.unbindBidirectional(verbindung.getEndPosition().yProperty());
-		endeXVerschiebungProperty.unbindBidirectional(verbindung.getEndPosition().breiteProperty());
-		endeYVerschiebungProperty.unbindBidirectional(verbindung.getEndPosition().hoeheProperty());
-		orientierungStartProperty.unbindBidirectional(verbindung.orientierungStartProperty());
-		orientierungEndeProperty.unbindBidirectional(verbindung.orientierungEndeProperty());
-		mitteVerschiebungProperty.unbindBidirectional(verbindung.mitteVerschiebungProperty());
-		
 		NodeUtil.entferneSchwacheBeobachtung(this);
 	}
 	
@@ -212,18 +200,6 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void erstelleBindungen() {
-		startXProperty.bindBidirectional(verbindung.getStartPosition().xProperty());
-		startYProperty.bindBidirectional(verbindung.getStartPosition().yProperty());
-		startXVerschiebungProperty.bindBidirectional(verbindung.getStartPosition().breiteProperty());
-		startYVerschiebungProperty.bindBidirectional(verbindung.getStartPosition().hoeheProperty());
-		endeXProperty.bindBidirectional(verbindung.getEndPosition().xProperty());
-		endeYProperty.bindBidirectional(verbindung.getEndPosition().yProperty());
-		endeXVerschiebungProperty.bindBidirectional(verbindung.getEndPosition().breiteProperty());
-		endeYVerschiebungProperty.bindBidirectional(verbindung.getEndPosition().hoeheProperty());
-		orientierungStartProperty.bindBidirectional(verbindung.orientierungStartProperty());
-		orientierungEndeProperty.bindBidirectional(verbindung.orientierungEndeProperty());
-		mitteVerschiebungProperty.bindBidirectional(verbindung.mitteVerschiebungProperty());
-		
 		NodeUtil.beobachteSchwach(this, verbindung.startElementProperty(),
 				start -> updateStartPosition(start, verbindung.getEndElement()));
 		NodeUtil.beobachteSchwach(this, verbindung.endElementProperty(),

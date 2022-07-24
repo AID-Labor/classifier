@@ -97,7 +97,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	public UMLVerbindung(@JsonProperty("typ") UMLVerbindungstyp typ,
 			@JsonProperty("verbindungsStartProperty") String verbindungsStart,
 			@JsonProperty("verbindungsEndeProperty") String verbindungsEnde,
-			@JsonProperty("startPosition") Position startPosition, @JsonProperty("endPosition") Position endPosition,
+			@JsonProperty("startPosition") Position startPosition,
+			@JsonProperty("endPosition") Position endPosition,
 			@JsonProperty("ausgebelendetProperty") boolean ausgeblendet,
 			@JsonProperty(value = "automatischProperty", defaultValue = "true") boolean automatisch,
 			@JsonProperty(value = "orientierungStartProperty", defaultValue = "UNBEKANNT") Orientierung orientierungStart,
@@ -110,8 +111,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.automatischProperty = new JsonBooleanProperty(this, "automatisch", automatisch);
 		this.startElementProperty = new SimpleObjectProperty<>(this, "startElement", null);
 		this.endElementProperty = new SimpleObjectProperty<>(this, "endElement", null);
-		this.startPosition = startPosition == null ? new Position(this, "start") : new Position(this, "start", startPosition);
-		this.endPosition = endPosition == null ? new Position(this, "ende") : new Position(this, "ende", endPosition);
+		this.startPosition = startPosition == null ? new Position(this, "start-NULL") : new Position(this, "start", startPosition);
+		this.endPosition = endPosition == null ? new Position(this, "ende-NULL") : new Position(this, "ende", endPosition);
 		this.mitteVerschiebungProperty = new JsonDoubleProperty(this, "mitteVerschiebung", mitteVerschiebung);
 		this.orientierungStartProperty = new JsonObjectProperty<>(this, "orientierungStart", orientierungStart);
 		this.orientierungEndeProperty = new JsonObjectProperty<>(this, "orientierungEnde", orientierungEnde);

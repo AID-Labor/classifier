@@ -106,7 +106,7 @@ class ProjektKontrolle {
 		boolean veraendert = true;
 		try {
 			UMLProjekt dateiInhalt = UMLProjekt.ausDateiOeffnen(ansicht.get().getProjekt().getSpeicherort());
-			veraendert = !dateiInhalt.equals(ansicht.get().getProjekt());
+			veraendert = dateiInhalt.hashCode() != ansicht.get().getProjekt().getGespeicherterHash();
 		} catch (IOException e) {
 			log.log(Level.WARNING, e, () -> "Fehler beim lesen der Datei '%s' fuer Vergleich"
 					.formatted(ansicht.get().getProjekt().getSpeicherort()));
@@ -171,7 +171,7 @@ class ProjektKontrolle {
 		boolean veraendert = true;
 		try {
 			UMLProjekt dateiInhalt = UMLProjekt.ausDateiOeffnen(projekt.getSpeicherort());
-			veraendert = !dateiInhalt.equals(projekt);
+			veraendert = dateiInhalt.hashCode() != projekt.getGespeicherterHash();
 		} catch (IOException e) {
 			log.log(Level.WARNING, e,
 					() -> "Fehler beim lesen der Datei '%s' fuer Vergleich".formatted(projekt.getSpeicherort()));

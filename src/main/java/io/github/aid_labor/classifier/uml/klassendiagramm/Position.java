@@ -8,13 +8,23 @@ package io.github.aid_labor.classifier.uml.klassendiagramm;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonDoubleProperty;
 
+//@formatter:off
+@JsonAutoDetect(
+		getterVisibility = Visibility.NONE,
+		isGetterVisibility = Visibility.NONE,
+		setterVisibility = Visibility.NONE,
+		fieldVisibility = Visibility.ANY
+)
+//@formatter:on
 public class Position {
 
 	private static final Logger log = Logger.getLogger(Position.class.getName());
@@ -50,6 +60,10 @@ public class Position {
 	
 	public Position(Object bean, String id) {
 		this(0, 0, 0, 0, bean, id);
+	}
+	
+	public Position(Position position, String id) {
+		this(null, id, position);
 	}
 	
 	public Position(Object bean, String id, Position position) {
@@ -221,10 +235,10 @@ public class Position {
 		}
 		Position other = (Position) obj;
 		
-		boolean xGleich = getX() == other.getX();
-		boolean yGleich = getY() == other.getY();
-		boolean breiteGleich = getBreite() == other.getBreite();
-		boolean hoeheGleich = getHoehe() == other.getHoehe();
+		boolean xGleich = this.getX() == other.getX();
+		boolean yGleich = this.getY() == other.getY();
+		boolean breiteGleich = this.getBreite() == other.getBreite();
+		boolean hoeheGleich = this.getHoehe() == other.getHoehe();
 		
 		boolean istGleich = xGleich && yGleich && breiteGleich && hoeheGleich;
 		
@@ -235,8 +249,9 @@ public class Position {
 				   |-- yGleich: %s [%f =? %f]
 				   |-- breiteGleich: %s [%f =? %f]
 				   ╰-- hoeheGleich: %s [%f =? %f]"""
-				.formatted(istGleich, id, x.getBean(), xGleich, getX(), other.getX(), yGleich, getY(), other.getY(), 
-						breiteGleich, getBreite(), other.getBreite(), hoeheGleich, getHoehe(), other.getHoehe()));
+				.formatted(istGleich, id, x.getBean(), xGleich, this.getX(), other.getX(), yGleich, this.getY(), 
+						other.getY(), breiteGleich, this.getBreite(), other.getBreite(), hoeheGleich, this.getHoehe(), 
+						other.getHoehe()));
 		
 		return istGleich;
 	}

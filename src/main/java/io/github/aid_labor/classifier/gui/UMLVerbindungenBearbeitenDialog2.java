@@ -474,7 +474,6 @@ public class UMLVerbindungenBearbeitenDialog2 extends Alert {
 			@Override
 			protected void updateItem(String verbindung, boolean empty) {
 				NodeUtil.entferneSchwacheBeobachtung(start);
-				System.out.println(verbindung);
 				
 				if (empty || verbindung == null) {
 					start.getSelectionModel().clearSelection();

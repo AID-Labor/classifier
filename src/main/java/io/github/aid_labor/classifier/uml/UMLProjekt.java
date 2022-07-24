@@ -180,7 +180,7 @@ public class UMLProjekt extends ProjektBasis {
 			this.assoziationen.addAll(assoziationen);
 		}
 		if (vererbungen != null) {
-			this.vererbungen.addAll(assoziationen);
+			this.vererbungen.addAll(vererbungen);
 		}
 		this.diagrammElemente.addAll(diagrammElemente);
 		this.istGespeichertProperty.set(true);
@@ -465,6 +465,7 @@ public class UMLProjekt extends ProjektBasis {
 		return nameUeberwacher;
 	}
 	
+	@JsonIgnore
 	private final List<UMLVerbindung> zuEntfernendeVerbindungen = new ArrayList<>();
 	
 	private void ueberwacheVerbindungen(Change<? extends UMLVerbindung> aenderung) {
