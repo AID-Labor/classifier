@@ -19,6 +19,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -292,44 +296,122 @@ class ProjektKontrolle {
 		}
 	}
 	
+	private static class ImportErgebnis {
+		private List<UMLKlassifizierer> neueKlassifizierer;
+		private List<UMLVerbindung> neueAssoziationen;
+		
+		ImportErgebnis(List<UMLKlassifizierer> neueKlassifizierer, List<UMLVerbindung> neueAssoziationen) {
+			super();
+			this.neueKlassifizierer = neueKlassifizierer;
+			this.neueAssoziationen = neueAssoziationen;
+		}
+		
+		List<UMLVerbindung> getNeueAssoziationen() {
+			return neueAssoziationen;
+		}
+		
+		List<UMLKlassifizierer> getNeueKlassifizierer() {
+			return neueKlassifizierer;
+		}
+	}
+	
 	private void importiereAusDateien(List<File> dateien) {
 		var wartedialog = ansicht.get().getOverlayDialog().showBusyIndicator();
 		wartedialog.setShowCloseButton(false);
 		
 		Thread t = new Thread(() -> {
+			ExecutorService ausfuehrService = Executors
+					.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+			CompletionService<ImportErgebnis> fertigstellungService = new ExecutorCompletionService<>(ausfuehrService);
+			
+			dateien.forEach(datei -> {
+				fertigstellungService.submit(() -> {
+					List<UMLKlassifizierer> neueKlassifizierer = new LinkedList<>();
+					List<UMLVerbindung> neueAssoziationen = new LinkedList<>();
+					
+					UMLProjekt projekt = ansicht.get().getProjekt();
+					var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
+					
+					try {
+						List<UMLVerbindung> assoziationen = new LinkedList<>();
+						List<UMLKlassifizierer> klassifizierer = importVerwaltung.importiere(datei, assoziationen);
+						if (klassifizierer == null) {
+							throw new NullPointerException();
+						}
+						neueKlassifizierer.addAll(klassifizierer);
+						assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
+								.forEach(assoziation -> {
+									assoziation.setzeAutomatisch(false);
+									neueAssoziationen.add(assoziation);
+								});
+					} catch (ImportException e) {
+						log.log(Level.WARNING, e, () -> "Importfehler");
+						String format = sprache.getText("importParseFehler", """
+								Die Datei \"{0}\" konnte nicht interpretiert werden.
+								M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig"""
+								.formatted(Umlaute.oe, Umlaute.ae, Umlaute.ue));
+						String beschreibung = MessageFormat.format(format, datei.getName());
+						Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+					} catch (Exception e) {
+						log.log(Level.WARNING, e, () -> "Importfehler");
+						String format = sprache.getText("importIOFehler",
+								"Die Datei \"{0}\" konnte nicht gelesen werden.");
+						String beschreibung = MessageFormat.format(format, datei.getName());
+						Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+					}
+					
+					return new ImportErgebnis(neueKlassifizierer, neueAssoziationen);
+				});
+			});
+			
 			List<UMLKlassifizierer> neueKlassifizierer = new LinkedList<>();
 			List<UMLVerbindung> neueAssoziationen = new LinkedList<>();
-			for (File datei : dateien) {
-				UMLProjekt projekt = ansicht.get().getProjekt();
-				var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
-				
+			for (int i = 0; i < dateien.size(); i++) {
 				try {
-					List<UMLVerbindung> assoziationen = new LinkedList<>();
-					List<UMLKlassifizierer> klassifizierer = importVerwaltung.importiere(datei, assoziationen);
-					if (klassifizierer == null) {
-						throw new NullPointerException();
-					}
-					neueKlassifizierer.addAll(klassifizierer);
-					assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
-							.forEach(assoziation -> {
-								assoziation.setzeAutomatisch(false);
-								neueAssoziationen.add(assoziation);
-							});
-				} catch (ImportException e) {
-					log.log(Level.WARNING, e, () -> "Importfehler");
-					String format = sprache.getText("importParseFehler", """
-							Die Datei \"{0}\" konnte nicht interpretiert werden.
-							M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig"""
-							.formatted(Umlaute.oe, Umlaute.ae, Umlaute.ue));
-					String beschreibung = MessageFormat.format(format, datei.getName());
-					Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+					ImportErgebnis teilergebnis = fertigstellungService.take().get();
+					neueKlassifizierer.addAll(teilergebnis.getNeueKlassifizierer());
+					neueAssoziationen.addAll(teilergebnis.getNeueAssoziationen());
 				} catch (Exception e) {
-					log.log(Level.WARNING, e, () -> "Importfehler");
-					String format = sprache.getText("importIOFehler", "Die Datei \"{0}\" konnte nicht gelesen werden.");
-					String beschreibung = MessageFormat.format(format, datei.getName());
+					log.log(Level.WARNING, e, () -> "Fehler beim parallelisiertem Import");
+					String beschreibung = sprache.getText("importThreadFehler",
+							"Es ist ein Fehler beim Import aufgetreten.");
 					Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
 				}
 			}
+//			List<UMLKlassifizierer> neueKlassifizierer = new LinkedList<>();
+//			List<UMLVerbindung> neueAssoziationen = new LinkedList<>();
+//			for (File datei : dateien) {
+//				
+//				UMLProjekt projekt = ansicht.get().getProjekt();
+//				var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
+//				
+//				try {
+//					List<UMLVerbindung> assoziationen = new LinkedList<>();
+//					List<UMLKlassifizierer> klassifizierer = importVerwaltung.importiere(datei, assoziationen);
+//					if (klassifizierer == null) {
+//						throw new NullPointerException();
+//					}
+//					neueKlassifizierer.addAll(klassifizierer);
+//					assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
+//							.forEach(assoziation -> {
+//								assoziation.setzeAutomatisch(false);
+//								neueAssoziationen.add(assoziation);
+//							});
+//				} catch (ImportException e) {
+//					log.log(Level.WARNING, e, () -> "Importfehler");
+//					String format = sprache.getText("importParseFehler", """
+//							Die Datei \"{0}\" konnte nicht interpretiert werden.
+//							M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig"""
+//							.formatted(Umlaute.oe, Umlaute.ae, Umlaute.ue));
+//					String beschreibung = MessageFormat.format(format, datei.getName());
+//					Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+//				} catch (Exception e) {
+//					log.log(Level.WARNING, e, () -> "Importfehler");
+//					String format = sprache.getText("importIOFehler", "Die Datei \"{0}\" konnte nicht gelesen werden.");
+//					String beschreibung = MessageFormat.format(format, datei.getName());
+//					Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+//				}
+//			}
 			
 			Platform.runLater(() -> {
 				wartedialog.cancel();
