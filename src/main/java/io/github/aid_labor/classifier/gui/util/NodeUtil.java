@@ -655,5 +655,5 @@ public final class NodeUtil {
 		// Hilfsklasse, nicht instanziierbar!
 		throw new UnsupportedOperationException("Hilfsklasse darf nicht instanziiert werden!");
 	}
-	
+
 }

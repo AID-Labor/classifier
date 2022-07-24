@@ -98,7 +98,8 @@ public class UMLProjekt extends ProjektBasis {
 	// final
 	@JsonSerialize(typing = Typing.DYNAMIC)
 	private final ObservableList<UMLDiagrammElement> diagrammElemente;
-	private final ObservableList<UMLVerbindung> verbindungen;
+	private final ObservableList<UMLVerbindung> vererbungen;
+	private final ObservableList<UMLVerbindung> assoziationen;
 	@JsonIgnore
 	private final Map<String, ChangeListener<String>> superklassenBeobachter = new HashMap<>();
 	@JsonIgnore
@@ -137,16 +138,18 @@ public class UMLProjekt extends ProjektBasis {
 				return new Observable[0];
 			}
 		});
-		this.verbindungen = FXCollections.observableArrayList();
+		this.vererbungen = FXCollections.observableArrayList();
+		this.assoziationen = FXCollections.observableArrayList();
 		
 		// Diagramm-Elemente auf Aenderung Ueberwachen (sowhol die Liste als auch geaenderte
 		// Objekte in der Liste)
 		this.diagrammElemente.addListener(new ListenEditierUeberwacher<>(this.diagrammElemente, this));
-		this.verbindungen.addListener(new ListenEditierUeberwacher<>(this.verbindungen, this));
+		this.assoziationen.addListener(new ListenEditierUeberwacher<>(this.assoziationen, this));
 		elementeBeobachter = this::ueberwacheDiagrammElemente;
 		this.diagrammElemente.addListener(new WeakListChangeListener<>(elementeBeobachter));
 		verbindungenBeobachter = this::ueberwacheVerbindungen;
-		this.verbindungen.addListener(new WeakListChangeListener<>(verbindungenBeobachter));
+		this.vererbungen.addListener(new WeakListChangeListener<>(verbindungenBeobachter));
+		this.assoziationen.addListener(new WeakListChangeListener<>(verbindungenBeobachter));
 	}
 	
 	/**
@@ -163,10 +166,21 @@ public class UMLProjekt extends ProjektBasis {
 			@JsonProperty("programmiersprache") Programmiersprache programmiersprache,
 			@JsonProperty("automatischSpeichern") boolean automatischSpeichern,
 			@JsonProperty("diagrammElemente") List<UMLDiagrammElement> diagrammElemente,
+			@JsonProperty("vererbungen") List<UMLVerbindung> vererbungen,
+			@JsonProperty("assoziationen") List<UMLVerbindung> assoziationen,
 			@JsonProperty("verbindungen") List<UMLVerbindung> verbindungen) {
 		this(name, programmiersprache, automatischSpeichern);
-		if (verbindungen != null) {	// Support alter Programmdateien ohne Verbindungen
-			this.verbindungen.addAll(verbindungen);
+		if (verbindungen != null) {	// Support alter Programmdateien
+			this.assoziationen.addAll(
+					verbindungen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp())).toList());
+			this.vererbungen.addAll(
+					verbindungen.stream().filter(v -> !UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp())).toList());
+		}
+		if (assoziationen != null) {
+			this.assoziationen.addAll(assoziationen);
+		}
+		if (vererbungen != null) {
+			this.vererbungen.addAll(assoziationen);
 		}
 		this.diagrammElemente.addAll(diagrammElemente);
 		this.istGespeichertProperty.set(true);
@@ -198,8 +212,12 @@ public class UMLProjekt extends ProjektBasis {
 		return this.diagrammElemente;
 	}
 	
-	public ObservableList<UMLVerbindung> getVerbindungen() {
-		return verbindungen;
+	public ObservableList<UMLVerbindung> getVererbungen() {
+		return vererbungen;
+	}
+	
+	public ObservableList<UMLVerbindung> getAssoziationen() {
+		return assoziationen;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -216,8 +234,8 @@ public class UMLProjekt extends ProjektBasis {
 	
 	@Override
 	public int hashCode() {
-		return ClassifierUtil.hashAlle(automatischSpeichern(), diagrammElemente, verbindungen, getName(),
-				programmiersprache, getSpeicherort());
+		return ClassifierUtil.hashAlle(automatischSpeichern(), diagrammElemente, getAssoziationen(), getVererbungen(),
+				getName(), programmiersprache, getSpeicherort());
 	}
 	
 	@Override
@@ -235,23 +253,26 @@ public class UMLProjekt extends ProjektBasis {
 		
 		boolean automatischSpeichernGleich = automatischSpeichern() == proj.automatischSpeichern();
 		boolean diagrammElementeGleich = ClassifierUtil.pruefeGleichheit(this.diagrammElemente, proj.diagrammElemente);
-		boolean verbindungenGleich = ClassifierUtil.pruefeGleichheit(this.verbindungen, proj.verbindungen);
+		boolean vererbungenGleich = ClassifierUtil.pruefeGleichheit(this.vererbungen, proj.vererbungen);
+		boolean assoziationenGleich = ClassifierUtil.pruefeGleichheit(this.assoziationen, proj.assoziationen);
 		boolean nameGleich = Objects.equals(getName(), proj.getName());
 		boolean programmierspracheGleich = getProgrammiersprache().equals(proj.getProgrammiersprache());
 		boolean speicherortGleich = Objects.equals(getSpeicherort(), proj.getSpeicherort());
 		
-		boolean istGleich = automatischSpeichernGleich && diagrammElementeGleich && verbindungenGleich && nameGleich
+		boolean istGleich = automatischSpeichernGleich && diagrammElementeGleich && vererbungenGleich
+				&& assoziationenGleich && nameGleich
 				&& programmierspracheGleich && speicherortGleich;
 		
 		log.finest(() -> """
 				istGleich: %s
 				   |-- automatischSpeichernGleich: %s
 				   |-- diagrammElementeGleich: %s
-				   |-- verbindungenGleich: %s
+				   |-- vererbungenGleich: %s
+				   |-- assoziationenGleich: %s
 				   |-- nameGleich: %s
 				   |-- programmierspracheGleich: %s
 				   ╰-- speicherortGleich: %s""".formatted(istGleich, automatischSpeichernGleich, diagrammElementeGleich,
-				verbindungenGleich, nameGleich, programmierspracheGleich, speicherortGleich));
+				   vererbungenGleich, assoziationenGleich, nameGleich, programmierspracheGleich, speicherortGleich));
 		
 		return istGleich;
 	}
@@ -293,11 +314,11 @@ public class UMLProjekt extends ProjektBasis {
 		while (aenderung.next()) {
 			if (aenderung.wasRemoved()) {
 				for (UMLDiagrammElement element : aenderung.getRemoved()) {
-					System.out.println("#------------");
 					if (!(element instanceof UMLKlassifizierer klassifizierer)) {
 						continue;
 					}
-					verbindungen.removeIf(v -> Objects.equals(v.getVerbindungsStart(), klassifizierer.getName()));
+					vererbungen.removeIf(v -> Objects.equals(v.getVerbindungsStart(), klassifizierer.getName()));
+					assoziationen.removeIf(v -> Objects.equals(v.getVerbindungsStart(), klassifizierer.getName()));
 					
 					var superklassenUeberwacher = superklassenBeobachter.get(klassifizierer.getName());
 					if (superklassenUeberwacher != null) {
@@ -323,7 +344,7 @@ public class UMLProjekt extends ProjektBasis {
 						continue;
 					}
 					
-					verbindungen.removeAll(zuEntfernendeVerbindungen);
+					vererbungen.removeAll(zuEntfernendeVerbindungen);
 					zuEntfernendeVerbindungen.clear();
 					
 					var superklassenUeberwacher = ueberwacheSuperklasse(klassifizierer);
@@ -331,7 +352,7 @@ public class UMLProjekt extends ProjektBasis {
 					
 					String superklasse = klassifizierer.getSuperklasse();
 					if (superklasse != null && !superklasse.isBlank()) {
-						if (verbindungen.stream()
+						if (vererbungen.stream()
 								.filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
 										&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
 										&& Objects.equals(v.getVerbindungsEnde(), superklasse))
@@ -339,7 +360,7 @@ public class UMLProjekt extends ProjektBasis {
 							UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG,
 									klassifizierer.getName(), superklasse);
 							vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
-							verbindungen.add(vererbung);
+							vererbungen.add(vererbung);
 						}
 					}
 					
@@ -347,7 +368,7 @@ public class UMLProjekt extends ProjektBasis {
 					interfaceBeobachter.put(klassifizierer.getName(), interfaceUeberwacher);
 					
 					for (String interfaceName : klassifizierer.getInterfaces()) {
-						if (verbindungen.stream()
+						if (vererbungen.stream()
 								.filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG)
 										&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
 										&& Objects.equals(v.getVerbindungsEnde(), interfaceName))
@@ -355,11 +376,11 @@ public class UMLProjekt extends ProjektBasis {
 							UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG,
 									klassifizierer.getName(), interfaceName);
 							vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
-							verbindungen.add(vererbung);
+							vererbungen.add(vererbung);
 						}
 					}
 					
-					verbindungen.removeAll(zuEntfernendeVerbindungen);
+					vererbungen.removeAll(zuEntfernendeVerbindungen);
 					zuEntfernendeVerbindungen.clear();
 					
 					var nameUeberwacher = ueberwacheName(klassifizierer);
@@ -377,19 +398,19 @@ public class UMLProjekt extends ProjektBasis {
 				return;
 			}
 			if (alteSuperklasse != null && (neueSuperklasse == null || neueSuperklasse.isBlank())) {
-				verbindungen.removeIf(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
+				vererbungen.removeIf(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
 						&& Objects.equals(alteSuperklasse, v.getVerbindungsEnde())
 						&& Objects.equals(klassifizierer.getName(), v.getVerbindungsStart()));
 			} else if (alteSuperklasse == null || alteSuperklasse.isBlank()) {
 				if (!klassifizierer.getName().equals(neueSuperklasse)
-						&& ! klassifizierer.getNameVollstaendig().equals(neueSuperklasse)) {
+						&& !klassifizierer.getNameVollstaendig().equals(neueSuperklasse)) {
 					UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.VERERBUNG, klassifizierer.getName(),
 							neueSuperklasse);
 					vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
-					verbindungen.add(vererbung);
+					vererbungen.add(vererbung);
 				}
 			} else {
-				verbindungen.stream()
+				vererbungen.stream()
 						.filter(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.VERERBUNG)
 								&& Objects.equals(v.getVerbindungsStart(), klassifizierer.getName())
 								&& Objects.equals(v.getVerbindungsEnde(), alteSuperklasse))
@@ -411,10 +432,10 @@ public class UMLProjekt extends ProjektBasis {
 					UMLVerbindung vererbung = new UMLVerbindung(UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG,
 							klassifizierer.getName(), interfaceHinzu);
 					vererbung.verbindungsStartProperty().bindBidirectional(klassifizierer.nameProperty());
-					verbindungen.add(vererbung);
+					vererbungen.add(vererbung);
 				}
 				for (String interfaceEntfernt : aenderung.getRemoved()) {
-					verbindungen.removeIf(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG)
+					vererbungen.removeIf(v -> Objects.equals(v.getTyp(), UMLVerbindungstyp.SCHNITTSTELLEN_VERERBUNG)
 							&& Objects.equals(interfaceEntfernt, v.getVerbindungsEnde())
 							&& Objects.equals(klassifizierer.getName(), v.getVerbindungsStart()));
 				}
@@ -452,6 +473,9 @@ public class UMLProjekt extends ProjektBasis {
 				for (UMLVerbindung entfernteVerbindung : aenderung.getRemoved()) {
 					entfernteVerbindung.setDarfGeschlossenWerden(true);
 					entfernteVerbindung.ausgebelendetProperty().unbind();
+					if (!UMLVerbindungstyp.ASSOZIATION.equals(entfernteVerbindung.getTyp())) {
+						entfernteVerbindung.meldeAb(this);
+					}
 				}
 			}
 			if (aenderung.wasAdded()) {
@@ -461,6 +485,9 @@ public class UMLProjekt extends ProjektBasis {
 					} else {
 						bindeElementeAnVerbindung(neueVerbindung);
 						neueVerbindung.setDarfGeschlossenWerden(false);
+						if (!UMLVerbindungstyp.ASSOZIATION.equals(neueVerbindung.getTyp())) {
+							neueVerbindung.meldeAn(this);
+						}
 					}
 				}
 			}

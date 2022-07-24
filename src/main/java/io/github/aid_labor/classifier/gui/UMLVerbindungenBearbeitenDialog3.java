@@ -25,8 +25,6 @@ import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.typicons.Typicons;
 
-import com.dlsc.gemsfx.EnhancedLabel;
-
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
@@ -229,15 +227,15 @@ public class UMLVerbindungenBearbeitenDialog3 extends Alert {
 	private void erzeugeInhalt(BorderPane wurzel) {
 		var assoziationAnzeige = erzeugeTabellenAnzeige(
 				new String[] { "Klasse/Interface", "Verwendet...", "Ausgeblendet" },
-				this.umlProjekt.getVerbindungen().filtered(v -> v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)),
+				this.umlProjekt.getAssoziationen(),
 				this::erstelleAssoziationZeile, event -> {
 					var verbindung = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, "", "");
 					verbindung.setzeAutomatisch(false);
-					this.umlProjekt.getVerbindungen().add(verbindung);
+					this.umlProjekt.getAssoziationen().add(verbindung);
 				});
 		var vererbungAnzeige = erzeugeTabellenAnzeige(
 				new String[] { "Klasse/Interface", "Superklasse/Interface", "Ausgeblendet" },
-				this.umlProjekt.getVerbindungen().filtered(v -> !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)),
+				this.umlProjekt.getVererbungen(),
 				this::erstelleVererbungZeile, null);
 		
 		StackPane container = new StackPane(assoziationAnzeige, vererbungAnzeige);
@@ -418,7 +416,7 @@ public class UMLVerbindungenBearbeitenDialog3 extends Alert {
 		ende.disableProperty().bind(verbindung.automatischProperty());
 		kontrollelemente.loeschen.disableProperty().bind(verbindung.automatischProperty());
 		kontrollelemente.loeschen
-				.setOnMouseClicked(e -> umlProjekt.getVerbindungen().removeIf(v -> v.getId() == verbindung.getId()));
+				.setOnMouseClicked(e -> umlProjekt.getAssoziationen().removeIf(v -> v.getId() == verbindung.getId()));
 		
 		return new Node[] { start, ende, ausgeblendet, kontrollelemente.loeschen };
 	}

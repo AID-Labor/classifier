@@ -8,13 +8,10 @@ package io.github.aid_labor.classifier.gui;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.SegmentedButton;
@@ -38,14 +35,8 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
 import javafx.application.Platform;
-import javafx.beans.InvalidationListener;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.When;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -64,23 +55,19 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Control;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.ComboBoxTableCell;
-import javafx.scene.control.skin.ScrollPaneSkin;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.util.Callback;
 
 
 public class UMLVerbindungenBearbeitenDialog2 extends Alert {
@@ -240,11 +227,11 @@ public class UMLVerbindungenBearbeitenDialog2 extends Alert {
 	private void erzeugeInhalt(BorderPane wurzel) {
 		var assoziationAnzeige = erzeugeTabellenAnzeige(
 				new String[] { "Klasse/Interface", "Verwendet...", "Ausgeblendet" },
-				this.umlProjekt.getVerbindungen(),
+				this.umlProjekt.getAssoziationen(),
 				this.erstelleAssoziationZeile(), event -> {
 					var verbindung = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, "", "");
 					verbindung.setzeAutomatisch(false);
-					this.umlProjekt.getVerbindungen().add(verbindung);
+					this.umlProjekt.getAssoziationen().add(verbindung);
 				});
 //		var assoziationAnzeige = erzeugeTabellenAnzeige(
 //				new String[] { "Klasse/Interface", "Verwendet...", "Ausgeblendet" },

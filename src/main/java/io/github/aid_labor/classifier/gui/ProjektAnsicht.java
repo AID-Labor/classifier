@@ -129,7 +129,8 @@ public class ProjektAnsicht extends Tab {
 		});
 		
 		fuegeAlleHinzu(projekt.getDiagrammElemente(), 0);
-		fuegeAlleHinzu(projekt.getVerbindungen());
+		fuegeAlleHinzu(projekt.getVererbungen());
+		fuegeAlleHinzu(projekt.getAssoziationen());
 		
 		this.inhalt.setOnZoom(event -> {
 			double skalierung = getSkalierung() * event.getZoomFactor();
@@ -274,7 +275,10 @@ public class ProjektAnsicht extends Tab {
 		projekt.getDiagrammElemente().addListener((Change<? extends UMLDiagrammElement> aenderung) -> {
 			this.ueberwacheDiagrammElemente(aenderung);
 		});
-		projekt.getVerbindungen().addListener((Change<? extends UMLVerbindung> aenderung) -> {
+		projekt.getVererbungen().addListener((Change<? extends UMLVerbindung> aenderung) -> {
+			this.ueberwacheVerbindungen(aenderung);
+		});
+		projekt.getAssoziationen().addListener((Change<? extends UMLVerbindung> aenderung) -> {
 			this.ueberwacheVerbindungen(aenderung);
 		});
 	}

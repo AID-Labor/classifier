@@ -418,7 +418,7 @@ class ProjektKontrolle {
 				ansicht.get().getOverlayDialog().hideDialog(wartedialog);
 				UMLProjekt projekt = ansicht.get().getProjekt();
 				projekt.getDiagrammElemente().addAll(neueKlassifizierer);
-				projekt.getVerbindungen().addAll(neueAssoziationen);
+				projekt.getAssoziationen().addAll(neueAssoziationen);
 			});
 		});
 		t.start();

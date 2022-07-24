@@ -128,16 +128,18 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 				neuAktion = event -> {
 					var verbindung = verbindungErzeuger.get();
 					verbindung.setzeAutomatisch(false);
-					this.umlProjekt.getVerbindungen().add(verbindung);
+					this.umlProjekt.getAssoziationen().add(verbindung);
 				};
 				filter = v -> v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION);
+				verbindungen = umlProjekt.getAssoziationen().filtered(filter);
 			}
 			case VERERBUNG -> {
 				erzeugeZeile = this::erstelleVererbungZeile;
 				filter = v -> !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION);
+				verbindungen = umlProjekt.getVererbungen().filtered(filter);
 			}
+			default -> verbindungen = null;
 		}
-		verbindungen = umlProjekt.getVerbindungen().filtered(filter);
 		
 		GridPane tabelle = new GridPane();
 		fuelleTabelle(tabelle, labelBezeichnungen, verbindungen, erzeugeZeile);
@@ -345,7 +347,7 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 		ende.disableProperty().bind(verbindung.automatischProperty());
 		kontrollelemente.getLoeschen().disableProperty().bind(verbindung.automatischProperty());
 		kontrollelemente.getLoeschen()
-				.setOnMouseClicked(e -> umlProjekt.getVerbindungen().removeIf(v -> v.getId() == verbindung.getId()));
+				.setOnMouseClicked(e -> umlProjekt.getAssoziationen().removeIf(v -> v.getId() == verbindung.getId()));
 		
 		NodeUtil.setzeHoehe(30, start);
 		NodeUtil.setzeHoehe(30, startFest);

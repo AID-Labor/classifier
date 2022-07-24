@@ -116,7 +116,8 @@ public class HauptAnsicht {
 		this.kopiePuffer = FXCollections.observableArrayList();
 		
 		this.zuVieleVerbindungen = new BooleanBinding() {
-			private Observable bindung;
+			private Observable bindung1;
+			private Observable bindung2;
 			
 			{
 				super.bind(projekteAnsicht.angezeigtesProjektProperty());
@@ -126,20 +127,42 @@ public class HauptAnsicht {
 			protected boolean computeValue() {
 				var projekt = projekteAnsicht.getAngezeigtesProjekt();
 				if (projekt != null) {
-					if (bindung != null && !bindung.equals(projekt.getVerbindungen())) {
-						super.unbind(bindung);
-						super.bind(projekt.getVerbindungen());
-						bindung = projekt.getVerbindungen();
-					} else if (bindung == null) {
-						super.bind(projekt.getVerbindungen());
-						bindung = projekt.getVerbindungen();
+					checkeBindung1(projekt);
+					checkeBindung2(projekt);
+					return projekt.getVererbungen().size() > 50 || projekt.getAssoziationen().size() > 50;
+				} else {
+					if (bindung1 != null) {
+						super.unbind(bindung1);
+						bindung1 = null;
 					}
-					return projekt.getVerbindungen().size() > 80;
-				} else if (bindung != null) {
-					super.unbind(bindung);
-					bindung = null;
+					if (bindung2 != null) {
+						super.unbind(bindung2);
+						bindung2 = null;
+					}
 				}
 				return false;
+			}
+			
+			private void checkeBindung1(UMLProjekt projekt) {
+				if (bindung1 != null && !bindung1.equals(projekt.getVererbungen())) {
+					super.unbind(bindung1);
+					super.bind(projekt.getVererbungen());
+					bindung1 = projekt.getVererbungen();
+				} else if (bindung1 == null) {
+					super.bind(projekt.getVererbungen());
+					bindung1 = projekt.getVererbungen();
+				}
+			}
+			
+			private void checkeBindung2(UMLProjekt projekt) {
+				if (bindung2 != null && !bindung2.equals(projekt.getAssoziationen())) {
+					super.unbind(bindung2);
+					super.bind(projekt.getAssoziationen());
+					bindung2 = projekt.getAssoziationen();
+				} else if (bindung2 == null) {
+					super.bind(projekt.getAssoziationen());
+					bindung2 = projekt.getAssoziationen();
+				}
 			}
 		};
 		

@@ -140,7 +140,17 @@ class HauptKontrolle {
 			gruppe.getChildren().add(node);
 		}
 		
-		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getVerbindungen()) {
+		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getVererbungen()) {
+			if (klassennamen.contains(verbindung.getVerbindungsStart())
+					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
+				var verbindungKopie = verbindung.erzeugeTiefeKopie();
+				verbindungKopie.setStartElement(verbindung.getStartElement());
+				verbindungKopie.setEndElement(verbindung.getEndElement());
+				verbindungKopie.setzeAusgebelendet(verbindung.istAusgebelendet());
+				gruppe.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
+			}
+		}
+		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getAssoziationen()) {
 			if (klassennamen.contains(verbindung.getVerbindungsStart())
 					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
 				var verbindungKopie = verbindung.erzeugeTiefeKopie();
