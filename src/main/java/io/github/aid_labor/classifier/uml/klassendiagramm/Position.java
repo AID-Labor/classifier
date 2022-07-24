@@ -5,7 +5,8 @@
  */
 package io.github.aid_labor.classifier.uml.klassendiagramm;
 
-import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,6 +17,8 @@ import io.github.aid_labor.classifier.basis.json.JsonDoubleProperty;
 
 public class Position {
 
+	private static final Logger log = Logger.getLogger(Position.class.getName());
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -38,17 +41,19 @@ public class Position {
 	private JsonDoubleProperty y;
 	private JsonDoubleProperty hoehe;
 	private JsonDoubleProperty breite;
+	@JsonIgnore
+	private final String id;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public Position(Object bean) {
-		this(0, 0, 0, 0, bean);
+	public Position(Object bean, String id) {
+		this(0, 0, 0, 0, bean, id);
 	}
 	
-	public Position(Position position, Object bean) {
-		this(bean);
+	public Position(Object bean, String id, Position position) {
+		this(bean, id);
 		setPosition(position);
 	}
 	
@@ -59,13 +64,15 @@ public class Position {
 		this.y = new JsonDoubleProperty(null, "y", y);
 		this.hoehe = new JsonDoubleProperty(null, "hoehe", hoehe);
 		this.breite = new JsonDoubleProperty(null, "breite", breite);
+		this.id = "json";
 	}
 	
-	public Position(double x, double y, double hoehe, double breite, Object bean) {
-		this.x = new JsonDoubleProperty(bean, "x", x);
-		this.y = new JsonDoubleProperty(bean, "y", y);
-		this.hoehe = new JsonDoubleProperty(bean, "hoehe", hoehe);
-		this.breite = new JsonDoubleProperty(bean, "breite", breite);
+	public Position(double x, double y, double hoehe, double breite, Object bean, String id) {
+		this.x = new JsonDoubleProperty(bean, id + "-x", x);
+		this.y = new JsonDoubleProperty(bean, id + "-y", y);
+		this.hoehe = new JsonDoubleProperty(bean, id + "-hoehe", hoehe);
+		this.breite = new JsonDoubleProperty(bean, id + "-breite", breite);
+		this.id = id;
 	}
 	
 	
@@ -213,8 +220,25 @@ public class Position {
 			return false;
 		}
 		Position other = (Position) obj;
-		return Objects.equals(breite, other.breite) && Objects.equals(hoehe, other.hoehe)
-				&& Objects.equals(x, other.x) && Objects.equals(y, other.y);
+		
+		boolean xGleich = getX() == other.getX();
+		boolean yGleich = getY() == other.getY();
+		boolean breiteGleich = getBreite() == other.getBreite();
+		boolean hoeheGleich = getHoehe() == other.getHoehe();
+		
+		boolean istGleich = xGleich && yGleich && breiteGleich && hoeheGleich;
+		
+		Level level = istGleich ? Level.FINEST : Level.FINE;
+		log.log(level, () -> """
+				istGleich: %s   [Position %s {%s}]
+				   |-- xGleich: %s [%f =? %f]
+				   |-- yGleich: %s [%f =? %f]
+				   |-- breiteGleich: %s [%f =? %f]
+				   ╰-- hoeheGleich: %s [%f =? %f]"""
+				.formatted(istGleich, id, x.getBean(), xGleich, getX(), other.getX(), yGleich, getY(), other.getY(), 
+						breiteGleich, getBreite(), other.getBreite(), hoeheGleich, getHoehe(), other.getHoehe()));
+		
+		return istGleich;
 	}
 	
 	@Override

@@ -103,7 +103,15 @@ class ProjektKontrolle {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	void checkSchliessen(Event event) {
-		if (!ansicht.get().getProjekt().istGespeichertProperty().get()) {
+		boolean veraendert = true;
+		try {
+			UMLProjekt dateiInhalt = UMLProjekt.ausDateiOeffnen(ansicht.get().getProjekt().getSpeicherort());
+			veraendert = !dateiInhalt.equals(ansicht.get().getProjekt());
+		} catch (IOException e) {
+			log.log(Level.WARNING, e, () -> "Fehler beim lesen der Datei '%s' fuer Vergleich"
+					.formatted(ansicht.get().getProjekt().getSpeicherort()));
+		}
+		if (!ansicht.get().getProjekt().istGespeichertProperty().get() || veraendert) {
 			MessageFormat nachricht = new MessageFormat(sprache.getText("schliessenAbfrage",
 					"Projekt \"{0}\" vor dem Schlie%cen speichern?".formatted(sz)));
 			String abfrage = nachricht.format(new Object[] { ansicht.get().getProjekt().getName() });
@@ -135,8 +143,12 @@ class ProjektKontrolle {
 					case APPLY -> {
 						log.info(() -> "Speichere %cnderungen am Projekt [%s] und Schlie%ce"
 							.formatted(AE, ansicht.get().getProjekt(), sz));
-						projektSpeichern(this.ansicht.get().getProjekt());
-						this.ansicht.get().schliesse();
+						boolean erfolg = projektSpeichern(this.ansicht.get().getProjekt());
+						if (erfolg) {
+							this.ansicht.get().schliesse();
+						} else {
+							event.consume();
+						}
 					}
 					default -> {
 						log.info(() -> "Schlie%cen von Projekt [%s] abgebrochen"
@@ -159,7 +171,7 @@ class ProjektKontrolle {
 		boolean veraendert = true;
 		try {
 			UMLProjekt dateiInhalt = UMLProjekt.ausDateiOeffnen(projekt.getSpeicherort());
-			veraendert = dateiInhalt.hashCode() != projekt.getGespeicherterHash();
+			veraendert = !dateiInhalt.equals(projekt);
 		} catch (IOException e) {
 			log.log(Level.WARNING, e,
 					() -> "Fehler beim lesen der Datei '%s' fuer Vergleich".formatted(projekt.getSpeicherort()));
@@ -518,10 +530,10 @@ class ProjektKontrolle {
 	private boolean zeigeSpeichernUeberschreibenDialog() {
 		String titel = sprache.getText("dateiUeberschreibenTitel", "Datei %cberschreiben?".formatted(Umlaute.ue));
 		String beschreibung = sprache.getText("dateiUeberschreiben", """
-				Die Datei wurde seit dem letzten Speichervorgang ver%cndert oder gel%cscht.
+				Die Datei wurde seit dem letzten Speichervorgang m%cglicherweise ver%cndert oder gel%cscht.
 				
 				Soll die Datei mit dem aktuellen Projekt %cberschrieben werden?
-				""".formatted(Umlaute.ae, Umlaute.oe, Umlaute.ue));
+				""".formatted(Umlaute.oe, Umlaute.ae, Umlaute.oe, Umlaute.ue));
 		var text = new TextFlow(new Text(beschreibung));
 		text.getStyleClass().add("dialog-text-warnung");
 		Alert abfrage = new Alert(AlertType.WARNING);

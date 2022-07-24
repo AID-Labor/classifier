@@ -258,7 +258,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			this.getChildren().add(linie);
 		}
 		
-		var linieAPos = new Position(this + "_linieAPos");
+		var linieAPos = new Position(this, "linieAPos");
 		linieAPos.xProperty().bind(startpunkt.xProperty());
 		linieAPos.yProperty().bind(startpunkt.yProperty());
 		linieAPos.breiteProperty().bind(linieA.xProperty());
@@ -268,7 +268,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 				orientierungEndeProperty, neueStartOrientierung -> updateLinie(neueStartOrientierung,
 						verbindung.getStartElement(), verbindung.getOrientierungEnde(), verbindung.getEndElement()));
 		
-		var linieBPos = new Position(this + "_linieBPos");
+		var linieBPos = new Position(this, "linieBPos");
 		linieBPos.xProperty().bind(linieA.xProperty());
 		linieBPos.yProperty().bind(linieA.yProperty());
 		linieBPos.breiteProperty().bind(linieB.xProperty());
@@ -276,7 +276,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		macheVerschiebbarMitte(linieBPos, mitteVerschiebungProperty, verbindung.startElementProperty(),
 				orientierungStartProperty, verbindung.endElementProperty());
 		
-		var linieCPos = new Position(this + "_linieCPos");
+		var linieCPos = new Position(this, "linieCPos");
 		linieCPos.xProperty().bind(startpunktEnde.xProperty());
 		linieCPos.yProperty().bind(startpunktEnde.yProperty());
 		linieCPos.breiteProperty().bind(linieC.xProperty());
@@ -464,7 +464,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		ueberwacheMausZeiger(linienWahl, orientierungProperty, false);
 		linienWahl.getStyleClass().add("test");
 		
-		Position start = new Position(this + "_macheVerschiebbarStartPos");
+		Position start = new Position(this, "macheVerschiebbarStartPos");
 		BooleanProperty wirdBewegt = new SimpleBooleanProperty(false);
 		ObjectProperty<UeberwachungsStatus> status = new SimpleObjectProperty<>();
 		
@@ -600,7 +600,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		ueberwacheMausZeiger(linienWahl, orientierungProperty, true);
 		linienWahl.getStyleClass().add("test");
 		
-		Position start = new Position(this + "_macheVerschiebbarStartPos");
+		Position start = new Position(this, "macheVerschiebbarStartPos");
 		BooleanProperty wirdBewegt = new SimpleBooleanProperty(false);
 		ObjectProperty<UeberwachungsStatus> status = new SimpleObjectProperty<>();
 		
@@ -862,7 +862,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		}
 		
 		Position posStart = start.getPosition();
-		Position posEnde = ende == null ? new Position(this + "_posEnde") : ende.getPosition();
+		Position posEnde = ende == null ? new Position(this, "posEnde") : ende.getPosition();
 		
 		if (start != startAlt) {
 			if (startAlt != null) {
@@ -940,7 +940,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			return;
 		}
 		
-		Position posStart = start == null ? new Position(this + "_posStart") : start.getPosition();
+		Position posStart = start == null ? new Position(this, "posStart") : start.getPosition();
 		Position posEnde = ende.getPosition();
 		
 		// Wechsel auf OBEN => Mittig platzieren

@@ -110,8 +110,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.automatischProperty = new JsonBooleanProperty(this, "automatisch", automatisch);
 		this.startElementProperty = new SimpleObjectProperty<>(this, "startElement", null);
 		this.endElementProperty = new SimpleObjectProperty<>(this, "endElement", null);
-		this.startPosition = startPosition == null ? new Position(this) : new Position(startPosition, this);
-		this.endPosition = endPosition == null ? new Position(this) : new Position(endPosition, this);
+		this.startPosition = startPosition == null ? new Position(this, "start") : new Position(this, "start", startPosition);
+		this.endPosition = endPosition == null ? new Position(this, "ende") : new Position(this, "ende", endPosition);
 		this.mitteVerschiebungProperty = new JsonDoubleProperty(this, "mitteVerschiebung", mitteVerschiebung);
 		this.orientierungStartProperty = new JsonObjectProperty<>(this, "orientierungStart", orientierungStart);
 		this.orientierungEndeProperty = new JsonObjectProperty<>(this, "orientierungEnde", orientierungEnde);
@@ -398,11 +398,34 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 			return false;
 		}
 		UMLVerbindung other = (UMLVerbindung) obj;
-		return Objects.equals(ausgebelendetProperty, other.ausgebelendetProperty)
-				&& Objects.equals(endPosition, other.endPosition) && Objects.equals(startPosition, other.startPosition)
-				&& typ == other.typ && Objects.equals(verbindungsEndeProperty, other.verbindungsEndeProperty)
-				&& Objects.equals(verbindungsStartProperty, other.verbindungsStartProperty)
-				&& getMitteVerschiebung() == other.getMitteVerschiebung();
+		
+		boolean ausgebelendetPropertyGleich = istAusgebelendet() == other.istAusgebelendet();
+		boolean startPositionGleich = Objects.equals(getStartPosition(), other.getStartPosition());
+		boolean endPositionGleich = Objects.equals(getEndPosition(), other.getEndPosition());
+		boolean typGleich = Objects.equals(getTyp(), other.getTyp());
+		boolean verbindungsStartGleich = Objects.equals(getVerbindungsStart(), other.getVerbindungsStart());
+		boolean verbindungsEndeGleich = Objects.equals(getVerbindungsEnde(), other.getVerbindungsEnde());
+		boolean mitteVerschiebungGleich = getMitteVerschiebung() == other.getMitteVerschiebung();
+		
+		boolean istGleich = ausgebelendetPropertyGleich
+				&& startPositionGleich && endPositionGleich
+				&& typGleich && verbindungsStartGleich
+				&& verbindungsEndeGleich
+				&& mitteVerschiebungGleich;
+		
+		log.finest(() -> """
+				istGleich: %s
+				   |-- ausgebelendetPropertyGleich: %s
+				   |-- startPositionGleich: %s
+				   |-- endPositionGleich: %s
+				   |-- typGleich: %s
+				   |-- verbindungsStartGleich: %s
+				   |-- verbindungsEndeGleich: %s
+				   ╰-- mitteVerschiebungGleich: %s"""
+				.formatted(istGleich, ausgebelendetPropertyGleich, startPositionGleich, endPositionGleich, typGleich,
+						verbindungsStartGleich, verbindungsEndeGleich, mitteVerschiebungGleich));
+		
+		return istGleich;
 	}
 	
 	@Override
@@ -412,8 +435,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public UMLVerbindung erzeugeTiefeKopie() {
-		return new UMLVerbindung(typ, getVerbindungsStart(), getVerbindungsEnde(), new Position(startPosition),
-				new Position(endPosition), istAusgebelendet(), istAutomatisch(), getOrientierungStart(),
+		return new UMLVerbindung(typ, getVerbindungsStart(), getVerbindungsEnde(), new Position(null, "", startPosition),
+				new Position(null, "", endPosition), istAusgebelendet(), istAutomatisch(), getOrientierungStart(),
 				getOrientierungEnde(), getMitteVerschiebung());
 	}
 	

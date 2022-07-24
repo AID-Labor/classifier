@@ -69,7 +69,7 @@ public class UMLKommentar extends UMLBasisElement {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public UMLKommentar() {
-		super(new Position(null));
+		super(new Position(null, ""));
 		this.inhaltProperty = new JsonStringProperty(this, "inhalt", "");
 		this.ueberwachePropertyAenderung(this.inhaltProperty, getId() + "_inhalt");
 	}
@@ -139,7 +139,7 @@ public class UMLKommentar extends UMLBasisElement {
 	
 	@Override
 	public UMLKommentar erzeugeTiefeKopie() {
-		return new UMLKommentar(getInhalt(), new Position(getPosition()));
+		return new UMLKommentar(getInhalt(), new Position(null, "", getPosition()));
 	}
 	
 	@Override

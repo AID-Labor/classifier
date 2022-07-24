@@ -64,7 +64,7 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	UMLBasisElement() {
-		this.position = new Position(10, 10, -1, -1, this);
+		this.position = new Position(10, 10, -1, -1, this, "pos");
 		this.beobachterListe = new LinkedList<>();
 		this.ueberwachePropertyAenderung(this.position.xProperty(), getId() + "_x_position");
 		this.ueberwachePropertyAenderung(this.position.yProperty(), getId() + "_y_position");
