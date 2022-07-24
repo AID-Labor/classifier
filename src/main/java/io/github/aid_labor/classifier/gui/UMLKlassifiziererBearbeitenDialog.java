@@ -19,6 +19,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.controlsfx.control.PopOver;
@@ -41,11 +42,15 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.komponenten.DatentypFeld;
+import io.github.aid_labor.classifier.gui.komponenten.VerbindungBearbeitenListe;
+import io.github.aid_labor.classifier.gui.komponenten.VerbindungBearbeitenListe.Typ;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.HatParameterListe;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Konstruktor;
@@ -98,8 +103,8 @@ import javafx.scene.layout.StackPane;
 
 
 public class UMLKlassifiziererBearbeitenDialog extends Alert {
-//	private static final Logger log = Logger.getLogger(UMLKlassifiziererBearbeitenDialog.class.getName());
-
+	private static final Logger log = Logger.getLogger(UMLKlassifiziererBearbeitenDialog.class.getName());
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -120,7 +125,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private final WeakReference<UMLKlassifizierer> klassifiziererRef;
+	private final UMLKlassifizierer klassifizierer;
 	private final WeakReference<UMLProjekt> umlProjektRef;
 	private final Sprache sprache;
 	private final SegmentedButton buttonBar;
@@ -128,6 +133,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	private final ToggleButton attribute;
 	private final ToggleButton konstruktoren;
 	private final ToggleButton methoden;
+	private final ToggleButton assoziation;
+	private final ToggleButton vererbung;
 	private final ValidationSupport eingabeValidierung;
 	private final List<ChangeListener<KlassifiziererTyp>> typBeobachterListe;
 	private final List<ChangeListener<ValidationResult>> validierungsBeobachter;
@@ -143,7 +150,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	
 	public UMLKlassifiziererBearbeitenDialog(UMLKlassifizierer klassifizierer, UMLProjekt projekt) {
 		super(AlertType.NONE);
-		this.klassifiziererRef = new WeakReference<>(klassifizierer);
+		this.klassifizierer = Objects.requireNonNull(klassifizierer);
+		this.umlProjektRef = new WeakReference<>(projekt);
 		this.sprache = new Sprache();
 		this.eingabeValidierung = new ValidationSupport();
 		this.typBeobachterListe = new LinkedList<>();
@@ -151,7 +159,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.loeseBindungen = new LinkedList<>();
 		this.vorhandeneElementNamen = projekt.getDiagrammElemente().parallelStream()
 				.filter(element -> element.getId() != klassifizierer.getId()).map(UMLDiagrammElement::getName).toList();
-		this.umlProjektRef = new WeakReference<>(projekt);
 		List<UMLKlassifizierer> klassen = projekt.getDiagrammElemente().stream()
 				.filter(UMLKlassifizierer.class::isInstance).map(UMLKlassifizierer.class::cast).toList();
 		this.klassenSuchBaum = new TreeMap<>(
@@ -175,7 +182,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.attribute = new ToggleButton(sprache.getText("attribute", "Attribute"));
 		this.konstruktoren = new ToggleButton(sprache.getText("konstruktoren", "Konstruktoren"));
 		this.methoden = new ToggleButton(sprache.getText("methoden", "Methoden"));
-		this.buttonBar = new SegmentedButton(allgemein, attribute, konstruktoren, methoden);
+		this.assoziation = new ToggleButton(sprache.getText("assoziationen", "Assoziationen"));
+		this.vererbung = new ToggleButton(sprache.getText("vererbungen", "Vererbungen"));
+		this.buttonBar = new SegmentedButton(allgemein, attribute, konstruktoren, methoden, assoziation, vererbung);
 		this.buttonBar.getToggleGroup().selectToggle(allgemein);
 		HBox buttonContainer = initialisiereButtonBar();
 		
@@ -190,6 +199,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.getDialogPane().setPrefSize(920, 512);
 		
 		this.setOnHidden(e -> {
+			log.config(() -> "räume UMLKlassifizeierBearbeitenDialog auf");
 			for (var beobachter : typBeobachterListe) {
 				klassifizierer.typProperty().removeListener(beobachter);
 			}
@@ -220,6 +230,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					ex.printStackTrace();
 				}
 			}
+			log.config(() -> "aufräumen abgeschlossen");
 		});
 	}
 	
@@ -229,6 +240,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		if (n instanceof Parent p) {
 			for (Node kind : p.getChildrenUnmodifiable()) {
 				entferneAlleBeobachter(kind);
+			}
+		}
+		if (n instanceof AutoCloseable ac) {
+			try {
+				ac.close();
+			} catch (Exception e1) {
+				//
 			}
 		}
 	}
@@ -246,7 +264,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private UMLKlassifizierer getKlassifizierer() {
-		return klassifiziererRef.get();
+		return klassifizierer;
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -313,8 +331,34 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					}
 					this.getKlassifizierer().methodenProperty().add(methode);
 				});
+		var assoziationAnzeige = new VerbindungBearbeitenListe(
+				new String[] { "Klasse/Interface", "Verwendet...", "Ausgeblendet" }, Typ.ASSOZIATION,
+				eingabeValidierung, sprache, umlProjektRef.get(), false);
+		assoziationAnzeige.setVerbindungenFilter(v -> {
+			try {
+				return v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
+						&& klassifizierer.getNameVollstaendig().equals(v.getVerbindungsStart());
+			} catch (Exception e) {
+				return false;
+			}
+		});
+		assoziationAnzeige.setVerbindungErzeuger(
+				() -> new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, klassifizierer.getName(), ""));
+		var vererbungAnzeige = new VerbindungBearbeitenListe(
+				new String[] { "Klasse/Interface", "Superklasse/Interface", "Ausgeblendet" }, Typ.VERERBUNG,
+				eingabeValidierung, sprache, umlProjektRef.get(), false);
+		vererbungAnzeige.setVerbindungenFilter(v -> {
+			try {
+				return !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
+						&& (klassifizierer.getNameVollstaendig().equals(v.getVerbindungsStart())
+								|| klassifizierer.getNameVollstaendig().equals(v.getVerbindungsEnde()));
+			} catch (Exception e) {
+				return false;
+			}
+		});
 		
-		StackPane container = new StackPane(allgemeinAnzeige, attributeAnzeige, konstruktorenAnzeige, methodenAnzeige);
+		StackPane container = new StackPane(allgemeinAnzeige, attributeAnzeige, konstruktorenAnzeige, methodenAnzeige,
+				assoziationAnzeige, vererbungAnzeige);
 		container.setPadding(new Insets(0, 20, 10, 20));
 		container.setMaxWidth(Region.USE_PREF_SIZE);
 		container.setAlignment(Pos.TOP_CENTER);
@@ -325,6 +369,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		ueberwacheSelektion(this.attribute, attributeAnzeige);
 		ueberwacheSelektion(this.konstruktoren, konstruktorenAnzeige);
 		ueberwacheSelektion(this.methoden, methodenAnzeige);
+		ueberwacheSelektion(this.assoziation, assoziationAnzeige);
+		ueberwacheSelektion(this.vererbung, vererbungAnzeige);
 		
 		this.konstruktoren.disableProperty()
 				.bind(Bindings.equal(KlassifiziererTyp.Interface, getKlassifizierer().typProperty()));

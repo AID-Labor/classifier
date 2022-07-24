@@ -742,6 +742,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	
 	private void ueberwacheMausZeiger(Pane linienWahl, ObjectProperty<Orientierung> orientierungProperty,
 			boolean istMitte) {
+		if (orientierungProperty.get() == null) {
+			return;
+		}
 		linienWahl.addEventFilter(MouseEvent.MOUSE_ENTERED_TARGET, event -> {
 			if (istMitte) {
 				switch (orientierungProperty.get()) {

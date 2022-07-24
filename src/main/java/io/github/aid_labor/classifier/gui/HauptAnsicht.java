@@ -43,6 +43,7 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.application.HostServices;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.FXCollections;
@@ -96,6 +97,7 @@ public class HauptAnsicht {
 	private final RibbonKomponente ribbonKomponente;
 	private final HostServices rechnerService;
 	private final BooleanBinding hatKeinProjekt;
+	private final BooleanBinding zuVieleVerbindungen;
 	private final ObservableList<UMLDiagrammElement> kopiePuffer;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -112,6 +114,34 @@ public class HauptAnsicht {
 		this.rechnerService = rechnerService;
 		this.hatKeinProjekt = projekteAnsicht.angezeigtesProjektProperty().isNull();
 		this.kopiePuffer = FXCollections.observableArrayList();
+		
+		this.zuVieleVerbindungen = new BooleanBinding() {
+			private Observable bindung;
+			
+			{
+				super.bind(projekteAnsicht.angezeigtesProjektProperty());
+			}
+			
+			@Override
+			protected boolean computeValue() {
+				var projekt = projekteAnsicht.getAngezeigtesProjekt();
+				if (projekt != null) {
+					if (bindung != null && !bindung.equals(projekt.getVerbindungen())) {
+						super.unbind(bindung);
+						super.bind(projekt.getVerbindungen());
+						bindung = projekt.getVerbindungen();
+					} else if (bindung == null) {
+						super.bind(projekt.getVerbindungen());
+						bindung = projekt.getVerbindungen();
+					}
+					return projekt.getVerbindungen().size() > 80;
+				} else if (bindung != null) {
+					super.unbind(bindung);
+					bindung = null;
+				}
+				return false;
+			}
+		};
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"HauptAnsicht");
@@ -324,8 +354,8 @@ public class HauptAnsicht {
 		menue.getExportierenBild().disableProperty().bind(hatKeinProjekt);
 		menue.getDateiImportieren().disableProperty().bind(hatKeinProjekt);
 		menue.getExportierenQuellcode().disableProperty().bind(hatKeinProjekt);
-		menue.getVererbungEinfuegen().disableProperty().bind(hatKeinProjekt);
-		menue.getAssoziationEinfuegen().disableProperty().bind(hatKeinProjekt);
+		menue.getVererbungEinfuegen().disableProperty().bind(hatKeinProjekt.or(zuVieleVerbindungen));
+		menue.getAssoziationEinfuegen().disableProperty().bind(hatKeinProjekt.or(zuVieleVerbindungen));
 		
 		// Menue Bearbeiten
 		this.projekteAnsicht.angezeigtesProjektProperty().addListener((p, alt, projekt) -> {
@@ -472,8 +502,8 @@ public class HauptAnsicht {
 		ribbon.getNeueEnumeration().disableProperty().bind(hatKeinProjekt);
 		ribbon.getKommentar().disableProperty().bind(hatKeinProjekt);
 		ribbon.getScreenshot().disableProperty().bind(hatKeinProjekt);
-		ribbon.getVererbung().disableProperty().bind(hatKeinProjekt);
-		ribbon.getAssoziation().disableProperty().bind(hatKeinProjekt);
+		ribbon.getVererbung().disableProperty().bind(hatKeinProjekt.or(zuVieleVerbindungen));
+		ribbon.getAssoziation().disableProperty().bind(hatKeinProjekt.or(zuVieleVerbindungen));
 		ribbon.getImportieren().disableProperty().bind(hatKeinProjekt);
 		ribbon.getExportieren().disableProperty().bind(hatKeinProjekt);
 		
