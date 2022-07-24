@@ -467,6 +467,11 @@ public abstract class ProjektBasis implements Projekt {
 		return "%s [Datei: %s]".formatted(this.getName(), this.speicherort);
 	}
 	
+	
+	public final long getGespeicherterHash() {
+		return gespeicherterHash;
+	}
+	
 	@Override
 	public int hashCode() {
 		return ClassifierUtil.hashAlle(automatischSpeichern, getName(), speicherort);

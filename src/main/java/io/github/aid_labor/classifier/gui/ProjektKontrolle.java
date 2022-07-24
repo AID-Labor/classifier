@@ -10,6 +10,7 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -150,6 +152,22 @@ class ProjektKontrolle {
 			return projektSpeichernUnter(projekt);
 		}
 		
+		boolean veraendert = true;
+		try {
+			UMLProjekt dateiInhalt = UMLProjekt.ausDateiOeffnen(projekt.getSpeicherort());
+			veraendert = dateiInhalt.hashCode() != projekt.getGespeicherterHash();
+		} catch (IOException e) {
+			log.log(Level.WARNING, e,
+					() -> "Fehler beim lesen der Datei '%s' fuer Vergleich".formatted(projekt.getSpeicherort()));
+		}
+		
+		if (veraendert) {
+			boolean ueberschreiben = zeigeSpeichernUeberschreibenDialog();
+			if (!ueberschreiben) {
+				return false;
+			}
+		}
+		
 		return ansicht.get().getProjekt().speichern();
 	}
 	
@@ -270,40 +288,58 @@ class ProjektKontrolle {
 			Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty()
 					.set(dateien.get(0).getParentFile().getAbsolutePath());
 			
-			dateien.forEach(this::importiereAusDatei);
+			importiereAusDateien(dateien);
 		}
 	}
 	
-	void importiereAusDatei(File datei) {
-		UMLProjekt projekt = ansicht.get().getProjekt();
-		var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
+	private void importiereAusDateien(List<File> dateien) {
+		var wartedialog = ansicht.get().getOverlayDialog().showBusyIndicator();
+		wartedialog.setShowCloseButton(false);
 		
-		try {
-			List<UMLVerbindung> assoziationen = new LinkedList<>();
-			List<UMLKlassifizierer> klassifizierer = importVerwaltung.importiere(datei, assoziationen);
-			if (klassifizierer == null) {
-				throw new NullPointerException();
+		Thread t = new Thread(() -> {
+			List<UMLKlassifizierer> neueKlassifizierer = new LinkedList<>();
+			List<UMLVerbindung> neueAssoziationen = new LinkedList<>();
+			for (File datei : dateien) {
+				UMLProjekt projekt = ansicht.get().getProjekt();
+				var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
+				
+				try {
+					List<UMLVerbindung> assoziationen = new LinkedList<>();
+					List<UMLKlassifizierer> klassifizierer = importVerwaltung.importiere(datei, assoziationen);
+					if (klassifizierer == null) {
+						throw new NullPointerException();
+					}
+					neueKlassifizierer.addAll(klassifizierer);
+					assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
+							.forEach(assoziation -> {
+								assoziation.setzeAutomatisch(false);
+								neueAssoziationen.add(assoziation);
+							});
+				} catch (ImportException e) {
+					log.log(Level.WARNING, e, () -> "Importfehler");
+					String format = sprache.getText("importParseFehler", """
+							Die Datei \"{0}\" konnte nicht interpretiert werden.
+							M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig"""
+							.formatted(Umlaute.oe, Umlaute.ae, Umlaute.ue));
+					String beschreibung = MessageFormat.format(format, datei.getName());
+					Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+				} catch (Exception e) {
+					log.log(Level.WARNING, e, () -> "Importfehler");
+					String format = sprache.getText("importIOFehler", "Die Datei \"{0}\" konnte nicht gelesen werden.");
+					String beschreibung = MessageFormat.format(format, datei.getName());
+					Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+				}
 			}
-			projekt.getDiagrammElemente().addAll(klassifizierer);
-			assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
-					.forEach(assoziation -> {
-						assoziation.setzeAutomatisch(false);
-						projekt.getVerbindungen().add(assoziation);
-					});
-		} catch (ImportException e) {
-			log.log(Level.WARNING, e, () -> "Importfehler");
-			String format = sprache.getText("importParseFehler", """
-					Die Datei \"{0}\" konnte nicht interpretiert werden.
-					M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig""".formatted(Umlaute.oe,
-					Umlaute.ae, Umlaute.ue));
-			String beschreibung = MessageFormat.format(format, datei.getName());
-			zeigeImportFehlerDialog(beschreibung, e);
-		} catch (Exception e) {
-			log.log(Level.WARNING, e, () -> "Importfehler");
-			String format = sprache.getText("importIOFehler", "Die Datei \"{0}\" konnte nicht gelesen werden.");
-			String beschreibung = MessageFormat.format(format, datei.getName());
-			zeigeImportFehlerDialog(beschreibung, e);
-		}
+			
+			Platform.runLater(() -> {
+				wartedialog.cancel();
+				ansicht.get().getOverlayDialog().hideDialog(wartedialog);
+				UMLProjekt projekt = ansicht.get().getProjekt();
+				projekt.getDiagrammElemente().addAll(neueKlassifizierer);
+				projekt.getVerbindungen().addAll(neueAssoziationen);
+			});
+		});
+		t.start();
 	}
 	
 	void importiereAusDatei(DragEvent event) {
@@ -338,9 +374,7 @@ class ProjektKontrolle {
 			if (db.hasFiles()
 					&& pruefeDateiErweiterungen(db.getFiles(), importVerwaltung.getImportDateierweiterungen())) {
 				event.consume();
-				for (File datei : db.getFiles()) {
-					importiereAusDatei(datei);
-				}
+				importiereAusDateien(db.getFiles());
 			}
 		}
 	}
@@ -388,7 +422,7 @@ class ProjektKontrolle {
 							symbol.setIconSize(30);
 							symbol.getStyleClass().add("fehler-icon");
 							hilfeDialog.getDialogPane().setGraphic(symbol);
-							Platform.runLater(() ->{
+							Platform.runLater(() -> {
 								hilfeDialog.setWidth(breite);
 								hilfeDialog.setHeight(hoehe);
 							});
@@ -396,6 +430,30 @@ class ProjektKontrolle {
 						}
 					});
 			
+		}
+	}
+	
+	private boolean zeigeSpeichernUeberschreibenDialog() {
+		String titel = sprache.getText("dateiUeberschreibenTitel", "Datei %cberschreiben?".formatted(Umlaute.ue));
+		String beschreibung = sprache.getText("dateiUeberschreiben", """
+				Die Datei wurde seit dem letzten Speichervorgang ver%cndert oder gel%cscht.
+				
+				Soll die Datei mit dem aktuellen Projekt %cberschrieben werden?
+				""".formatted(Umlaute.ae, Umlaute.oe, Umlaute.ue));
+		var text = new TextFlow(new Text(beschreibung));
+		text.getStyleClass().add("dialog-text-warnung");
+		Alert abfrage = new Alert(AlertType.WARNING);
+		abfrage.setTitle(titel);
+		abfrage.getDialogPane().setContent(text);
+		abfrage.getButtonTypes().clear();
+		abfrage.getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.YES);
+		
+		FensterUtil.initialisiereElternFenster(ansicht.get().getTabPane().getScene().getWindow(), abfrage);
+		Optional<ButtonType> buttonWahl = abfrage.showAndWait();
+		if (buttonWahl.isPresent()) {
+			return ButtonType.YES.equals(buttonWahl.get());
+		} else {
+			return false;
 		}
 	}
 	
