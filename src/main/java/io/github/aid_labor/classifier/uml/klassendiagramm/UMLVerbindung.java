@@ -20,11 +20,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
+import io.github.aid_labor.classifier.basis.json.JsonDoubleProperty;
 import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.Schliessbar;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.StringProperty;
@@ -67,6 +69,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	private final UMLVerbindungstyp typ;
 	private final JsonStringProperty verbindungsStartProperty;
 	private final JsonStringProperty verbindungsEndeProperty;
+	private final JsonDoubleProperty mitteVerschiebungProperty;
 	private final JsonBooleanProperty ausgebelendetProperty;
 	private final JsonBooleanProperty automatischProperty;
 	private final Position startPosition;
@@ -98,7 +101,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 			@JsonProperty("ausgebelendetProperty") boolean ausgeblendet,
 			@JsonProperty(value = "automatischProperty", defaultValue = "true") boolean automatisch,
 			@JsonProperty(value = "orientierungStartProperty", defaultValue = "UNBEKANNT") Orientierung orientierungStart,
-			@JsonProperty(value = "orientierungEndeProperty", defaultValue = "UNBEKANNT") Orientierung orientierungEnde) {
+			@JsonProperty(value = "orientierungEndeProperty", defaultValue = "UNBEKANNT") Orientierung orientierungEnde,
+			@JsonProperty(value = "mitteVerschiebungProperty", defaultValue = "0") double mitteVerschiebung) {
 		this.typ = typ;
 		this.verbindungsStartProperty = new JsonStringProperty(this, "verbindungsStart", verbindungsStart);
 		this.verbindungsEndeProperty = new JsonStringProperty(this, "verbindungsEnde", verbindungsEnde);
@@ -108,6 +112,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.endElementProperty = new SimpleObjectProperty<>(this, "endElement", null);
 		this.startPosition = startPosition == null ? new Position(this) : new Position(startPosition, this);
 		this.endPosition = endPosition == null ? new Position(this) : new Position(endPosition, this);
+		this.mitteVerschiebungProperty = new JsonDoubleProperty(this, "mitteVerschiebung", mitteVerschiebung);
 		this.orientierungStartProperty = new JsonObjectProperty<>(this, "orientierungStart", orientierungStart);
 		this.orientierungEndeProperty = new JsonObjectProperty<>(this, "orientierungEnde", orientierungEnde);
 		this.id = naechsteId++;
@@ -130,6 +135,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.ueberwachePropertyAenderung(this.endPosition.yProperty(), id + "_endeY");
 		this.ueberwachePropertyAenderung(this.endPosition.hoeheProperty(), id + "_endeHoehe");
 		this.ueberwachePropertyAenderung(this.endPosition.breiteProperty(), id + "_endeBreite");
+		this.ueberwachePropertyAenderung(this.mitteVerschiebungProperty, id + "_mitteVerschiebung");
 		this.ueberwachePropertyAenderung(orientierungStartProperty, id + "_orientierungStart");
 		this.ueberwachePropertyAenderung(orientierungEndeProperty, id + "_orientierungEnde");
 	}
@@ -137,7 +143,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	public UMLVerbindung(UMLVerbindungstyp typ, String verbindungsStart, String verbindungsEnde, Position startPosition,
 			Position endPosition) {
 		this(typ, verbindungsStart, verbindungsEnde, startPosition, endPosition, false, true, Orientierung.UNBEKANNT,
-				Orientierung.UNBEKANNT);
+				Orientierung.UNBEKANNT, 0);
 	}
 	
 	public UMLVerbindung(UMLVerbindungstyp typ, String verbindungsStart, String verbindungsEnde) {
@@ -270,6 +276,18 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		return endPosition;
 	}
 	
+	public DoubleProperty mitteVerschiebungProperty() {
+		return mitteVerschiebungProperty;
+	}
+	
+	public double getMitteVerschiebung() {
+		return mitteVerschiebungProperty.get();
+	}
+	
+	public void setMitteVerschiebung(double mitteVerschiebung) {
+		mitteVerschiebungProperty.set(mitteVerschiebung);
+	}
+	
 	public long getId() {
 		return id;
 	}
@@ -364,7 +382,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	@Override
 	public int hashCode() {
 		return ClassifierUtil.hashAlle(istAusgebelendet(), getEndPosition(), getStartPosition(), getTyp(),
-				getVerbindungsEnde(), getVerbindungsStart(), getOrientierungEnde(), getOrientierungStart());
+				getVerbindungsEnde(), getVerbindungsStart(), getOrientierungEnde(), getOrientierungStart(),
+				getMitteVerschiebung());
 	}
 	
 	@Override
@@ -382,7 +401,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		return Objects.equals(ausgebelendetProperty, other.ausgebelendetProperty)
 				&& Objects.equals(endPosition, other.endPosition) && Objects.equals(startPosition, other.startPosition)
 				&& typ == other.typ && Objects.equals(verbindungsEndeProperty, other.verbindungsEndeProperty)
-				&& Objects.equals(verbindungsStartProperty, other.verbindungsStartProperty);
+				&& Objects.equals(verbindungsStartProperty, other.verbindungsStartProperty)
+				&& getMitteVerschiebung() == other.getMitteVerschiebung();
 	}
 	
 	@Override
@@ -394,7 +414,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	public UMLVerbindung erzeugeTiefeKopie() {
 		return new UMLVerbindung(typ, getVerbindungsStart(), getVerbindungsEnde(), new Position(startPosition),
 				new Position(endPosition), istAusgebelendet(), istAutomatisch(), getOrientierungStart(),
-				getOrientierungEnde());
+				getOrientierungEnde(), getMitteVerschiebung());
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

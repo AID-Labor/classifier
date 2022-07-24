@@ -72,6 +72,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	private final DoubleProperty endeYProperty;
 	private final DoubleProperty startXVerschiebungProperty;
 	private final DoubleProperty startYVerschiebungProperty;
+	private final DoubleProperty mitteVerschiebungProperty;
 	private final DoubleProperty endeXVerschiebungProperty;
 	private final DoubleProperty endeYVerschiebungProperty;
 	private final Path linieStart;
@@ -101,6 +102,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		this.endeYProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getY());
 		this.startXVerschiebungProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getBreite());
 		this.startYVerschiebungProperty = new SimpleDoubleProperty(verbindung.getStartPosition().getHoehe());
+		this.mitteVerschiebungProperty = new SimpleDoubleProperty(verbindung.getMitteVerschiebung());
+		double mitteVerschiebung = verbindung.getMitteVerschiebung();
 		this.endeXVerschiebungProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getBreite());
 		this.endeYVerschiebungProperty = new SimpleDoubleProperty(verbindung.getEndPosition().getHoehe());
 		double startXVerschiebung = verbindung.getStartPosition().getBreite();
@@ -161,6 +164,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		this.startYVerschiebungProperty.set(startYVerschiebung);
 		this.endeXVerschiebungProperty.set(endeXVerschiebung);
 		this.endeYVerschiebungProperty.set(endeYVerschiebung);
+		this.mitteVerschiebungProperty.set(mitteVerschiebung);
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -196,6 +200,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		endeYVerschiebungProperty.unbindBidirectional(verbindung.getEndPosition().hoeheProperty());
 		orientierungStartProperty.unbindBidirectional(verbindung.orientierungStartProperty());
 		orientierungEndeProperty.unbindBidirectional(verbindung.orientierungEndeProperty());
+		mitteVerschiebungProperty.unbindBidirectional(verbindung.mitteVerschiebungProperty());
 		
 		NodeUtil.entferneSchwacheBeobachtung(this);
 	}
@@ -217,6 +222,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		endeYVerschiebungProperty.bindBidirectional(verbindung.getEndPosition().hoeheProperty());
 		orientierungStartProperty.bindBidirectional(verbindung.orientierungStartProperty());
 		orientierungEndeProperty.bindBidirectional(verbindung.orientierungEndeProperty());
+		mitteVerschiebungProperty.bindBidirectional(verbindung.mitteVerschiebungProperty());
 		
 		NodeUtil.beobachteSchwach(this, verbindung.startElementProperty(),
 				start -> updateStartPosition(start, verbindung.getEndElement()));
@@ -258,10 +264,17 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		linieAPos.breiteProperty().bind(linieA.xProperty());
 		linieAPos.hoeheProperty().bind(linieA.yProperty());
 		macheVerschiebbar(linieAPos, startXVerschiebungProperty, startYVerschiebungProperty,
-				verbindung.startElementProperty(), orientierungStartProperty,
-				verbindung.endElementProperty(), orientierungEndeProperty,
-				neueStartOrientierung -> updateLinie(neueStartOrientierung, verbindung.getStartElement(),
-						verbindung.getOrientierungEnde(), verbindung.getEndElement()));
+				verbindung.startElementProperty(), orientierungStartProperty, verbindung.endElementProperty(),
+				orientierungEndeProperty, neueStartOrientierung -> updateLinie(neueStartOrientierung,
+						verbindung.getStartElement(), verbindung.getOrientierungEnde(), verbindung.getEndElement()));
+		
+		var linieBPos = new Position(this + "_linieBPos");
+		linieBPos.xProperty().bind(linieA.xProperty());
+		linieBPos.yProperty().bind(linieA.yProperty());
+		linieBPos.breiteProperty().bind(linieB.xProperty());
+		linieBPos.hoeheProperty().bind(linieB.yProperty());
+		macheVerschiebbarMitte(linieBPos, mitteVerschiebungProperty, verbindung.startElementProperty(),
+				orientierungStartProperty, verbindung.endElementProperty());
 		
 		var linieCPos = new Position(this + "_linieCPos");
 		linieCPos.xProperty().bind(startpunktEnde.xProperty());
@@ -269,10 +282,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		linieCPos.breiteProperty().bind(linieC.xProperty());
 		linieCPos.hoeheProperty().bind(linieC.yProperty());
 		macheVerschiebbar(linieCPos, endeXVerschiebungProperty, endeYVerschiebungProperty,
-				verbindung.endElementProperty(), orientierungEndeProperty,
-				verbindung.startElementProperty(), orientierungStartProperty,
-				neueEndOrientierung -> updateLinie(verbindung.getOrientierungStart(), verbindung.getStartElement(),
-						neueEndOrientierung, verbindung.getEndElement()));
+				verbindung.endElementProperty(), orientierungEndeProperty, verbindung.startElementProperty(),
+				orientierungStartProperty, neueEndOrientierung -> updateLinie(verbindung.getOrientierungStart(),
+						verbindung.getStartElement(), neueEndOrientierung, verbindung.getEndElement()));
 	}
 	
 	private void updateLinie(Orientierung orientierungStart, UMLKlassifizierer start, Orientierung orientierungEnde,
@@ -313,6 +325,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		startYVerschiebungProperty.set(0);
 		
 		var yMitte = startpunkt.yProperty().add(linieC.yProperty()).add(VERERBUNGSPFEIL_GROESSE).divide(2);
+		mitteVerschiebungProperty.set(0);
+		
 		linieA.xProperty()
 				.bind(new When(orientierungEndeProperty.isEqualTo(Orientierung.LINKS)
 						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS)))
@@ -321,7 +335,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		linieA.yProperty()
 				.bind(new When(orientierungEndeProperty.isEqualTo(Orientierung.LINKS)
 						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS)))
-						.then(endeYProperty.add(endeYVerschiebungProperty)).otherwise(yMitte));
+						.then(endeYProperty.add(endeYVerschiebungProperty))
+						.otherwise(yMitte.add(mitteVerschiebungProperty)));
 		linieB.xProperty()
 				.bind(new When(orientierungEndeProperty.isEqualTo(Orientierung.LINKS)
 						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS))).then(linieA.xProperty())
@@ -345,6 +360,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		
 		var yMitte = verbindung.getStartPosition().yProperty().add(verbindung.getEndPosition().yProperty())
 				.subtract(VERERBUNGSPFEIL_GROESSE).divide(2);
+		mitteVerschiebungProperty.set(0);
+		
 		linieA.xProperty()
 				.bind(new When(orientierungEndeProperty.isEqualTo(Orientierung.LINKS)
 						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS)))
@@ -353,7 +370,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		linieA.yProperty()
 				.bind(new When(orientierungEndeProperty.isEqualTo(Orientierung.LINKS)
 						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS)))
-						.then(endeYProperty.add(endeYVerschiebungProperty)).otherwise(yMitte));
+						.then(endeYProperty.add(endeYVerschiebungProperty))
+						.otherwise(yMitte.add(mitteVerschiebungProperty)));
 		linieB.xProperty()
 				.bind(new When(orientierungEndeProperty.isEqualTo(Orientierung.LINKS)
 						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS))).then(linieA.xProperty())
@@ -372,6 +390,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	private void bindeStartLinksRechts() {
 		var xMitte = startpunkt.xProperty().add(startXVerschiebungProperty)
 				.add(endeXProperty.add(endeXVerschiebungProperty)).add(VERERBUNGSPFEIL_GROESSE).divide(2);
+		mitteVerschiebungProperty.set(0);
+		
 		if (Orientierung.UNTEN.equals(orientierungEndeProperty.get())
 				|| Orientierung.OBEN.equals(orientierungEndeProperty.get())) {
 			linieA.xProperty().bind(endeXProperty.add(endeXVerschiebungProperty));
@@ -379,9 +399,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			linieB.xProperty().bind(linieA.xProperty());
 			linieB.yProperty().bind(linieA.yProperty());
 		} else {
-			linieA.xProperty().bind(xMitte);
+			linieA.xProperty().bind(xMitte.add(mitteVerschiebungProperty));
 			linieA.yProperty().bind(startpunkt.yProperty());
-			linieB.xProperty().bind(xMitte);
+			linieB.xProperty().bind(xMitte.add(mitteVerschiebungProperty));
 			linieB.yProperty().bind(endeYProperty.add(endeYVerschiebungProperty));
 		}
 	}
@@ -441,7 +461,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			return null;
 		}
 		Pane linienWahl = erstelleLinienUeberlagerung(liniePos);
-		ueberwacheMausZeiger(linienWahl, orientierungProperty);
+		ueberwacheMausZeiger(linienWahl, orientierungProperty, false);
 		linienWahl.getStyleClass().add("test");
 		
 		Position start = new Position(this + "_macheVerschiebbarStartPos");
@@ -465,6 +485,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 				}
 				var elementPos = element.get().getPosition();
 				var anderesElementPos = anderesElement.get().getPosition();
+				
 				switch (orientierungProperty.get()) {
 					case OBEN, UNTEN -> {
 						double dX = event.getSceneX() - start.getX();
@@ -498,7 +519,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			ObjectProperty<Orientierung> orientierungProperty, Orientierung andereOrientierung, Position elementPos,
 			Position anderePos, BooleanProperty wirdBewegt, Consumer<Orientierung> update) {
 		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
-			x = ((int) x / 10) * 10;	// Raster in 5er-Schritten
+			x = ((int) x / 10) * 10;	// Raster in 10er-Schritten
 		}
 		xVerschiebung.set(x);
 		if (liniePos.xProperty().get() - 2 < elementPos.getX()) {
@@ -535,7 +556,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			ObjectProperty<Orientierung> orientierungProperty, Orientierung andereOrientierung, Position elementPos,
 			Position anderePos, BooleanProperty wirdBewegt, Consumer<Orientierung> update) {
 		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
-			y = ((int) y / 10) * 10;	// Raster in 5er-Schritten
+			y = ((int) y / 10) * 10;	// Raster in 10er-Schritten
 		}
 		yVerschiebung.set(y);
 		if (liniePos.yProperty().get() + 2 < elementPos.getY()) {
@@ -568,6 +589,136 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		}
 	}
 	
+	private Node macheVerschiebbarMitte(Position liniePos, DoubleProperty verschiebung,
+			ObjectProperty<UMLKlassifizierer> element, ObjectProperty<Orientierung> orientierungProperty,
+			ObjectProperty<UMLKlassifizierer> anderesElement) {
+		
+		if (element == null || anderesElement == null || projekt == null) {
+			return null;
+		}
+		Pane linienWahl = erstelleLinienUeberlagerung(liniePos);
+		ueberwacheMausZeiger(linienWahl, orientierungProperty, true);
+		linienWahl.getStyleClass().add("test");
+		
+		Position start = new Position(this + "_macheVerschiebbarStartPos");
+		BooleanProperty wirdBewegt = new SimpleBooleanProperty(false);
+		ObjectProperty<UeberwachungsStatus> status = new SimpleObjectProperty<>();
+		
+		linienWahl.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+			status.set(projekt.getUeberwachungsStatus());
+			projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
+			start.setX(event.getSceneX());
+			start.setY(event.getSceneY());
+			start.setBreite(verschiebung.get());
+			start.setHoehe(verschiebung.get());
+			wirdBewegt.set(true);
+		});
+		
+		linienWahl.addEventFilter(MouseEvent.MOUSE_DRAGGED, event -> {
+			if (wirdBewegt.get()) {
+				if (element.get() == null || anderesElement.get() == null) {
+					return;
+				}
+				var elementPos = element.get().getPosition();
+				var anderesElementPos = anderesElement.get().getPosition();
+				
+				switch (orientierungProperty.get()) {
+					case OBEN -> {
+						double dY = event.getSceneY() - start.getY();
+						double y = start.getBreite() + dY / getParent().getScaleY();
+						double minY = anderesElementPos.getMaxY() + VERERBUNGSPFEIL_GROESSE + 5;
+						double maxY = elementPos.getY() - 5;
+						verschiebeYMitte(y, liniePos, verschiebung, minY, maxY, wirdBewegt);
+					}
+					case UNTEN -> {
+						double dY = event.getSceneY() - start.getY();
+						double y = start.getBreite() + dY / getParent().getScaleY();
+						double minY = elementPos.getMaxY() + 5;
+						double maxY = anderesElementPos.getY() - VERERBUNGSPFEIL_GROESSE - 5;
+						verschiebeYMitte(y, liniePos, verschiebung, minY, maxY, wirdBewegt);
+					}
+					case LINKS -> {
+						double dX = event.getSceneX() - start.getX();
+						double x = start.getHoehe() + dX / getParent().getScaleX();
+						double minX = anderesElementPos.getMaxX() + VERERBUNGSPFEIL_GROESSE + 5;
+						double maxX = elementPos.getX() - 5;
+						verschiebeXMitte(x, liniePos, verschiebung, minX, maxX, wirdBewegt);
+					}
+					case RECHTS -> {
+						double dX = event.getSceneX() - start.getX();
+						double x = start.getHoehe() + dX / getParent().getScaleX();
+						double minX = elementPos.getMaxX() + 5;
+						double maxX = anderesElementPos.getX() - VERERBUNGSPFEIL_GROESSE - 5;
+						verschiebeXMitte(x, liniePos, verschiebung, minX, maxX, wirdBewegt);
+					}
+					default -> {
+						/**/}
+				}
+			}
+		});
+		
+		linienWahl.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+			projekt.setUeberwachungsStatus(status.get());
+			if (wirdBewegt.get()) {
+				wirdBewegt.set(false);
+			}
+		});
+		
+		return linienWahl;
+	}
+	
+	private void verschiebeYMitte(double y, Position liniePos, DoubleProperty verschiebung, double minY, double maxY,
+			BooleanProperty wirdBewegt) {
+		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
+			y = ((int) y / 10) * 10;	// Raster in 10er-Schritten
+		}
+		verschiebung.set(y);
+		if (liniePos.yProperty().get() - 2 < minY) {
+			y += 3;
+			verschiebung.set(y);
+			while (liniePos.yProperty().get() < minY) {
+				verschiebung.set(++y);
+			}
+			wirdBewegt.set(false);
+		} else if (liniePos.yProperty().get() + 2 > maxY) {
+			y -= 3;
+			verschiebung.set(y);
+			while (liniePos.yProperty().get() > maxY) {
+				verschiebung.set(--y);
+			}
+			wirdBewegt.set(false);
+		} else if (Math.abs(verschiebung.get()) < 5) {
+			// in der Mitte einrasten
+			verschiebung.set(0);
+		}
+	}
+	
+	private void verschiebeXMitte(double x, Position liniePos, DoubleProperty verschiebung, double minX, double maxX, 
+			BooleanProperty wirdBewegt) {
+		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
+			x = ((int) x / 10) * 10;	// Raster in 10er-Schritten
+		}
+		verschiebung.set(x);
+		if (liniePos.xProperty().get() + 2 < minX) {
+			x += 3;
+			verschiebung.set(x);
+			while (liniePos.xProperty().get() < minX) {
+				verschiebung.set(++x);
+			}
+			wirdBewegt.set(false);
+		} else if (liniePos.xProperty().get() + 2 > maxX) {
+			x -= 3;
+			verschiebung.set(x);
+			while (liniePos.xProperty().get() > maxX) {
+				verschiebung.set(--x);
+			}
+			wirdBewegt.set(false);
+		} else if (Math.abs(verschiebung.get()) < 5) {
+			// in der Mitte einrasten
+			verschiebung.set(0);
+		}
+	}
+	
 	private Pane erstelleLinienUeberlagerung(Position liniePos) {
 		var deltaX = liniePos.xProperty().subtract(liniePos.breiteProperty()).add(10);
 		var deltaY = liniePos.yProperty().subtract(liniePos.hoeheProperty()).add(10);
@@ -589,11 +740,19 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		return p;
 	}
 	
-	private void ueberwacheMausZeiger(Pane linienWahl, ObjectProperty<Orientierung> orientierungProperty) {
+	private void ueberwacheMausZeiger(Pane linienWahl, ObjectProperty<Orientierung> orientierungProperty,
+			boolean istMitte) {
 		linienWahl.addEventFilter(MouseEvent.MOUSE_ENTERED_TARGET, event -> {
-			switch (orientierungProperty.get()) {
-				case OBEN, UNTEN -> this.setCursor(Cursor.H_RESIZE);
-				default -> this.setCursor(Cursor.V_RESIZE);
+			if (istMitte) {
+				switch (orientierungProperty.get()) {
+					case OBEN, UNTEN -> this.setCursor(Cursor.V_RESIZE);
+					default -> this.setCursor(Cursor.H_RESIZE);
+				}
+			} else {
+				switch (orientierungProperty.get()) {
+					case OBEN, UNTEN -> this.setCursor(Cursor.H_RESIZE);
+					default -> this.setCursor(Cursor.V_RESIZE);
+				}
 			}
 		});
 		linienWahl.addEventFilter(MouseEvent.MOUSE_EXITED_TARGET, event -> this.setCursor(Cursor.DEFAULT));
