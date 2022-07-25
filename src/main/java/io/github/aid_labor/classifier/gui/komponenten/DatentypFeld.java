@@ -40,14 +40,14 @@ public class DatentypFeld extends SearchField<String> {
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private static List<String> setzePaketnamenInKlammernNachHinten(SortedSet<String> klassenliste) {
+	private static List<String> setzePaketnamenNachHinten(SortedSet<String> klassenliste) {
 		return klassenliste.stream().map(klasse -> {
 			String paket = "";
 			if (klasse.contains(":")) {
 				int index = klasse.lastIndexOf(":");
 				paket = klasse.substring(0, index);
 				klasse = klasse.substring(index + 1);
-				return klasse + " [" + paket + "]";
+				return klasse + ": " + paket;
 			} else {
 				return klasse;
 			}
@@ -89,10 +89,10 @@ public class DatentypFeld extends SearchField<String> {
 			datentypen = new TreeSet<>();
 			datentypen.addAll(programmiersprache.getEigenschaften().getPrimitiveDatentypen());
 			datentypen.addAll(
-					setzePaketnamenInKlammernNachHinten(programmiersprache.getEigenschaften().getBekannteKlassen()));
+					setzePaketnamenNachHinten(programmiersprache.getEigenschaften().getBekannteKlassen()));
 			datentypen.addAll(
-					setzePaketnamenInKlammernNachHinten(programmiersprache.getEigenschaften().getBekannteInterfaces()));
-			datentypen.addAll(setzePaketnamenInKlammernNachHinten(
+					setzePaketnamenNachHinten(programmiersprache.getEigenschaften().getBekannteInterfaces()));
+			datentypen.addAll(setzePaketnamenNachHinten(
 					programmiersprache.getEigenschaften().getBekannteEnumerationen()));
 			programmiersprachenDatentypen.put(programmiersprache.getName(), datentypen);
 		}
@@ -112,8 +112,8 @@ public class DatentypFeld extends SearchField<String> {
 		
 		setNewItemProducer(eingabe -> {
 			eingabe = eingabe == null ? "" : eingabe;
-			if (eingabe.contains("[")) {
-				eingabe = eingabe.substring(0, eingabe.lastIndexOf("["));
+			if (eingabe.contains(":")) {
+				eingabe = eingabe.substring(0, eingabe.lastIndexOf(":"));
 			}
 			eingabe = eingabe.strip();
 			return eingabe;
@@ -165,8 +165,8 @@ public class DatentypFeld extends SearchField<String> {
 		if (eingabe == null) {
 			eingabe = "";
 		}
-		if (eingabe.contains("[")) {
-			eingabe = eingabe.substring(0, eingabe.lastIndexOf("["));
+		if (eingabe.contains(":")) {
+			eingabe = eingabe.substring(0, eingabe.lastIndexOf(":"));
 		}
 		eingabe = eingabe.strip();
 		

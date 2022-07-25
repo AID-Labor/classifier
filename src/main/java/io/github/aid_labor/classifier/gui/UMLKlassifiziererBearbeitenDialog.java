@@ -923,7 +923,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		bindeBidirektional(istFinal.selectedProperty(), methode.istFinalProperty());
 		GridPane.setHalignment(istFinal, HPos.CENTER);
 		
-		validiereMethode(parameter, name, rueckgabetyp, methode);
+		validiereMethode(parameter, name, rueckgabetyp, abstrakt, istFinal, methode);
 		
 		updateMethode(sichtbarkeit, abstrakt, statisch, methode, getKlassifizierer().getTyp());
 		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateMethode(sichtbarkeit,
@@ -949,6 +949,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			if (istAbstrakt.booleanValue()) {
 				statisch.setSelected(false);
 			}
+			eingabeValidierung.revalidate(istFinal);
+		});
+		
+		NodeUtil.beobachteSchwach(istFinal, istFinal.selectedProperty(), (alt, neu) -> {
+			eingabeValidierung.revalidate(abstrakt);
 		});
 		
 		NodeUtil.beobachteSchwach(statisch, statisch.selectedProperty(), (alt, istStatisch) -> {
@@ -1002,8 +1007,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 	}
 	
 	// @formatter:off
-	private void validiereMethode(TextField parameter, TextField name, SearchField<String> rueckgabetyp,
-			Methode methode) {
+	private void validiereMethode(TextField parameter, TextField name, SearchField<String> rueckgabetyp, 
+			CheckBox istAbstrakt, CheckBox istFinal, Methode methode) {
 		Platform.runLater(() -> {
 			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
 				eingabeValidierung.registerValidator(parameter, Validator.combine(
@@ -1034,9 +1039,17 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
 			eingabeValidierung.registerValidator(rueckgabetyp.getEditor(),
 					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
+			eingabeValidierung.registerValidator(istAbstrakt, Validator.createPredicateValidator(c -> {
+				return !(istAbstrakt.isSelected() && istFinal.isSelected());
+			}, sprache.getText("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein")));
+			eingabeValidierung.registerValidator(istFinal, Validator.createPredicateValidator(c -> {
+				return !(istAbstrakt.isSelected() && istFinal.isSelected());
+			}, sprache.getText("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein")));
 			
 			setzePlatzhalter(name);
 			setzePlatzhalter(rueckgabetyp);
+			setzePlatzhalter(istAbstrakt);
+			setzePlatzhalter(istFinal);
 		});
 	}
 	// @formatter:on
@@ -1195,6 +1208,25 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				eingabefeld.setTooltip(new Tooltip(fehler.get().getText()));
 			} else {
 				eingabefeld.setPromptText(null);
+				if (eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
+					eingabefeld.getStyleClass().remove(CSS_EINGABE_FEHLER);
+				}
+				eingabefeld.setTooltip(null);
+			}
+		};
+		eingabeValidierung.validationResultProperty().addListener(beobachter);
+		validierungsBeobachter.add(beobachter);
+	}
+	
+	private void setzePlatzhalter(Control eingabefeld) {
+		ChangeListener<ValidationResult> beobachter = (p, alt, neu) -> {
+			var fehler = eingabeValidierung.getHighestMessage(eingabefeld);
+			if (fehler.isPresent()) {
+				if (!eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
+					eingabefeld.getStyleClass().add(CSS_EINGABE_FEHLER);
+				}
+				eingabefeld.setTooltip(new Tooltip(fehler.get().getText()));
+			} else {
 				if (eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
 					eingabefeld.getStyleClass().remove(CSS_EINGABE_FEHLER);
 				}

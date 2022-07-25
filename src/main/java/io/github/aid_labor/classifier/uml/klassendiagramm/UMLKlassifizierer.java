@@ -190,6 +190,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 		this.ueberwachePropertyAenderung(this.paket, getId() + "_paket");
 		this.ueberwachePropertyAenderung(this.typ, getId() + "_klassifizierertyp");
 		this.ueberwachePropertyAenderung(this.superklasse, getId() + "_superklasse");
+		this.ueberwachePropertyAenderung(this.sichtbarkeit, getId() + "_sichtbarkeit");
 		ueberwacheGetterUndSetter();
 		ueberwacheTyp();
 		this.interfaceListe.addListener(new ListenAenderungsUeberwacher<>(this.interfaceListe, this));
@@ -415,7 +416,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
 	@Override
 	public int hashCode() {
 		return ClassifierUtil.hashAlle(attributeProperty(), methodenProperty(), konstruktorProperty(), getName(),
-				getPaket(), getProgrammiersprache(), getPosition(), getTyp());
+				getPaket(), getProgrammiersprache(), getPosition(), getTyp(), getSichtbarkeit());
 	}
 	
 	@Override
@@ -439,12 +440,13 @@ public class UMLKlassifizierer extends UMLBasisElement {
 				klassifizierer.konstruktorProperty());
 		boolean nameGleich = Objects.equals(getName(), klassifizierer.getName());
 		boolean paketGleich = Objects.equals(getPaket(), klassifizierer.getPaket());
+		boolean sichtbarkeitGleich = Objects.equals(getSichtbarkeit(), klassifizierer.getSichtbarkeit());
 		boolean programmierspracheGleich = getProgrammiersprache().equals(klassifizierer.getProgrammiersprache());
 		boolean typGleich = getTyp().equals(klassifizierer.getTyp());
 		boolean positionGleich = getPosition().equals(klassifizierer.getPosition());
 		
 		boolean istGleich = attributeGleich && methodenGleich && konstruktorenGleich && nameGleich && paketGleich
-				&& programmierspracheGleich && positionGleich && typGleich;
+				&& sichtbarkeitGleich && programmierspracheGleich && positionGleich && typGleich;
 		
 		log.finest(() -> """
 				istGleich: %s
@@ -453,10 +455,11 @@ public class UMLKlassifizierer extends UMLBasisElement {
 				   |-- konstruktorenGleich: %s
 				   |-- nameGleich: %s
 				   |-- paketGleich: %s
+				   |-- sichtbarkeitGleich: %s
 				   |-- programmierspracheGleich: %s
 				   |-- positionGleich: %s
 				   ╰-- typGleich: %s""".formatted(istGleich, attributeGleich, methodenGleich, konstruktorenGleich,
-				nameGleich, paketGleich, programmierspracheGleich, positionGleich, typGleich));
+				nameGleich, paketGleich, sichtbarkeitGleich, programmierspracheGleich, positionGleich, typGleich));
 		
 		return istGleich;
 	}

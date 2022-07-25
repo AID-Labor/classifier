@@ -38,6 +38,7 @@ import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
+import io.github.aid_labor.classifier.gui.ProjekteAnsicht.ExportErgebnis;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
@@ -253,7 +254,7 @@ class ProjektKontrolle {
 		return gespeichert;
 	}
 	
-	void exportiereAlsQuellcode(List<UMLKlassifizierer> elemente, UMLProjekt projekt) throws Exception {
+	ExportErgebnis exportiereAlsQuellcode(List<UMLKlassifizierer> elemente, UMLProjekt projekt) throws Exception {
 		
 		DirectoryChooser dateiDialog = new DirectoryChooser();
 		
@@ -274,13 +275,15 @@ class ProjektKontrolle {
 				"'Speichern Unter' f%cr Projekt %s fehlgeschlagen, da der Speicherort null war"
 					.formatted(Umlaute.ue, projekt));
 			// @formatter:on
-			return;
+			return ExportErgebnis.keinErfolg;
 		}
 		
 		Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().set(speicherOrt.getAbsolutePath());
 		
 		var exportVerarbeitung = projekt.getProgrammiersprache().getVerarbeitung();
 		exportVerarbeitung.exportiere(elemente, speicherOrt);
+		
+		return ExportErgebnis.mitOrdner(speicherOrt.toPath());
 	}
 	
 	void importiereAusDatei() {

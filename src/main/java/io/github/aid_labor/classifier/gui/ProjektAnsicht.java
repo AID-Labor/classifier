@@ -21,6 +21,7 @@ import io.github.aid_labor.classifier.basis.ProgrammDetails;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.gui.ProjekteAnsicht.ExportErgebnis;
 import io.github.aid_labor.classifier.gui.komponenten.UMLElementBasisAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKlassifiziererAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKommentarAnsicht;
@@ -217,7 +218,7 @@ public class ProjektAnsicht extends Tab {
 		this.projekt.setUeberwachungsStatus(status);
 	}
 	
-	public void exportiereAlsQuellcode() throws IllegalStateException, Exception {
+	public ExportErgebnis exportiereAlsQuellcode() throws IllegalStateException, Exception {
 		List<UMLKlassifizierer> elemente;
 		if (this.hatSelektion()) {
 			elemente = this.getSelektion().stream().filter(UMLKlassifizierer.class::isInstance)
@@ -230,7 +231,7 @@ public class ProjektAnsicht extends Tab {
 			throw new IllegalStateException();
 		}
 		
-		this.controller.exportiereAlsQuellcode(elemente, projekt);
+		return this.controller.exportiereAlsQuellcode(elemente, projekt);
 	}
 	
 	public void importiereAusDatei() {

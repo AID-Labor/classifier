@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.nio.file.Path;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,6 +41,31 @@ import javafx.stage.WindowEvent;
 
 public class ProjekteAnsicht {
 	private static final Logger log = Logger.getLogger(ProjekteAnsicht.class.getName());
+	
+	public static class ExportErgebnis {
+		
+		public static ExportErgebnis keinErfolg = new ExportErgebnis(false, null);
+		
+		public static ExportErgebnis mitOrdner(Path ordner) {
+			return new ExportErgebnis(true, ordner);
+		}
+		
+		private final boolean erfolg;
+		private final Path ordner;
+		
+		private ExportErgebnis(boolean erfolg, Path ordner) {
+			this.erfolg = erfolg;
+			this.ordner = ordner;
+		}
+		
+		public boolean warErfolgreich() {
+			return erfolg;
+		}
+		
+		public Path getOrdner() {
+			return ordner;
+		}
+	}
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -314,9 +340,11 @@ public class ProjekteAnsicht {
 		} 
 	}
 	
-	public void exportiereAlsQuellcode() throws IllegalStateException, Exception {
+	public ExportErgebnis exportiereAlsQuellcode() throws IllegalStateException, Exception {
 		if (getProjektAnsicht() != null) {
-			getProjektAnsicht().exportiereAlsQuellcode();
+			return getProjektAnsicht().exportiereAlsQuellcode();
+		} else {
+			return ExportErgebnis.keinErfolg;
 		}
 	}
 	

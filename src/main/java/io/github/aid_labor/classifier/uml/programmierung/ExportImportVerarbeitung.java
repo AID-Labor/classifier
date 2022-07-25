@@ -46,6 +46,7 @@ public interface ExportImportVerarbeitung {
 		Queue<Exception> exceptions = new LinkedList<>();
 		for (var klassifzierer : klassifiziererSammlung) {
 			File datei = new File(ordner, erzeugeDateiName(klassifzierer));
+			datei.getParentFile().mkdirs();
 			try (var ausgabe = new FileWriter(datei)) {
 				exportiere(klassifzierer, ausgabe);
 			} catch (Exception e) {

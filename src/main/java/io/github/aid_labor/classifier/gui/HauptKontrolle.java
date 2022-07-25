@@ -39,6 +39,7 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
+import io.github.aid_labor.classifier.gui.ProjekteAnsicht.ExportErgebnis;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKlassifiziererAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKommentarAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLVerbindungAnsicht;
@@ -67,6 +68,9 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
@@ -251,7 +255,30 @@ class HauptKontrolle {
 	
 	void exportiereAlsQuellcode(Event event) {
 		try {
-			ansicht.get().getProjekteAnsicht().exportiereAlsQuellcode();
+			ExportErgebnis export = ansicht.get().getProjekteAnsicht().exportiereAlsQuellcode();
+			if (export.warErfolgreich()) {
+				String titel = sprache.getText("exportErfolgTitel", "Der Export wurde erfolgreich abgeschlossen");
+				var text = new TextFlow(new Text(sprache.getText("exportErfolgFrage",
+						"Soll der Exportordner ge%cffnet werden?".formatted(Umlaute.oe))));
+				text.getStyleClass().add("dialog-text-frage");
+				text.setTextAlignment(TextAlignment.CENTER);
+				this.ansicht.get().getOverlayDialog()
+						.showNode(Type.INFORMATION, titel, text, List.of(ButtonType.YES, ButtonType.NO))
+						.thenAccept(buttonTyp -> {
+							switch (buttonTyp.getButtonData()) {
+								case YES -> {
+									try {
+										ansicht.get().getRechnerService()
+												.showDocument(export.getOrdner().toUri().toString());
+									} catch (Exception e) {
+										log.log(Level.WARNING, e, () -> "Ordner %s konnte nicht angezeigt werden"
+												.formatted(export.getOrdner()));
+									}
+								}
+								default -> { /**/ }
+							}
+						});
+			}
 		} catch (IllegalStateException e) {
 			ansicht.get().zeigeExportFehlerDialog(sprache.getText("exportierenFehlerLeer",
 					"Das Projekt enth%clt keine exportierbaren Elemente.".formatted(ae)));
@@ -308,11 +335,13 @@ class HauptKontrolle {
 		TextField eingabeName = new TextField();
 		dialog.add(new EnhancedLabel(sprache.getText("name", "Name") + ":"), 0, 0);
 		dialog.add(eingabeName, 1, 0);
+		eingabeName.setFocusTraversable(true);
 		
 		ChoiceBox<Programmiersprache> wahlProgrammiersprache = new ChoiceBox<>();
 		wahlProgrammiersprache.getItems().addAll(ProgrammiersprachenVerwaltung.getProgrammiersprachen());
 		wahlProgrammiersprache.getSelectionModel()
 				.select(ProgrammiersprachenVerwaltung.getStandardProgrammiersprache());
+		wahlProgrammiersprache.setFocusTraversable(true);
 		dialog.add(new EnhancedLabel(sprache.getText("programmiersprache", "Programmiersprache") + ":"), 0, 1);
 		dialog.add(wahlProgrammiersprache, 1, 1);
 		dialog.setHgap(10);
@@ -433,9 +462,8 @@ class HauptKontrolle {
 		boolean akzeptieren = false;
 		for (ExtensionFilter erweiterungen : this.ansicht.get().getProgrammDetails().dateiZuordnung()) {
 			for (String erweiterung : erweiterungen.getExtensions()) {
-				akzeptieren |= !dateien.stream()
-						.filter(datei -> datei.getName().endsWith(erweiterung.replace("*", ""))).toList()
-						.isEmpty();
+				akzeptieren |= !dateien.stream().filter(datei -> datei.getName().endsWith(erweiterung.replace("*", "")))
+						.toList().isEmpty();
 			}
 		}
 		
@@ -484,6 +512,7 @@ class HauptKontrolle {
 		if (eingabe != null) {
 			eingabeDialog.validProperty().bind(eingabe.textProperty().isNotEmpty());
 		}
+		eingabe.setFocusTraversable(true);
 		
 		eingabeDialog.thenAccept(buttonTyp -> {
 			if (buttonTyp.getButtonData().equals(ButtonData.OK_DONE)) {

@@ -53,6 +53,10 @@
     -fx-text-fill: red;
 }
 
+.dialog-text-frage {
+    -fx-font: normal 1.2em sans-serif;
+}
+
 .UML-Klassifizierer-Ansicht {
     -fx-border-width: 4px;
     -fx-border-style: solid;
