@@ -50,26 +50,29 @@ public class KontrollElemente<T> {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	KontrollElemente(ObservableList<T> liste, T element, int zeile) {
+	public KontrollElemente(ObservableList<T> liste, T element, int zeile) {
 		hoch = new Label();
-		NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
+		NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15, "tabelle-steuerung-font-icon");
 		hoch.setOnMouseClicked(e -> tausche(liste, zeile, zeile - 1));
+		hoch.getStyleClass().add("tabelle-steuerung-button");
 		
 		if (zeile == 0) {
 			hoch.setDisable(true);
 		}
 		
 		runter = new Label();
-		NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
+		NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15, "tabelle-steuerung-font-icon");
 		runter.setOnMouseClicked(e -> tausche(liste, zeile, zeile + 1));
+		runter.getStyleClass().add("tabelle-steuerung-button");
 		
 		if (zeile == liste.size() - 1) {
 			runter.setDisable(true);
 		}
 		
 		loeschen = new Label();
-		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
+		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15, "tabelle-steuerung-font-icon");
 		loeschen.setOnMouseClicked(e -> liste.remove(element));
+		loeschen.getStyleClass().add("tabelle-steuerung-button");
 	}
 	
 	

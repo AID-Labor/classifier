@@ -28,8 +28,6 @@ import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.remixicon.RemixiconAL;
 import org.kordamp.ikonli.typicons.Typicons;
 
@@ -42,6 +40,7 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.komponenten.DatentypFeld;
+import io.github.aid_labor.classifier.gui.komponenten.KontrollElemente;
 import io.github.aid_labor.classifier.gui.komponenten.VerbindungBearbeitenListe;
 import io.github.aid_labor.classifier.gui.komponenten.VerbindungBearbeitenListe.Typ;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
@@ -485,7 +484,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				interfaces.setSelectedItem(null);
 				interfaces.getTagSelectionModel().clearSelection();
 			});
-			var icon = NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.CLOSE_FILL, 18, ContentDisplay.GRAPHIC_ONLY);
+			var icon = NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.CLOSE_FILL, 18, ContentDisplay.GRAPHIC_ONLY,
+					"tag-button-font-icon");
 			icon.getStyleClass().add("tag");
 			tag.setGraphic(loeschen);
 			tag.setContentDisplay(ContentDisplay.RIGHT);
@@ -513,7 +513,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		bindeBidirektional(superklasse.selectedItemProperty(), getKlassifizierer().superklasseProperty());
 		Button loeschen = new Button();
 		loeschen.setOnMouseClicked(e -> superklasse.select(""));
-		NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.DELETE_BACK_2_LINE, 18, ContentDisplay.GRAPHIC_ONLY);
+		NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.DELETE_BACK_2_LINE, 18, ContentDisplay.GRAPHIC_ONLY,
+				"loeschen-button-font-icon");
 		loeschen.setPadding(new Insets(0, 5, 0, 5));
 		loeschen.prefHeightProperty().bind(superklasse.getEditor().heightProperty());
 		superklasse.setRight(loeschen);
@@ -684,7 +685,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		tabelle.setVgap(10);
 		
 		Button neu = new Button();
-		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20);
+		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20, "neu-button-font-icon");
 		neu.setOnAction(neuAktion);
 		
 		HBox tabellenButtons = new HBox(neu);
@@ -750,41 +751,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 	}
 	
-	private static class KontrollElemente<T> {
-		private static <E> void tausche(List<E> liste, int indexA, int indexB) {
-			var a = liste.get(indexA);
-			var b = liste.get(indexB);
-			liste.set(indexA, b);
-			liste.set(indexB, a);
-		}
-		
-		final Label hoch;
-		final Label runter;
-		final Label loeschen;
-		
-		private KontrollElemente(ObservableList<T> liste, T element, int zeile) {
-			hoch = new Label();
-			NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
-			hoch.setOnMouseClicked(e -> tausche(liste, zeile, zeile - 1));
-			
-			if (zeile == 0) {
-				hoch.setDisable(true);
-			}
-			
-			runter = new Label();
-			NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
-			runter.setOnMouseClicked(e -> tausche(liste, zeile, zeile + 1));
-			
-			if (zeile == liste.size() - 1) {
-				runter.setDisable(true);
-			}
-			
-			loeschen = new Label();
-			NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
-			loeschen.setOnMouseClicked(e -> liste.remove(element));
-		}
-	}
-	
 	private Node[] erstelleAttributZeile(Attribut attribut, KontrollElemente<Attribut> kontrollelemente) {
 		ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
 		NodeUtil.beobachteSchwach(sichtbarkeit, sichtbarkeit.getSelectionModel().selectedItemProperty(),
@@ -829,7 +795,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		
 		return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter, statisch, istFinal,
-			kontrollelemente.hoch, kontrollelemente.runter, kontrollelemente.loeschen };
+			kontrollelemente.getHoch(), kontrollelemente.getRunter(), kontrollelemente.getLoeschen() };
 	}
 	
 	private void validiereAttribut(TextField name, SearchField<String> datentyp, Attribut attribut) {
@@ -938,7 +904,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		if (methode.istGetter() || methode.istSetter()) {
 			rueckgabetyp.setDisable(true);
-			kontrollelemente.loeschen.setDisable(true);
+			kontrollelemente.getLoeschen().setDisable(true);
 		}
 		
 		if (methode.istGetter()) {
@@ -967,7 +933,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		}
 		
 		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, statisch, istFinal,
-			kontrollelemente.hoch, kontrollelemente.runter, kontrollelemente.loeschen };
+			kontrollelemente.getHoch(), kontrollelemente.getRunter(), kontrollelemente.getLoeschen() };
 	}
 	
 	private void erzeugeParameterBindung(TextField parameter, HatParameterListe typMitParameterliste) {
@@ -1066,9 +1032,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 					
 					if (typMitParameterliste instanceof Methode m && (m.istGetter() || m.istSetter())) {
 						datentyp.setDisable(true);
-						kontrollelemente.hoch.setDisable(true);
-						kontrollelemente.runter.setDisable(true);
-						kontrollelemente.loeschen.setDisable(true);
+						kontrollelemente.getHoch().setDisable(true);
+						kontrollelemente.getRunter().setDisable(true);
+						kontrollelemente.getLoeschen().setDisable(true);
 					}
 					
 					validiereParameter(name, datentyp, typMitParameterliste, param);
@@ -1077,8 +1043,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						Platform.runLater(name::requestFocus);
 					}
 					
-					return new Node[] { name, datentyp, kontrollelemente.hoch, kontrollelemente.runter,
-						kontrollelemente.loeschen };
+					return new Node[] { name, datentyp, kontrollelemente.getHoch(), kontrollelemente.getRunter(),
+						kontrollelemente.getLoeschen() };
 				}, event -> {
 					if (!(typMitParameterliste instanceof Methode m) || (!m.istGetter() && !m.istSetter())) {
 						var programmierEigenschaften = getKlassifizierer().getProgrammiersprache().getEigenschaften();
@@ -1154,8 +1120,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.typBeobachterListe.add(typBeobachter);
 		getKlassifizierer().typProperty().addListener(typBeobachter);
 		
-		return new Node[] { sichtbarkeit, name, parameter, kontrollelemente.hoch, kontrollelemente.runter,
-			kontrollelemente.loeschen };
+		return new Node[] { sichtbarkeit, name, parameter, kontrollelemente.getHoch(), kontrollelemente.getRunter(),
+			kontrollelemente.getLoeschen() };
 	}
 	
 	// @formatter:off

@@ -10,19 +10,13 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.BiFunction;
 
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.typicons.Typicons;
-
-import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
@@ -35,13 +29,10 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
 import javafx.application.Platform;
-import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -50,20 +41,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Control;
-import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -292,7 +278,7 @@ public class UMLVerbindungenBearbeitenDialog2 extends Alert {
 		
 		if (neuAktion != null) {
 			Button neu = new Button();
-			NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20);
+			NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20, "neu-button-font-icon");
 			neu.setOnAction(neuAktion);
 			
 			HBox tabellenButtons = new HBox(neu);
@@ -315,78 +301,6 @@ public class UMLVerbindungenBearbeitenDialog2 extends Alert {
 		return ansicht;
 	}
 	
-	private <T> void fuelleTabelle(GridPane tabelle, String[] labelBezeichnungen, ObservableList<T> inhalt,
-			BiFunction<T, KontrollElemente<T>, Node[]> erzeugeZeile) {
-		for (String bezeichnung : labelBezeichnungen) {
-			Label spaltenUeberschrift = SprachUtil.bindText(new EnhancedLabel(), sprache, bezeichnung.toLowerCase(),
-					bezeichnung);
-			tabelle.addRow(0, spaltenUeberschrift);
-		}
-		
-		fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
-		
-		ListChangeListener<? super T> beobachter = aenderung -> {
-			if (aenderung.next()) {
-				fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
-			}
-		};
-		loeseBindungen.add(() -> inhalt.removeListener(beobachter));
-		inhalt.addListener(beobachter);
-	}
-	
-	private <T> void fuelleListenInhalt(GridPane tabelle, ObservableList<T> inhalt,
-			BiFunction<T, KontrollElemente<T>, Node[]> erzeugeZeile) {
-		var zuEntfernen = tabelle.getChildren().stream().filter(kind -> GridPane.getRowIndex(kind) > 0).toList();
-		for (var kind : zuEntfernen) {
-			if (kind instanceof Control c) {
-				eingabeValidierung.registerValidator(c, false,
-						(control, wert) -> ValidationResult.fromInfoIf(control, "ungenutzt", false));
-				NodeUtil.entferneSchwacheBeobachtung(kind);
-			}
-		}
-		tabelle.getChildren().removeIf(kind -> GridPane.getRowIndex(kind) > 0);
-		int zeile = 1;
-		for (T element : inhalt) {
-			var zeilenInhalt = erzeugeZeile.apply(element, new KontrollElemente<>(inhalt, element, zeile - 1));
-			tabelle.addRow(zeile, zeilenInhalt);
-			zeile++;
-		}
-	}
-	
-	private static class KontrollElemente<T> {
-		private static <E> void tausche(List<E> liste, int indexA, int indexB) {
-			var a = liste.get(indexA);
-			var b = liste.get(indexB);
-			liste.set(indexA, b);
-			liste.set(indexB, a);
-		}
-		
-		final Label hoch;
-		final Label runter;
-		final Label loeschen;
-		
-		private KontrollElemente(ObservableList<T> liste, T element, int zeile) {
-			hoch = new Label();
-			NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
-			hoch.setOnMouseClicked(e -> tausche(liste, zeile, zeile - 1));
-			
-			if (zeile == 0) {
-				hoch.setDisable(true);
-			}
-			
-			runter = new Label();
-			NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
-			runter.setOnMouseClicked(e -> tausche(liste, zeile, zeile + 1));
-			
-			if (zeile == liste.size() - 1) {
-				runter.setDisable(true);
-			}
-			
-			loeschen = new Label();
-			NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
-			loeschen.setOnMouseClicked(e -> liste.remove(element));
-		}
-	}
 	
 	private List<TableColumn<UMLVerbindung, ?>> erstelleAssoziationZeile() {
 		TableColumn<UMLVerbindung, String> spalte1 = new TableColumn<>("Start");
@@ -496,45 +410,6 @@ public class UMLVerbindungenBearbeitenDialog2 extends Alert {
 			
 		});
 		
-//		Callback<TableColumn<UMLVerbindung, UMLVerbindung>, TableCell<UMLVerbindung, UMLVerbindung>> spalte2 = spalte -> {
-//			ComboBox<String> ende = new SearchableComboBox<>();
-//			ende.getItems().addAll(this.vorhandeneElementNamen);
-//			ende.getSelectionModel().select(verbindung.getVerbindungsEnde());
-//			NodeUtil.beobachteSchwach(ende, ende.getSelectionModel().selectedItemProperty(),
-//					verbindung::setVerbindungsEnde);
-//			NodeUtil.beobachteSchwach(ende, ende.getSelectionModel().selectedItemProperty(),
-//					() -> eingabeValidierung.revalidate());
-//			return null;
-//		};
-//		Callback<TableColumn<UMLVerbindung, UMLVerbindung>, TableCell<UMLVerbindung, UMLVerbindung>> spalte3 = spalte -> {
-//			CheckBox ausgeblendet = new CheckBox();
-//			bindeBidirektional(ausgeblendet.selectedProperty(), verbindung.ausgebelendetProperty());
-//			GridPane.setHalignment(ausgeblendet, HPos.CENTER);
-//			NodeUtil.beobachteSchwach(ausgeblendet, ausgeblendet.selectedProperty(), () -> eingabeValidierung.revalidate());
-//			return null;
-//		};
-//		Callback<TableColumn<UMLVerbindung, UMLVerbindung>, TableCell<UMLVerbindung, UMLVerbindung>> spalte4 = spalte -> {
-//			return null;
-//		};
-//		
-//		
-//		
-//		validiereAssoziation(start, ende, ausgeblendet, verbindung);
-//		
-//		if (verbindung.getVerbindungsStart().isEmpty()) {
-//			Platform.runLater(start::requestFocus);
-//		} else if (verbindung.getVerbindungsEnde().isEmpty()) {
-//			Platform.runLater(ende::requestFocus);
-//		}
-//		
-//		start.disableProperty().bind(verbindung.automatischProperty());
-//		ende.disableProperty().bind(verbindung.automatischProperty());
-//		kontrollelemente.loeschen.disableProperty().bind(verbindung.automatischProperty());
-//		kontrollelemente.loeschen
-//				.setOnMouseClicked(e -> umlProjekt.getVerbindungen().removeIf(v -> v.getId() == verbindung.getId()));
-//		
-//		return new Node[] { start, ende, ausgeblendet, kontrollelemente.loeschen };
-		
 		spalte1.setCellFactory(col -> new ComboBoxTableCell<UMLVerbindung, String>(vorhandeneElementNamen.toArray(new String[vorhandeneElementNamen.size()])));
 		spalte2.setCellFactory(col -> new ComboBoxTableCell<UMLVerbindung, String>(vorhandeneElementNamen.toArray(new String[vorhandeneElementNamen.size()])));
 		
@@ -544,63 +419,6 @@ public class UMLVerbindungenBearbeitenDialog2 extends Alert {
 		return spalten;
 	}
 	
-	private void validiereAssoziation(ComboBox<String> start, ComboBox<String> ende, CheckBox ausgeblendet,
-			UMLVerbindung verbindung) {
-		Platform.runLater(() -> {
-			
-			eingabeValidierung.registerValidator(ende, Validator.combine(
-					Validator.createPredicateValidator(
-							c -> verbindung.getVerbindungsEnde() != null && !verbindung.getVerbindungsEnde().isBlank(),
-							sprache.getText("klasseLeerValidierung",
-									"Es muss eine Klasse oder ein Interface gew%chlt werden".formatted(Umlaute.ae))),
-					Validator.createPredicateValidator(
-							tf -> !Objects.equals(verbindung.getVerbindungsStart(), verbindung.getVerbindungsEnde()),
-							sprache.getText("klassenGleichValidierung",
-									"Es m%cssen verschiedene Klassen/Interfaces gew%chlt werden".formatted(Umlaute.ue,
-											Umlaute.ae)))));
-			eingabeValidierung.registerValidator(ausgeblendet, Validator.createPredicateValidator(tf -> {
-				if (ausgeblendet.isSelected()) {
-					return true;
-				}
-				var startname = entfernePaketname(start.getSelectionModel().getSelectedItem());
-				var endname = entfernePaketname(ende.getSelectionModel().getSelectedItem());
-				return vorhandeneElementNamen.contains(startname) && vorhandeneElementNamen.contains(endname);
-			}, sprache.getText("ausgeblendetValidierung",
-					"Es m%cssen alle Klassen/Interfaces vorhanden sein, um die Verbindung einzublenden"
-							.formatted(Umlaute.ue))));
-			
-			setzePlatzhalter(ende);
-			setzePlatzhalter(ausgeblendet);
-		});
-	}
-	
-	private String entfernePaketname(String name) {
-		if (name == null) {
-			return "";
-		}
-		
-		if (name.contains(":")) {
-			return name.substring(name.indexOf(":") + 1);
-		} else {
-			return name;
-		}
-	}
-	
-	private Node[] erstelleVererbungZeile(UMLVerbindung verbindung, KontrollElemente<UMLVerbindung> kontrollelemente) {
-		TextField start = new TextField();
-		start.setText(verbindung.getVerbindungsStart());
-		start.setEditable(false);
-		
-		TextField ende = new TextField();
-		ende.setText(verbindung.getVerbindungsEnde());
-		ende.setEditable(false);
-		
-		CheckBox ausgeblendet = new CheckBox();
-		bindeBidirektional(ausgeblendet.selectedProperty(), verbindung.ausgebelendetProperty());
-		GridPane.setHalignment(ausgeblendet, HPos.CENTER);
-		
-		return new Node[] { start, ende, ausgeblendet };
-	}
 	
 	private void initialisiereButtons() {
 		ButtonType[] buttons = { new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.FINISH),
@@ -631,27 +449,4 @@ public class UMLVerbindungenBearbeitenDialog2 extends Alert {
 		validierungsBeobachter.add(beobachter);
 	}
 	
-	private void setzePlatzhalter(CheckBox eingabefeld) {
-		ChangeListener<ValidationResult> beobachter = (p, alt, neu) -> {
-			var fehler = eingabeValidierung.getHighestMessage(eingabefeld);
-			if (fehler.isPresent()) {
-				if (!eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
-					eingabefeld.getStyleClass().add(CSS_EINGABE_FEHLER);
-				}
-				eingabefeld.setTooltip(new Tooltip(fehler.get().getText()));
-			} else {
-				if (eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
-					eingabefeld.getStyleClass().remove(CSS_EINGABE_FEHLER);
-				}
-				eingabefeld.setTooltip(null);
-			}
-		};
-		eingabeValidierung.validationResultProperty().addListener(beobachter);
-		validierungsBeobachter.add(beobachter);
-	}
-	
-	private <T> void bindeBidirektional(Property<T> p1, Property<T> p2) {
-		p1.bindBidirectional(p2);
-		loeseBindungen.add(() -> p1.unbindBidirectional(p2));
-	}
 }

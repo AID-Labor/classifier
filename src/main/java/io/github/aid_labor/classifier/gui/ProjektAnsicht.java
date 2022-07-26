@@ -48,6 +48,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.input.DragEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
@@ -80,7 +82,7 @@ public class ProjektAnsicht extends Tab {
 	private final ProgrammDetails programm;
 	private final Pane zeichenflaeche;
 	private final Group zeichenflaecheGruppe;
-	private final Map<Long, Node> ansichten;
+	private final Map<Long, UMLElementBasisAnsicht<? extends UMLDiagrammElement>> ansichten;
 	private final Map<Long, Node> verbindungsAnsichten;
 	private final ObservableList<UMLElementBasisAnsicht<? extends UMLDiagrammElement>> selektion;
 	private final Sprache sprache;
@@ -125,6 +127,15 @@ public class ProjektAnsicht extends Tab {
 		
 		this.getContent().addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
 			if (e.getTarget().equals(inhalt) || e.getTarget().equals(zeichenflaeche)) {
+				selektion.clear();
+			}
+		});
+		
+		this.getContent().addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+			if (e.getCode().equals(KeyCode.A) && e.isShortcutDown()) {
+				selektion.clear();
+				selektion.addAll(ansichten.values());
+			} else if (e.getCode().equals(KeyCode.ESCAPE)) {
 				selektion.clear();
 			}
 		});
@@ -363,7 +374,11 @@ public class ProjektAnsicht extends Tab {
 			if (!multiSelektion) {
 				selektion.clear();
 			}
-			selektion.add(ansicht);
+			if (selektion.contains(ansicht)) {
+				selektion.remove(ansicht);
+			} else {
+				selektion.add(ansicht);
+			}
 			e.consume();
 		});
 		

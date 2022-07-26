@@ -153,7 +153,7 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 		
 		if (neuAktion != null) {
 			Button neu = new Button();
-			NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20);
+			NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20, "neu-button-font-icon");
 			neu.setOnAction(neuAktion);
 			
 			HBox tabellenButtons = new HBox(neu);

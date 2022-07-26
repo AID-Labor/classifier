@@ -44,6 +44,7 @@ import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
+import io.github.aid_labor.classifier.uml.programmierung.ExportImportVerarbeitung.ImportErgebnis;
 import io.github.aid_labor.classifier.uml.programmierung.ImportException;
 import javafx.application.Platform;
 import javafx.event.Event;
@@ -106,9 +107,11 @@ class ProjektKontrolle {
 	void checkSchliessen(Event event) {
 		boolean veraendert = true;
 		try {
-			UMLProjekt dateiInhalt = UMLProjekt.ausDateiOeffnen(ansicht.get().getProjekt().getSpeicherort());
-			veraendert = dateiInhalt.hashCode() != ansicht.get().getProjekt().getGespeicherterHash();
-		} catch (IOException e) {
+			if (ansicht.get().getProjekt().getSpeicherort() != null) {
+				UMLProjekt dateiInhalt = UMLProjekt.ausDateiOeffnen(ansicht.get().getProjekt().getSpeicherort());
+				veraendert = dateiInhalt.hashCode() != ansicht.get().getProjekt().getGespeicherterHash();
+			}
+		} catch (Exception e) {
 			log.log(Level.WARNING, e, () -> "Fehler beim lesen der Datei '%s' fuer Vergleich"
 					.formatted(ansicht.get().getProjekt().getSpeicherort()));
 		}
@@ -179,7 +182,9 @@ class ProjektKontrolle {
 		}
 		
 		if (veraendert) {
-			boolean ueberschreiben = zeigeSpeichernUeberschreibenDialog();
+			String dateiname = projekt.getSpeicherort() == null ? projekt.getName()
+					: projekt.getSpeicherort().getFileName().toString();
+			boolean ueberschreiben = zeigeSpeichernUeberschreibenDialog(dateiname);
 			if (!ueberschreiben) {
 				return false;
 			}
@@ -311,25 +316,6 @@ class ProjektKontrolle {
 		}
 	}
 	
-	private static class ImportErgebnis {
-		private List<UMLKlassifizierer> neueKlassifizierer;
-		private List<UMLVerbindung> neueAssoziationen;
-		
-		ImportErgebnis(List<UMLKlassifizierer> neueKlassifizierer, List<UMLVerbindung> neueAssoziationen) {
-			super();
-			this.neueKlassifizierer = neueKlassifizierer;
-			this.neueAssoziationen = neueAssoziationen;
-		}
-		
-		List<UMLVerbindung> getNeueAssoziationen() {
-			return neueAssoziationen;
-		}
-		
-		List<UMLKlassifizierer> getNeueKlassifizierer() {
-			return neueKlassifizierer;
-		}
-	}
-	
 	private void importiereAusDateien(List<File> dateien) {
 		var wartedialog = ansicht.get().getOverlayDialog().showBusyIndicator();
 		wartedialog.setShowCloseButton(false);
@@ -343,19 +329,21 @@ class ProjektKontrolle {
 				fertigstellungService.submit(() -> {
 					List<UMLKlassifizierer> neueKlassifizierer = new LinkedList<>();
 					List<UMLVerbindung> neueAssoziationen = new LinkedList<>();
+					ImportErgebnis ergebnis = null;
 					
 					UMLProjekt projekt = ansicht.get().getProjekt();
 					var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
 					
 					try {
-						List<UMLVerbindung> assoziationen = new LinkedList<>();
-						List<UMLKlassifizierer> klassifizierer = importVerwaltung.importiere(datei, assoziationen);
-						if (klassifizierer == null) {
+						ergebnis = importVerwaltung.importiere(datei);
+						if (ergebnis == null) {
 							throw new NullPointerException();
+						} else if (ergebnis.getNeueKlassifizierer().isEmpty()) {
+							throw ergebnis.getFehler();
 						}
-						neueKlassifizierer.addAll(klassifizierer);
-						assoziationen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp()))
-								.forEach(assoziation -> {
+						neueKlassifizierer.addAll(ergebnis.getNeueKlassifizierer());
+						ergebnis.getNeueAssoziationen().stream()
+								.filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp())).forEach(assoziation -> {
 									assoziation.setzeAutomatisch(false);
 									neueAssoziationen.add(assoziation);
 								});
@@ -375,7 +363,7 @@ class ProjektKontrolle {
 						Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
 					}
 					
-					return new ImportErgebnis(neueKlassifizierer, neueAssoziationen);
+					return ergebnis;
 				});
 			});
 			
@@ -384,6 +372,14 @@ class ProjektKontrolle {
 			for (int i = 0; i < dateien.size(); i++) {
 				try {
 					ImportErgebnis teilergebnis = fertigstellungService.take().get();
+					
+					if (teilergebnis.getNeueKlassifizierer().isEmpty()) {
+						log.log(Level.WARNING, teilergebnis.getFehler(), () -> "Fehler beim parallelisiertem Import");
+						String beschreibung = sprache.getText("importThreadFehler",
+								"Es ist ein Fehler beim Import aufgetreten.");
+						Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, teilergebnis.getFehler()));
+					}
+					
 					neueKlassifizierer.addAll(teilergebnis.getNeueKlassifizierer());
 					neueAssoziationen.addAll(teilergebnis.getNeueAssoziationen());
 				} catch (Exception e) {
@@ -530,13 +526,14 @@ class ProjektKontrolle {
 		}
 	}
 	
-	private boolean zeigeSpeichernUeberschreibenDialog() {
+	private boolean zeigeSpeichernUeberschreibenDialog(String datei) {
 		String titel = sprache.getText("dateiUeberschreibenTitel", "Datei %cberschreiben?".formatted(Umlaute.ue));
-		String beschreibung = sprache.getText("dateiUeberschreiben", """
-				Die Datei wurde seit dem letzten Speichervorgang m%cglicherweise ver%cndert oder gel%cscht.
+		MessageFormat nachricht = new MessageFormat(sprache.getText("dateiUeberschreiben", """
+				Die Datei '{0}' wurde seit dem letzten Speichervorgang m%cglicherweise ver%cndert oder gel%cscht.
 				
 				Soll die Datei mit dem aktuellen Projekt %cberschrieben werden?
-				""".formatted(Umlaute.oe, Umlaute.ae, Umlaute.oe, Umlaute.ue));
+				""".formatted(Umlaute.oe, Umlaute.ae, Umlaute.oe, Umlaute.ue)));
+		String beschreibung = nachricht.format(new Object[] { datei });
 		var text = new TextFlow(new Text(beschreibung));
 		text.getStyleClass().add("dialog-text-warnung");
 		Alert abfrage = new Alert(AlertType.WARNING);

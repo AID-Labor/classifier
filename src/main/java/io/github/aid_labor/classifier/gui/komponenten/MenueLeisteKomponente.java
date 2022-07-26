@@ -12,14 +12,28 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
+import java.util.logging.Logger;
+
+import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.io.Theme;
+import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.gui.util.NodeUtil;
+import javafx.event.EventHandler;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.KeyCharacterCombination;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 
 
 /**
@@ -30,24 +44,24 @@ import javafx.scene.control.SeparatorMenuItem;
  *
  */
 public class MenueLeisteKomponente {
-//	private static final Logger log = Logger.getLogger(MenueLeisteAnsicht.class.getName());
-
+	private static final Logger log = Logger.getLogger(MenueLeisteKomponente.class.getName());
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
+	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private final MenuBar menueleiste;
@@ -131,6 +145,9 @@ public class MenueLeisteKomponente {
 			sprache.ignoriereSprachen();
 		}
 		
+		MenuBar menueleiste = new MenuBar();
+		this.menueleiste = menueleiste;
+		
 		Menu dateiMenue = erstelleDateiMenue();
 		Menu bearbeitenMenue = erstelleBearbeitenMenue();
 		Menu einfuegenMenue = erstelleEinfuegenMenue();
@@ -139,9 +156,135 @@ public class MenueLeisteKomponente {
 		Menu fensterMenue = erstelleFensterMenue();
 		Menu einstellungenMenue = erstelleEinstellungenMenue();
 		
-		MenuBar menueleiste = new MenuBar(dateiMenue, bearbeitenMenue, einfuegenMenue, anordnenMenue, darstellungMenue,
+		this.menueleiste.getMenus().addAll(dateiMenue, bearbeitenMenue, einfuegenMenue, anordnenMenue, darstellungMenue,
 				fensterMenue, einstellungenMenue);
-		this.menueleiste = menueleiste;
+		
+		setzeShorcuts();
+		if (OS.getDefault().istMacOS()) {
+			menueleiste.setUseSystemMenuBar(true);
+		}
+	}
+	
+	private void setzeShorcuts() {
+		dateiNeu.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCodeCombination.SHORTCUT_DOWN));
+		dateiOeffnen.setAccelerator(new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN));
+//		dateiLetzeOeffnen;
+		dateiSchliessen.setAccelerator(new KeyCodeCombination(KeyCode.W, KeyCodeCombination.SHORTCUT_DOWN));
+		dateiSpeichern.setAccelerator(new KeyCodeCombination(KeyCode.S, KeyCodeCombination.SHORTCUT_DOWN));
+		dateiAlleSpeichern.setAccelerator(
+				new KeyCodeCombination(KeyCode.S, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.ALT_DOWN));
+		dateiSpeichernUnter.setAccelerator(
+				new KeyCodeCombination(KeyCode.S, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+//		dateiUmbenennen.setAccelerator(new KeyCodeCombination(KeyCode.U, KeyCodeCombination.SHORTCUT_DOWN));
+		dateiImportieren.setAccelerator(
+				new KeyCodeCombination(KeyCode.O, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		exportierenBild.setAccelerator(
+				new KeyCodeCombination(KeyCode.E, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		exportierenQuellcode.setAccelerator(
+				new KeyCodeCombination(KeyCode.E, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.ALT_DOWN));
+		
+		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		// Menue Bearbeiten
+		rueckgaengig.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCodeCombination.SHORTCUT_DOWN));
+		wiederholen.setAccelerator(
+				new KeyCodeCombination(KeyCode.Z, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		kopieren.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCodeCombination.SHORTCUT_DOWN));
+		einfuegen.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCodeCombination.SHORTCUT_DOWN));
+		loeschen.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
+		
+		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		// Menue Einfuegen
+		klasseEinfuegen.setAccelerator(
+				new KeyCodeCombination(KeyCode.K, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		abstraktelasseEinfuegen.setAccelerator(
+				new KeyCodeCombination(KeyCode.A, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		interfaceEinfuegen.setAccelerator(
+				new KeyCodeCombination(KeyCode.I, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+//		enumEinfuegen.setAccelerator(new KeyCodeCombination(KeyCode.E, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		vererbungEinfuegen.setAccelerator(
+				new KeyCodeCombination(KeyCode.V, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.ALT_DOWN));
+		assoziationEinfuegen.setAccelerator(
+				new KeyCodeCombination(KeyCode.A, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.ALT_DOWN));
+		kommentarEinfuegen.setAccelerator(
+				new KeyCodeCombination(KeyCode.C, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		
+		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		// Menue Anordnen
+		anordnenNachVorne.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCodeCombination.SHORTCUT_DOWN,
+				KeyCodeCombination.SHIFT_DOWN, KeyCodeCombination.ALT_DOWN));
+		anordnenNachGanzVorne.setAccelerator(
+				new KeyCodeCombination(KeyCode.F, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		anordnenNachHinten.setAccelerator(new KeyCodeCombination(KeyCode.B, KeyCodeCombination.SHORTCUT_DOWN,
+				KeyCodeCombination.SHIFT_DOWN, KeyCodeCombination.ALT_DOWN));
+		anordnenNachGanzHinten.setAccelerator(
+				new KeyCodeCombination(KeyCode.B, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		
+		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		// Menue Darstellung
+		darstellungGroesser.setAccelerator(new KeyCharacterCombination("+", KeyCodeCombination.SHORTCUT_DOWN));
+		darstellungKleiner.setAccelerator(new KeyCodeCombination(KeyCode.SUBTRACT, KeyCodeCombination.SHORTCUT_DOWN));
+		darstellungOriginalgroesse.setAccelerator(new KeyCharacterCombination("0", KeyCodeCombination.SHORTCUT_DOWN));
+		vollbild.setAccelerator(new KeyCodeCombination(KeyCode.F5));
+		symbolleisteAusblenden.setAccelerator(
+				new KeyCodeCombination(KeyCode.T, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.ALT_DOWN));
+		
+		log.config(() -> """
+				WORKAROUND fuer JavaFX-Bug: Tastenkombination "CMD + -" wird nicht in Menueleiste erkannt
+				  [MenueLeisteKomponente.java Line 224]
+				    -> setze EventHandler fuer KeyEvent.KEY_PRESSED als Filter in der Menüleiste ein
+				    -> "CMD + -" wird zu KeyCode.SLASH bzw. KeyCode.SUBTRACT uebersetzt!
+				    -> ueberwache menueleiste.sceneProperty() und fuege EventFilter hinzu bzw. entferne bei alter Scene
+				""");
+		// Workaround, da JavaFX CMD + - als SLASH erkennt
+		EventHandler<KeyEvent> kleinerEvent = ke -> {
+			if ((ke.getCode().equals(KeyCode.SLASH) || ke.getCode().equals(KeyCode.SUBTRACT)) && ke.isShortcutDown()
+					&& !ke.isAltDown()) {
+				darstellungKleiner.fire();
+			}
+		};
+		
+		NodeUtil.beobachteSchwach(menueleiste, menueleiste.sceneProperty(), (alteSc, neueSc) -> {
+			if (alteSc != null) {
+				alteSc.removeEventFilter(KeyEvent.KEY_PRESSED, kleinerEvent);
+			}
+			if (neueSc != null) {
+				neueSc.addEventFilter(KeyEvent.KEY_PRESSED, kleinerEvent);
+			}
+		});
+		
+		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		// Menue Fenster
+		vorherigerTab.setAccelerator(
+				new KeyCodeCombination(KeyCode.TAB, KeyCodeCombination.CONTROL_DOWN, KeyCodeCombination.SHIFT_DOWN));
+		vorherigerTab.addEventHandler(KeyEvent.ANY, ke -> {
+			if (ke.getCode().equals(KeyCode.TAB) && !ke.isConsumed()) {
+				ke.consume();
+			}
+		});
+		naechsterTab.setAccelerator(new KeyCodeCombination(KeyCode.TAB, KeyCodeCombination.CONTROL_DOWN));
+		naechsterTab.addEventHandler(KeyEvent.ANY, ke -> {
+			if (ke.getCode().equals(KeyCode.TAB) && !ke.isConsumed()) {
+				ke.consume();
+			}
+		});
+		
+		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+		// Menue Einstellungen
+		voidAnzeigen.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCodeCombination.CONTROL_DOWN,
+				KeyCodeCombination.SHIFT_DOWN, KeyCodeCombination.ALT_DOWN));
+		parameternamenAnzeigen.setAccelerator(new KeyCodeCombination(KeyCode.P, KeyCodeCombination.CONTROL_DOWN,
+				KeyCodeCombination.SHIFT_DOWN, KeyCodeCombination.ALT_DOWN));
+//		erweiterteValidierungAktivieren.setAccelerator(new KeyCodeCombination(KeyCode.E, KeyCodeCombination.CONTROL_DOWN, KeyCodeCombination.SHIFT_DOWN, KeyCodeCombination.ALT_DOWN));
+		linienRasterungAktivieren.setAccelerator(new KeyCodeCombination(KeyCode.L, KeyCodeCombination.CONTROL_DOWN,
+				KeyCodeCombination.SHIFT_DOWN, KeyCodeCombination.ALT_DOWN));
+		positionsRasterungAktivieren.setAccelerator(new KeyCodeCombination(KeyCode.R, KeyCodeCombination.CONTROL_DOWN,
+				KeyCodeCombination.SHIFT_DOWN, KeyCodeCombination.ALT_DOWN));
+		groessenRasterungAktivieren.setAccelerator(new KeyCodeCombination(KeyCode.G, KeyCodeCombination.CONTROL_DOWN,
+				KeyCodeCombination.SHIFT_DOWN, KeyCodeCombination.ALT_DOWN));
+//		theme;
+//		info;
+//		konfigurationsordnerOeffnen;
+//		konfigurationsordnerBereinigen;
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -476,6 +619,20 @@ public class MenueLeisteKomponente {
 		groessenRasterungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache, "groessenRasterungAktivieren",
 				"Gr%c%cenraster".formatted(oe, sz));
 		theme = SprachUtil.bindText(new Menu(), sprache, "theme", "Farbschema");
+		
+		ToggleGroup themaGruppe = new ToggleGroup();
+		for (Theme thema : Theme.values()) {
+			var themeButton = SprachUtil.bindText(new RadioMenuItem(), sprache, thema.name(), thema.name().toLowerCase());
+			themeButton.setSelected(thema.equals(Einstellungen.getBenutzerdefiniert().themeProperty().get()));
+			NodeUtil.beobachteSchwach(menueleiste, themeButton.selectedProperty(), selektiert -> {
+				if (selektiert) {
+					Einstellungen.getBenutzerdefiniert().themeProperty().set(thema);
+				}
+			});
+			themeButton.setToggleGroup(themaGruppe);
+			theme.getItems().add(themeButton);
+		}
+		
 		info = SprachUtil.bindText(new MenuItem(), sprache, "info", "Info");
 		konfigurationsordnerOeffnen = SprachUtil.bindText(new MenuItem(), sprache, "konfigOeffnen",
 				"Konfigurationsordner %cffnen".formatted(oe));

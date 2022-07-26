@@ -70,13 +70,15 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 	private static final Logger log = Logger.getLogger(JavaExportImportVerarbeitung.class.getName());
-
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private static final List<ExtensionFilter> importDateierweiterungen = List
 			.of(new ExtensionFilter("Java", "*.java"));
+	
+	private static final String TODO = " TODO: implement";
 	
 	private static JavaExportImportVerarbeitung instanz;
 	
@@ -144,7 +146,7 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	@Override
-	public void exportiere(UMLKlassifizierer klassifizierer, Writer ausgabe) {
+	public void exportiere(UMLKlassifizierer klassifizierer, Writer ausgabe) throws Exception {
 		CompilationUnit javaDatei = new CompilationUnit();
 		
 		if (klassifizierer.getPaket() != null && !klassifizierer.getPaket().isBlank()) {
@@ -159,8 +161,129 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 		try (var pw = new PrintWriter(ausgabe)) {
 			pw.print(quellcode);
 		} catch (Exception e) {
-			// TODO: handle exception
+			throw e;
 		}
+	}
+	
+	@Override
+	public ImportErgebnis importiere(File quelle) throws ImportException, IOException {
+		
+		ParserConfiguration konfiguration = new ParserConfiguration();
+		konfiguration.setAttributeComments(false);
+		konfiguration.setLanguageLevel(LanguageLevel.BLEEDING_EDGE);
+		JavaParser parser = new JavaParser();
+		ParseResult<CompilationUnit> ergebnis = parser.parse(quelle);
+		
+		if (ergebnis.getResult().isPresent()) {
+			try {
+				List<UMLKlassifizierer> klassifiziererListe = new LinkedList<>();
+				List<UMLVerbindung> verbindungen = new LinkedList<>();
+				ergebnis.getResult().get().accept(new KlassifiziererBesucher(klassifiziererListe), null);
+				
+				List<UMLVerbindung> assoziationen = sucheAssoziationen(klassifiziererListe);
+				verbindungen.addAll(assoziationen);
+				
+				return new ImportErgebnis(klassifiziererListe, assoziationen, erzeugeFehler(ergebnis, quelle));
+			} catch (Exception e) {
+				throw erzeugeFehler(ergebnis, quelle);
+			}
+		} else if (!ergebnis.isSuccessful()) {
+			throw erzeugeFehler(ergebnis, quelle);
+		} else {
+			throw new ImportException("Kein Ergebnis!");
+		}
+	}
+	
+	private ImportException erzeugeFehler(ParseResult<CompilationUnit> ergebnis, File quelle) {
+		Queue<Throwable> exceptions = new LinkedList<>();
+		StringBuilder message = new StringBuilder("[");
+		message.append(ergebnis.getProblems().size());
+		message.append("] Problem(s) in ");
+		message.append(quelle.getName());
+		message.append(":\n");
+		for (var problem : ergebnis.getProblems()) {
+			problem.getCause().ifPresent(exceptions::add);
+			message.append(problem.getVerboseMessage());
+			message.append("\n");
+		}
+		var exc = new ImportException(message.toString());
+		if (!exceptions.isEmpty()) {
+			exc.initCause(exceptions.poll());
+		}
+		while (!exceptions.isEmpty()) {
+			exc.addSuppressed(exceptions.poll());
+		}
+		return exc;
+	}
+	
+	private List<UMLVerbindung> sucheAssoziationen(List<UMLKlassifizierer> klassifiziererListe) {
+		List<UMLVerbindung> assoziationen = new LinkedList<>();
+		
+		for (UMLKlassifizierer umlKlassifizierer : klassifiziererListe) {
+			List<UMLVerbindung> neueAssoziationen = erzeugeAssoziationen(umlKlassifizierer);
+			assoziationen.addAll(neueAssoziationen);
+		}
+		
+		return assoziationen;
+	}
+	
+	private List<UMLVerbindung> erzeugeAssoziationen(UMLKlassifizierer klassifizierer) {
+		Set<String> datentypen = new HashSet<>();
+		
+		List<String> attributeDatentypen = klassifizierer.attributeProperty().parallelStream()
+				.map(Attribut::getDatentyp).map(Datentyp::getTypName).toList();
+		datentypen.addAll(attributeDatentypen);
+		
+		List<String> konstruktorParameter = klassifizierer.konstruktorProperty().parallelStream()
+				.flatMap(k -> k.parameterListeProperty().parallelStream()).map(Parameter::getDatentyp)
+				.map(Datentyp::getTypName).toList();
+		datentypen.addAll(konstruktorParameter);
+		
+		List<String> methodenDatentypen = klassifizierer.methodenProperty().parallelStream()
+				.map(Methode::getRueckgabeTyp).map(Datentyp::getTypName).toList();
+		datentypen.addAll(methodenDatentypen);
+		
+		List<String> methodenParameter = klassifizierer.methodenProperty().parallelStream()
+				.map(Methode::parameterListeProperty).flatMap(Collection::parallelStream).map(Parameter::getDatentyp)
+				.map(Datentyp::getTypName).toList();
+		datentypen.addAll(methodenParameter);
+		
+		List<UMLVerbindung> assoziationen = new LinkedList<>();
+		for (String verwendeterDatentyp : datentypen) {
+			if (!klassifizierer.getNameVollstaendig().equals(verwendeterDatentyp)
+					&& !klassifizierer.getName().equals(verwendeterDatentyp)) {
+				UMLVerbindung assoziation = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION,
+						klassifizierer.getNameVollstaendig(), verwendeterDatentyp);
+				assoziationen.add(assoziation);
+			}
+		}
+		
+		return assoziationen;
+	}
+	
+// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	@SuppressWarnings("unused")
+	private UMLKlassifizierer importiereMitJavaCompilerAPI(File quelle, List<UMLVerbindung> verbindungen)
+			throws ImportException, IOException {
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		
+		try (StandardJavaFileManager dateiManager = compiler.getStandardFileManager(null, null, null);
+				StringWriter out = new StringWriter()) {
+			Iterable<? extends JavaFileObject> quelldateien = dateiManager.getJavaFileObjects(quelle);
+			var task = compiler.getTask(out, dateiManager, null, null, null, quelldateien);
+			
+			boolean erfolg = task.call();
+			if (!erfolg) {
+				throw new ImportException(out.toString());
+			}
+		}
+		
+		return null;
 	}
 	
 	private TypeDeclaration<?> erzeugeTypDeklaration(UMLKlassifizierer klassifizierer) {
@@ -294,8 +417,6 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 			konstruktorDeklaration.createBody().addOrphanComment(new LineComment(TODO));
 		}
 	}
-	
-	private static final String TODO = " TODO: implement";
 	
 	private void fuelleMethoden(List<Methode> methoden, TypeDeclaration<?> typDeklaration, boolean istInterface,
 			Comment kommentar) {
@@ -434,127 +555,6 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 			typ.setName(datentyp);
 			return typ;
 		}
-	}
-	
-	@Override
-	public List<UMLKlassifizierer> importiere(File quelle, List<UMLVerbindung> verbindungen)
-			throws ImportException, IOException {
-		
-		ParserConfiguration konfiguration = new ParserConfiguration();
-		konfiguration.setAttributeComments(false);
-		konfiguration.setLanguageLevel(LanguageLevel.BLEEDING_EDGE);
-		JavaParser parser = new JavaParser();
-		ParseResult<CompilationUnit> ergebnis = parser.parse(quelle);
-		
-		if (ergebnis.getResult().isPresent()) {
-			try {
-				List<UMLKlassifizierer> klassifiziererListe = new LinkedList<>();
-				ergebnis.getResult().get().accept(new KlassifiziererBesucher(klassifiziererListe), null);
-				
-				List<UMLVerbindung> assoziationen = sucheAssoziationen(klassifiziererListe);
-				verbindungen.addAll(assoziationen);
-				
-				return klassifiziererListe;
-			} catch (Exception e) {
-				throw erzeugeFehler(ergebnis, quelle);
-			}
-		} else if (!ergebnis.isSuccessful()) {
-			throw erzeugeFehler(ergebnis, quelle);
-		} else {
-			throw new ImportException("Kein Ergebnis!");
-		}
-	}
-	
-	private ImportException erzeugeFehler(ParseResult<CompilationUnit> ergebnis, File quelle) {
-		Queue<Throwable> exceptions = new LinkedList<>();
-		StringBuilder message = new StringBuilder("[");
-		message.append(ergebnis.getProblems().size());
-		message.append("] Problem(s) in ");
-		message.append(quelle.getName());
-		message.append(":\n");
-		for (var problem : ergebnis.getProblems()) {
-			problem.getCause().ifPresent(exceptions::add);
-			message.append(problem.getVerboseMessage());
-			message.append("\n");
-		}
-		var exc = new ImportException(message.toString());
-		if (!exceptions.isEmpty()) {
-			exc.initCause(exceptions.poll());
-		}
-		while (!exceptions.isEmpty()) {
-			exc.addSuppressed(exceptions.poll());
-		}
-		return exc;
-	}
-	
-	private List<UMLVerbindung> sucheAssoziationen(List<UMLKlassifizierer> klassifiziererListe) {
-		List<UMLVerbindung> assoziationen = new LinkedList<>();
-		
-		for (UMLKlassifizierer umlKlassifizierer : klassifiziererListe) {
-			List<UMLVerbindung> neueAssoziationen = erzeugeAssoziationen(umlKlassifizierer);
-			assoziationen.addAll(neueAssoziationen);
-		}
-		
-		return assoziationen;
-	}
-	
-	private List<UMLVerbindung> erzeugeAssoziationen(UMLKlassifizierer klassifizierer) {
-		Set<String> datentypen = new HashSet<>();
-		
-		List<String> attributeDatentypen = klassifizierer.attributeProperty().parallelStream()
-				.map(Attribut::getDatentyp).map(Datentyp::getTypName).toList();
-		datentypen.addAll(attributeDatentypen);
-		
-		List<String> konstruktorParameter = klassifizierer.konstruktorProperty().parallelStream()
-				.flatMap(k -> k.parameterListeProperty().parallelStream()).map(Parameter::getDatentyp)
-				.map(Datentyp::getTypName).toList();
-		datentypen.addAll(konstruktorParameter);
-		
-		List<String> methodenDatentypen = klassifizierer.methodenProperty().parallelStream()
-				.map(Methode::getRueckgabeTyp).map(Datentyp::getTypName).toList();
-		datentypen.addAll(methodenDatentypen);
-		
-		List<String> methodenParameter = klassifizierer.methodenProperty().parallelStream()
-				.map(Methode::parameterListeProperty).flatMap(Collection::parallelStream).map(Parameter::getDatentyp)
-				.map(Datentyp::getTypName).toList();
-		datentypen.addAll(methodenParameter);
-		
-		List<UMLVerbindung> assoziationen = new LinkedList<>();
-		for (String verwendeterDatentyp : datentypen) {
-			if (!klassifizierer.getNameVollstaendig().equals(verwendeterDatentyp)
-					&& !klassifizierer.getName().equals(verwendeterDatentyp)) {
-				UMLVerbindung assoziation = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION,
-						klassifizierer.getNameVollstaendig(), verwendeterDatentyp);
-				assoziationen.add(assoziation);
-			}
-		}
-		
-		return assoziationen;
-	}
-	
-// protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-// package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-// private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	@SuppressWarnings("unused")
-	private UMLKlassifizierer importiereMitJavaCompilerAPI(File quelle, List<UMLVerbindung> verbindungen)
-			throws ImportException, IOException {
-		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		
-		try (StandardJavaFileManager dateiManager = compiler.getStandardFileManager(null, null, null);
-				StringWriter out = new StringWriter()) {
-			Iterable<? extends JavaFileObject> quelldateien = dateiManager.getJavaFileObjects(quelle);
-			var task = compiler.getTask(out, dateiManager, null, null, null, quelldateien);
-			
-			boolean erfolg = task.call();
-			if (!erfolg) {
-				throw new ImportException(out.toString());
-			}
-		}
-		
-		return null;
 	}
 	
 	private Modifier.Keyword konvertiereModifizierer(Modifizierer mod) {

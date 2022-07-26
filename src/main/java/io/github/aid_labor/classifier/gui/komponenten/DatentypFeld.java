@@ -79,7 +79,7 @@ public class DatentypFeld extends SearchField<String> {
 		cancel();
 		Button loeschen = new Button();
 		loeschen.setOnMouseClicked(e -> select(""));
-		NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.DELETE_BACK_2_LINE, 18, ContentDisplay.GRAPHIC_ONLY);
+		NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.DELETE_BACK_2_LINE, 18, ContentDisplay.GRAPHIC_ONLY, "loeschen-button-font-icon");
 		loeschen.setPadding(new Insets(0, 5, 0, 5));
 		loeschen.prefHeightProperty().bind(getEditor().heightProperty());
 		setRight(loeschen);

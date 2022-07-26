@@ -102,11 +102,15 @@ public final class NodeUtil {
 	 * @param iconCode    Code fuer das gewuenschte Icon
 	 * @param groesse     Groesse des Icons (siehe {@link FontIcon#setIconSize(int)}
 	 * @param anzeigeStil Darstellungsstil von Text und Icon
+	 * @param cssKlasse	  optionale CSS-Style-Klasse
 	 * @return das hinzugefuegte Icon
 	 */
-	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, int groesse, ContentDisplay anzeigeStil) {
+	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, int groesse, ContentDisplay anzeigeStil, String cssKlasse) {
 		FontIcon symbol = new FontIcon(iconCode);
 		symbol.setIconSize(groesse);
+		if (cssKlasse != null && !cssKlasse.isBlank()) {
+			symbol.getStyleClass().add(cssKlasse);
+		}
 		node.setGraphic(symbol);
 		node.setContentDisplay(anzeigeStil);
 		return symbol;
@@ -119,10 +123,11 @@ public final class NodeUtil {
 	 * @param node     Node-Objekt, dem das Icon hinzugefuegt wird
 	 * @param iconCode Code fuer das gewuenschte Icon
 	 * @param groesse  Groesse des Icons (siehe {@link FontIcon#setIconSize(int)}
+	 * @param cssKlasse	  optionale CSS-Style-Klasse
 	 * @return das hinzugefuegte Icon
 	 */
-	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, int groesse) {
-		return fuegeIconHinzu(node, iconCode, groesse, ContentDisplay.LEFT);
+	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, int groesse, String cssKlasse) {
+		return fuegeIconHinzu(node, iconCode, groesse, ContentDisplay.LEFT, cssKlasse);
 	}
 	
 	/**
@@ -132,10 +137,11 @@ public final class NodeUtil {
 	 * @param node        Node-Objekt, dem das Icon hinzugefuegt wird
 	 * @param iconCode    Code fuer das gewuenschte Icon
 	 * @param anzeigeStil Darstellungsstil von Text und Icon
+	 * @param cssKlasse	  optionale CSS-Style-Klasse
 	 * @return das hinzugefuegte Icon
 	 */
-	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, ContentDisplay anzeigeStil) {
-		return fuegeIconHinzu(node, iconCode, 24, anzeigeStil);
+	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, ContentDisplay anzeigeStil, String cssKlasse) {
+		return fuegeIconHinzu(node, iconCode, 24, anzeigeStil, cssKlasse);
 	}
 	
 	/**
@@ -144,10 +150,11 @@ public final class NodeUtil {
 	 * 
 	 * @param node     Node-Objekt, dem das Icon hinzugefuegt wird
 	 * @param iconCode Code fuer das gewuenschte Icon
+	 * @param cssKlasse	  optionale CSS-Style-Klasse
 	 * @return das hinzugefuegte Icon
 	 */
-	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode) {
-		return fuegeIconHinzu(node, iconCode, 24, ContentDisplay.LEFT);
+	public static FontIcon fuegeIconHinzu(Labeled node, Ikon iconCode, String cssKlasse) {
+		return fuegeIconHinzu(node, iconCode, 24, ContentDisplay.LEFT, cssKlasse);
 	}
 	
 	/**
@@ -157,10 +164,11 @@ public final class NodeUtil {
 	 * @param node     Node-Objekt, dem das Icon hinzugefuegt wird
 	 * @param iconCode Code fuer das gewuenschte Icon
 	 * @param groesse  Groesse des Icons (siehe {@link FontIcon#setIconSize(int)}
+	 * @param cssKlasse	  optionale CSS-Style-Klasse
 	 * @return das hinzugefuegte Icon
 	 */
-	public static FontIcon erzeugeIconNode(Labeled node, Ikon iconCode, int groesse) {
-		return fuegeIconHinzu(node, iconCode, groesse, ContentDisplay.TOP);
+	public static FontIcon erzeugeIconNode(Labeled node, Ikon iconCode, int groesse, String cssKlasse) {
+		return fuegeIconHinzu(node, iconCode, groesse, ContentDisplay.TOP, cssKlasse);
 	}
 	
 	/**
@@ -169,10 +177,11 @@ public final class NodeUtil {
 	 * 
 	 * @param node     Node-Objekt, dem das Icon hinzugefuegt wird
 	 * @param iconCode Code fuer das gewuenschte Icon
+	 * @param cssKlasse	  optionale CSS-Style-Klasse
 	 * @return das hinzugefuegte Icon
 	 */
-	public static FontIcon erzeugeIconNode(Labeled node, Ikon iconCode) {
-		return erzeugeIconNode(node, iconCode, 32);
+	public static FontIcon erzeugeIconNode(Labeled node, Ikon iconCode, String cssKlasse) {
+		return erzeugeIconNode(node, iconCode, 32, cssKlasse);
 	}
 	
 	public static void macheUnfokussierbar(Node... nodes) {

@@ -1,3 +1,124 @@
 .root {
-    -fx-base: dimgray;
+    -fx-base: derive(-hsbo-grau-allgemein, -85%);
+    -fx-control-inner-background: derive(-fx-base, 60%);
+    -fx-color: derive(-fx-base, 40%);
+    -fx-background: derive(-fx-base, 15%);
+    
+    -fehler-text-farbe: -hsbo-rot;
+    -selektion-farbe: -hsbo-rot;
+    -eingabe-fehler-basis: derive(-hsbo-rot, -10%);
+    -eingabe-fehler-text: derive(silver, -60%);
+    -element-rahmen-farbe: silver;
+    -element-farbe: #303030;
+    -element-text-farbe: derive(white, -5%);
+    -kommentar-ecke: derive(gray, -20%);
+    -vorschau-rahmen: gray;
+    -vorschau-hintergrund: black;
+    -fx-accent: derive(-hsbo-rot, -15%);
+    -fx-dark-text-color: white;
+
+    -ribbon-accent: -hsbo-rot;
+    -ribbon-background: derive(-hsbo-rot, -15%);
+    -ribbon-bar-farbe: #404040;
+    -ribbon-titles-color: derive(white, -10%);
+    -ribbon-tab-farbe: derive(-ribbon-bar-farbe, 30%);
+    -ribbon-selected-tab-farbe: derive(-ribbon-tab-farbe, 60%);
+    -ribbon-controls-label-color: white;
+    -ribbon-button-pressed: -hsbo-gruen-fbg;
+    -ribbon-quick-icon-color: white;
+    -ribbon-quick-button-pressed: -hsbo-gruen-fbe;
+    -ribbon-quick-button-hover: derive(gray, -20%);
+    -ribbon-group-title: derive(white, -10%);
+
+    -fx-default-button: derive(-hsbo-rot, -40%);
+    -fx-focus-color: derive(-hsbo-rot, -10%);
+    -fx-faint-focus-color: #C9001855;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Menuebar                                                                                                                  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+.menu-bar {
+    -fx-use-system-menu-bar: false;
+    -fx-background-color: linear-gradient(to bottom, derive(-fx-base, 30%), -fx-base);
+    -fx-control-inner-background: derive(-fx-base, 20%);
+}
+
+.menu {
+    -fx-control-inner-background: derive(-fx-base, 20%);
+}
+
+.html-editor {
+    -fx-background-color: -element-farbe;
+    -fx-border-width: 2;
+    -fx-border-style: solid;
+    -fx-border-color: -vorschau-rahmen;
+}
+
+.vorschau > .viewport {
+    -fx-background-color: transparent;
+}
+
+.vorschau > .corner {
+    -fx-border-width: 0;
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+    -fx-border-color: gray;
+}
+
+.vorschau > .scroll-bar {
+    -fx-border-width: 1;
+    -fx-border-style: solid;
+    -fx-border-color: gray;
+}
+
+.vorschau {
+    -fx-padding: 0;
+}
+
+.check-box > .box {
+    -fx-background-color: derive(-fx-base, 70%);
+}
+
+.check-box:hover > .box {
+    -fx-background-color: derive(-fx-base, 90%);
+}
+
+.tag {
+    -fx-background-color: derive(-hsbo-rot, -15%);
+}
+
+
+.quick-access-bar > .outer-container > .button-container #HERVORHEBUNG > .ikonli-font-icon {
+    /* Speichern-Icon wenn ungespeichert */
+    -fx-icon-color: -hsbo-rot;
+}
+
+.tab-ungespeichert > .tab-container > .tab-label {
+    -fx-text-fill: derive(-fehler-text-farbe, 30%);
+}
+
+.overlay-dialog {
+    -fx-base: derive(-hsbo-grau-allgemein, -60%);
+}
+
+.hyperlink {
+    -fx-text-fill: -hsbo-rot;
+}
+
+.hyperlink-label {
+    -fx-text-fill: white;
+}
+
+.dialog-pane:header .header-panel {
+    -fx-background-color: -fx-box-border, derive(-fx-background, 10%);
+}
+
+.dialog-pane > .button-bar > .container > .details-button {
+    -fx-text-fill: -fx-light-text-color;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -fx-outer-border, -fx-text-box-border, derive(-fx-text-box-border, 30%);
 }

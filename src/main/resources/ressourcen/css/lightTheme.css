@@ -1,0 +1,37 @@
+.root {
+    -fx-font: normal 1em sans-serif;
+
+    -hsbo-rot: #E2001A;
+    -hsbo-gruen-fbe: #ADD009;
+    -hsbo-blau-fba: #0288C2;
+    -hsbo-orange-fbb: #E39005;
+    -hsbo-gruen-fbg: #006E2E;
+    -hsbo-blau-fbm: #005680;
+    -hsbo-gelb-fbw: #F8D200;
+    -hsbo-lila-wissenschaftliche-einrichtungen: #860F67;
+    -hsbo-grau-allgemein: #7B7C7E;
+
+    -fehler-text-farbe: -hsbo-rot;
+    -selektion-farbe: -hsbo-rot;
+    -eingabe-fehler-basis: derive(-hsbo-rot, 50%);
+    -eingabe-fehler-text: derive(silver, -40%);
+    -element-rahmen-farbe: black;
+    -element-farbe: white;
+    -element-text-farbe: black;
+    -kommentar-ecke: silver;
+    -vorschau-rahmen: black;
+    -vorschau-hintergrund: white;
+    -fx-accent: -hsbo-rot;
+
+    -ribbon-accent: -hsbo-rot;
+    -ribbon-titles-color: derive(black, 30%);
+    -ribbon-bar-farbe: #EEEEEE;
+    -ribbon-tab-farbe: derive(gray, 80%);
+    -ribbon-selected-tab-farbe: derive(gray, 60%);
+    -ribbon-controls-label-color: white;
+    -ribbon-button-pressed: -hsbo-gruen-fbg;
+    -ribbon-quick-button-pressed: -hsbo-gruen-fbe;
+    -ribbon-quick-icon-color: black;
+    -ribbon-quick-button-hover: derive(gray, 90%);
+    -ribbon-group-title: derive(white, -10%);
+}

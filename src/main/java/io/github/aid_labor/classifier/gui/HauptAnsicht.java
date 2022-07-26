@@ -108,6 +108,7 @@ public class HauptAnsicht {
 		this.wurzel = new StackPane();
 		this.sprache = new Sprache();
 		this.overlayDialog = new DialogPane();
+		this.overlayDialog.getStyleClass().add("overlay-dialog");
 		this.programm = programm;
 		this.controller = new HauptKontrolle(this, sprache);
 		this.projekteAnsicht = new ProjekteAnsicht(overlayDialog, programm);
@@ -115,56 +116,7 @@ public class HauptAnsicht {
 		this.hatKeinProjekt = projekteAnsicht.angezeigtesProjektProperty().isNull();
 		this.kopiePuffer = FXCollections.observableArrayList();
 		
-		this.zuVieleVerbindungen = new BooleanBinding() {
-			private Observable bindung1;
-			private Observable bindung2;
-			
-			{
-				super.bind(projekteAnsicht.angezeigtesProjektProperty());
-			}
-			
-			@Override
-			protected boolean computeValue() {
-				var projekt = projekteAnsicht.getAngezeigtesProjekt();
-				if (projekt != null) {
-					checkeBindung1(projekt);
-					checkeBindung2(projekt);
-					return projekt.getVererbungen().size() > 50 || projekt.getAssoziationen().size() > 50;
-				} else {
-					if (bindung1 != null) {
-						super.unbind(bindung1);
-						bindung1 = null;
-					}
-					if (bindung2 != null) {
-						super.unbind(bindung2);
-						bindung2 = null;
-					}
-				}
-				return false;
-			}
-			
-			private void checkeBindung1(UMLProjekt projekt) {
-				if (bindung1 != null && !bindung1.equals(projekt.getVererbungen())) {
-					super.unbind(bindung1);
-					super.bind(projekt.getVererbungen());
-					bindung1 = projekt.getVererbungen();
-				} else if (bindung1 == null) {
-					super.bind(projekt.getVererbungen());
-					bindung1 = projekt.getVererbungen();
-				}
-			}
-			
-			private void checkeBindung2(UMLProjekt projekt) {
-				if (bindung2 != null && !bindung2.equals(projekt.getAssoziationen())) {
-					super.unbind(bindung2);
-					super.bind(projekt.getAssoziationen());
-					bindung2 = projekt.getAssoziationen();
-				} else if (bindung2 == null) {
-					super.bind(projekt.getAssoziationen());
-					bindung2 = projekt.getAssoziationen();
-				}
-			}
-		};
+		this.zuVieleVerbindungen = erstelleAnzahlVerbindungenBindung(); 
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"HauptAnsicht");
@@ -266,15 +218,66 @@ public class HauptAnsicht {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
+	private BooleanBinding erstelleAnzahlVerbindungenBindung() {
+		return new BooleanBinding() {
+			private Observable bindung1;
+			private Observable bindung2;
+			
+			{
+				super.bind(projekteAnsicht.angezeigtesProjektProperty());
+			}
+			
+			@Override
+			protected boolean computeValue() {
+				var projekt = projekteAnsicht.getAngezeigtesProjekt();
+				if (projekt != null) {
+					checkeBindung1(projekt);
+					checkeBindung2(projekt);
+					return projekt.getVererbungen().size() > 50 || projekt.getAssoziationen().size() > 50;
+				} else {
+					if (bindung1 != null) {
+						super.unbind(bindung1);
+						bindung1 = null;
+					}
+					if (bindung2 != null) {
+						super.unbind(bindung2);
+						bindung2 = null;
+					}
+				}
+				return false;
+			}
+			
+			private void checkeBindung1(UMLProjekt projekt) {
+				if (bindung1 != null && !bindung1.equals(projekt.getVererbungen())) {
+					super.unbind(bindung1);
+					super.bind(projekt.getVererbungen());
+					bindung1 = projekt.getVererbungen();
+				} else if (bindung1 == null) {
+					super.bind(projekt.getVererbungen());
+					bindung1 = projekt.getVererbungen();
+				}
+			}
+			
+			private void checkeBindung2(UMLProjekt projekt) {
+				if (bindung2 != null && !bindung2.equals(projekt.getAssoziationen())) {
+					super.unbind(bindung2);
+					super.bind(projekt.getAssoziationen());
+					bindung2 = projekt.getAssoziationen();
+				} else if (bindung2 == null) {
+					super.bind(projekt.getAssoziationen());
+					bindung2 = projekt.getAssoziationen();
+				}
+			}
+		};
+	}
+	
 	// =====================================================================================
 	// Beginn Menue
 	
 	private void setzeMenueAktionen(MenueLeisteKomponente menue) {
 		// Menue Datei
-		
 		menue.getDateiNeu().setOnAction(this.controller::neuesProjektErzeugen);
 		menue.getDateiOeffnen().setOnAction(this.controller::projektOeffnen);
-		
 		menue.getDateiSchliessen().setOnAction(e -> this.projekteAnsicht.angezeigtesProjektSchliessen());
 		menue.getDateiSpeichern().setOnAction(this.controller::projektSpeichern);
 		menue.getDateiAlleSpeichern().setOnAction(e -> this.projekteAnsicht.allesSpeichern());
@@ -334,8 +337,6 @@ public class HauptAnsicht {
 		menue.getNaechsterTab().setOnAction(e -> this.projekteAnsicht.naechsterTab());
 		
 		// Menue Einstellungen
-		NodeUtil.deaktivieren(menue.getTheme());
-		
 		menue.getVoidAnzeigen().selectedProperty()
 				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeVoidProperty());
 		menue.getParameternamenAnzeigen().selectedProperty()

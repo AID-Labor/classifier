@@ -325,6 +325,10 @@ public class KlassifiziererBesucher extends VoidVisitorAdapter<Void> {
 				String interfacename = interfacetyp.getNameAsString();
 				klassifizierer.getInterfaces().add(interfacename);
 			});
+			typDeklaration.getImplementedTypes().forEach(interfacetyp -> {
+				String interfacename = interfacetyp.getNameAsString();
+				klassifizierer.getInterfaces().add(interfacename);
+			});
 		} else {
 			if (typDeklaration.getExtendedTypes().size() > 0) {
 				var supertyp = typDeklaration.getExtendedTypes(0);

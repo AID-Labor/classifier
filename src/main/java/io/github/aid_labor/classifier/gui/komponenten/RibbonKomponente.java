@@ -110,8 +110,8 @@ public class RibbonKomponente {
 	public RibbonKomponente() {
 		this.sprache = new Sprache();
 		
-		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
-				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "RibbonAnsicht");
+		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
+				"RibbonAnsicht");
 		if (!spracheGesetzt) {
 			sprache.ignoriereSprachen();
 		}
@@ -267,8 +267,7 @@ public class RibbonKomponente {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private RibbonTab erstelleStartTab() {
-		RibbonTab startTab = SprachUtil.bindText(new RibbonTab(), sprache, "startTab",
-				"START");
+		RibbonTab startTab = SprachUtil.bindText(new RibbonTab(), sprache, "startTab", "START");
 		
 		RibbonGroup projektGruppe = erstelleProjektGruppe();
 		RibbonGroup bearbeitenGruppe = erstelleBearbeitenGruppe();
@@ -281,25 +280,20 @@ public class RibbonKomponente {
 	}
 	
 	private RibbonGroup erstelleProjektGruppe() {
-		oeffnen = SprachUtil.bindText(new Button(), sprache, "oeffnen",
-				"%cffnen".formatted(OE));
-		neu = SprachUtil.bindText(new Button(), sprache, "neu",
-				"Neu...");
-		importieren = SprachUtil.bindText(new Button(), sprache, "importieren",
-				"Importieren");
-		NodeUtil.fuegeIconHinzu(oeffnen, Typicons.FOLDER_OPEN);
-		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS);
-		NodeUtil.fuegeIconHinzu(importieren, CarbonIcons.DOWNLOAD);
+		oeffnen = SprachUtil.bindText(new Button(), sprache, "oeffnen", "%cffnen".formatted(OE));
+		neu = SprachUtil.bindText(new Button(), sprache, "neu", "Neu...");
+		importieren = SprachUtil.bindText(new Button(), sprache, "importieren", "Importieren");
+		NodeUtil.fuegeIconHinzu(oeffnen, Typicons.FOLDER_OPEN, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(importieren, CarbonIcons.DOWNLOAD, "ribbon-font-icon");
 		Column ersteSpalte = new Column();
 		ersteSpalte.getChildren().addAll(oeffnen, neu, importieren);
 		
 		speichern = neuerButton(ButtonTyp.SPEICHERN);
-		screenshot = SprachUtil.bindText(new Button(), sprache, "screenshot",
-				"Screenshot...");
-		exportieren = SprachUtil.bindText(new Button(), sprache, "exportieren",
-				"Exportieren...");
-		NodeUtil.fuegeIconHinzu(screenshot, Typicons.IMAGE);
-		NodeUtil.fuegeIconHinzu(exportieren, CarbonIcons.SCRIPT_REFERENCE);
+		screenshot = SprachUtil.bindText(new Button(), sprache, "screenshot", "Screenshot...");
+		exportieren = SprachUtil.bindText(new Button(), sprache, "exportieren", "Exportieren...");
+		NodeUtil.fuegeIconHinzu(screenshot, Typicons.IMAGE, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(exportieren, CarbonIcons.SCRIPT_REFERENCE, "ribbon-font-icon");
 		Column zweiteSpalte = new Column();
 		zweiteSpalte.getChildren().addAll(speichern, screenshot, exportieren);
 		
@@ -315,15 +309,12 @@ public class RibbonKomponente {
 	}
 	
 	private RibbonGroup erstelleBearbeitenGruppe() {
-		kopieren = SprachUtil.bindText(new Button(), sprache, "kopieren",
-				"Kopieren");
-		einfuegen = SprachUtil.bindText(new Button(), sprache, "einfuegen",
-				"Einf%cgen".formatted(ue));
-		loeschen = SprachUtil.bindText(new Button(), sprache, "loeschen",
-				"L%cschen".formatted(oe));
-		NodeUtil.fuegeIconHinzu(kopieren, CarbonIcons.COPY_FILE);
-		NodeUtil.fuegeIconHinzu(einfuegen, CarbonIcons.PASTE);
-		NodeUtil.fuegeIconHinzu(loeschen, CarbonIcons.DELETE);
+		kopieren = SprachUtil.bindText(new Button(), sprache, "kopieren", "Kopieren");
+		einfuegen = SprachUtil.bindText(new Button(), sprache, "einfuegen", "Einf%cgen".formatted(ue));
+		loeschen = SprachUtil.bindText(new Button(), sprache, "loeschen", "L%cschen".formatted(oe));
+		NodeUtil.fuegeIconHinzu(kopieren, CarbonIcons.COPY_FILE, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(einfuegen, CarbonIcons.PASTE, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(loeschen, CarbonIcons.DELETE, "ribbon-font-icon");
 		Column spalte = new Column();
 		spalte.getChildren().addAll(kopieren, einfuegen, loeschen);
 		
@@ -341,21 +332,17 @@ public class RibbonKomponente {
 	}
 	
 	private RibbonGroup erstelleAnordnenGruppe() {
-		anordnenNachVorne = SprachUtil.bindText(new Button(), sprache,
-				"nachVorne", "Eine Ebene nach vorne");
-		anordnenNachGanzVorne = SprachUtil.bindText(new Button(), sprache,
-				"nachGanzVorne", "In den Vordergrund");
-		NodeUtil.fuegeIconHinzu(anordnenNachVorne, BootstrapIcons.LAYER_FORWARD);
-		NodeUtil.fuegeIconHinzu(anordnenNachGanzVorne, WhhgAL.LAYERORDERUP);
+		anordnenNachVorne = SprachUtil.bindText(new Button(), sprache, "nachVorne", "Eine Ebene nach vorne");
+		anordnenNachGanzVorne = SprachUtil.bindText(new Button(), sprache, "nachGanzVorne", "In den Vordergrund");
+		NodeUtil.fuegeIconHinzu(anordnenNachVorne, BootstrapIcons.LAYER_FORWARD, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(anordnenNachGanzVorne, WhhgAL.LAYERORDERUP, "ribbon-font-icon");
 		Column ersteSpalte = new Column();
 		ersteSpalte.getChildren().addAll(anordnenNachVorne, anordnenNachGanzVorne);
 		
-		anordnenNachHinten = SprachUtil.bindText(new Button(), sprache,
-				"nachHinten", "Eine Ebene nach vorne");
-		anordnenNachGanzHinten = SprachUtil.bindText(new Button(), sprache,
-				"nachGanzHinten", "In den Hintergrund");
-		NodeUtil.fuegeIconHinzu(anordnenNachHinten, BootstrapIcons.LAYER_BACKWARD);
-		NodeUtil.fuegeIconHinzu(anordnenNachGanzHinten, WhhgAL.LAYERORDERDOWN);
+		anordnenNachHinten = SprachUtil.bindText(new Button(), sprache, "nachHinten", "Eine Ebene nach vorne");
+		anordnenNachGanzHinten = SprachUtil.bindText(new Button(), sprache, "nachGanzHinten", "In den Hintergrund");
+		NodeUtil.fuegeIconHinzu(anordnenNachHinten, BootstrapIcons.LAYER_BACKWARD, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(anordnenNachGanzHinten, WhhgAL.LAYERORDERDOWN, "ribbon-font-icon");
 		Column zweiteSpalte = new Column();
 		zweiteSpalte.getChildren().addAll(anordnenNachHinten, anordnenNachGanzHinten);
 		
@@ -378,8 +365,7 @@ public class RibbonKomponente {
 		RibbonGroup sonstiges = erstelleSonstigeGruppe();
 		RibbonGroup zoom = erstelleZoomGruppe();
 		
-		RibbonTab diagrammTab = SprachUtil.bindText(new RibbonTab(), sprache, "diagrammTab",
-				"DIAGRAMM");
+		RibbonTab diagrammTab = SprachUtil.bindText(new RibbonTab(), sprache, "diagrammTab", "DIAGRAMM");
 		diagrammTab.getRibbonGroups().addAll(diagrammElemente, verbindungen, sonstiges, zoom);
 		
 		fuegeLogoHinzu(diagrammTab);
@@ -391,17 +377,14 @@ public class RibbonKomponente {
 		neueKlasse = new Button();
 		setzeElementGrafik(neueKlasse, "klassenBezeichnung", "Klasse");
 		neueAbstrakteKlasse = new Button();
-		setzeElementGrafik(neueAbstrakteKlasse, "abstrakteKlassenBezeichnung",
-				"abstrakte Klasse", true);
+		setzeElementGrafik(neueAbstrakteKlasse, "abstrakteKlassenBezeichnung", "abstrakte Klasse", true);
 		neuesInterface = new Button();
-		setzeElementGrafik(neuesInterface, "interfaceBezeichnung", "Interface",
-				"interfaceStereotyp", "<<interface>>");
+		setzeElementGrafik(neuesInterface, "interfaceBezeichnung", "Interface", "interfaceStereotyp", "<<interface>>");
 		neueEnumeration = new Button();
-		setzeElementGrafik(neueEnumeration, "enumerationBezeichnung", "Enumeration",
-				"enumerationStereotyp", "<<enumeration>>");
+		setzeElementGrafik(neueEnumeration, "enumerationBezeichnung", "Enumeration", "enumerationStereotyp",
+				"<<enumeration>>");
 		RibbonGroup diagrammElemente = new RibbonGroup();
-		diagrammElemente.titleProperty().bind(sprache.getTextProperty("diagrammElemente",
-				"Diagramm Elemente"));
+		diagrammElemente.titleProperty().bind(sprache.getTextProperty("diagrammElemente", "Diagramm Elemente"));
 		diagrammElemente.getNodes().addAll(neueKlasse, neueAbstrakteKlasse, neuesInterface);
 		
 		NodeUtil.macheUnfokussierbar(diagrammElemente.getNodes());
@@ -410,17 +393,13 @@ public class RibbonKomponente {
 	}
 	
 	private RibbonGroup erstelleVerbindungenGruppe() {
-		vererbung = SprachUtil.bindText(new Button(), sprache, "vererbung",
-				"Vererbung");
+		vererbung = SprachUtil.bindText(new Button(), sprache, "vererbung", "Vererbung");
 		NodeUtil.fuegeGrafikHinzu(vererbung, Ressourcen.get().UML_VERERBUNGS_PFEIL, 70);
-		assoziation = SprachUtil.bindText(new Button(), sprache, "assoziation",
-				"Assoziation");
+		assoziation = SprachUtil.bindText(new Button(), sprache, "assoziation", "Assoziation");
 		assoziation.setId("assoziationButton");
-		NodeUtil.fuegeGrafikHinzu(assoziation,
-				Ressourcen.get().UML_ASSOZIATIONS_PFEIL, 25);
+		NodeUtil.fuegeGrafikHinzu(assoziation, Ressourcen.get().UML_ASSOZIATIONS_PFEIL, 25);
 		RibbonGroup verbindungen = new RibbonGroup();
-		verbindungen.titleProperty().bind(sprache.getTextProperty("verbindungen",
-				"Verbindungen"));
+		verbindungen.titleProperty().bind(sprache.getTextProperty("verbindungen", "Verbindungen"));
 		verbindungen.getNodes().addAll(vererbung, assoziation);
 		
 		NodeUtil.macheUnfokussierbar(verbindungen.getNodes());
@@ -430,8 +409,7 @@ public class RibbonKomponente {
 	
 	private RibbonGroup erstelleSonstigeGruppe() {
 		kommentar = new Button();
-		var kommentarGrafik = NodeUtil.fuegeGrafikHinzu(kommentar,
-				Ressourcen.get().UML_KOMMENTAR, 90);
+		var kommentarGrafik = NodeUtil.fuegeGrafikHinzu(kommentar, Ressourcen.get().UML_KOMMENTAR, 90);
 		var kommentarContainer = NodeUtil.plusIconHinzufuegen(kommentarGrafik);
 		kommentar.setGraphic(kommentarContainer);
 		kommentar.setGraphicTextGap(-30);
@@ -445,22 +423,19 @@ public class RibbonKomponente {
 	}
 	
 	private RibbonGroup erstelleZoomGruppe() {
-		zoomGroesser = SprachUtil.bindText(new Button(), sprache, "vergroessern",
-				"Vergr%c%cern".formatted(oe, sz));
-		zoomKleiner = SprachUtil.bindText(new Button(), sprache, "verkleinern",
-				"Verkleinern");
-		zoomOriginalgroesse = SprachUtil.bindText(new Button(), sprache,
-				"originalgroesse", "Originalgr%c%ce".formatted(oe, sz));
-		NodeUtil.fuegeIconHinzu(zoomGroesser, CarbonIcons.ZOOM_IN);
-		NodeUtil.fuegeIconHinzu(zoomKleiner, CarbonIcons.ZOOM_OUT);
-		NodeUtil.fuegeIconHinzu(zoomOriginalgroesse, CarbonIcons.ICA_2D);
+		zoomGroesser = SprachUtil.bindText(new Button(), sprache, "vergroessern", "Vergr%c%cern".formatted(oe, sz));
+		zoomKleiner = SprachUtil.bindText(new Button(), sprache, "verkleinern", "Verkleinern");
+		zoomOriginalgroesse = SprachUtil.bindText(new Button(), sprache, "originalgroesse",
+				"Originalgr%c%ce".formatted(oe, sz));
+		NodeUtil.fuegeIconHinzu(zoomGroesser, CarbonIcons.ZOOM_IN, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(zoomKleiner, CarbonIcons.ZOOM_OUT, "ribbon-font-icon");
+		NodeUtil.fuegeIconHinzu(zoomOriginalgroesse, CarbonIcons.ICA_2D, "ribbon-font-icon");
 		
 		Column spalte = new Column();
 		spalte.getChildren().addAll(zoomGroesser, zoomKleiner, zoomOriginalgroesse);
 		
 		RibbonGroup zoom = new RibbonGroup();
-		zoom.titleProperty().bind(sprache.getTextProperty("zoom",
-				"Zoom"));
+		zoom.titleProperty().bind(sprache.getTextProperty("zoom", "Zoom"));
 		zoom.getNodes().addAll(spalte);
 		
 		NodeUtil.macheUnfokussierbar(zoom.getNodes());
@@ -480,8 +455,7 @@ public class RibbonKomponente {
 		((FontIcon) speichernSchnellzugriff.getGraphic()).setIconSize(18);
 		((FontIcon) rueckgaengigSchnellzugriff.getGraphic()).setIconSize(18);
 		((FontIcon) wiederholenSchnellzugriff.getGraphic()).setIconSize(18);
-		NodeUtil.macheUnfokussierbar(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
-				wiederholenSchnellzugriff);
+		NodeUtil.macheUnfokussierbar(speichernSchnellzugriff, rueckgaengigSchnellzugriff, wiederholenSchnellzugriff);
 		
 		schnellzugriff.getButtons().addAll(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
 				wiederholenSchnellzugriff);
@@ -493,8 +467,7 @@ public class RibbonKomponente {
 	
 	private void fuegeLogoHinzu(RibbonTab tab) {
 		try {
-			ImageView classifierLogo = new ImageView(
-					new Image(Ressourcen.get().CLASSIFIER_LOGO_M.oeffneStream()));
+			ImageView classifierLogo = new ImageView(new Image(Ressourcen.get().CLASSIFIER_LOGO_M.oeffneStream()));
 			classifierLogo.setPreserveRatio(true);
 			classifierLogo.setSmooth(true);
 			classifierLogo.setCache(true);
@@ -516,21 +489,19 @@ public class RibbonKomponente {
 	private Button neuerButton(ButtonTyp typ) {
 		return switch (typ) {
 			case RUECKGAENGIG: {
-				Button rueckgaengig = SprachUtil.bindText(new Button(), sprache,
-						"rueckgaengig", "R%cckg%cngig".formatted(ue, ae));
-				NodeUtil.erzeugeIconNode(rueckgaengig, CarbonIcons.UNDO);
+				Button rueckgaengig = SprachUtil.bindText(new Button(), sprache, "rueckgaengig",
+						"R%cckg%cngig".formatted(ue, ae));
+				NodeUtil.erzeugeIconNode(rueckgaengig, CarbonIcons.UNDO, "ribbon-font-icon");
 				yield rueckgaengig;
 			}
 			case SPEICHERN: {
-				Button speichern = SprachUtil.bindText(new Button(), sprache,
-						"speichern", "Speichern");
-				NodeUtil.fuegeIconHinzu(speichern, RemixiconMZ.SAVE_3_FILL, 20);
+				Button speichern = SprachUtil.bindText(new Button(), sprache, "speichern", "Speichern");
+				NodeUtil.fuegeIconHinzu(speichern, RemixiconMZ.SAVE_3_FILL, 20, "ribbon-font-icon");
 				yield speichern;
 			}
 			case WIEDERHOLEN: {
-				Button wiederholen = SprachUtil.bindText(new Button(), sprache,
-						"wiederholen", "Wiederholen");
-				NodeUtil.erzeugeIconNode(wiederholen, CarbonIcons.REDO);
+				Button wiederholen = SprachUtil.bindText(new Button(), sprache, "wiederholen", "Wiederholen");
+				NodeUtil.erzeugeIconNode(wiederholen, CarbonIcons.REDO, "ribbon-font-icon");
 				yield wiederholen;
 			}
 		};
@@ -538,30 +509,25 @@ public class RibbonKomponente {
 	
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
-			String alternativBezeichnung) {
-		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, null,
-				null, false);
+	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel, String alternativBezeichnung) {
+		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, null, null, false);
 	}
 	
-	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
-			String alternativBezeichnung, boolean istAbstrakt) {
-		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, null,
-				null, istAbstrakt);
+	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel, String alternativBezeichnung,
+			boolean istAbstrakt) {
+		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, null, null, istAbstrakt);
 	}
 	
-	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
-			String alternativBezeichnung, String stereotypSchluessel,
-			String alternativStereotyp) {
-		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung,
-				stereotypSchluessel, alternativStereotyp, false);
+	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel, String alternativBezeichnung,
+			String stereotypSchluessel, String alternativStereotyp) {
+		this.setzeElementGrafik(node, bezeichnungSchluessel, alternativBezeichnung, stereotypSchluessel,
+				alternativStereotyp, false);
 	}
 	
-	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel,
-			String alternativBezeichnung, String stereotypSchluessel,
-			String alternativStereotyp, boolean istAbstrakt) {
-		var icon = new ElementIcon(sprache, bezeichnungSchluessel, alternativBezeichnung,
-				stereotypSchluessel, alternativStereotyp, istAbstrakt);
+	private void setzeElementGrafik(Labeled node, String bezeichnungSchluessel, String alternativBezeichnung,
+			String stereotypSchluessel, String alternativStereotyp, boolean istAbstrakt) {
+		var icon = new ElementIcon(sprache, bezeichnungSchluessel, alternativBezeichnung, stereotypSchluessel,
+				alternativStereotyp, istAbstrakt);
 		Node container = NodeUtil.plusIconHinzufuegen(icon);
 		node.setGraphic(container);
 	}

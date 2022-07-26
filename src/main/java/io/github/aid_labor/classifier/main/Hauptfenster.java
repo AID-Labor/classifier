@@ -121,6 +121,13 @@ public class Hauptfenster extends Application {
 				Ressourcen.get().KONFIGURATIONSORDNER.alsPath());
 		
 		szene.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
+		szene.getStylesheets().add(Einstellungen.getBenutzerdefiniert().themeProperty().get().getStylesheet().externeForm());
+		
+		Einstellungen.getBenutzerdefiniert().themeProperty().addListener((p, altesTheme, neuesTheme) -> {
+			szene.getStylesheets().clear();
+			szene.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
+			szene.getStylesheets().add(neuesTheme.getStylesheet().externeForm());
+		});
 		
 		if (kommandoZeile.hasOption(auswertung.debugCSS)) {
 			if (AusfuehrUmgebung.getFuerKlasse(this.getClass()).equals(AusfuehrUmgebung.IDE)) {

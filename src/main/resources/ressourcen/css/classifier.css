@@ -1,16 +1,142 @@
 .root {
     -fx-font: normal 1em sans-serif;
+
+    -hsbo-rot: #E2001A;
+    -hsbo-gruen-fbe: #ADD009;
+    -hsbo-blau-fba: #0288C2;
+    -hsbo-orange-fbb: #E39005;
+    -hsbo-gruen-fbg: #006E2E;
+    -hsbo-blau-fbm: #005680;
+    -hsbo-gelb-fbw: #F8D200;
+    -hsbo-lila-wissenschaftliche-einrichtungen: #860F67;
+    -hsbo-grau-allgemein: #7B7C7E;
+
+    -fehler-text-farbe: -hsbo-rot;
+    -selektion-farbe: -hsbo-rot;
+    -eingabe-fehler-basis: derive(-hsbo-rot, 50%);
+    -eingabe-fehler-text: derive(silver, -40%);
+    -element-rahmen-farbe: black;
+    -element-farbe: white;
+    -element-text-farbe: black;
+    -kommentar-ecke: silver;
+    -vorschau-rahmen: black;
+    -vorschau-hintergrund: white;
+    -fx-accent: -hsbo-rot;
+
+    -ribbon-accent: -fx-accent;
+    -ribbon-background: -hsbo-rot;
+    -ribbon-titles-color: derive(black, 30%);
+    -ribbon-bar-farbe: #EEEEEE;
+    -ribbon-tab-farbe: derive(gray, 80%);
+    -ribbon-selected-tab-farbe: derive(gray, 60%);
+    -ribbon-controls-label-color: white;
+    -ribbon-button-pressed: -hsbo-gruen-fbg;
+    -ribbon-quick-icon-color: black;
+    -ribbon-quick-button-pressed: -hsbo-gruen-fbe;
+    -ribbon-quick-button-hover: derive(gray, 90%);
+    -ribbon-group-title: derive(white, -10%);
+
+    -fx-default-button: derive(-hsbo-rot, 0%);
+    -fx-focus-color: -hsbo-rot;
+    -fx-faint-focus-color: #C9001822;
+}
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Ribbon                                                                                                                    *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+.ribbon {
+    /************************* CSS Variables (Override to set your own theme) ****************************************/
+    ACCENT_COLOR: -ribbon-accent;
+
+    RIBBON_BUTTON_HIGHLIGHT_COLOR: derive(ACCENT_COLOR, 95%);
+    BUTTON_SELECTED_COLOR: derive(RIBBON_BUTTON_HIGHLIGHT_COLOR, -3%); /* @Deprecated: Use RIBBON_BUTTON_SELECTED_COLOR instead. This variable will be removed in a later version */
+    RIBBON_BUTTON_SELECTED_COLOR: BUTTON_SELECTED_COLOR; /* Used for buttons when they're selected */
+
+    /* Label color of controls inside the Ribbon */
+    CONTROLS_LABEL_COLOR: -ribbon-controls-label-color;
+    /* Color for titles - tabs titles */
+    TITLES_COLOR: -ribbon-titles-color;
+    /* Color for Ribbon group titles */
+    RIBBON_GROUP_TITLE: -ribbon-group-title;
+}
+
+
+/* Schnellzugriff -------------------------------------------------------------------------------------------------- */
+.quick-access-bar, .quick-access-bar > .outer-container > .button-container {
+    -fx-background-color: -ribbon-bar-farbe;
+}
+
+.quick-access-bar > .outer-container .button:pressed {
+    -fx-background-color: -ribbon-quick-button-pressed !important;
+}
+
+.quick-access-bar > .outer-container .button:hover {
+    -fx-background-color: -ribbon-quick-button-hover !important;
+}
+
+.quick-access-bar > .outer-container > .button-container .ribbon-font-icon {
+    -fx-icon-color: -ribbon-quick-icon-color;
+}
+
+.quick-access-bar > .outer-container > .button-container #HERVORHEBUNG > .ikonli-font-icon {
+    /* Speichern-Icon wenn ungespeichert */
+    -fx-icon-color: -fx-accent;
+}
+
+
+/* Ribbon ---------------------------------------------------------------------------------------------------------- */
+.ribbon > .outer-container > .tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent, transparent, -ribbon-tab-farbe;
+}
+
+.ribbon > .outer-container > .tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: transparent, transparent, -ribbon-selected-tab-farbe;
+}
+
+.ribbon > .outer-container > .tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-label {
+    -fx-font: bold 1em "Arial";
+}
+
+.ribbon > .outer-container > .tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -ribbon-bar-farbe, -ribbon-bar-farbe, -ribbon-bar-farbe;
+    -fx-background-insets: 1 1 0 1, 0 0 0 0;
+}
+
+.ribbon > .outer-container > .tab-pane > .tab-content-area {
+    -fx-background-color: -ribbon-background;
+}
+
+.ribbon-group .button:pressed, .ribbon-group .button:default:hover:pressed {
+    -fx-background-color: -ribbon-button-pressed !important;
+}
+
+
+/* Ribbon-Icons ---------------------------------------------------------------------------------------------------- */
+.ribbon-font-icon {
+    -fx-icon-color: white;
+}
+
+#HERVORHEBUNG > .ikonli-font-icon {
+    /* Speichern-Icon wenn ungespeichert */
+    -fx-icon-color: -hsbo-gruen-fbe;
 }
 
 .element-icon {
     -fx-alignment: center;
     -fx-border-width: 4px;
     -fx-border-style: solid;
-    -fx-border-color: black;
+    -fx-border-color: #D0D0D0;
+}
+
+.element-icon-bezeichnung {
+    -fx-font: bold 16 sans-serif;
 }
 
 .element-icon-linie {
-    -fx-stroke: black;
+    -fx-stroke: #D0D0D0;
     -fx-stroke-width: 3px;
 }
 
@@ -26,116 +152,19 @@
     -fx-label-padding: 25 0 0 0
 }
 
-.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Tab-Pane                                                                                                                  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+ .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
     -fx-padding: 0 5 0 0;
 }
 
 .tab-ungespeichert > .tab-container > .tab-label {
-    -fx-text-fill: red;
+    -fx-text-fill: -fehler-text-farbe;
     -fx-font-style: italic;
-}
-
-#HERVORHEBUNG > .ikonli-font-icon {
-    -fx-icon-color:red;
-}
-
-.titel {
-    -fx-font: bold 2em sans-serif;
-}
-
-.dialog-text {
-    -fx-font: normal 1.2em sans-serif;
-    -fx-text-alignment: center;
-}
-
-.dialog-text-warnung {
-    -fx-font: bold 1.2em sans-serif;
-    -fx-text-fill: red;
-}
-
-.dialog-text-frage {
-    -fx-font: normal 1.2em sans-serif;
-}
-
-.UML-Klassifizierer-Ansicht {
-    -fx-border-width: 4px;
-    -fx-border-style: solid;
-    -fx-border-color: black;
-    -fx-background-color: white;
-}
-
-.UML-Klassifizierer-Trennlinie > .line {
-    -fx-border-width: 2 1;
-    -fx-border-style: solid;
-    -fx-border-color: black;
-}
-
-.kommentar {
-    -fx-border-width: 4px;
-    -fx-border-style: solid;
-    -fx-border-color: black;
-    -fx-background-color: white;
-}
-
-.kommentar-hintergrund {
-    -fx-border-width: 4px;
-    -fx-border-style: solid;
-    -fx-border-color: black;
-    -fx-background-color: silver;
-}
-
-#selektiert {
-    -fx-effect: dropshadow(one-pass-box, red, 20, 0.5, 0, 0);
-}
-
-.sichtbarkeit-label {
-    -fx-padding: 0 1 0 0;
-}
-
-.attribut-liste {
-    -fx-padding: 5 10 5 10;
-}
-
-.konstruktor-liste {
-    -fx-padding: 5 10 0 10;
-}
-
-.methoden-liste {
-    -fx-padding: 0 10 5 10;
-}
-
-.name-label {
-    -fx-font: bold 1.5em sans-serif;
-}
-
-.element-icon-bezeichnung {
-    -fx-font: bold 16 sans-serif;
-}
-
-.fehler-icon {
-    -fx-icon-color:red;
-}
-
-.exception-dialog.dialog-pane {
-    -fx-graphic: null;
-}
-
-.abstrakt {
-    -fx-font-style: italic;
-}
-
-.klassifizierung {
-    -fx-padding: 10 30 10 30;
-    -fx-alignment: center;
-}
-
-.statisch {
-    -fx-underline: true;
-}
-
-.eingabefehler {
-    -fx-base: derive(red, 50%);
-    -fx-prompt-text-fill: derive(silver, -40%)
 }
 
 .projekt-inhalt {   /* ScrollPane im Tab */
@@ -154,30 +183,190 @@
     */
 }
 
-.vorschau {
-    -fx-border-width: 2;
-    -fx-border-style: solid;
-    -fx-border-color: black;
-    -fx-background-color: white;
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Diagrammelemente                                                                                                          *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+#selektiert {
+    -fx-effect: dropshadow(one-pass-box, -selektion-farbe, 20, 0.5, 0, 0);
 }
 
 
+/* Klassifizierer -------------------------------------------------------------------------------------------------- */
+.UML-Klassifizierer-Ansicht {
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-border-color: -element-rahmen-farbe;
+    -fx-background-color: -element-farbe;
+}
+
+.UML-Klassifizierer-Trennlinie > .line {
+    -fx-border-width: 2 1;
+    -fx-border-style: solid;
+    -fx-border-color: -element-rahmen-farbe;
+}
+
+.klassifizierung {
+    -fx-padding: 10 30 10 30;
+    -fx-alignment: center;
+}
+
+.name-label {
+    -fx-font: bold 1.5em sans-serif;
+}
+
+.sichtbarkeit-label {
+    -fx-padding: 0 1 0 0;
+}
+
+.attribut-liste {
+    -fx-padding: 5 10 5 10;
+}
+
+.konstruktor-liste {
+    -fx-padding: 5 10 0 10;
+}
+
+.methoden-liste {
+    -fx-padding: 0 10 5 10;
+}
+
+.methoden-liste > .label, .konstruktor-liste > .label, .attribut-liste > .label, .name-label, .klassifizierung > .label {
+    -fx-text-fill: -element-text-farbe;
+}
+
+.abstrakt {
+    -fx-font-style: italic;
+}
+
+.statisch {
+    -fx-underline: true;
+}
+
+
+/* Kommentare ------------------------------------------------------------------------------------------------------ */
+.web-view {
+    -fx-page-fill: transparent;
+}
+
+.kommentar {
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-border-color: -element-rahmen-farbe;
+    -fx-background-color: -element-farbe;
+}
+
+.kommentar-hintergrund {
+    -fx-border-width: 4px;
+    -fx-border-style: solid;
+    -fx-border-color: -element-rahmen-farbe;
+    -fx-background-color: -kommentar-ecke;
+}
+
+
+/* Verbindungen ---------------------------------------------------------------------------------------------------- */
 .verbindungslinie {
-    -fx-stroke: black;
+    -fx-stroke: -element-rahmen-farbe;
     -fx-stroke-width: 3;
 }
 
 .vererbungs-pfeil {
-    -fx-fill: white;
-    -fx-stroke: black;
+    -fx-fill: -element-farbe;
+    -fx-stroke: -element-rahmen-farbe;
     -fx-stroke-width: 3;
 }
 
 .assoziations-pfeil {
-    -fx-stroke: black;
+    -fx-stroke: -element-rahmen-farbe;
     -fx-stroke-width: 3;
 }
 
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Dialoge                                                                                                                   *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+.titel {
+    -fx-font: bold 2em sans-serif;
+}
+
+.dialog-text {
+    -fx-font: normal 1.2em sans-serif;
+    -fx-text-alignment: center;
+    -fx-text-fill: -fx-dark-text-color;
+}
+
+.dialog-text > Text{
+    -fx-fill: -fx-dark-text-color;
+}
+
+.dialog-text-warnung {
+    -fx-font: bold 1.2em sans-serif;
+    -fx-text-fill: -fehler-text-farbe;
+}
+
+.dialog-text-warnung > Text{
+    -fx-fill: -fehler-text-farbe;
+}
+
+.dialog-text-frage {
+    -fx-font: normal 1.2em sans-serif;
+}
+
+.dialog-text-frage > Text {
+    -fx-fill: -fx-dark-text-color;
+}
+
+.exception-dialog.dialog-pane {
+    -fx-graphic: null;
+}
+
+.loeschen-button-font-icon, .tabelle-steuerung-font-icon, .neu-button-font-icon {
+    -fx-icon-color: -fx-dark-text-color;
+}
+
+.fehler-icon {
+    -fx-icon-color: -fehler-text-farbe;
+}
+
+.dialog-pane:header .header-panel .label {
+    -fx-font-size: 1.5em;
+    -fx-font-weight: bold;
+}
+
+
+/* Bearbeiten-Dialoge ---------------------------------------------------------------------------------------------- */
+.eingabefehler {
+    -fx-base: -eingabe-fehler-basis;
+    -fx-prompt-text-fill: -eingabe-fehler-text;
+}
+
 .tag {
+    -fx-background-color: -hsbo-rot;
+}
+
+.tag-button-font-icon{
     -fx-icon-color: derive(-fx-light-text-color, -10%);
 }
+
+.tabelle-steuerung-button:hover {
+    -fx-background-color: -fx-hover-base;
+}
+
+.tabelle-steuerung-button:pressed {
+    -fx-background-color: -fx-pressed-base;
+}
+
+
+/* Export-Dialog --------------------------------------------------------------------------------------------------- */
+.vorschau {
+    -fx-border-width: 2;
+    -fx-border-style: solid;
+    -fx-border-color: -vorschau-rahmen;
+    -fx-background-color: -vorschau-hintergrund;
+}
+
+

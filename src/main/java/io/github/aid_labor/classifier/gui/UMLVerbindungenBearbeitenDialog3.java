@@ -21,14 +21,13 @@ import org.controlsfx.control.spreadsheet.SpreadsheetView;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
-import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
-import org.kordamp.ikonli.carbonicons.CarbonIcons;
 import org.kordamp.ikonli.typicons.Typicons;
 
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
+import io.github.aid_labor.classifier.gui.komponenten.KontrollElemente;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
@@ -56,7 +55,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
@@ -272,7 +270,7 @@ public class UMLVerbindungenBearbeitenDialog3 extends Alert {
 		
 		if (neuAktion != null) {
 			Button neu = new Button();
-			NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20);
+			NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20, "neu-button-font-icon");
 			neu.setOnAction(neuAktion);
 			
 			HBox tabellenButtons = new HBox(neu);
@@ -346,41 +344,6 @@ public class UMLVerbindungenBearbeitenDialog3 extends Alert {
 		}
 	}
 	
-	private static class KontrollElemente<T> {
-		private static <E> void tausche(List<E> liste, int indexA, int indexB) {
-			var a = liste.get(indexA);
-			var b = liste.get(indexB);
-			liste.set(indexA, b);
-			liste.set(indexB, a);
-		}
-		
-		final Label hoch;
-		final Label runter;
-		final Label loeschen;
-		
-		private KontrollElemente(ObservableList<T> liste, T element, int zeile) {
-			hoch = new Label();
-			NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15);
-			hoch.setOnMouseClicked(e -> tausche(liste, zeile, zeile - 1));
-			
-			if (zeile == 0) {
-				hoch.setDisable(true);
-			}
-			
-			runter = new Label();
-			NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15);
-			runter.setOnMouseClicked(e -> tausche(liste, zeile, zeile + 1));
-			
-			if (zeile == liste.size() - 1) {
-				runter.setDisable(true);
-			}
-			
-			loeschen = new Label();
-			NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15);
-			loeschen.setOnMouseClicked(e -> liste.remove(element));
-		}
-	}
-	
 	private Node[] erstelleAssoziationZeile(UMLVerbindung verbindung,
 			KontrollElemente<UMLVerbindung> kontrollelemente) {
 		ComboBox<String> start = new SearchableComboBox<>();
@@ -414,11 +377,11 @@ public class UMLVerbindungenBearbeitenDialog3 extends Alert {
 		
 		start.disableProperty().bind(verbindung.automatischProperty());
 		ende.disableProperty().bind(verbindung.automatischProperty());
-		kontrollelemente.loeschen.disableProperty().bind(verbindung.automatischProperty());
-		kontrollelemente.loeschen
+		kontrollelemente.getLoeschen().disableProperty().bind(verbindung.automatischProperty());
+		kontrollelemente.getLoeschen()
 				.setOnMouseClicked(e -> umlProjekt.getAssoziationen().removeIf(v -> v.getId() == verbindung.getId()));
 		
-		return new Node[] { start, ende, ausgeblendet, kontrollelemente.loeschen };
+		return new Node[] { start, ende, ausgeblendet, kontrollelemente.getLoeschen() };
 	}
 	
 	private void validiereAssoziation(ComboBox<String> start, ComboBox<String> ende, CheckBox ausgeblendet,

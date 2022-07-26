@@ -38,7 +38,6 @@ import javafx.util.StringConverter;
 
 
 class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.BildexportDialog.ExportParameter> {
-//	private static final Logger log = Logger.getLogger(BildexportDialog.class.getName());
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -115,11 +114,6 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		
 		erstelleDialog();
 		setzeErgebnisKonverter();
-//		Platform.runLater(() -> {
-//			var bild = vorschau.snapshot(new SnapshotParameters(), null);
-//			bildBreite100 = bild.getWidth();
-//			bildHoehe100 = bild.getHeight();
-//		});
 	}
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -179,7 +173,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 	
 	private ComboBox<Theme> erstelleFarbWahl() {
 		ComboBox<Theme> farbeAuswahl = new ComboBox<>();
-		farbeAuswahl.getItems().addAll(Theme.values());
+		farbeAuswahl.getItems().addAll(Theme.LIGHT, Theme.DARK);
 		farbeAuswahl.getSelectionModel().select(farbe);
 		farbeAuswahl.setConverter(new StringConverter<Theme>() {
 			@Override
@@ -187,7 +181,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 				if (farbe == null) {
 					return "";
 				}
-				return sprache.getText(farbe.name(), farbe.name());
+				return sprache.getText(farbe.name(), farbe.name().toLowerCase());
 			}
 			
 			@Override
@@ -222,9 +216,9 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 			}
 		});
 		skalierungAuswahl.getSelectionModel().select(Double.NaN);
-		Platform.runLater(() -> {
-			skalierungAuswahl.getSelectionModel().select(skalierung.get());
-		});
+		
+		Platform.runLater(() -> skalierungAuswahl.getSelectionModel().select(skalierung.get()));
+		
 		skalierungAuswahl.getSelectionModel().selectedItemProperty().addListener((p, alt, neu) -> {
 			if (neu != null && neu.compareTo(alt) != 0) {
 				skalierung.set(neu);
@@ -262,10 +256,6 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 			}
 		});
 		
-//		Platform.runLater(() -> {
-//			var bild = vorschau.snapshot(new SnapshotParameters(), null);
-//			breiteEingabe.setText(String.format("%.2f", bild.getWidth()*skalierung.doubleValue()));
-//		});
 		return breiteEingabe;
 	}
 	
@@ -291,10 +281,6 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 			}
 		});
 		
-//		Platform.runLater(() -> {
-//			var bild = vorschau.snapshot(new SnapshotParameters(), null);
-//			hoeheEingabe.setText(String.format("%.2f", bild.getHeight()*skalierung.doubleValue()));
-//		});
 		return hoeheEingabe;
 	}
 	

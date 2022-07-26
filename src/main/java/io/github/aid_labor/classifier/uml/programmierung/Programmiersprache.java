@@ -46,7 +46,7 @@ public interface Programmiersprache {
 			log.config(() -> "Keine Programmiersprache mit dem Namen %s gefunden!".formatted(programmiersprache));
 			return null;
 		} else {
-			log.config(() -> "Gefundener Provieder für Programmiersprache %s: %s".formatted(programmiersprache,
+			log.config(() -> "Gefundener Provider für Programmiersprache %s: %s".formatted(programmiersprache,
 					sprache.get().getClass().getName()));
 			return sprache.get();
 		}

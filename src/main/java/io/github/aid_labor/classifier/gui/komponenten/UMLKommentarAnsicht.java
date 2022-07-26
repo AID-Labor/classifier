@@ -65,8 +65,7 @@ public class UMLKommentarAnsicht extends UMLElementBasisAnsicht<UMLKommentar> {
 		engine.setJavaScriptEnabled(false);
 		
 		engine.loadContent(kommentar.getInhalt());
-		kommentar.inhaltProperty()
-				.addListener((p, alt, neuerInhalt) -> engine.loadContent(neuerInhalt));
+		kommentar.inhaltProperty().addListener((p, alt, neuerInhalt) -> engine.loadContent(neuerInhalt));
 		
 		htmlAnsicht.setContextMenuEnabled(false);
 		StackPane.setMargin(htmlAnsicht, new Insets(5, eckenAbstand + 5.0, 5, 5));
@@ -124,8 +123,7 @@ public class UMLKommentarAnsicht extends UMLElementBasisAnsicht<UMLKommentar> {
 		LineTo schraege = new LineTo();
 		schraege.xProperty().bind(unten.xProperty());
 		schraege.setY(eckenAbstand + 5.0);
-		Path rand = new Path(new MoveTo(0, 0), links, unten, rechts, falteUnten, falteLinks,
-				oben);
+		Path rand = new Path(new MoveTo(0, 0), links, unten, rechts, falteUnten, falteLinks, oben);
 		text.setShape(rand);
 	}
 	

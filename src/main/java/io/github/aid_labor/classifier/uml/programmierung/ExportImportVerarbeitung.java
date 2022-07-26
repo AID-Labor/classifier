@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -22,14 +23,41 @@ import javafx.stage.FileChooser.ExtensionFilter;
 
 public interface ExportImportVerarbeitung {
 	
+	public static class ImportErgebnis {
+		private final List<UMLKlassifizierer> neueKlassifizierer;
+		private final List<UMLVerbindung> neueAssoziationen;
+		private final Exception fehler;
+		
+		public ImportErgebnis(List<UMLKlassifizierer> neueKlassifizierer, List<UMLVerbindung> neueAssoziationen,
+				Exception fehler) {
+			super();
+			this.neueKlassifizierer = Collections.unmodifiableList(neueKlassifizierer);
+			this.neueAssoziationen = Collections.unmodifiableList(neueAssoziationen);
+			this.fehler = fehler;
+		}
+		
+		public List<UMLVerbindung> getNeueAssoziationen() {
+			return neueAssoziationen;
+		}
+		
+		public List<UMLKlassifizierer> getNeueKlassifizierer() {
+			return neueKlassifizierer;
+		}
+		
+		public Exception getFehler() {
+			return fehler;
+		}
+	}
+	
 	/**
 	 * Erzeugt aus einem Klassifizierer Quellcode und Schreibt diesen in den Writer.
 	 * 
 	 * @param klassifizierer   Klassifizierer, der implementiert wird
 	 * @param ausgabe          Stream, in den der Quellcode geschrieben wird
 	 * @param dateierweiterung ausgewählte Dateierweiterung
+	 * @throws Exception Exception, die möglicherweise beim Export auftritt.
 	 */
-	public void exportiere(UMLKlassifizierer klassifizierer, Writer ausgabe);
+	public void exportiere(UMLKlassifizierer klassifizierer, Writer ausgabe) throws Exception;
 	
 	/**
 	 * Erzeugt aus einem oder mehreren Klassifizierern Quellcode und speichert diesen als Dateien im übergebenen
@@ -76,11 +104,10 @@ public interface ExportImportVerarbeitung {
 	 * @param verbindungen Liste, in die optionale Assoziationen eingefügt werden
 	 * @return importierter UMLKlassifizierer
 	 * @throws ImportException Wenn die Datei keinen gültigen Programmcode enthält oder aus einem anderen Grund nicht
-	 *                        interpretiert werden kann
-	 * @throws IOException    Wenn beim Lesen der Datei ein Fehler auftritt
+	 *                         interpretiert werden kann
+	 * @throws IOException     Wenn beim Lesen der Datei ein Fehler auftritt
 	 */
-	public List<UMLKlassifizierer> importiere(File quelle, List<UMLVerbindung> verbindungen)
-			throws ImportException, IOException;
+	public ImportErgebnis importiere(File quelle) throws ImportException, IOException;
 	
 	/**
 	 * Erzeugt einen Dateinamen für den Export auf Basis der Konventionen für die jeweilige Programmiersprache
