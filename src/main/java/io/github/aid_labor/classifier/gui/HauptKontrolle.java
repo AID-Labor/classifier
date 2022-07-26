@@ -36,6 +36,7 @@ import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.DateiUtil;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.io.Theme;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
@@ -169,7 +170,12 @@ class HauptKontrolle {
 		FensterUtil.initialisiereElternFenster(ansicht.get().getWurzelknoten().getScene().getWindow(), dialog);
 		dialog.showAndWait().ifPresent(parameter -> {
 			var snapshotScene = parameter.getSnapshotScene();
-			snapshotScene.getStylesheets().addAll(ansicht.get().getWurzelknoten().getScene().getStylesheets());
+			snapshotScene.getStylesheets().clear();
+			snapshotScene.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
+			snapshotScene.getStylesheets().add(parameter.getFarbe().getStylesheet().externeForm());
+			gruppe.getStylesheets().clear();
+			gruppe.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
+			gruppe.getStylesheets().add(parameter.getFarbe().getStylesheet().externeForm());
 			double skalierung = parameter.getSkalierung();
 			gruppe.setScaleX(skalierung);
 			gruppe.setScaleY(skalierung);
@@ -205,6 +211,8 @@ class HauptKontrolle {
 			SnapshotParameters snapParam = new SnapshotParameters();
 			if (parameter.istHintergrundTransparent()) {
 				snapParam.setFill(Color.TRANSPARENT);
+			} else if (Einstellungen.getBenutzerdefiniert().themeProperty().get().equals(Theme.DARK)) {
+				snapParam.setFill(Color.rgb(44, 44, 44));
 			}
 			
 			gruppe.snapshot(this::snapshotSpeichern, snapParam, null);

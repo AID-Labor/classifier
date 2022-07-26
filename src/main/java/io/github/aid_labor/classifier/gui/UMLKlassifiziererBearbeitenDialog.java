@@ -9,7 +9,6 @@ package io.github.aid_labor.classifier.gui;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -1058,7 +1057,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		PopOver parameterDialog = new PopOver(parameterListe);
 		parameterDialog.setArrowLocation(ArrowLocation.TOP_CENTER);
 		parameterDialog.getRoot().getStylesheets().addAll(parameter.getScene().getStylesheets());
-		System.out.println(Arrays.toString(parameterDialog.getRoot().getStylesheets().toArray()));
 		parameterDialog.show(parameter);
 	}
 	

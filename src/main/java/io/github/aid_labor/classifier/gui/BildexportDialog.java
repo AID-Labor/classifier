@@ -141,7 +141,6 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void erstelleDialog() {
-		ComboBox<Theme> farbeAuswahl = erstelleFarbWahl();
 		ComboBox<Double> skalierungAuswahl = erstelleSkalierungWahl();
 		CustomTextField breiteEingabe = erstelleBreiteEingabe();
 		CustomTextField hoeheEingabe = erstelleHoeheEingabe();
@@ -153,44 +152,21 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		int maxHoehe = 700;
 		vorschauBereich.setMaxSize(maxBreite, maxHoehe);
 		
-		NodeUtil.setzeBreite(150, farbeAuswahl, skalierungAuswahl, breiteEingabe, hoeheEingabe);
+		NodeUtil.setzeBreite(150, skalierungAuswahl, breiteEingabe, hoeheEingabe);
 		
 		GridPane tabelle = new GridPane();
 		erstelleLabels(tabelle);
 		
-		tabelle.add(farbeAuswahl, 1, 0);
-		tabelle.add(skalierungAuswahl, 1, 1);
-		tabelle.add(breiteEingabe, 1, 2);
-		tabelle.add(hoeheEingabe, 1, 3);
-		tabelle.add(hintergrundTransparent, 1, 4);
-		tabelle.add(vorschauBereich, 1, 5);
+		tabelle.add(skalierungAuswahl, 1, 0);
+		tabelle.add(breiteEingabe, 1, 1);
+		tabelle.add(hoeheEingabe, 1, 2);
+		tabelle.add(hintergrundTransparent, 1, 3);
+		tabelle.add(vorschauBereich, 1, 4);
 		
 		tabelle.setHgap(20);
 		tabelle.setVgap(10);
 		tabelle.setPadding(new Insets(30));
 		this.getDialogPane().setContent(tabelle);
-	}
-	
-	private ComboBox<Theme> erstelleFarbWahl() {
-		ComboBox<Theme> farbeAuswahl = new ComboBox<>();
-		farbeAuswahl.getItems().addAll(Theme.LIGHT, Theme.DARK);
-		farbeAuswahl.getSelectionModel().select(farbe);
-		farbeAuswahl.setConverter(new StringConverter<Theme>() {
-			@Override
-			public String toString(Theme farbe) {
-				if (farbe == null) {
-					return "";
-				}
-				return sprache.getText(farbe.name(), farbe.name().toLowerCase());
-			}
-			
-			@Override
-			public Theme fromString(String string) {
-				return Theme.valueOf(string);
-			}
-		});
-		
-		return farbeAuswahl;
 	}
 	
 	private ComboBox<Double> erstelleSkalierungWahl() {
@@ -296,7 +272,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 	}
 	
 	private void erstelleLabels(GridPane tabelle) {
-		String[] schluessel = { "farbe", "skalierung", "breite", "hoehe", "hintergrundTransparent", "vorschau" };
+		String[] schluessel = { "skalierung", "breite", "hoehe", "hintergrundTransparent", "vorschau" };
 		
 		int zeile = 0;
 		for (String s : schluessel) {
