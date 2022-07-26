@@ -362,6 +362,10 @@
 
 
 /* Export-Dialog --------------------------------------------------------------------------------------------------- */
+.vorschau > .viewport {
+    -fx-background-color: transparent;
+}
+
 .vorschau {
     -fx-border-width: 2;
     -fx-border-style: solid;
