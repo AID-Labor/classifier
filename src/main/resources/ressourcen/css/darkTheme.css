@@ -167,3 +167,7 @@
     -fx-text-fill: white;
 }
 
+Text {
+    /* Textfarbe in Textflow (z.B. in HyperlinkLabel) */
+    -fx-fill: -fx-dark-text-color;
+}
