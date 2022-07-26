@@ -51,6 +51,7 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 import io.github.aid_labor.classifier.uml.programmierung.ProgrammiersprachenVerwaltung;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
@@ -58,6 +59,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.SnapshotResult;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -74,6 +76,10 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
 
 
 class HauptKontrolle {
@@ -129,20 +135,25 @@ class HauptKontrolle {
 		}
 		
 		Group gruppe = new Group();
+		Group gruppeVorschau = new Group();
 		TreeSet<String> klassennamen = new TreeSet<>();
 		for (var element : elemente) {
 			Node node;
+			Node nodeVorschau;
 			if (element instanceof UMLKlassifizierer k) {
 				node = new UMLKlassifiziererAnsicht(k);
+				nodeVorschau = new UMLKlassifiziererAnsicht(k);
 				klassennamen.add(k.getName());
 			} else if (element instanceof UMLKommentar k) {
 				node = new UMLKommentarAnsicht(k);
+				nodeVorschau = new UMLKommentarAnsicht(k);
 			} else {
 				log.warning("unbekannter Elementtyp: " + element.getClass().getName());
 				continue;
 			}
 			
 			gruppe.getChildren().add(node);
+			gruppeVorschau.getChildren().add(nodeVorschau);
 		}
 		
 		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getVererbungen()) {
@@ -153,6 +164,7 @@ class HauptKontrolle {
 				verbindungKopie.setEndElement(verbindung.getEndElement());
 				verbindungKopie.setzeAusgebelendet(verbindung.istAusgebelendet());
 				gruppe.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
+				gruppeVorschau.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
 			}
 		}
 		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getAssoziationen()) {
@@ -163,24 +175,24 @@ class HauptKontrolle {
 				verbindungKopie.setEndElement(verbindung.getEndElement());
 				verbindungKopie.setzeAusgebelendet(verbindung.istAusgebelendet());
 				gruppe.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
+				gruppeVorschau.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
 			}
 		}
 		
-		BildexportDialog dialog = new BildexportDialog(gruppe);
+		BildexportDialog dialog = new BildexportDialog(gruppeVorschau);
 		FensterUtil.initialisiereElternFenster(ansicht.get().getWurzelknoten().getScene().getWindow(), dialog);
 		dialog.showAndWait().ifPresent(parameter -> {
-			var snapshotScene = parameter.getSnapshotScene();
+			var snapshotScene = new Scene(gruppe, 1, 1);
 			snapshotScene.getStylesheets().clear();
 			snapshotScene.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
 			snapshotScene.getStylesheets().add(parameter.getFarbe().getStylesheet().externeForm());
-			gruppe.getStylesheets().clear();
-			gruppe.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
-			gruppe.getStylesheets().add(parameter.getFarbe().getStylesheet().externeForm());
+			
 			double skalierung = parameter.getSkalierung();
 			gruppe.setScaleX(skalierung);
 			gruppe.setScaleY(skalierung);
 			Einstellungen.getBenutzerdefiniert().exportThemeProperty().set(parameter.getFarbe());
 			Einstellungen.getBenutzerdefiniert().exportSkalierungProperty().set(parameter.getSkalierung());
+			Einstellungen.getBenutzerdefiniert().exportTransparentProperty().set(parameter.istHintergrundTransparent());
 			
 			// Workaround fuer Webview
 			// Quelle: https://stackoverflow.com/a/60746994/1534698
@@ -211,11 +223,26 @@ class HauptKontrolle {
 			SnapshotParameters snapParam = new SnapshotParameters();
 			if (parameter.istHintergrundTransparent()) {
 				snapParam.setFill(Color.TRANSPARENT);
-			} else if (Einstellungen.getBenutzerdefiniert().themeProperty().get().equals(Theme.DARK)) {
+			} else if (parameter.getFarbe().equals(Theme.DARK)) {
 				snapParam.setFill(Color.rgb(44, 44, 44));
 			}
 			
-			gruppe.snapshot(this::snapshotSpeichern, snapParam, null);
+			// WebView Workaround von Stackoverflow: https://stackoverflow.com/a/58047583
+			Stage popupStage = new Stage(StageStyle.TRANSPARENT);
+			popupStage.initOwner(this.ansicht.get().getWurzelknoten().getScene().getWindow());
+			popupStage.initModality(Modality.APPLICATION_MODAL);
+			// this popup doesn't really show anything size = 1x1, it just holds the snapshot-webview
+			popupStage.setScene(snapshotScene);
+			// pausing to make sure the webview/picture is completely rendered
+			PauseTransition pt = new PauseTransition(Duration.seconds(1));
+			pt.setOnFinished(e -> {
+				gruppe.snapshot(this::snapshotSpeichern, snapParam, null);
+				popupStage.hide();
+			});
+			// pausing, after pause onFinished event will take + write snapshot
+			pt.play();
+			// GO!
+			popupStage.show();
 		});
 	}
 	
@@ -283,7 +310,8 @@ class HauptKontrolle {
 												.formatted(export.getOrdner()));
 									}
 								}
-								default -> { /**/ }
+								default -> {
+									/**/ }
 							}
 						});
 			}

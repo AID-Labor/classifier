@@ -19,8 +19,10 @@ import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -87,7 +89,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private Theme farbe;
+	private final ObjectProperty<Theme> farbe;
 	private final DoubleProperty skalierung;
 	private final Node vorschau;
 	private final Sprache sprache;
@@ -98,7 +100,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	BildexportDialog(Node vorschau) {
-		this.farbe = Einstellungen.getBenutzerdefiniert().exportThemeProperty().get();
+		this.farbe = new SimpleObjectProperty<>(Einstellungen.getBenutzerdefiniert().exportThemeProperty().get());
 		this.skalierung = new SimpleDoubleProperty(
 				Einstellungen.getBenutzerdefiniert().exportSkalierungProperty().get());
 		this.vorschau = vorschau;
@@ -141,32 +143,58 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void erstelleDialog() {
+		ComboBox<Theme> farbeAuswahl = erstelleFarbWahl();
 		ComboBox<Double> skalierungAuswahl = erstelleSkalierungWahl();
 		CustomTextField breiteEingabe = erstelleBreiteEingabe();
 		CustomTextField hoeheEingabe = erstelleHoeheEingabe();
 		CheckBox hintergrundTransparent = new CheckBox();
 		this.hintergrundTransparentProperty.bind(hintergrundTransparent.selectedProperty());
+		hintergrundTransparent.setSelected(Einstellungen.getBenutzerdefiniert().exportTransparentProperty().get());
 		ScrollPane vorschauBereich = new ScrollPane(new StackPane(vorschau));
 		vorschauBereich.getStyleClass().add("vorschau");
 		int maxBreite = 800;
 		int maxHoehe = 700;
 		vorschauBereich.setMaxSize(maxBreite, maxHoehe);
 		
-		NodeUtil.setzeBreite(150, skalierungAuswahl, breiteEingabe, hoeheEingabe);
+		NodeUtil.setzeBreite(150, farbeAuswahl, skalierungAuswahl, breiteEingabe, hoeheEingabe);
 		
 		GridPane tabelle = new GridPane();
 		erstelleLabels(tabelle);
 		
-		tabelle.add(skalierungAuswahl, 1, 0);
-		tabelle.add(breiteEingabe, 1, 1);
-		tabelle.add(hoeheEingabe, 1, 2);
-		tabelle.add(hintergrundTransparent, 1, 3);
-		tabelle.add(vorschauBereich, 1, 4);
+		tabelle.add(farbeAuswahl, 1, 0);
+		tabelle.add(skalierungAuswahl, 1, 1);
+		tabelle.add(breiteEingabe, 1, 2);
+		tabelle.add(hoeheEingabe, 1, 3);
+		tabelle.add(hintergrundTransparent, 1, 4);
+		tabelle.add(vorschauBereich, 1, 5);
 		
 		tabelle.setHgap(20);
 		tabelle.setVgap(10);
 		tabelle.setPadding(new Insets(30));
 		this.getDialogPane().setContent(tabelle);
+	}
+	
+	private ComboBox<Theme> erstelleFarbWahl() {
+		ComboBox<Theme> farbeAuswahl = new ComboBox<>();
+		farbeAuswahl.setConverter(new StringConverter<Theme>() {
+			@Override
+			public String toString(Theme farbe) {
+				if (farbe == null) {
+					return "";
+				}
+				return sprache.getText(farbe.name(), farbe.name().toLowerCase());
+			}
+			
+			@Override
+			public Theme fromString(String string) {
+				return Theme.valueOf(string);
+			}
+		});
+		farbeAuswahl.getItems().addAll(Theme.LIGHT, Theme.DARK);
+		farbeAuswahl.getSelectionModel().select(Einstellungen.getBenutzerdefiniert().exportThemeProperty().get());
+		farbe.bind(farbeAuswahl.getSelectionModel().selectedItemProperty());
+		
+		return farbeAuswahl;
 	}
 	
 	private ComboBox<Double> erstelleSkalierungWahl() {
@@ -272,7 +300,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 	}
 	
 	private void erstelleLabels(GridPane tabelle) {
-		String[] schluessel = { "skalierung", "breite", "hoehe", "hintergrundTransparent", "vorschau" };
+		String[] schluessel = { "farbe", "skalierung", "breite", "hoehe", "hintergrundTransparent", "vorschau" };
 		
 		int zeile = 0;
 		for (String s : schluessel) {
@@ -291,7 +319,7 @@ class BildexportDialog extends Dialog<io.github.aid_labor.classifier.gui.Bildexp
 		this.setResultConverter(button -> {
 			return switch (button.getButtonData()) {
 				case APPLY -> {
-					var ergebnis = new ExportParameter(farbe, skalierung.get(), vorschau.getScene(),
+					var ergebnis = new ExportParameter(farbe.get(), skalierung.get(), vorschau.getScene(),
 							hintergrundTransparentProperty.get());
 					yield ergebnis;
 				}

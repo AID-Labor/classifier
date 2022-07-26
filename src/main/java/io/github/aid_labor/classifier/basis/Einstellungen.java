@@ -161,6 +161,7 @@ public class Einstellungen {
 	private final JsonBooleanProperty erweiterteValidierungAktivierenProperty;
 	private final JsonEnumProperty<Theme> exportThemeProperty;
 	private final JsonDoubleProperty exportSkalierungProperty;
+	private final JsonBooleanProperty exportTransparentProperty;
 	private final JsonStringProperty letzterBildSpeicherortProperty;
 	private final JsonStringProperty letzterQuellcodeSpeicherortProperty;
 	private final JsonBooleanProperty linienRasterungAktivierenProperty;
@@ -218,6 +219,7 @@ public class Einstellungen {
 		this.erweiterteValidierungAktivierenProperty = new JsonBooleanProperty(true);
 		this.exportThemeProperty = new JsonEnumProperty<Theme>(Theme.LIGHT);
 		this.exportSkalierungProperty = new JsonDoubleProperty(1);
+		this.exportTransparentProperty = new JsonBooleanProperty(false);
 		this.letzterBildSpeicherortProperty = new JsonStringProperty(OS.getDefault().getBilderOrdner());
 		this.letzterQuellcodeSpeicherortProperty = new JsonStringProperty(OS.getDefault().getDokumenteOrdner());
 		this.linienRasterungAktivierenProperty = new JsonBooleanProperty(true);
@@ -329,6 +331,10 @@ public class Einstellungen {
 	
 	public final JsonEnumProperty<Theme> exportThemeProperty() {
 		return exportThemeProperty;
+	}
+	
+	public final JsonBooleanProperty exportTransparentProperty() {
+		return exportTransparentProperty;
 	}
 	
 	public final JsonDoubleProperty exportSkalierungProperty() {
