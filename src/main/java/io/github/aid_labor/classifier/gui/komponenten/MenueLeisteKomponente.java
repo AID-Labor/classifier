@@ -12,8 +12,6 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
-import java.util.logging.Logger;
-
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.Theme;
@@ -21,7 +19,6 @@ import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
-import javafx.event.EventHandler;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -33,7 +30,6 @@ import javafx.scene.input.KeyCharacterCombination;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 
 
 /**
@@ -44,7 +40,6 @@ import javafx.scene.input.KeyEvent;
  *
  */
 public class MenueLeisteKomponente {
-	private static final Logger log = Logger.getLogger(MenueLeisteKomponente.class.getName());
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
@@ -185,9 +180,9 @@ public class MenueLeisteKomponente {
 		
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// Menue Bearbeiten
-		rueckgaengig.setAccelerator(new KeyCodeCombination(KeyCode.Z, KeyCodeCombination.SHORTCUT_DOWN));
+		rueckgaengig.setAccelerator(new KeyCharacterCombination("z", KeyCodeCombination.SHORTCUT_DOWN));
 		wiederholen.setAccelerator(
-				new KeyCodeCombination(KeyCode.Z, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
+				new KeyCharacterCombination("z", KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
 		kopieren.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCodeCombination.SHORTCUT_DOWN));
 		einfuegen.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCodeCombination.SHORTCUT_DOWN));
 		loeschen.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
@@ -222,51 +217,18 @@ public class MenueLeisteKomponente {
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// Menue Darstellung
 		darstellungGroesser.setAccelerator(new KeyCharacterCombination("+", KeyCodeCombination.SHORTCUT_DOWN));
-		darstellungKleiner.setAccelerator(new KeyCodeCombination(KeyCode.SUBTRACT, KeyCodeCombination.SHORTCUT_DOWN));
+		darstellungKleiner.setAccelerator(new KeyCharacterCombination("-", KeyCodeCombination.SHORTCUT_DOWN));
 		darstellungOriginalgroesse.setAccelerator(new KeyCharacterCombination("0", KeyCodeCombination.SHORTCUT_DOWN));
 		vollbild.setAccelerator(new KeyCodeCombination(KeyCode.F5));
 		symbolleisteAusblenden.setAccelerator(
 				new KeyCodeCombination(KeyCode.T, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.ALT_DOWN));
 		
-		log.config(() -> """
-				WORKAROUND fuer JavaFX-Bug: Tastenkombination "CMD + -" wird nicht in Menueleiste erkannt
-				  [MenueLeisteKomponente.java Line 224]
-				    -> setze EventHandler fuer KeyEvent.KEY_PRESSED als Filter in der Menüleiste ein
-				    -> "CMD + -" wird zu KeyCode.SLASH bzw. KeyCode.SUBTRACT uebersetzt!
-				    -> ueberwache menueleiste.sceneProperty() und fuege EventFilter hinzu bzw. entferne bei alter Scene
-				""");
-		// Workaround, da JavaFX CMD + - als SLASH erkennt
-		EventHandler<KeyEvent> kleinerEvent = ke -> {
-			if ((ke.getCode().equals(KeyCode.SLASH) || ke.getCode().equals(KeyCode.SUBTRACT)) && ke.isShortcutDown()
-					&& !ke.isAltDown()) {
-				darstellungKleiner.fire();
-			}
-		};
-		
-		NodeUtil.beobachteSchwach(menueleiste, menueleiste.sceneProperty(), (alteSc, neueSc) -> {
-			if (alteSc != null) {
-				alteSc.removeEventFilter(KeyEvent.KEY_PRESSED, kleinerEvent);
-			}
-			if (neueSc != null) {
-				neueSc.addEventFilter(KeyEvent.KEY_PRESSED, kleinerEvent);
-			}
-		});
 		
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// Menue Fenster
 		vorherigerTab.setAccelerator(
 				new KeyCodeCombination(KeyCode.TAB, KeyCodeCombination.CONTROL_DOWN, KeyCodeCombination.SHIFT_DOWN));
-		vorherigerTab.addEventHandler(KeyEvent.ANY, ke -> {
-			if (ke.getCode().equals(KeyCode.TAB) && !ke.isConsumed()) {
-				ke.consume();
-			}
-		});
 		naechsterTab.setAccelerator(new KeyCodeCombination(KeyCode.TAB, KeyCodeCombination.CONTROL_DOWN));
-		naechsterTab.addEventHandler(KeyEvent.ANY, ke -> {
-			if (ke.getCode().equals(KeyCode.TAB) && !ke.isConsumed()) {
-				ke.consume();
-			}
-		});
 		
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// Menue Einstellungen
