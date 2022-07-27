@@ -373,4 +373,6 @@
     -fx-background-color: -vorschau-hintergrund;
 }
 
-
+.dialog-pane > .button-bar .button {
+    -fx-min-width: 120;
+}
