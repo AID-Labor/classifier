@@ -24,6 +24,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Cursor;
@@ -69,6 +70,10 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	private final DoubleProperty startYProperty;
 	private final DoubleProperty endeXProperty;
 	private final DoubleProperty endeYProperty;
+	private final DoubleProperty startXPropertyBindung;
+	private final DoubleProperty startYPropertyBindung;
+	private final DoubleProperty endeXPropertyBindung;
+	private final DoubleProperty endeYPropertyBindung;
 	private final DoubleProperty startXVerschiebungProperty;
 	private final DoubleProperty startYVerschiebungProperty;
 	private final DoubleProperty mitteVerschiebungProperty;
@@ -106,6 +111,10 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		orientierungStartProperty = verbindung.orientierungStartProperty();
 		orientierungEndeProperty = verbindung.orientierungEndeProperty();
 		mitteVerschiebungProperty = verbindung.mitteVerschiebungProperty();
+		this.startXPropertyBindung = new SimpleDoubleProperty();
+		this.startYPropertyBindung = new SimpleDoubleProperty();
+		this.endeXPropertyBindung = new SimpleDoubleProperty();
+		this.endeYPropertyBindung = new SimpleDoubleProperty();
 		double mitteVerschiebung = verbindung.getMitteVerschiebung();
 		double startXVerschiebung = verbindung.getStartPosition().getBreite();
 		double startYVerschiebung = verbindung.getStartPosition().getHoehe();
@@ -200,6 +209,10 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void erstelleBindungen() {
+		NodeUtil.beobachteSchwach(this, startXPropertyBindung, verbindung.getStartPosition().xProperty()::setValue);
+		NodeUtil.beobachteSchwach(this, startYPropertyBindung, verbindung.getStartPosition().yProperty()::setValue);
+		NodeUtil.beobachteSchwach(this, endeXPropertyBindung, verbindung.getEndPosition().xProperty()::setValue);
+		NodeUtil.beobachteSchwach(this, endeYPropertyBindung, verbindung.getEndPosition().yProperty()::setValue);
 		NodeUtil.beobachteSchwach(this, verbindung.startElementProperty(),
 				start -> updateStartPosition(start, verbindung.getEndElement()));
 		NodeUtil.beobachteSchwach(this, verbindung.endElementProperty(),
@@ -295,9 +308,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	}
 	
 	private void setzeStartOben(UMLKlassifizierer start) {
-		startXProperty.bind(start.getPosition().xProperty().add(start.getPosition().breiteProperty().divide(2)));
+		startXPropertyBindung.bind(start.getPosition().xProperty().add(start.getPosition().breiteProperty().divide(2)));
 		startXVerschiebungProperty.set(0);
-		startYProperty.bind(start.getPosition().yProperty());
+		startYPropertyBindung.bind(start.getPosition().yProperty());
 		startYVerschiebungProperty.set(0);
 		
 		var yMitte = startpunkt.yProperty().add(linieC.yProperty()).add(VERERBUNGSPFEIL_GROESSE).divide(2);
@@ -321,17 +334,17 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	}
 	
 	private void setzeStartRechts(UMLKlassifizierer start) {
-		startXProperty.bind(start.getPosition().xProperty().add(start.getPosition().breiteProperty()));
+		startXPropertyBindung.bind(start.getPosition().xProperty().add(start.getPosition().breiteProperty()));
 		startXVerschiebungProperty.set(0);
-		startYProperty.bind(start.getPosition().yProperty().add(start.getPosition().hoeheProperty().divide(2)));
+		startYPropertyBindung.bind(start.getPosition().yProperty().add(start.getPosition().hoeheProperty().divide(2)));
 		startYVerschiebungProperty.set(0);
 		bindeStartLinksRechts();
 	}
 	
 	private void setzeStartUnten(UMLKlassifizierer start) {
-		startXProperty.bind(start.getPosition().xProperty().add(start.getPosition().breiteProperty().divide(2)));
+		startXPropertyBindung.bind(start.getPosition().xProperty().add(start.getPosition().breiteProperty().divide(2)));
 		startXVerschiebungProperty.set(0);
-		startYProperty.bind(start.getPosition().yProperty().add(start.getPosition().hoeheProperty()));
+		startYPropertyBindung.bind(start.getPosition().yProperty().add(start.getPosition().hoeheProperty()));
 		startYVerschiebungProperty.set(0);
 		
 		var yMitte = verbindung.getStartPosition().yProperty().add(verbindung.getEndPosition().yProperty())
@@ -356,9 +369,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	}
 	
 	private void setzeStartLinks(UMLKlassifizierer start) {
-		startXProperty.bind(start.getPosition().xProperty());
+		startXPropertyBindung.bind(start.getPosition().xProperty());
 		startXVerschiebungProperty.set(0);
-		startYProperty.bind(start.getPosition().yProperty().add(start.getPosition().hoeheProperty().divide(2)));
+		startYPropertyBindung.bind(start.getPosition().yProperty().add(start.getPosition().hoeheProperty().divide(2)));
 		startYVerschiebungProperty.set(0);
 		bindeStartLinksRechts();
 	}
@@ -401,30 +414,30 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	}
 	
 	private void setzeEndeOben(UMLKlassifizierer ende) {
-		endeXProperty.bind(ende.getPosition().xProperty().add(ende.getPosition().breiteProperty().divide(2)));
+		endeXPropertyBindung.bind(ende.getPosition().xProperty().add(ende.getPosition().breiteProperty().divide(2)));
 		endeXVerschiebungProperty.set(0);
-		endeYProperty.bind(ende.getPosition().yProperty());
+		endeYPropertyBindung.bind(ende.getPosition().yProperty());
 		endeYVerschiebungProperty.set(0);
 	}
 	
 	private void setzeEndeRechts(UMLKlassifizierer ende) {
-		endeXProperty.bind(ende.getPosition().xProperty().add(ende.getPosition().breiteProperty()));
+		endeXPropertyBindung.bind(ende.getPosition().xProperty().add(ende.getPosition().breiteProperty()));
 		endeXVerschiebungProperty.set(0);
-		endeYProperty.bind(ende.getPosition().yProperty().add(ende.getPosition().hoeheProperty().divide(2)));
+		endeYPropertyBindung.bind(ende.getPosition().yProperty().add(ende.getPosition().hoeheProperty().divide(2)));
 		endeYVerschiebungProperty.set(0);
 	}
 	
 	private void setzeEndeUnten(UMLKlassifizierer ende) {
-		endeXProperty.bind(ende.getPosition().xProperty().add(ende.getPosition().breiteProperty().divide(2)));
+		endeXPropertyBindung.bind(ende.getPosition().xProperty().add(ende.getPosition().breiteProperty().divide(2)));
 		endeXVerschiebungProperty.set(0);
-		endeYProperty.bind(ende.getPosition().yProperty().add(ende.getPosition().hoeheProperty()));
+		endeYPropertyBindung.bind(ende.getPosition().yProperty().add(ende.getPosition().hoeheProperty()));
 		endeYVerschiebungProperty.set(0);
 	}
 	
 	private void setzeEndeLinks(UMLKlassifizierer ende) {
-		endeXProperty.bind(ende.getPosition().xProperty());
+		endeXPropertyBindung.bind(ende.getPosition().xProperty());
 		endeXVerschiebungProperty.set(0);
-		endeYProperty.bind(ende.getPosition().yProperty().add(ende.getPosition().hoeheProperty().divide(2)));
+		endeYPropertyBindung.bind(ende.getPosition().yProperty().add(ende.getPosition().hoeheProperty().divide(2)));
 		endeYVerschiebungProperty.set(0);
 	}
 	
@@ -832,8 +845,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			return;
 		}
 		if (start == null) {
-			startXProperty.unbind();
-			startYProperty.unbind();
+			startXPropertyBindung.unbind();
+			startYPropertyBindung.unbind();
 			return;
 		}
 		
@@ -911,8 +924,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			return;
 		}
 		if (ende == null) {
-			endeXProperty.unbind();
-			endeYProperty.unbind();
+			endeXPropertyBindung.unbind();
+			endeYPropertyBindung.unbind();
 			return;
 		}
 		
