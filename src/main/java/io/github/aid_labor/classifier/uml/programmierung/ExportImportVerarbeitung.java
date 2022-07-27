@@ -64,7 +64,6 @@ public interface ExportImportVerarbeitung {
 	 * 
 	 * @param klassifizierer   Klassifizierer, der implementiert wird
 	 * @param ausgabe          Stream, in den der Quellcode geschrieben wird
-	 * @param dateierweiterung ausgewählte Dateierweiterung
 	 * @throws Exception Exception, die möglicherweise beim Export auftritt.
 	 */
 	public void exportiere(UMLKlassifizierer klassifizierer, Writer ausgabe) throws Exception;
@@ -111,7 +110,6 @@ public interface ExportImportVerarbeitung {
 	 * </b>
 	 * 
 	 * @param quelle       Quelldatei, die importiert wird
-	 * @param verbindungen Liste, in die optionale Assoziationen eingefügt werden
 	 * @return importierter UMLKlassifizierer
 	 * @throws ImportException Wenn die Datei keinen gültigen Programmcode enthält oder aus einem anderen Grund nicht
 	 *                         interpretiert werden kann

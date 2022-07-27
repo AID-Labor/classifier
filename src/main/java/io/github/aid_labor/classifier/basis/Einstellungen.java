@@ -286,7 +286,7 @@ public class Einstellungen {
 	}
 	
 	/**
-	 * {@code true}, wenn der Modifizierer >package< im UML-Diagramm angezeigt werden soll
+	 * {@code true}, wenn der Modifizierer 'package' im UML-Diagramm angezeigt werden soll
 	 * @return zeigePackageModifierProperty
 	 */
 	public final JsonBooleanProperty zeigePackageModifierProperty() {
@@ -294,7 +294,7 @@ public class Einstellungen {
 	}
 	
 	/**
-	 * {@code true}, wenn >void< im UML-Diagramm angezeigt werden soll
+	 * {@code true}, wenn 'void' im UML-Diagramm angezeigt werden soll
 	 * @return zeigeVoidProperty
 	 */
 	public final JsonBooleanProperty zeigeVoidProperty() {
@@ -317,15 +317,15 @@ public class Einstellungen {
 		return erweiterteValidierungAktivierenProperty;
 	}
 	
-	public JsonBooleanProperty linienRasterungAktivierenProperty() {
+	public final JsonBooleanProperty linienRasterungAktivierenProperty() {
 		return linienRasterungAktivierenProperty;
 	}
 	
-	public JsonBooleanProperty positionRasterungAktivierenProperty() {
+	public final JsonBooleanProperty positionRasterungAktivierenProperty() {
 		return positionRasterungAktivierenProperty;
 	}
 	
-	public JsonBooleanProperty groesseRasterungAktivierenProperty() {
+	public final JsonBooleanProperty groesseRasterungAktivierenProperty() {
 		return groesseRasterungAktivierenProperty;
 	}
 	

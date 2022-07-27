@@ -510,6 +510,10 @@
 							<head>Implementation-Specification:</head>
 						</tag>
 					</tags>
+					<links>
+            			<link>https://docs.oracle.com/en/java/javase/18/docs/api/</link>
+            			<link>https://openjfx.io/javadoc/17/</link>
+          			</links>
 				</configuration>
 			</plugin>
 		</plugins>
