@@ -5,6 +5,7 @@
  */
 package io.github.aid_labor.classifier.gui.komponenten;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
@@ -26,10 +27,7 @@ public class KontrollElemente<T> {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	private static <E> void tausche(List<E> liste, int indexA, int indexB) {
-		var a = liste.get(indexA);
-		var b = liste.get(indexB);
-		liste.set(indexA, b);
-		liste.set(indexB, a);
+		Collections.swap(liste, indexA, indexB);
 	}
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##

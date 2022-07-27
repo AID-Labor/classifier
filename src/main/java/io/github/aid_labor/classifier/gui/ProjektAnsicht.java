@@ -24,6 +24,7 @@ import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.ProjekteAnsicht.ExportErgebnis;
 import io.github.aid_labor.classifier.gui.komponenten.KlassifiziererKontextMenue;
+import io.github.aid_labor.classifier.gui.komponenten.ProjektKontextMenue;
 import io.github.aid_labor.classifier.gui.komponenten.UMLElementBasisAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKlassifiziererAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKommentarAnsicht;
@@ -95,6 +96,7 @@ public class ProjektAnsicht extends Tab {
 	private final ReadOnlyBooleanWrapper kannKleinerZoomen;
 	private final WeakReference<ProjekteAnsicht> projekteAnsichtRef;
 	private final KlassifiziererKontextMenue klassifiziererKontextMenue;
+	private final ProjektKontextMenue projektKontextMenue;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -123,6 +125,7 @@ public class ProjektAnsicht extends Tab {
 		this.zeichenflaeche.minWidthProperty().bind(inhalt.widthProperty());
 		this.zeichenflaeche.addEventFilter(DragEvent.ANY, controller::importiereAusDatei);
 		this.klassifiziererKontextMenue = new KlassifiziererKontextMenue(this);
+		this.projektKontextMenue = new ProjektKontextMenue(this);
 		
 		this.setContent(inhalt);
 		
@@ -147,6 +150,15 @@ public class ProjektAnsicht extends Tab {
 				selektion.addAll(ansichten.values());
 			} else if (e.getCode().equals(KeyCode.ESCAPE)) {
 				selektion.clear();
+			}
+		});
+		
+		this.getContent().addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+			if (!e.isConsumed() && e.getButton().equals(MouseButton.SECONDARY)
+					&& !(e.getTarget() instanceof UMLElementBasisAnsicht)) {
+				projektKontextMenue.show(this.getContent(), e.getScreenX(), e.getScreenY());
+			} else {
+				projektKontextMenue.hide();
 			}
 		});
 		
@@ -418,6 +430,10 @@ public class ProjektAnsicht extends Tab {
 					selektion.add(ansicht);
 				}
 				klassifiziererKontextMenue.show(ansicht, e.getScreenX(), e.getScreenY());
+				projektKontextMenue.hide();
+				e.consume();
+			} else {
+				klassifiziererKontextMenue.hide();
 			}
 		});
 		
@@ -519,5 +535,5 @@ public class ProjektAnsicht extends Tab {
 			this.zeichenflaeche.getChildren().add(ansicht);
 		}
 	}
-
+	
 }
