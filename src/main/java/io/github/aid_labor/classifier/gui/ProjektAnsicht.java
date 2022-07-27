@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.gui;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.ProjekteAnsicht.ExportErgebnis;
+import io.github.aid_labor.classifier.gui.komponenten.KlassifiziererKontextMenue;
 import io.github.aid_labor.classifier.gui.komponenten.UMLElementBasisAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKlassifiziererAnsicht;
 import io.github.aid_labor.classifier.gui.komponenten.UMLKommentarAnsicht;
@@ -32,6 +34,7 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
+import javafx.application.HostServices;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.When;
@@ -40,6 +43,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
+import javafx.event.Event;
 import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.scene.Group;
@@ -50,6 +54,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 
@@ -88,31 +93,36 @@ public class ProjektAnsicht extends Tab {
 	private final Sprache sprache;
 	private final ScrollPane inhalt;
 	private final ReadOnlyBooleanWrapper kannKleinerZoomen;
+	private final WeakReference<ProjekteAnsicht> projekteAnsichtRef;
+	private final KlassifiziererKontextMenue klassifiziererKontextMenue;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public ProjektAnsicht(UMLProjekt projekt, Sprache sprache, DialogPane overlayDialog, ProgrammDetails programm) {
+	public ProjektAnsicht(UMLProjekt projekt, Sprache sprache, DialogPane overlayDialog, ProgrammDetails programm,
+			ProjekteAnsicht projekteAnsicht) {
 		this.projekt = projekt;
 		this.sprache = sprache;
 		this.overlayDialog = overlayDialog;
 		this.programm = programm;
+		this.projekteAnsichtRef = new WeakReference<>(projekteAnsicht);
 		this.controller = new ProjektKontrolle(this, sprache);
 		this.zeichenflaeche = new Pane();
 		this.ansichten = new HashMap<>();
 		this.verbindungsAnsichten = new HashMap<>();
 		this.selektion = FXCollections.observableArrayList();
-		zeichenflaecheGruppe = new Group(zeichenflaeche);
+		this.zeichenflaecheGruppe = new Group(zeichenflaeche);
 		this.inhalt = new ScrollPane(zeichenflaecheGruppe);
 		this.kannKleinerZoomen = new ReadOnlyBooleanWrapper(false);
 		this.kannKleinerZoomen.bind(zeichenflaeche.scaleXProperty().greaterThan(0.6));
 		
 		this.zeichenflaeche.getStyleClass().add("zeichenflaeche");
 		this.inhalt.getStyleClass().add("projekt-inhalt");
-		zeichenflaeche.minHeightProperty().bind(inhalt.heightProperty());
-		zeichenflaeche.minWidthProperty().bind(inhalt.widthProperty());
-		zeichenflaeche.addEventFilter(DragEvent.ANY, controller::importiereAusDatei);
+		this.zeichenflaeche.minHeightProperty().bind(inhalt.heightProperty());
+		this.zeichenflaeche.minWidthProperty().bind(inhalt.widthProperty());
+		this.zeichenflaeche.addEventFilter(DragEvent.ANY, controller::importiereAusDatei);
+		this.klassifiziererKontextMenue = new KlassifiziererKontextMenue(this);
 		
 		this.setContent(inhalt);
 		
@@ -146,7 +156,7 @@ public class ProjektAnsicht extends Tab {
 		
 		this.inhalt.setOnZoom(event -> {
 			double skalierung = getSkalierung() * event.getZoomFactor();
-			if (skalierung  >= 0.3) {
+			if (skalierung >= 0.3) {
 				skaliere(skalierung);
 			}
 		});
@@ -188,6 +198,22 @@ public class ProjektAnsicht extends Tab {
 	
 	public BooleanBinding hatSelektionProperty() {
 		return Bindings.isEmpty(selektion);
+	}
+	
+	public ProjekteAnsicht getProjekteAnsicht() {
+		return projekteAnsichtRef.get();
+	}
+	
+	public HostServices getRechnerService() {
+		return projekteAnsichtRef.get().getRechnerService();
+	}
+	
+	public void exportiereAlsQuellcode(Event event) {
+		this.controller.exportiereAlsQuellcode(event);
+	}
+	
+	public void exportiereAlsBild(Event event) {
+		this.controller.exportiereAlsBild(event);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -361,25 +387,38 @@ public class ProjektAnsicht extends Tab {
 		idZaehler++;
 		
 		ansicht.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
-			boolean multiSelektion = OS.getDefault().istMacOS() && e.isMetaDown()
-					|| !OS.getDefault().istMacOS() && e.isControlDown();
-			if (!multiSelektion) {
-				selektion.clear();
+			if (e.getButton().equals(MouseButton.PRIMARY)) {
+				boolean multiSelektion = OS.getDefault().istMacOS() && e.isMetaDown()
+						|| !OS.getDefault().istMacOS() && e.isControlDown();
+				if (!multiSelektion) {
+					selektion.clear();
+				}
 			}
 		});
 		
 		ansicht.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
-			boolean multiSelektion = OS.getDefault().istMacOS() && e.isMetaDown()
-					|| !OS.getDefault().istMacOS() && e.isControlDown();
-			if (!multiSelektion) {
-				selektion.clear();
+			if (e.getButton().equals(MouseButton.PRIMARY)) {
+				boolean multiSelektion = OS.getDefault().istMacOS() && e.isMetaDown()
+						|| !OS.getDefault().istMacOS() && e.isControlDown();
+				if (!multiSelektion) {
+					selektion.clear();
+				}
+				if (selektion.contains(ansicht)) {
+					selektion.remove(ansicht);
+				} else {
+					selektion.add(ansicht);
+				}
+				e.consume();
 			}
-			if (selektion.contains(ansicht)) {
-				selektion.remove(ansicht);
-			} else {
-				selektion.add(ansicht);
+		});
+		
+		ansicht.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+			if (e.getButton().equals(MouseButton.SECONDARY)) {
+				if (!selektion.contains(ansicht)) {
+					selektion.add(ansicht);
+				}
+				klassifiziererKontextMenue.show(ansicht, e.getScreenX(), e.getScreenY());
 			}
-			e.consume();
 		});
 		
 		if (ansicht.getUmlElement() instanceof UMLKlassifizierer klassifizierer) {
@@ -480,5 +519,5 @@ public class ProjektAnsicht extends Tab {
 			this.zeichenflaeche.getChildren().add(ansicht);
 		}
 	}
-	
+
 }

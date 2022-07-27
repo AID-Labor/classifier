@@ -41,13 +41,10 @@ import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
-import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.application.HostServices;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
@@ -98,7 +95,6 @@ public class HauptAnsicht {
 	private final HostServices rechnerService;
 	private final BooleanBinding hatKeinProjekt;
 	private final BooleanBinding zuVieleVerbindungen;
-	private final ObservableList<UMLDiagrammElement> kopiePuffer;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -111,10 +107,9 @@ public class HauptAnsicht {
 		this.overlayDialog.getStyleClass().add("overlay-dialog");
 		this.programm = programm;
 		this.controller = new HauptKontrolle(this, sprache);
-		this.projekteAnsicht = new ProjekteAnsicht(overlayDialog, programm);
+		this.projekteAnsicht = new ProjekteAnsicht(overlayDialog, programm, rechnerService);
 		this.rechnerService = rechnerService;
 		this.hatKeinProjekt = projekteAnsicht.angezeigtesProjektProperty().isNull();
-		this.kopiePuffer = FXCollections.observableArrayList();
 		
 		this.zuVieleVerbindungen = erstelleAnzahlVerbindungenBindung(); 
 		
@@ -283,16 +278,16 @@ public class HauptAnsicht {
 		menue.getDateiAlleSpeichern().setOnAction(e -> this.projekteAnsicht.allesSpeichern());
 		menue.getDateiSpeichernUnter().setOnAction(this.controller::projektSpeichernUnter);
 		menue.getDateiUmbenennen().setOnAction(this.controller::projektUmbenennen);
-		menue.getExportierenBild().setOnAction(controller::exportiereAlsBild);
+		menue.getExportierenBild().setOnAction(e -> projekteAnsicht.getProjektAnsicht().exportiereAlsBild(e));
 		menue.getDateiImportieren().setOnAction(controller::importiereAusDatei);
-		menue.getExportierenQuellcode().setOnAction(controller::exportiereAlsQuellcode);
+		menue.getExportierenQuellcode().setOnAction(e -> projekteAnsicht.getProjektAnsicht().exportiereAlsQuellcode(e));
 		
 		// Menue Bearbeiten
 		var aktuellesProjekt = this.projekteAnsicht.angezeigtesProjektProperty().get();
 		updateRueckgaengigWiederholen(menue, aktuellesProjekt);
-		menue.getKopieren().setOnAction(e -> auswahlKopieren());
-		menue.getEinfuegen().setOnAction(e -> auswahlEinfuegen());
-		menue.getLoeschen().setOnAction(e -> auswahlLoeschen());
+		menue.getKopieren().setOnAction(e -> projekteAnsicht.auswahlKopieren());
+		menue.getEinfuegen().setOnAction(e -> projekteAnsicht.auswahlEinfuegen());
+		menue.getLoeschen().setOnAction(e -> projekteAnsicht.auswahlLoeschen());
 		
 		// Menue Einfuegen
 		menue.getKlasseEinfuegen().setOnAction(e -> erzeugeKlassifizierer(KlassifiziererTyp.Klasse));
@@ -390,7 +385,7 @@ public class HauptAnsicht {
 		this.projekteAnsicht.projektAnsichtProperty().addListener((__, alt, neueAnzeige) -> {
 			updateSelektionButtons(menue, neueAnzeige);
 		});
-		menue.getEinfuegen().disableProperty().bind(Bindings.isEmpty(kopiePuffer));
+		menue.getEinfuegen().disableProperty().bind(Bindings.isEmpty(ProjekteAnsicht.getKopiepuffer()));
 		
 		// Menue Einfuegen
 		menue.getKlasseEinfuegen().disableProperty().bind(hatKeinProjekt);
@@ -481,14 +476,14 @@ public class HauptAnsicht {
 		ribbon.getSpeichern().setOnAction(controller::projektSpeichern);
 		ribbon.getSpeichernSchnellzugriff().setOnAction(controller::projektSpeichern);
 		ribbon.getOeffnen().setOnAction(this.controller::projektOeffnen);
-		ribbon.getScreenshot().setOnAction(controller::exportiereAlsBild);
+		ribbon.getScreenshot().setOnAction(e -> projekteAnsicht.getProjektAnsicht().exportiereAlsBild(e));
 		
 		ribbon.getImportieren().setOnAction(controller::importiereAusDatei);
-		ribbon.getExportieren().setOnAction(controller::exportiereAlsQuellcode);
+		ribbon.getExportieren().setOnAction(e -> projekteAnsicht.getProjektAnsicht().exportiereAlsQuellcode(e));
 		
-		ribbon.getKopieren().setOnAction(e -> auswahlKopieren());
-		ribbon.getEinfuegen().setOnAction(e -> auswahlEinfuegen());
-		ribbon.getLoeschen().setOnAction(e -> auswahlLoeschen());
+		ribbon.getKopieren().setOnAction(e -> projekteAnsicht.auswahlKopieren());
+		ribbon.getEinfuegen().setOnAction(e -> projekteAnsicht.auswahlEinfuegen());
+		ribbon.getLoeschen().setOnAction(e -> projekteAnsicht.auswahlLoeschen());
 		
 		ribbon.getAnordnenNachVorne().setOnAction(e -> nachVorne());
 		ribbon.getAnordnenNachHinten().setOnAction(e -> nachHinten());
@@ -541,7 +536,7 @@ public class HauptAnsicht {
 		this.projekteAnsicht.projektAnsichtProperty().addListener((__, alt, neueAnzeige) -> {
 			updateSelektionButtons(ribbon, neueAnzeige);
 		});
-		ribbon.getEinfuegen().disableProperty().bind(Bindings.isEmpty(kopiePuffer));
+		ribbon.getEinfuegen().disableProperty().bind(Bindings.isEmpty(ProjekteAnsicht.getKopiepuffer()));
 		
 		ribbon.getZoomGroesser().disableProperty().bind(hatKeinProjekt);
 		ribbon.getZoomKleiner().disableProperty().bind(hatKeinProjekt);
@@ -624,41 +619,6 @@ public class HauptAnsicht {
 	
 	private void erzeugeKommentar() {
 		this.projekteAnsicht.legeKommentarAn();
-	}
-	
-	private void auswahlKopieren() {
-		kopiePuffer.setAll(projekteAnsicht.getProjektAnsicht().getSelektion());
-	}
-	
-	private void auswahlEinfuegen() {
-		var klassenSuchBaum = new TreeSet<>(getProjekteAnsicht().getAngezeigtesProjekt().getDiagrammElemente().stream()
-				.filter(UMLKlassifizierer.class::isInstance).map(k -> k.getName()).toList());
-		var kopie = kopiePuffer.stream().map(umlElement -> {
-			var umlKopie = umlElement.erzeugeTiefeKopie();
-			var x = umlKopie.getPosition().getX() + 20;
-			var y = umlKopie.getPosition().getY() + 20;
-			umlKopie.getPosition().setX(x);
-			umlKopie.getPosition().setY(y);
-			if (umlKopie instanceof UMLKlassifizierer k && klassenSuchBaum.contains(k.getName())) {
-				k.setName(k.getName() + "_kopie");
-				int i = 1;
-				String name = k.getName();
-				while (klassenSuchBaum.contains(k.getName())) {
-					k.setName(name + i);
-					i++;
-				}
-				
-			}
-			if (umlKopie instanceof UMLKlassifizierer k) {
-				klassenSuchBaum.add(k.getName());
-			}
-			return umlKopie;
-		}).toList();
-		projekteAnsicht.fuegeEin(kopie);
-	}
-	
-	private void auswahlLoeschen() {
-		projekteAnsicht.projektAnsichtProperty().get().entferneAuswahl();
 	}
 	
 	private SortedSet<Integer> getIndizes() {
@@ -776,14 +736,6 @@ public class HauptAnsicht {
 		var text = new TextFlow(beschreibung);
 		text.getStyleClass().add("dialog-text");
 		this.overlayDialog.showNode(Type.WARNING, dialogTitel, text, false, List.of(ButtonType.OK));
-	}
-	
-	void zeigeExportFehlerDialog(String beschreibung) {
-		String titel = sprache.getText("exportFehlerTitel", "Fehler beim Exportieren");
-		var text = new TextFlow(new Text(beschreibung));
-		text.getStyleClass().add("dialog-text-warnung");
-		text.setTextAlignment(TextAlignment.CENTER);
-		this.overlayDialog.showNode(Type.ERROR, titel, text);
 	}
 	
 	void zeigeImportFehlerDialog(String beschreibung) {

@@ -24,10 +24,12 @@ import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener.Change;
 import javafx.event.Event;
@@ -41,6 +43,20 @@ import javafx.stage.WindowEvent;
 
 public class ProjekteAnsicht {
 	private static final Logger log = Logger.getLogger(ProjekteAnsicht.class.getName());
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenattribute																	*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	private final static ObservableList<UMLDiagrammElement> kopiePuffer = FXCollections.observableArrayList();
+	
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+//  *	Klassenmethoden																		*
+//	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+	
+	public static ObservableList<UMLDiagrammElement> getKopiepuffer() {
+		return kopiePuffer;
+	}
 	
 	public static class ExportErgebnis {
 		
@@ -97,6 +113,7 @@ public class ProjekteAnsicht {
 	private final ProgrammDetails programm;
 	private final ProjekteKontrolle kontroller;
 	private final ReadOnlyObjectWrapper<ProjektAnsicht> anzeige;
+	private final HostServices rechnerService;
 	
 	private EventHandler<WindowEvent> eventAktion = new EventHandler<WindowEvent>() {
 		@Override
@@ -112,22 +129,22 @@ public class ProjekteAnsicht {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public ProjekteAnsicht(DialogPane overlayDialog, ProgrammDetails programm) {
-		this.projekte = FXCollections.observableSet(
-				new TreeSet<>((p1, p2) -> {
-					if (p1.getSpeicherort() == null) {
-						return -1;
-					} else if (p2.getSpeicherort() == null) {
-						return 1;
-					} else {
-						return p1.getSpeicherort().compareTo(p2.getSpeicherort());
-					}
-				}));
+	public ProjekteAnsicht(DialogPane overlayDialog, ProgrammDetails programm, HostServices rechnerService) {
+		this.projekte = FXCollections.observableSet(new TreeSet<>((p1, p2) -> {
+			if (p1.getSpeicherort() == null) {
+				return -1;
+			} else if (p2.getSpeicherort() == null) {
+				return 1;
+			} else {
+				return p1.getSpeicherort().compareTo(p2.getSpeicherort());
+			}
+		}));
 		this.overlayDialog = overlayDialog;
 		this.sprache = new Sprache();
 		this.programm = programm;
-		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
-				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "ProjektAnsicht");
+		this.rechnerService = rechnerService;
+		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
+				"ProjektAnsicht");
 		if (!spracheGesetzt) {
 			sprache.ignoriereSprachen();
 		}
@@ -166,6 +183,10 @@ public class ProjekteAnsicht {
 		return anzeige.get();
 	}
 	
+	public HostServices getRechnerService() {
+		return rechnerService;
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	protected DialogPane getOverlayDialog() {
@@ -176,13 +197,46 @@ public class ProjekteAnsicht {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	
-	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	public void auswahlKopieren() {
+		kopiePuffer.setAll(getProjektAnsicht().getSelektion());
+	}
+	
+	public void auswahlEinfuegen() {
+		var klassenSuchBaum = new TreeSet<>(getProjektAnsicht().getProjekt().getDiagrammElemente().stream()
+				.filter(UMLKlassifizierer.class::isInstance).map(k -> k.getName()).toList());
+		var kopie = kopiePuffer.stream().map(umlElement -> {
+			var umlKopie = umlElement.erzeugeTiefeKopie();
+			var x = umlKopie.getPosition().getX() + 20;
+			var y = umlKopie.getPosition().getY() + 20;
+			umlKopie.getPosition().setX(x);
+			umlKopie.getPosition().setY(y);
+			if (umlKopie instanceof UMLKlassifizierer k && klassenSuchBaum.contains(k.getName())) {
+				k.setName(k.getName() + "_kopie");
+				int i = 1;
+				String name = k.getName();
+				while (klassenSuchBaum.contains(k.getName())) {
+					k.setName(name + i);
+					i++;
+				}
+				
+			}
+			if (umlKopie instanceof UMLKlassifizierer k) {
+				klassenSuchBaum.add(k.getName());
+			}
+			return umlKopie;
+		}).toList();
+		fuegeEin(kopie);
+	}
+	
+	public void auswahlLoeschen() {
+		getProjektAnsicht().entferneAuswahl();
+	}
 	
 	public boolean angezeigtesProjektSpeichern() {
 		var tab = this.tabAnsicht.getSelectionModel().getSelectedItem();
@@ -256,8 +310,7 @@ public class ProjekteAnsicht {
 					pa.projektSpeichern();
 				} catch (Exception e) {
 					log.log(Level.WARNING, e,
-							() -> "Fehler beim Speichern von Projekt %s aufgetreten"
-									.formatted(pa.getProjekt()));
+							() -> "Fehler beim Speichern von Projekt %s aufgetreten".formatted(pa.getProjekt()));
 				}
 			}
 		}
@@ -287,7 +340,7 @@ public class ProjekteAnsicht {
 			throw exc;
 		}
 		
-		ProjektAnsicht tab = new ProjektAnsicht(projekt, sprache, overlayDialog, programm);
+		ProjektAnsicht tab = new ProjektAnsicht(projekt, sprache, overlayDialog, programm, this);
 		
 		this.tabAnsicht.getTabs().add(tab);
 		this.tabAnsicht.getSelectionModel().select(tab);
@@ -295,8 +348,7 @@ public class ProjekteAnsicht {
 		tab.setOnClosed(e -> this.projekte.remove(projekt));
 		
 		// Ueberwachung erst nach dem Zeichnen starten
-		Platform.runLater(() -> projekt
-				.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN));
+		Platform.runLater(() -> projekt.setUeberwachungsStatus(UeberwachungsStatus.INKREMENTELL_SAMMELN));
 	}
 	
 	public void vorherigerTab() {
@@ -308,8 +360,7 @@ public class ProjekteAnsicht {
 	}
 	
 	public void naechsterTab() {
-		if (this.tabAnsicht.getSelectionModel()
-				.getSelectedIndex() < this.tabAnsicht.getTabs().size() - 1) {
+		if (this.tabAnsicht.getSelectionModel().getSelectedIndex() < this.tabAnsicht.getTabs().size() - 1) {
 			this.tabAnsicht.getSelectionModel().selectNext();
 		} else {
 			this.tabAnsicht.getSelectionModel().selectFirst();
@@ -337,7 +388,7 @@ public class ProjekteAnsicht {
 			} else {
 				log.severe(() -> "unbekanntes UMLDiagrammelement: " + element);
 			}
-		} 
+		}
 	}
 	
 	public ExportErgebnis exportiereAlsQuellcode() throws IllegalStateException, Exception {
@@ -361,40 +412,33 @@ public class ProjekteAnsicht {
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private void setzeListener() {
-		this.tabAnsicht.getSelectionModel().selectedItemProperty()
-				.addListener((itemProperty, alteWahl, neueWahl) -> {
-					log.finest(() -> "neuer Tab ausgewaehlt: %s"
-							.formatted(neueWahl == null ? "null" : neueWahl.getText()));
-					if (neueWahl instanceof ProjektAnsicht tab) {
-						angezeigtesProjekt.set(tab.getProjekt());
-						anzeige.set(tab);
-					} else {
-						angezeigtesProjekt.set(null);
-						anzeige.set(null);
-					}
-				});
+		this.tabAnsicht.getSelectionModel().selectedItemProperty().addListener((itemProperty, alteWahl, neueWahl) -> {
+			log.finest(() -> "neuer Tab ausgewaehlt: %s".formatted(neueWahl == null ? "null" : neueWahl.getText()));
+			if (neueWahl instanceof ProjektAnsicht tab) {
+				angezeigtesProjekt.set(tab.getProjekt());
+				anzeige.set(tab);
+			} else {
+				angezeigtesProjekt.set(null);
+				anzeige.set(null);
+			}
+		});
 		
 		this.angezeigtesProjekt.addListener((property, alt, neu) -> {
 			String nameAlt = alt == null ? "null" : alt.getName();
 			String nameNeu = neu == null ? "null" : neu.getName();
-			log.finest(() -> "aktuelles Projekt geaendert -> alt: %s - neu: %s"
-					.formatted(nameAlt, nameNeu));
+			log.finest(() -> "aktuelles Projekt geaendert -> alt: %s - neu: %s".formatted(nameAlt, nameNeu));
 		});
 		
 		this.projekte.addListener((Change<?> aenderung) -> {
-			log.fine(() -> "%cnderung der angezeigten Projekte > > > > > > > > > > > > > > >"
-					.formatted(Umlaute.AE));
+			log.fine(() -> "%cnderung der angezeigten Projekte > > > > > > > > > > > > > > >".formatted(Umlaute.AE));
 			if (aenderung.getElementAdded() != null) {
-				log.fine(() -> "Projekt hinzugef%cgt: %s".formatted(Umlaute.ue,
-						aenderung.getElementAdded()));
+				log.fine(() -> "Projekt hinzugef%cgt: %s".formatted(Umlaute.ue, aenderung.getElementAdded()));
 			}
 			if (aenderung.getElementRemoved() != null) {
-				log.fine(
-						() -> "Projekt entfernt: %s".formatted(aenderung.getElementRemoved()));
+				log.fine(() -> "Projekt entfernt: %s".formatted(aenderung.getElementRemoved()));
 				
 			}
-			log.fine(() -> "%cnderung der angezeigten Projekte < < < < < < < < < < < < < < <"
-					.formatted(Umlaute.AE));
+			log.fine(() -> "%cnderung der angezeigten Projekte < < < < < < < < < < < < < < <".formatted(Umlaute.AE));
 		});
 		
 		EventType<WindowEvent> eventTyp = WindowEvent.WINDOW_CLOSE_REQUEST;
@@ -417,5 +461,5 @@ public class ProjekteAnsicht {
 			}
 		});
 	}
-
+	
 }

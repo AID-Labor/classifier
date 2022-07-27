@@ -7,9 +7,13 @@
 package io.github.aid_labor.classifier.gui;
 
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.AE;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ae;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
@@ -19,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeSet;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
@@ -26,6 +31,8 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
 
 import org.controlsfx.dialog.ExceptionDialog;
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
@@ -35,20 +42,35 @@ import com.dlsc.gemsfx.DialogPane.Type;
 
 import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.basis.io.DateiUtil;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
+import io.github.aid_labor.classifier.basis.io.Theme;
 import io.github.aid_labor.classifier.basis.io.system.OS;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.ProjekteAnsicht.ExportErgebnis;
+import io.github.aid_labor.classifier.gui.komponenten.UMLKlassifiziererAnsicht;
+import io.github.aid_labor.classifier.gui.komponenten.UMLKommentarAnsicht;
+import io.github.aid_labor.classifier.gui.komponenten.UMLVerbindungAnsicht;
 import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKommentar;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
 import io.github.aid_labor.classifier.uml.programmierung.ExportImportVerarbeitung.ImportErgebnis;
 import io.github.aid_labor.classifier.uml.programmierung.ImportException;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.Event;
+import javafx.scene.Group;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.SnapshotResult;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
@@ -57,12 +79,17 @@ import javafx.scene.control.Labeled;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.util.Duration;
 import javafx.stage.Window;
 
 
@@ -492,6 +519,218 @@ class ProjektKontrolle {
 		}
 	}
 	
+	void exportiereAlsBild(Event event) {
+		List<? extends UMLDiagrammElement> elemente;
+		if (ansicht.get().getProjekteAnsicht().getProjektAnsicht().hatSelektion()) {
+			elemente = ansicht.get().getProjekteAnsicht().getProjektAnsicht().getSelektion();
+		} else {
+			elemente = ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getDiagrammElemente();
+		}
+		if (elemente.isEmpty()) {
+			zeigeExportFehlerDialog(sprache.getText("exportierenFehlerLeer",
+					"Das Projekt enth%clt keine exportierbaren Elemente.".formatted(ae)));
+			return;
+		}
+		
+		Group gruppe = new Group();
+		Group gruppeVorschau = new Group();
+		TreeSet<String> klassennamen = new TreeSet<>();
+		for (var element : elemente) {
+			Node node;
+			Node nodeVorschau;
+			if (element instanceof UMLKlassifizierer k) {
+				node = new UMLKlassifiziererAnsicht(k);
+				nodeVorschau = new UMLKlassifiziererAnsicht(k);
+				klassennamen.add(k.getName());
+			} else if (element instanceof UMLKommentar k) {
+				node = new UMLKommentarAnsicht(k);
+				nodeVorschau = new UMLKommentarAnsicht(k);
+			} else {
+				log.warning("unbekannter Elementtyp: " + element.getClass().getName());
+				continue;
+			}
+			
+			gruppe.getChildren().add(node);
+			gruppeVorschau.getChildren().add(nodeVorschau);
+		}
+		
+		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getVererbungen()) {
+			if (klassennamen.contains(verbindung.getVerbindungsStart())
+					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
+				var verbindungKopie = verbindung.erzeugeTiefeKopie();
+				verbindungKopie.setStartElement(verbindung.getStartElement());
+				verbindungKopie.setEndElement(verbindung.getEndElement());
+				verbindungKopie.setzeAusgebelendet(verbindung.istAusgebelendet());
+				gruppe.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
+				gruppeVorschau.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
+			}
+		}
+		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getAssoziationen()) {
+			if (klassennamen.contains(verbindung.getVerbindungsStart())
+					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
+				var verbindungKopie = verbindung.erzeugeTiefeKopie();
+				verbindungKopie.setStartElement(verbindung.getStartElement());
+				verbindungKopie.setEndElement(verbindung.getEndElement());
+				verbindungKopie.setzeAusgebelendet(verbindung.istAusgebelendet());
+				gruppe.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
+				gruppeVorschau.getChildren().add(new UMLVerbindungAnsicht(verbindungKopie, null));
+			}
+		}
+		
+		BildexportDialog dialog = new BildexportDialog(gruppeVorschau);
+		FensterUtil.initialisiereElternFenster(ansicht.get().getTabPane().getScene().getWindow(), dialog);
+		dialog.showAndWait().ifPresent(parameter -> {
+			var snapshotScene = new Scene(gruppe, 1, 1);
+			snapshotScene.getStylesheets().clear();
+			snapshotScene.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
+			snapshotScene.getStylesheets().add(parameter.getFarbe().getStylesheet().externeForm());
+			
+			double skalierung = parameter.getSkalierung();
+			gruppe.setScaleX(skalierung);
+			gruppe.setScaleY(skalierung);
+			Einstellungen.getBenutzerdefiniert().exportThemeProperty().set(parameter.getFarbe());
+			Einstellungen.getBenutzerdefiniert().exportSkalierungProperty().set(parameter.getSkalierung());
+			Einstellungen.getBenutzerdefiniert().exportTransparentProperty().set(parameter.istHintergrundTransparent());
+			
+			// Workaround fuer Webview
+			// Quelle: https://stackoverflow.com/a/60746994/1534698
+			// without this runlater, the first capture is missed and all following captures are offset
+//			var kontrolle = this;
+//			Platform.runLater(new Runnable() {
+//			    @Override
+//				public void run() {
+//			        // start a new animation timer which waits for exactly two pulses
+//			        new AnimationTimer() {
+//			            int frames = 0;
+//
+//			            @Override
+//			            public void handle(long l) {
+//			                // capture at exactly two frames
+//			                if (++frames == 2) {
+//			                	vorschau.snapshot(kontrolle::snapshotSpeichern, null, null);
+//
+//			                    //stop timer after snapshot
+//			                    stop();
+//			                }
+//			            }
+//			        }.start();
+//			    }
+//			});
+			
+			// Achtung: WebView muss mindestens zwei Pulse in einem Fenster angezeigt worden sein!
+			SnapshotParameters snapParam = new SnapshotParameters();
+			if (parameter.istHintergrundTransparent()) {
+				snapParam.setFill(Color.TRANSPARENT);
+			} else if (parameter.getFarbe().equals(Theme.DARK)) {
+				snapParam.setFill(Color.rgb(44, 44, 44));
+			}
+			
+			// WebView Workaround von Stackoverflow: https://stackoverflow.com/a/58047583
+			Stage popupStage = new Stage(StageStyle.TRANSPARENT);
+			popupStage.initOwner(this.ansicht.get().getTabPane().getScene().getWindow());
+			popupStage.initModality(Modality.APPLICATION_MODAL);
+			// this popup doesn't really show anything size = 1x1, it just holds the snapshot-webview
+			popupStage.setScene(snapshotScene);
+			// pausing to make sure the webview/picture is completely rendered
+			PauseTransition pt = new PauseTransition(Duration.seconds(1));
+			pt.setOnFinished(e -> {
+				gruppe.snapshot(this::snapshotSpeichern, snapParam, null);
+				popupStage.hide();
+			});
+			// pausing, after pause onFinished event will take + write snapshot
+			pt.play();
+			// GO!
+			popupStage.show();
+		});
+	}
+	
+	private Void snapshotSpeichern(SnapshotResult ergebnis) {
+		FileChooser dateiDialog = new FileChooser();
+		
+		var projekt = ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt();
+		
+		if (Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get() != null) {
+			dateiDialog.setInitialDirectory(
+					new File(Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get()));
+		} else if (projekt.getSpeicherort() != null) {
+			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
+		} else {
+			dateiDialog.setInitialDirectory(new File(OS.getDefault().getBilderOrdner()));
+		}
+		
+		if (projekt.getName() != null && !projekt.getName().isBlank()) {
+			dateiDialog.setInitialFileName(projekt.getName());
+		} else if (projekt.getSpeicherort() != null) {
+			dateiDialog.setInitialFileName(projekt.getSpeicherort().getFileName().toString());
+		}
+		
+		dateiDialog.getExtensionFilters().addAll(new ExtensionFilter("Bild", "*.png"));
+		
+		String format = sprache.getText("exportierenDialogTitel", "Projekt \"{0}\" exportieren als...");
+		String titel = MessageFormat.format(format, projekt.getName());
+		dateiDialog.setTitle(titel);
+		
+		File speicherOrt = dateiDialog.showSaveDialog(ansicht.get().getTabPane().getScene().getWindow());
+		if (speicherOrt == null) {
+			log.info(
+					"'Speichern' f%cr Bild fehlgeschlagen, da der Speicherort null war".formatted(Umlaute.ue, projekt));
+			return null;
+		}
+		
+		// Probleme mit Linux und Dateierweiterung beheben
+		speicherOrt = DateiUtil.pruefeUndKorrigiereDateierweiterung(speicherOrt, dateiDialog.getExtensionFilters());
+		Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty()
+				.set(speicherOrt.getAbsoluteFile().getParent());
+		
+		BufferedImage bild = SwingFXUtils.fromFXImage(ergebnis.getImage(), null);
+		try (var out = new FileOutputStream(speicherOrt)) {
+			ImageIO.write(bild, "png", out);
+		} catch (IOException e) {
+			String pfadname = speicherOrt.getPath();
+			log.log(Level.WARNING, e, () -> "Datei %s konnte nicht geschrieben werden".formatted(pfadname));
+		}
+		
+		return null;
+	}
+	
+	void exportiereAlsQuellcode(Event event) {
+		try {
+			ExportErgebnis export = ansicht.get().getProjekteAnsicht().exportiereAlsQuellcode();
+			if (export.warErfolgreich()) {
+				String titel = sprache.getText("exportErfolgTitel", "Der Export wurde erfolgreich abgeschlossen");
+				var text = new TextFlow(new Text(sprache.getText("exportErfolgFrage",
+						"Soll der Exportordner ge%cffnet werden?".formatted(Umlaute.oe))));
+				text.getStyleClass().add("dialog-text-frage");
+				text.setTextAlignment(TextAlignment.CENTER);
+				this.ansicht.get().getOverlayDialog()
+						.showNode(Type.INFORMATION, titel, text, List.of(ButtonType.YES, ButtonType.NO))
+						.thenAccept(buttonTyp -> {
+							switch (buttonTyp.getButtonData()) {
+								case YES -> {
+									try {
+										ansicht.get().getRechnerService()
+												.showDocument(export.getOrdner().toUri().toString());
+									} catch (Exception e) {
+										log.log(Level.WARNING, e, () -> "Ordner %s konnte nicht angezeigt werden"
+												.formatted(export.getOrdner()));
+									}
+								}
+								default -> {
+									/**/ }
+							}
+						});
+			}
+		} catch (IllegalStateException e) {
+			zeigeExportFehlerDialog(sprache.getText("exportierenFehlerLeer",
+					"Das Projekt enth%clt keine exportierbaren Elemente.".formatted(ae)));
+		} catch (Exception e) {
+			log.log(Level.WARNING, e, () -> "Exportfehler");
+			zeigeExportFehlerDialog(
+					sprache.getText("exportierenFehler", "Beim Export sind Fehler aufgetreten. "
+							+ "Diese k%cnnen dem Log im Konfigurationsorder entnommen werden.".formatted(oe)));
+		}
+	}
+	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private boolean pruefeDateiErweiterungen(Collection<File> dateien, Iterable<ExtensionFilter> erweiterungenListe) {
@@ -569,6 +808,14 @@ class ProjektKontrolle {
 		} else {
 			return false;
 		}
+	}
+	
+	private void zeigeExportFehlerDialog(String beschreibung) {
+		String titel = sprache.getText("exportFehlerTitel", "Fehler beim Exportieren");
+		var text = new TextFlow(new Text(beschreibung));
+		text.getStyleClass().add("dialog-text-warnung");
+		text.setTextAlignment(TextAlignment.CENTER);
+		this.ansicht.get().getOverlayDialog().showNode(Type.ERROR, titel, text);
 	}
 	
 }
