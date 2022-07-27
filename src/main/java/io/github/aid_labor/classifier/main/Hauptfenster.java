@@ -46,7 +46,7 @@ public class Hauptfenster extends Application {
 	
 	// @formatter:off
 	private static final ProgrammDetails programm = new ProgrammDetails(
-		"1.0.4 [SNAPSHOT_005]",
+		"1.1.0 [RELEASE_CANDIDATE_001]",
 		"Classifier",
 		"Tim M%chle".formatted(ue),
 		"https://github.com/AID-Labor/classifier",
@@ -68,11 +68,6 @@ public class Hauptfenster extends Application {
 		LoggingEinstellung.initialisiereLogging(programm);
 		auswertung = new KommandozeilenAuswertung(args, programm);
 		kommandoZeile = auswertung.werteArgumenteAus();
-		if (!kommandoZeile.hasOption(auswertung.debug)
-				&& !kommandoZeile.hasOption(auswertung.loglevel)) {
-			// TODO Debug-Einstellung, entfernen in finaler Version!
-			LoggingEinstellung.setzeLogLevel(Level.FINE, Level.FINER);
-		}
 		log.log(Level.SEVERE, () -> "%s gestartet  -  OS: %s_%s_%s  -  Java: %s %s".formatted(
 				programm.getVersionName(),
 				System.getProperty("os.name"),
@@ -84,7 +79,7 @@ public class Hauptfenster extends Application {
 		log.fine(() -> "Args [getArgs()]: " + Arrays.toString(kommandoZeile.getArgs()));
 		
 		Ressourcen.setProgrammDetails(programm);
-		DateiUtil.loescheVeralteteLogs(Duration.ofDays(14), programm);
+		DateiUtil.loescheVeralteteLogs(Duration.ofDays(10), programm);
 		
 		launch(args);
 		Einstellungen.speicherBenutzerdefiniert();

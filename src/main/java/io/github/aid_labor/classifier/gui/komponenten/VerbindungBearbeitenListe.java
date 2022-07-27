@@ -22,6 +22,7 @@ import org.kordamp.ikonli.typicons.Typicons;
 
 import com.dlsc.gemsfx.EnhancedLabel;
 
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
@@ -94,6 +95,7 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 	private final ValidationSupport eingabeValidierung;
 	private final List<ChangeListener<ValidationResult>> validierungsBeobachter;
 	private final Sprache sprache;
+	private final Sprache spracheLabels;
 	private final UMLProjekt umlProjekt;
 	private final List<String> vorhandeneElementNamen;
 	private final BooleanProperty startBearbeitbar;
@@ -109,9 +111,16 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 		this.loeseBindungen = new LinkedList<>();
 		this.validierungsBeobachter = new LinkedList<>();
 		this.eingabeValidierung = eingabeValidierung;
-		this.sprache = sprache;
+		this.sprache = new Sprache();
+		this.spracheLabels = sprache;
 		this.umlProjekt = umlProjekt;
 		this.startBearbeitbar = new SimpleBooleanProperty(startBearbeitbar);
+		
+		boolean spracheGesetzt = SprachUtil.setUpSprache(this.sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
+				"VerbindungenBearbeitenListe");
+		if (!spracheGesetzt) {
+			sprache.ignoriereSprachen();
+		}
 		
 		List<UMLKlassifizierer> klassen = umlProjekt.getDiagrammElemente().stream()
 				.filter(UMLKlassifizierer.class::isInstance).map(UMLKlassifizierer.class::cast).toList();
@@ -263,8 +272,8 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 	private void fuelleTabelle(GridPane tabelle, String[] labelBezeichnungen, ObservableList<UMLVerbindung> inhalt,
 			BiFunction<UMLVerbindung, KontrollElemente<UMLVerbindung>, Node[]> erzeugeZeile) {
 		for (String bezeichnung : labelBezeichnungen) {
-			Label spaltenUeberschrift = SprachUtil.bindText(new EnhancedLabel(), sprache, bezeichnung.toLowerCase(),
-					bezeichnung);
+			Label spaltenUeberschrift = SprachUtil.bindText(new EnhancedLabel(), spracheLabels,
+					bezeichnung.toLowerCase(), bezeichnung);
 			tabelle.addRow(0, spaltenUeberschrift);
 		}
 		
@@ -460,6 +469,18 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 		CheckBox ausgeblendet = new CheckBox();
 		bindeBidirektional(ausgeblendet.selectedProperty(), verbindung.ausgebelendetProperty());
 		GridPane.setHalignment(ausgeblendet, HPos.CENTER);
+		
+		eingabeValidierung.registerValidator(ausgeblendet, Validator.createPredicateValidator(tf -> {
+			if (ausgeblendet.isSelected()) {
+				return true;
+			}
+			var startname = entfernePaketname(start.getText());
+			var endname = entfernePaketname(ende.getText());
+			return vorhandeneElementNamen.contains(startname) && vorhandeneElementNamen.contains(endname);
+		}, sprache.getText("ausgeblendetValidierung",
+				"Es m%cssen alle Klassen/Interfaces vorhanden sein, um die Verbindung einzublenden"
+						.formatted(Umlaute.ue))));
+		setzePlatzhalter(ausgeblendet);
 		
 		return new Node[] { start, ende, ausgeblendet };
 	}

@@ -36,6 +36,7 @@ import com.dlsc.gemsfx.DialogPane.Type;
 import io.github.aid_labor.classifier.basis.DatumWrapper;
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.system.OS;
+import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.ProjekteAnsicht.ExportErgebnis;
@@ -349,18 +350,25 @@ class ProjektKontrolle {
 								});
 					} catch (ImportException e) {
 						log.log(Level.WARNING, e, () -> "Importfehler");
-						String format = sprache.getText("importParseFehler", """
-								Die Datei \"{0}\" konnte nicht interpretiert werden.
-								M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig"""
-								.formatted(Umlaute.oe, Umlaute.ae, Umlaute.ue));
-						String beschreibung = MessageFormat.format(format, datei.getName());
-						Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+						if (!ergebnis.istFehlerBehandelt()) {
+							
+							String format = sprache.getText("importParseFehler", """
+									Die Datei \"{0}\" konnte nicht interpretiert werden.
+									M%cglicherweise ist die Datei besch%cdigt oder der Quellcode ist ung%cltig"""
+									.formatted(Umlaute.oe, Umlaute.ae, Umlaute.ue));
+							String beschreibung = MessageFormat.format(format, datei.getName());
+							ergebnis.setIstFehlerBehandelt(true);
+							Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+						}
 					} catch (Exception e) {
 						log.log(Level.WARNING, e, () -> "Importfehler");
-						String format = sprache.getText("importIOFehler",
-								"Die Datei \"{0}\" konnte nicht gelesen werden.");
-						String beschreibung = MessageFormat.format(format, datei.getName());
-						Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+						if (!ergebnis.istFehlerBehandelt()) {
+							String format = sprache.getText("importIOFehler",
+									"Die Datei \"{0}\" konnte nicht gelesen werden.");
+							String beschreibung = MessageFormat.format(format, datei.getName());
+							Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, e));
+							ergebnis.setIstFehlerBehandelt(true);
+						}
 					}
 					
 					return ergebnis;
@@ -373,10 +381,11 @@ class ProjektKontrolle {
 				try {
 					ImportErgebnis teilergebnis = fertigstellungService.take().get();
 					
-					if (teilergebnis.getNeueKlassifizierer().isEmpty()) {
+					if (teilergebnis.getNeueKlassifizierer().isEmpty() && !teilergebnis.istFehlerBehandelt()) {
 						log.log(Level.WARNING, teilergebnis.getFehler(), () -> "Fehler beim parallelisiertem Import");
 						String beschreibung = sprache.getText("importThreadFehler",
 								"Es ist ein Fehler beim Import aufgetreten.");
+						teilergebnis.setIstFehlerBehandelt(true);
 						Platform.runLater(() -> zeigeImportFehlerDialog(beschreibung, teilergebnis.getFehler()));
 					}
 					
@@ -428,8 +437,11 @@ class ProjektKontrolle {
 				wartedialog.cancel();
 				ansicht.get().getOverlayDialog().hideDialog(wartedialog);
 				UMLProjekt projekt = ansicht.get().getProjekt();
+				var status = projekt.getUeberwachungsStatus();
+				projekt.setUeberwachungsStatus(UeberwachungsStatus.ZUSAMMENFASSEN);
 				projekt.getDiagrammElemente().addAll(neueKlassifizierer);
 				projekt.getAssoziationen().addAll(neueAssoziationen);
+				projekt.setUeberwachungsStatus(status);
 			});
 		});
 		t.start();

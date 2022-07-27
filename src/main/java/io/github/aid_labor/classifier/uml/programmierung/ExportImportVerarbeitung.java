@@ -27,6 +27,7 @@ public interface ExportImportVerarbeitung {
 		private final List<UMLKlassifizierer> neueKlassifizierer;
 		private final List<UMLVerbindung> neueAssoziationen;
 		private final Exception fehler;
+		private boolean istFehlerBehandelt;
 		
 		public ImportErgebnis(List<UMLKlassifizierer> neueKlassifizierer, List<UMLVerbindung> neueAssoziationen,
 				Exception fehler) {
@@ -34,6 +35,7 @@ public interface ExportImportVerarbeitung {
 			this.neueKlassifizierer = Collections.unmodifiableList(neueKlassifizierer);
 			this.neueAssoziationen = Collections.unmodifiableList(neueAssoziationen);
 			this.fehler = fehler;
+			this.istFehlerBehandelt = fehler == null;
 		}
 		
 		public List<UMLVerbindung> getNeueAssoziationen() {
@@ -46,6 +48,14 @@ public interface ExportImportVerarbeitung {
 		
 		public Exception getFehler() {
 			return fehler;
+		}
+		
+		public boolean istFehlerBehandelt() {
+			return istFehlerBehandelt;
+		}
+		
+		public void setIstFehlerBehandelt(boolean istFehlerBehandelt) {
+			this.istFehlerBehandelt = istFehlerBehandelt;
 		}
 	}
 	

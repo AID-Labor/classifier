@@ -84,7 +84,7 @@ public class UMLVerbindungenBearbeitenDialog extends Alert {
 		this.umlProjekt = projekt;
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
-				"UMLKlassifiziererBearbeitenDialog");
+				"UMLVerbindungenBearbeitenDialog");
 		if (!spracheGesetzt) {
 			sprache.ignoriereSprachen();
 		}
