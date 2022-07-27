@@ -250,13 +250,20 @@ class HauptKontrolle {
 		FileChooser dateiDialog = new FileChooser();
 		
 		var projekt = ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt();
-		if (projekt.getSpeicherort() != null) {
-			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
-			dateiDialog.setInitialFileName(projekt.getSpeicherort().getFileName().toString());
-		} else {
+		
+		if (Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get() != null) {
 			dateiDialog.setInitialDirectory(
-					new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get()));
+					new File(Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get()));
+		} else if (projekt.getSpeicherort() != null) {
+			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
+		} else {
+			dateiDialog.setInitialDirectory(new File(OS.getDefault().getBilderOrdner()));
+		}
+		
+		if (projekt.getName() != null && !projekt.getName().isBlank()) {
 			dateiDialog.setInitialFileName(projekt.getName());
+		} else if (projekt.getSpeicherort() != null) {
+			dateiDialog.setInitialFileName(projekt.getSpeicherort().getFileName().toString());
 		}
 		
 		dateiDialog.getExtensionFilters().addAll(new ExtensionFilter("Bild", "*.png"));

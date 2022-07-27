@@ -264,11 +264,13 @@ class ProjektKontrolle {
 		
 		DirectoryChooser dateiDialog = new DirectoryChooser();
 		
-		if (projekt.getSpeicherort() != null) {
-			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
-		} else {
+		if (Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get() != null) {
 			dateiDialog.setInitialDirectory(
 					new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get()));
+		} else if (projekt.getSpeicherort() != null) {
+			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
+		} else {
+			dateiDialog.setInitialDirectory(new File(OS.getDefault().getDokumenteOrdner()));
 		}
 		
 		String titel = sprache.getText("speichernQuellcodeDialogTitel", "Quellcode speichern unter...");
@@ -297,8 +299,14 @@ class ProjektKontrolle {
 		var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
 		FileChooser dateiDialog = new FileChooser();
 		
-		dateiDialog.setInitialDirectory(
-				new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get()));
+		if (Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get() != null) {
+			dateiDialog.setInitialDirectory(
+					new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get()));
+		} else if (projekt.getSpeicherort() != null) {
+			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
+		} else {
+			dateiDialog.setInitialDirectory(new File(OS.getDefault().getDokumenteOrdner()));
+		}
 		
 		if (!OS.getDefault().istLinux()) {	// Workaraound, da in Linux die Dateierweitung nicht erkannt wird
 			dateiDialog.getExtensionFilters().addAll(importVerwaltung.getImportDateierweiterungen());

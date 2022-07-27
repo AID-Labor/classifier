@@ -220,8 +220,8 @@ public class Einstellungen {
 		this.exportThemeProperty = new JsonEnumProperty<Theme>(Theme.LIGHT);
 		this.exportSkalierungProperty = new JsonDoubleProperty(1);
 		this.exportTransparentProperty = new JsonBooleanProperty(false);
-		this.letzterBildSpeicherortProperty = new JsonStringProperty(OS.getDefault().getBilderOrdner());
-		this.letzterQuellcodeSpeicherortProperty = new JsonStringProperty(OS.getDefault().getDokumenteOrdner());
+		this.letzterBildSpeicherortProperty = new JsonStringProperty(null);
+		this.letzterQuellcodeSpeicherortProperty = new JsonStringProperty(null);
 		this.linienRasterungAktivierenProperty = new JsonBooleanProperty(true);
 		this.positionRasterungAktivierenProperty = new JsonBooleanProperty(true);
 		this.groesseRasterungAktivierenProperty = new JsonBooleanProperty(true);
