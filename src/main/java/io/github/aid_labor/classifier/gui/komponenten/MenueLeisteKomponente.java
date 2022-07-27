@@ -216,8 +216,14 @@ public class MenueLeisteKomponente {
 		
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// Menue Darstellung
-		darstellungGroesser.setAccelerator(new KeyCharacterCombination("+", KeyCodeCombination.SHORTCUT_DOWN));
-		darstellungKleiner.setAccelerator(new KeyCharacterCombination("-", KeyCodeCombination.SHORTCUT_DOWN));
+		if (OS.getDefault().istMacOS()) {
+			// JavaFX-Bug: Cmd- funktioniert nicht auf macOS
+			darstellungGroesser.setAccelerator(new KeyCharacterCombination(":", KeyCodeCombination.META_DOWN));
+			darstellungKleiner.setAccelerator(new KeyCharacterCombination(";", KeyCodeCombination.META_DOWN));
+		} else {
+			darstellungGroesser.setAccelerator(new KeyCharacterCombination("+", KeyCodeCombination.CONTROL_DOWN));
+			darstellungKleiner.setAccelerator(new KeyCharacterCombination("-", KeyCodeCombination.CONTROL_DOWN));
+		}
 		darstellungOriginalgroesse.setAccelerator(new KeyCharacterCombination("0", KeyCodeCombination.SHORTCUT_DOWN));
 		vollbild.setAccelerator(new KeyCodeCombination(KeyCode.F5));
 		symbolleisteAusblenden.setAccelerator(
