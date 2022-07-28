@@ -6,7 +6,7 @@
 
 package io.github.aid_labor.classifier.main;
 
-import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.*;
+import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +32,8 @@ import io.github.aid_labor.classifier.gui.util.FensterUtil;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.stage.Stage;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Stage;
 
 
 public class Hauptfenster extends Application {
@@ -68,13 +68,10 @@ public class Hauptfenster extends Application {
 		LoggingEinstellung.initialisiereLogging(programm);
 		auswertung = new KommandozeilenAuswertung(args, programm);
 		kommandoZeile = auswertung.werteArgumenteAus();
-		log.log(Level.SEVERE, () -> "%s gestartet  -  OS: %s_%s_%s  -  Java: %s %s".formatted(
-				programm.getVersionName(),
-				System.getProperty("os.name"),
-				System.getProperty("os.version"),
-				System.getProperty("os.arch"),
-				System.getProperty("java.vm.name"),
-				System.getProperty("java.vm.version")));
+		log.log(Level.SEVERE,
+				() -> "%s gestartet  -  OS: %s_%s_%s  -  Java: %s %s".formatted(programm.getVersionName(),
+						System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"),
+						System.getProperty("java.vm.name"), System.getProperty("java.vm.version")));
 		log.fine(() -> "Args [main]: " + Arrays.toString(args));
 		log.fine(() -> "Args [getArgs()]: " + Arrays.toString(kommandoZeile.getArgs()));
 		
@@ -102,6 +99,7 @@ public class Hauptfenster extends Application {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	private Scene szene;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -109,14 +107,15 @@ public class Hauptfenster extends Application {
 	
 	@Override
 	public void start(Stage hauptFenster) {
-		HauptAnsicht hauptansicht = new HauptAnsicht(programm, this.getHostServices());
+		HauptAnsicht hauptansicht = new HauptAnsicht(programm, this.getHostServices(), this::easterEgg);
 		
-		Scene szene = new Scene(hauptansicht.getWurzelknoten());
+		szene = new Scene(hauptansicht.getWurzelknoten());
 		FensterUtil.installiereFensterwiederherstellung(hauptFenster, 720, 1120,
 				Ressourcen.get().KONFIGURATIONSORDNER.alsPath());
 		
 		szene.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
-		szene.getStylesheets().add(Einstellungen.getBenutzerdefiniert().themeProperty().get().getStylesheet().externeForm());
+		szene.getStylesheets()
+				.add(Einstellungen.getBenutzerdefiniert().themeProperty().get().getStylesheet().externeForm());
 		
 		Einstellungen.getBenutzerdefiniert().themeProperty().addListener((p, altesTheme, neuesTheme) -> {
 			szene.getStylesheets().clear();
@@ -132,10 +131,8 @@ public class Hauptfenster extends Application {
 						if (uri.contains(OS.getDefault().getKonfigurationsOrdner(programm))) {
 							var datei = Path.of(URI.create(uri));
 							Path codePfad = Path
-									.of(Ressourcen.class.getProtectionDomain().getCodeSource()
-											.getLocation().getPath())
-									.getParent().getParent()
-									.resolve("src/main/resources/ressourcen/css")
+									.of(Ressourcen.class.getProtectionDomain().getCodeSource().getLocation().getPath())
+									.getParent().getParent().resolve("src/main/resources/ressourcen/css")
 									.resolve(datei.getFileName());
 							return codePfad;
 						}
@@ -143,8 +140,7 @@ public class Hauptfenster extends Application {
 					}
 				}).start();
 			} else {
-				log.severe(() -> "CSS-Auto-update nur bei Ausf%chrung in der IDE erlaubt"
-						.formatted(ue));
+				log.severe(() -> "CSS-Auto-update nur bei Ausf%chrung in der IDE erlaubt".formatted(ue));
 			}
 		}
 		
@@ -158,8 +154,7 @@ public class Hauptfenster extends Application {
 		}
 		
 		hauptFenster.setOnShown(e -> {
-			var dateien = Arrays.stream(kommandoZeile.getArgs())
-					.map(dateiname -> new File(dateiname))
+			var dateien = Arrays.stream(kommandoZeile.getArgs()).map(dateiname -> new File(dateiname))
 					.filter(datei -> datei.exists() && datei.isFile()).toList();
 			hauptansicht.oeffneDateien(dateien);
 		});
@@ -184,6 +179,12 @@ public class Hauptfenster extends Application {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	public void easterEgg() {
+		szene.getStylesheets().clear();
+		szene.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
+		szene.getStylesheets().add(Ressourcen.get().SECRET_THEME_CSS.externeForm());
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

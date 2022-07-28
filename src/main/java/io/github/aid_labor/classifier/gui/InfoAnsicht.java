@@ -41,6 +41,8 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.TextAlignment;
@@ -65,12 +67,13 @@ public class InfoAnsicht extends Alert {
 	private final VBox infobox;
 	private final VBox scrollbox;
 	private final HostServices rechnerService;
+	private final Runnable easterEgg;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public InfoAnsicht(ProgrammDetails programmDetails, HostServices rechnerService) {
+	public InfoAnsicht(ProgrammDetails programmDetails, HostServices rechnerService, Runnable easterEgg) {
 		super(AlertType.NONE);
 		this.programmDetails = programmDetails;
 		this.rechnerService = rechnerService;
@@ -78,6 +81,7 @@ public class InfoAnsicht extends Alert {
 		this.wurzel = new BorderPane();
 		this.infobox = new VBox();
 		this.scrollbox = new VBox();
+		this.easterEgg = easterEgg;
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache,
 				Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(), "InfoAnsicht");
@@ -174,6 +178,11 @@ public class InfoAnsicht extends Alert {
 		var programmDank = new EnhancedLabel(sprache.getText("danksagung", "[Programm-Info]"));
 		programmDank.setWrapText(true);
 		programmDank.setTextAlignment(TextAlignment.JUSTIFY);
+		programmDank.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+			if (e.getButton().equals(MouseButton.PRIMARY) && e.getClickCount() == 9) {
+				easterEgg.run();
+			}
+		});
 		
 		var lizenzText = new EnhancedLabel();
 		try (var lizenzdatei = new BufferedReader(

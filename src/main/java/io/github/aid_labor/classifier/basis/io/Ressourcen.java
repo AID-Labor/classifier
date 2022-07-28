@@ -104,6 +104,7 @@ public class Ressourcen {
 	public final Ressource LIGHT_THEME_CSS;
 	public final Ressource DARK_THEME_CSS;
 	public final Ressource NUTZER_THEME_CSS;
+	public final Ressource SECRET_THEME_CSS;
 	
 	public final Ressource KONFIGURATIONSORDNER;
 	public final Ressource NUTZER_EINSTELLUNGEN;
@@ -153,6 +154,11 @@ public class Ressourcen {
 				.konfigurationsOrdner()
 				.alsTyp(RessourceTyp.CSS)
 				.name("customTheme.css")
+				.erzeuge();
+		this.SECRET_THEME_CSS = erzeuger
+				.konfigurationsOrdner()
+				.alsTyp(RessourceTyp.CSS)
+				.name("secretTheme.css")
 				.erzeuge();
 		this.KONFIGURATIONSORDNER = erzeuger
 				.konfigurationsOrdner()

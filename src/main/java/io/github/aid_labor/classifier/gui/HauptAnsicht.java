@@ -48,6 +48,7 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.collections.SetChangeListener;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
@@ -65,8 +66,6 @@ import javafx.util.StringConverter;
 
 public class HauptAnsicht {
 	
-//	private static final Logger log = Logger.getLogger(HauptAnsicht.class.getName());
-
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
@@ -95,12 +94,13 @@ public class HauptAnsicht {
 	private final HostServices rechnerService;
 	private final BooleanBinding hatKeinProjekt;
 	private final BooleanBinding zuVieleVerbindungen;
+	private final Runnable easterEgg;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public HauptAnsicht(ProgrammDetails programm, HostServices rechnerService) {
+	public HauptAnsicht(ProgrammDetails programm, HostServices rechnerService, Runnable easterEgg) {
 		this.wurzel = new StackPane();
 		this.sprache = new Sprache();
 		this.overlayDialog = new DialogPane();
@@ -109,9 +109,10 @@ public class HauptAnsicht {
 		this.controller = new HauptKontrolle(this, sprache);
 		this.projekteAnsicht = new ProjekteAnsicht(overlayDialog, programm, rechnerService);
 		this.rechnerService = rechnerService;
+		this.easterEgg = easterEgg;
 		this.hatKeinProjekt = projekteAnsicht.angezeigtesProjektProperty().isNull();
 		
-		this.zuVieleVerbindungen = erstelleAnzahlVerbindungenBindung(); 
+		this.zuVieleVerbindungen = erstelleAnzahlVerbindungenBindung();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"HauptAnsicht");
@@ -345,7 +346,7 @@ public class HauptAnsicht {
 		menue.getGroessenRasterungAktivieren().selectedProperty()
 				.bindBidirectional(Einstellungen.getBenutzerdefiniert().groesseRasterungAktivierenProperty());
 		menue.getInfo().setOnAction(e -> {
-			var info = new InfoAnsicht(programm, rechnerService);
+			var info = new InfoAnsicht(programm, rechnerService, this::zeigeEasterEggDialog);
 			FensterUtil.initialisiereElternFenster(wurzel.getScene().getWindow(), info);
 			info.show();
 		});
@@ -744,5 +745,20 @@ public class HauptAnsicht {
 		text.getStyleClass().add("dialog-text-warnung");
 		text.setTextAlignment(TextAlignment.CENTER);
 		this.overlayDialog.showNode(Type.ERROR, titel, text);
+	}
+	
+	private void zeigeEasterEggDialog() {
+		String titel = sprache.getText("easterEggTitel", "Easter Egg");
+		String beschreibung = sprache.getText("easterEggFrage",
+				"Sie haben ein geheimes Farbschema gefunden. Soll dieses aktiviert werden?");
+		var text = new TextFlow(new Text(beschreibung));
+		text.getStyleClass().add("dialog-text");
+		text.setTextAlignment(TextAlignment.CENTER);
+		
+		this.overlayDialog.showNode(Type.CONFIRMATION, titel, text).thenAccept(buttonTyp -> {
+			if (buttonTyp.getButtonData().equals(ButtonData.YES)) {
+				easterEgg.run();
+			}
+		});
 	}
 }
