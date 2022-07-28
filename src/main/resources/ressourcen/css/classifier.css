@@ -283,6 +283,10 @@
     -fx-stroke-width: 3;
 }
 
+.gestrichelte-linie {
+    -fx-stroke-dash-array: 9 8;
+}
+
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

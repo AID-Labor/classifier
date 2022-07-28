@@ -13,6 +13,7 @@ import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.projekt.UeberwachungsStatus;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
+import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.Orientierung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.Position;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
@@ -49,6 +50,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	private static final String VERERBUNGSPFEIL_CSS_KLASSE = "vererbungs-pfeil";
 	private static final String ASSOZIATIONSPFEIL_CSS_KLASSE = "assoziations-pfeil";
 	private static final String VERBINDUNGSLINIE_CSS_KLASSE = "verbindungslinie";
+	private static final String GESTRICHELTE_LINIE_CSS_KLASSE = "gestrichelte-linie";
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
@@ -79,15 +81,11 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	private final DoubleProperty mitteVerschiebungProperty;
 	private final DoubleProperty endeXVerschiebungProperty;
 	private final DoubleProperty endeYVerschiebungProperty;
-	private final Path linieStart;
-	private final Path linieMitte;
-	private final Path linieEnde;
+	private final Path linie;
 	private final Path pfeil;
 	private final ObjectProperty<Orientierung> orientierungStartProperty;
 	private final ObjectProperty<Orientierung> orientierungEndeProperty;
 	private final MoveTo startpunkt;
-	private final MoveTo startpunktMitte;
-	private final MoveTo startpunktEnde;
 	private final LineTo linieA;
 	private final LineTo linieB;
 	private final LineTo linieC;
@@ -123,13 +121,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		var orientierungStart = verbindung.getOrientierungStart();
 		var orientierungEnde = verbindung.getOrientierungEnde();
 		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
-		this.linieStart = new Path();
-		this.linieMitte = new Path();
-		this.linieEnde = new Path();
+		this.linie = new Path();
 		this.pfeil = new Path();
 		this.startpunkt = new MoveTo();
-		this.startpunktMitte = new MoveTo();
-		this.startpunktEnde = new MoveTo();
 		this.linieA = new LineTo();
 		this.linieB = new LineTo();
 		this.linieC = new LineTo();
@@ -215,8 +209,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		NodeUtil.beobachteSchwach(this, endeYPropertyBindung, verbindung.getEndPosition().yProperty()::setValue);
 		NodeUtil.beobachteSchwach(this, verbindung.startElementProperty(),
 				start -> updateStartPosition(start, verbindung.getEndElement()));
-		NodeUtil.beobachteSchwach(this, verbindung.endElementProperty(),
-				ende -> updateEndPosition(verbindung.getStartElement(), ende));
+		NodeUtil.beobachteSchwach(this, verbindung.endElementProperty(), ende -> {
+			updateEndPosition(verbindung.getStartElement(), ende);
+		});
 		NodeUtil.beobachteSchwach(this, orientierungStartProperty, o -> updateLinie(o, verbindung.getStartElement(),
 				orientierungEndeProperty.get(), verbindung.getEndElement()));
 	}
@@ -225,27 +220,17 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		startpunkt.xProperty().bind(startXProperty.add(startXVerschiebungProperty));
 		startpunkt.yProperty().bind(startYProperty.add(startYVerschiebungProperty));
 		
-		startpunktMitte.xProperty().bind(linieA.xProperty());
-		startpunktMitte.yProperty().bind(linieA.yProperty());
-		
-		startpunktEnde.xProperty().bind(linieB.xProperty());
-		startpunktEnde.yProperty().bind(linieB.yProperty());
-		
 		linieC.xProperty().bind(endeXProperty.add(endeXVerschiebungProperty));
 		linieC.yProperty().bind(endeYProperty.add(endeYVerschiebungProperty));
 		
-		this.linieStart.getElements().add(startpunkt);
-		this.linieStart.getElements().add(linieA);
-		this.linieMitte.getElements().add(startpunktMitte);
-		this.linieMitte.getElements().add(linieB);
-		this.linieEnde.getElements().add(startpunktEnde);
-		this.linieEnde.getElements().add(linieC);
+		this.linie.getElements().add(startpunkt);
+		this.linie.getElements().add(linieA);
+		this.linie.getElements().add(linieB);
+		this.linie.getElements().add(linieC);
 		
-		for (var linie : new Path[] { linieStart, linieMitte, linieEnde }) {
-			linie.getStyleClass().add(VERBINDUNGSLINIE_CSS_KLASSE);
-			linie.setViewOrder(Double.MAX_VALUE);
-			this.getChildren().add(linie);
-		}
+		linie.getStyleClass().add(VERBINDUNGSLINIE_CSS_KLASSE);
+		linie.setViewOrder(Double.MAX_VALUE);
+		this.getChildren().add(linie);
 		
 		var linieAPos = new Position(this, "linieAPos");
 		linieAPos.xProperty().bind(startpunkt.xProperty());
@@ -266,8 +251,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 				orientierungStartProperty, verbindung.endElementProperty());
 		
 		var linieCPos = new Position(this, "linieCPos");
-		linieCPos.xProperty().bind(startpunktEnde.xProperty());
-		linieCPos.yProperty().bind(startpunktEnde.yProperty());
+		linieCPos.xProperty().bind(linieB.xProperty());
+		linieCPos.yProperty().bind(linieB.yProperty());
 		linieCPos.breiteProperty().bind(linieC.xProperty());
 		linieCPos.hoeheProperty().bind(linieC.yProperty());
 		macheVerschiebbar(linieCPos, endeXVerschiebungProperty, endeYVerschiebungProperty,
@@ -682,7 +667,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		}
 	}
 	
-	private void verschiebeXMitte(double x, Position liniePos, DoubleProperty verschiebung, double minX, double maxX, 
+	private void verschiebeXMitte(double x, Position liniePos, DoubleProperty verschiebung, double minX, double maxX,
 			BooleanProperty wirdBewegt) {
 		if (Einstellungen.getBenutzerdefiniert().linienRasterungAktivierenProperty().get()) {
 			x = ((int) x / 10) * 10;	// Raster in 10er-Schritten
@@ -927,6 +912,16 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			endeXPropertyBindung.unbind();
 			endeYPropertyBindung.unbind();
 			return;
+		}
+		if (ende.getTyp().equals(KlassifiziererTyp.Interface) && start != null
+				&& !start.getTyp().equals(KlassifiziererTyp.Interface)) {
+			if (!linie.getStyleClass().contains(GESTRICHELTE_LINIE_CSS_KLASSE)) {
+				linie.getStyleClass().add(GESTRICHELTE_LINIE_CSS_KLASSE);
+			}
+		} else {
+			if (linie.getStyleClass().contains(GESTRICHELTE_LINIE_CSS_KLASSE)) {
+				linie.getStyleClass().remove(GESTRICHELTE_LINIE_CSS_KLASSE);
+			}
 		}
 		
 		Position posStart = start == null ? new Position(this, "posStart") : start.getPosition();
