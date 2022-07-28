@@ -914,7 +914,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			return;
 		}
 		if (ende.getTyp().equals(KlassifiziererTyp.Interface) && start != null
-				&& !start.getTyp().equals(KlassifiziererTyp.Interface)) {
+				&& (!start.getTyp().equals(KlassifiziererTyp.Interface)
+						|| verbindung.getTyp().equals(UMLVerbindungstyp.ASSOZIATION))) {
 			if (!linie.getStyleClass().contains(GESTRICHELTE_LINIE_CSS_KLASSE)) {
 				linie.getStyleClass().add(GESTRICHELTE_LINIE_CSS_KLASSE);
 			}
