@@ -311,6 +311,9 @@ public class KlassifiziererBesucher extends VoidVisitorAdapter<Void> {
 		parameterDeklararationen.forEach(parameterDeklaration -> {
 			Datentyp paramDatentyp = konvertiereDatentyp(parameterDeklaration.getType());
 			String paramName = parameterDeklaration.getNameAsString();
+			if (parameterDeklaration.isVarArgs()) {
+				paramDatentyp.setTypName(paramDatentyp.getTypName() + "...");
+			}
 			Parameter param = new Parameter(paramDatentyp, paramName);
 			parameterListe.add(param);
 		});
