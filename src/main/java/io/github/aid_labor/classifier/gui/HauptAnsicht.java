@@ -335,6 +335,8 @@ public class HauptAnsicht {
 		// Menue Einstellungen
 		menue.getVoidAnzeigen().selectedProperty()
 				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeVoidProperty());
+		menue.getPackageSichtbarkeitAnzeigen().selectedProperty()
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigePackageModifierProperty());
 		menue.getParameternamenAnzeigen().selectedProperty()
 				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty());
 		menue.getErweiterteValidierungAktivieren().selectedProperty()

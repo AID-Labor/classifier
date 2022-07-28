@@ -46,17 +46,17 @@ public class MenueLeisteKomponente {
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	private final MenuBar menueleiste;
@@ -117,6 +117,7 @@ public class MenueLeisteKomponente {
 	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	// Menue Einstellungen
 	private CheckMenuItem voidAnzeigen;
+	private CheckMenuItem packageModifiziererAnzeigen;
 	private CheckMenuItem parameternamenAnzeigen;
 	private CheckMenuItem erweiterteValidierungAktivieren;
 	private CheckMenuItem linienRasterungAktivieren;
@@ -228,7 +229,6 @@ public class MenueLeisteKomponente {
 		vollbild.setAccelerator(new KeyCodeCombination(KeyCode.F5));
 		symbolleisteAusblenden.setAccelerator(
 				new KeyCodeCombination(KeyCode.T, KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.ALT_DOWN));
-		
 		
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// Menue Fenster
@@ -405,6 +405,10 @@ public class MenueLeisteKomponente {
 		return voidAnzeigen;
 	}
 	
+	public CheckMenuItem getPackageSichtbarkeitAnzeigen() {
+		return packageModifiziererAnzeigen;
+	}
+	
 	public CheckMenuItem getParameternamenAnzeigen() {
 		return parameternamenAnzeigen;
 	}
@@ -576,6 +580,8 @@ public class MenueLeisteKomponente {
 	private Menu erstelleEinstellungenMenue() {
 		Menu einstellungenMenue = SprachUtil.bindText(new Menu(), sprache, "einstellungenMenue", "Einstellungen");
 		voidAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "voidAnzeigen", "void Anzeigen");
+		packageModifiziererAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "packageModifiziererAnzeigen",
+				"Sichtbarkeit 'package' Anzeigen");
 		parameternamenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "parameternamenAnzeigen",
 				"Parameternamen Anzeigen");
 		erweiterteValidierungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache,
@@ -590,7 +596,8 @@ public class MenueLeisteKomponente {
 		
 		ToggleGroup themaGruppe = new ToggleGroup();
 		for (Theme thema : Theme.values()) {
-			var themeButton = SprachUtil.bindText(new RadioMenuItem(), sprache, thema.name(), thema.name().toLowerCase());
+			var themeButton = SprachUtil.bindText(new RadioMenuItem(), sprache, thema.name(),
+					thema.name().toLowerCase());
 			themeButton.setSelected(thema.equals(Einstellungen.getBenutzerdefiniert().themeProperty().get()));
 			NodeUtil.beobachteSchwach(menueleiste, themeButton.selectedProperty(), selektiert -> {
 				if (selektiert) {
@@ -607,10 +614,10 @@ public class MenueLeisteKomponente {
 		konfigurationsordnerBereinigen = SprachUtil.bindText(new MenuItem(), sprache, "konfigBereinigen",
 				"Konfigurationsordner bereinigen".formatted(oe));
 		
-		einstellungenMenue.getItems().addAll(voidAnzeigen, parameternamenAnzeigen, erweiterteValidierungAktivieren,
-				linienRasterungAktivieren, positionsRasterungAktivieren, groessenRasterungAktivieren,
-				new SeparatorMenuItem(), theme, new SeparatorMenuItem(), info, konfigurationsordnerOeffnen,
-				konfigurationsordnerBereinigen);
+		einstellungenMenue.getItems().addAll(voidAnzeigen, packageModifiziererAnzeigen, parameternamenAnzeigen,
+				erweiterteValidierungAktivieren, linienRasterungAktivieren, positionsRasterungAktivieren,
+				groessenRasterungAktivieren, new SeparatorMenuItem(), theme, new SeparatorMenuItem(), info,
+				konfigurationsordnerOeffnen, konfigurationsordnerBereinigen);
 		
 		return einstellungenMenue;
 	}
