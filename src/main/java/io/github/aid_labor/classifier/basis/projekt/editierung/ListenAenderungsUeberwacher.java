@@ -94,17 +94,19 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 			if (aenderung.wasPermutated()) {
 				behandlePermutation(aenderung, befehle);
 			}
-			if (aenderung.wasRemoved()) {
+			if (aenderung.wasReplaced()) {
+				behandleErsetzung(aenderung, befehle);
+			}
+			if (aenderung.wasRemoved() && !aenderung.wasReplaced()) {
 				behandleEntfernung(aenderung, befehle);
 			}
-			if (aenderung.wasAdded()) {
+			if (aenderung.wasAdded() && !aenderung.wasReplaced()) {
 				behandleHinzugefuegt(aenderung, befehle);
 			}
 			if (aenderung.wasUpdated()) {
 				behandleUpdate(aenderung, befehle);
 			}
 		}
-		
 		var sammelEditierung = new SammelEditierung();
 		for (EditierBefehl editierBefehl : befehle) {
 			sammelEditierung.speicherEditierung(editierBefehl);
@@ -118,14 +120,12 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	protected void behandlePermutation(Change<? extends E> aenderung,
-			List<EditierBefehl> befehle) {
+	protected void behandlePermutation(Change<? extends E> aenderung, List<EditierBefehl> befehle) {
 		int[] neueOrdnung = new int[aenderung.getList().size()];
 		for (int i = 0; i < neueOrdnung.length; i++) {
 			neueOrdnung[i] = aenderung.getPermutation(i);
 		}
-		log.finer(() -> "%s:  -> Reihenfolge geaendert [%s]"
-				.formatted(beobachter, Arrays.toString(neueOrdnung)));
+		log.finer(() -> "%s:  -> Reihenfolge geaendert [%s]".formatted(beobachter, Arrays.toString(neueOrdnung)));
 		
 		befehle.add(new EditierBefehl() {
 			@Override
@@ -141,10 +141,9 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 			@Override
 			public String toString() {
 				log.severe(() -> "EditierBefehl fuer Permutated implementieren!!!");
-				return "%s:  -> Reihenfolge geaendert [%s]"
-						.formatted(beobachter, Arrays.toString(neueOrdnung));
+				return "%s:  -> Reihenfolge geaendert [%s]".formatted(beobachter, Arrays.toString(neueOrdnung));
 			}
-
+			
 			@Override
 			public void close() throws Exception {
 				log.severe(() -> "EditierBefehl fuer Update implementieren!!!");
@@ -154,8 +153,71 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 		// TODO EditierBefehl fuer Permutated implementieren!!!
 	}
 	
-	protected void behandleEntfernung(Change<? extends E> aenderung,
-			List<EditierBefehl> befehle) {
+	protected void behandleErsetzung(Change<? extends E> aenderung, List<EditierBefehl> befehle) {
+		log.finer(() -> {
+			try {
+				return "%s:  -> ersetzt [%s] durch [%s]".formatted(beobachter,
+						Arrays.toString(aenderung.getRemoved().toArray()),
+						Arrays.toString(aenderung.getAddedSubList().toArray()));
+			} catch (Exception e) {
+				return "";
+			}
+		});
+		
+		var befehl = new EditierBefehl() {
+			
+			int startIndex = aenderung.getFrom();
+			List<E> hinzugefuegteAttribute = Collections.unmodifiableList(new ArrayList<>(aenderung.getAddedSubList()));
+			List<E> entfernteAttribute = Collections.unmodifiableList(new ArrayList<>(aenderung.getRemoved()));
+			
+			@Override
+			public void wiederhole() {
+				int i = startIndex;
+				for (E neu : hinzugefuegteAttribute) {
+					liste.set(i, neu);
+					i++;
+				}
+			}
+			
+			@Override
+			public void macheRueckgaengig() {
+				int i = startIndex;
+				for (E alt : entfernteAttribute) {
+					liste.set(i, alt);
+					i++;
+				}
+			}
+			
+			@Override
+			public String toString() {
+				try {
+					return "%s:  -> ersetzt [%s] durch [%s]".formatted(beobachter,
+							Arrays.toString(entfernteAttribute.toArray()), 
+							Arrays.toString(hinzugefuegteAttribute.toArray()));
+				} catch (Exception e) {
+					return "";
+				}
+			}
+			
+			@Override
+			public void close() throws Exception {
+				for (var entfernt : entfernteAttribute) {
+					if (entfernt instanceof AutoCloseable c) {
+						String entferntStr = c.toString();
+						try {
+							c.close();
+							log.fine(() -> entferntStr + " wurde geschlossen");
+						} catch (Exception e) {
+							log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen von " + entferntStr);
+						}
+					}
+				}
+			}
+		};
+		befehle.add(befehl);
+	}
+	
+	protected void behandleEntfernung(Change<? extends E> aenderung, List<EditierBefehl> befehle) {
 		log.finer(() -> {
 			try {
 				return "%s:  -> entfernt [%s]".formatted(beobachter, Arrays.toString(aenderung.getRemoved().toArray()));
@@ -163,12 +225,11 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 				return "";
 			}
 		});
-				
+		
 		var befehl = new EditierBefehl() {
 			
 			int startIndex = aenderung.getFrom();
-			List<E> entfernteAttribute = Collections.unmodifiableList(
-					new ArrayList<>(aenderung.getRemoved()));
+			List<E> entfernteAttribute = Collections.unmodifiableList(new ArrayList<>(aenderung.getRemoved()));
 			
 			@Override
 			public void wiederhole() {
@@ -189,7 +250,7 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 					return "";
 				}
 			}
-
+			
 			@Override
 			public void close() throws Exception {
 				for (var entfernt : entfernteAttribute) {
@@ -208,15 +269,13 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 		befehle.add(befehl);
 	}
 	
-	protected void behandleHinzugefuegt(Change<? extends E> aenderung,
-			List<EditierBefehl> befehle) {
+	protected void behandleHinzugefuegt(Change<? extends E> aenderung, List<EditierBefehl> befehle) {
 		log.finer(() -> "%s:  -> hinzugefuegt [%s]".formatted(beobachter,
 				Arrays.toString(aenderung.getAddedSubList().toArray())));
 		var befehl = new EditierBefehl() {
 			
 			int startIndex = aenderung.getFrom();
-			List<E> neueAttribute = Collections.unmodifiableList(
-					new ArrayList<>(aenderung.getAddedSubList()));
+			List<E> neueAttribute = Collections.unmodifiableList(new ArrayList<>(aenderung.getAddedSubList()));
 			
 			@Override
 			public void wiederhole() {
@@ -233,7 +292,7 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 				return "%s:  -> hinzugefuegt <index %d> [%s]".formatted(beobachter, startIndex,
 						Arrays.toString(neueAttribute.toArray()));
 			}
-
+			
 			@Override
 			public void close() throws Exception {
 				for (var entfernt : neueAttribute) {
@@ -253,12 +312,11 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 	}
 	
 	protected void behandleUpdate(Change<? extends E> aenderung, List<EditierBefehl> befehle) {
-		log.finer(() -> "%s:  -> Update [%d bis %d]".formatted(beobachter,
-				aenderung.getFrom(), aenderung.getTo()));
+		log.finer(() -> "%s:  -> Update [%d bis %d]".formatted(beobachter, aenderung.getFrom(), aenderung.getTo()));
 		
 		befehle.add(new EditierBefehl() {
-			String s = "%s:  -> Update [%d bis %d]".formatted(beobachter,
-					aenderung.getFrom(), aenderung.getTo());
+			String s = "%s:  -> Update [%d bis %d]".formatted(beobachter, aenderung.getFrom(), aenderung.getTo());
+			
 			@Override
 			public void wiederhole() {
 				log.severe(() -> "EditierBefehl fuer Update implementieren!!!");
@@ -274,7 +332,7 @@ public class ListenAenderungsUeberwacher<E> implements ListChangeListener<E> {
 				log.severe(() -> "EditierBefehl fuer Update implementieren!!!");
 				return s;
 			}
-
+			
 			@Override
 			public void close() throws Exception {
 				log.severe(() -> "EditierBefehl fuer Update implementieren!!!");
