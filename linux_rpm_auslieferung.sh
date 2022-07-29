@@ -8,7 +8,7 @@ NAME="Classifier"
 NAME_KLEIN="classifier"
 DESCRIPTION="UML-Klassenmodellierung"
 # Version muss groesser gleich 1.0.0 sein!
-VERSION="1.1.1"
+VERSION="1.1.2"
 VENDOR="Tim Mühle"
 COPYRIGHT="Copyright © 2022 - Tim Mühle"
 LICENSE_FILE="LICENSE.txt"
