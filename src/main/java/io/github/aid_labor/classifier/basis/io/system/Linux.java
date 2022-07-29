@@ -48,43 +48,79 @@ non-sealed class Linux extends Unix {
 	
 	@Override
 	public boolean systemNutztDarkTheme() {
-		String[] befehl = {"gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"};
+		String[] befehl = { "gsettings", "get", "org.gnome.desktop.interface", "gtk-theme" };
+		boolean istGtkThemeDark = ueberpruefeGtkTheme(befehl);
+		
+		befehl = new String[] { "gtk-query-settings", "gtk-application-prefer-dark-theme" };
+		boolean gtkBevorzugtDark = ueberpruefeGtkSettings(befehl);
+		
+		this.istDark = istGtkThemeDark || gtkBevorzugtDark;
+		return this.istDark;
+	}
+	
+	private boolean ueberpruefeGtkTheme(String[] befehl) {
 		String ausgabeExceptionStr = "<noch nicht gesetzt>";
-		this.istDark = false;
 		Process prozess;
 		try {
-			prozess = new ProcessBuilder(befehl)
-				.redirectErrorStream(true)
-				.start();
+			prozess = new ProcessBuilder(befehl).redirectErrorStream(true).start();
 			prozess.waitFor(10, TimeUnit.SECONDS);
 			var reader = prozess.inputReader();
-			Optional<String> zeilen = reader.lines()
-				.reduce((zeile1, zeile2) -> zeile1 + "\n" + zeile2);
+			Optional<String> zeilen = reader.lines().reduce((zeile1, zeile2) -> zeile1 + "\n" + zeile2);
 			ausgabeExceptionStr = zeilen.orElse("null <Optional leer>");
 			zeilen.ifPresentOrElse(inhalt -> {
 				log.finest(() -> "nativer befehl: _> " + String.join(" ", befehl) + "\n" + inhalt);
 				String ausgabeKlein = inhalt.toLowerCase();
-				if (ausgabeKlein.contains("dark") 
-					|| ausgabeKlein.contains("black")
-					|| ausgabeKlein.contains("grey")) {
+				if (ausgabeKlein.contains("dark") || ausgabeKlein.contains("black") || ausgabeKlein.contains("grey")) {
 					this.istDark = true;
 				}
 			}, () -> {
 				log.warning(() -> """
-					Darkmode konnte nicht nativ ermittelt werden!
-					Systembefehl: %s
-					Ausgabe: null <Optional ist leer>
-					""".formatted(String.join(" ", befehl)));
+						Darkmode konnte nicht nativ ermittelt werden!
+						Systembefehl: %s
+						Ausgabe: null <Optional ist leer>
+						""".formatted(String.join(" ", befehl)));
 			});
 		} catch (Exception e) {
 			final String exceptionAusgabe = ausgabeExceptionStr;
 			log.log(Level.WARNING, e, () -> """
-				Darkmode konnte nicht nativ ermittelt werden!
-				Systembefehl: %s
-				Ausgabe: %s
-				""".formatted(String.join(" ", befehl), exceptionAusgabe));
+					Darkmode konnte nicht nativ ermittelt werden!
+					Systembefehl: %s
+					Ausgabe: %s
+					""".formatted(String.join(" ", befehl), exceptionAusgabe));
 		}
 		
-		return this.istDark;
+		return istDark;
+	}
+	
+	private boolean ueberpruefeGtkSettings(String[] befehl) {
+		String ausgabeExceptionStr = "<noch nicht gesetzt>";
+		Process prozess;
+		try {
+			prozess = new ProcessBuilder(befehl).redirectErrorStream(true).start();
+			prozess.waitFor(10, TimeUnit.SECONDS);
+			var reader = prozess.inputReader();
+			Optional<String> zeilen = reader.lines().reduce((zeile1, zeile2) -> zeile1 + "\n" + zeile2);
+			ausgabeExceptionStr = zeilen.orElse("null <Optional leer>");
+			zeilen.ifPresentOrElse(inhalt -> {
+				log.finest(() -> "nativer befehl: _> " + String.join(" ", befehl) + "\n" + inhalt);
+				String ausgabeKlein = inhalt.toLowerCase();
+				this.istDark = ausgabeKlein.contains("true");
+			}, () -> {
+				log.warning(() -> """
+						Darkmode konnte nicht nativ ermittelt werden!
+						Systembefehl: %s
+						Ausgabe: null <Optional ist leer>
+						""".formatted(String.join(" ", befehl)));
+			});
+		} catch (Exception e) {
+			final String exceptionAusgabe = ausgabeExceptionStr;
+			log.log(Level.WARNING, e, () -> """
+					Darkmode konnte nicht nativ ermittelt werden!
+					Systembefehl: %s
+					Ausgabe: %s
+					""".formatted(String.join(" ", befehl), exceptionAusgabe));
+		}
+		
+		return istDark;
 	}
 }
