@@ -197,6 +197,15 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		this.setResizable(true);
 		this.getDialogPane().setPrefSize(920, 512);
 		
+		NodeUtil.beobachteSchwach(wurzel, klassifizierer.nameProperty(), (alterName, neuerName) -> {
+			if(alterName != null && klassenSuchBaum.get(alterName) != null) {
+				klassenSuchBaum.remove(alterName);
+			}
+			if(neuerName != null) {
+				klassenSuchBaum.put(neuerName, getKlassifizierer());
+			}
+		});
+		
 		this.setOnHidden(e -> {
 			log.config(() -> "räume UMLKlassifizeierBearbeitenDialog auf");
 			for (var beobachter : typBeobachterListe) {
@@ -510,7 +519,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		superklasse.setSelectedItem(getKlassifizierer().getSuperklasse());
 		superklasse.setText(getKlassifizierer().getSuperklasse());
 		superklasse.cancel();
-		bindeBidirektional(superklasse.selectedItemProperty(), getKlassifizierer().superklasseProperty());
+		bindeBidirektional(superklasse.getEditor().textProperty(), getKlassifizierer().superklasseProperty());
 		Button loeschen = new Button();
 		loeschen.setOnMouseClicked(e -> superklasse.select(""));
 		NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.DELETE_BACK_2_LINE, 18, ContentDisplay.GRAPHIC_ONLY,
@@ -572,7 +581,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 									return !istInterface;
 								}, sprache.getText("superklasseValidierungInterface",
 										"Die Superklasse darf kein interface sein!"))));
-				setzePlatzhalter(superklasse.getEditor());
+				setzePlatzhalter(superklasse);
 			}
 			eingabeValidierung.registerValidator(interfaces.getEditor(),
 					Validator.combine(Validator.createPredicateValidator(tf -> {

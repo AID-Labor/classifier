@@ -61,6 +61,7 @@ module classifier {
 	requires javafx.swing;
 	requires java.compiler;
 	requires com.github.javaparser.core;
+	requires com.tobiasdiez.easybind;
 	
 	uses Programmiersprache;
 	provides Programmiersprache with JavaProvider;

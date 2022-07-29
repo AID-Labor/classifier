@@ -511,9 +511,9 @@
 						</tag>
 					</tags>
 					<links>
-            			<link>https://docs.oracle.com/en/java/javase/18/docs/api/</link>
-            			<link>https://openjfx.io/javadoc/17/</link>
-          			</links>
+						<link>https://docs.oracle.com/en/java/javase/18/docs/api/</link>
+						<link>https://openjfx.io/javadoc/17/</link>
+					</links>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -573,6 +573,13 @@
 			<groupId>com.dlsc.gemsfx</groupId>
 			<artifactId>gemsfx</artifactId>
 			<version>1.45.2</version>
+		</dependency>
+
+		<!-- EasyBind (einfache Bindung fuer JavaFX Properties) -->
+		<dependency>
+			<groupId>com.tobiasdiez</groupId>
+			<artifactId>easybind</artifactId>
+			<version>2.2</version>
 		</dependency>
 
 		<!-- Ikonli -->

@@ -21,6 +21,7 @@ import org.controlsfx.validation.Validator;
 import org.kordamp.ikonli.typicons.Typicons;
 
 import com.dlsc.gemsfx.EnhancedLabel;
+import com.tobiasdiez.easybind.EasyBind;
 
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
@@ -29,10 +30,10 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
-import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.When;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
@@ -97,9 +98,9 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 	private final Sprache sprache;
 	private final Sprache spracheLabels;
 	private final UMLProjekt umlProjekt;
-	private final List<String> vorhandeneElementNamen;
 	private final BooleanProperty startBearbeitbar;
 	private final FilteredList<UMLVerbindung> verbindungen;
+	private final ObservableList<String> vorhandeneElementNamen;
 	private Supplier<UMLVerbindung> verbindungErzeuger;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -115,16 +116,13 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 		this.spracheLabels = sprache;
 		this.umlProjekt = umlProjekt;
 		this.startBearbeitbar = new SimpleBooleanProperty(startBearbeitbar);
+		this.vorhandeneElementNamen = EasyBind.map(umlProjekt.getDiagrammElemente(), UMLDiagrammElement::getName);
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(this.sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"VerbindungenBearbeitenListe");
 		if (!spracheGesetzt) {
 			sprache.ignoriereSprachen();
 		}
-		
-		List<UMLKlassifizierer> klassen = umlProjekt.getDiagrammElemente().stream()
-				.filter(UMLKlassifizierer.class::isInstance).map(UMLKlassifizierer.class::cast).toList();
-		this.vorhandeneElementNamen = klassen.parallelStream().map(UMLDiagrammElement::getName).toList();
 		
 		BiFunction<UMLVerbindung, KontrollElemente<UMLVerbindung>, Node[]> erzeugeZeile = null;
 		EventHandler<ActionEvent> neuAktion = null;
@@ -310,7 +308,8 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 	private Node[] erstelleAssoziationZeile(UMLVerbindung verbindung,
 			KontrollElemente<UMLVerbindung> kontrollelemente) {
 		ComboBox<String> start = new SearchableComboBox<>();
-		start.getItems().addAll(this.vorhandeneElementNamen);
+		start.getItems().addAll(vorhandeneElementNamen);
+		Bindings.bindContent(start.getItems(), vorhandeneElementNamen);
 		start.getSelectionModel().select(verbindung.getVerbindungsStart());
 		start.setMaxWidth(Double.MAX_VALUE);
 		
@@ -323,6 +322,7 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 		
 		TextField startFest = new TextField();
 		startFest.setText(verbindung.getVerbindungsStart());
+		startFest.textProperty().bind(verbindung.verbindungsStartProperty());
 		startFest.setEditable(false);
 		startFest.setPrefHeight(20);
 		
@@ -331,7 +331,8 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 		startHilfe.graphicProperty().bind(new When(startBearbeitbar).then((Node) start).otherwise(startFest));
 		
 		ComboBox<String> ende = new SearchableComboBox<>();
-		ende.getItems().addAll(this.vorhandeneElementNamen);
+		ende.getItems().addAll(vorhandeneElementNamen);
+		Bindings.bindContent(ende.getItems(), vorhandeneElementNamen);
 		ende.getSelectionModel().select(verbindung.getVerbindungsEnde());
 		NodeUtil.beobachteSchwach(ende, ende.getSelectionModel().selectedItemProperty(),
 				verbindung::setVerbindungsEnde);
@@ -460,10 +461,12 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 	private Node[] erstelleVererbungZeile(UMLVerbindung verbindung, KontrollElemente<UMLVerbindung> kontrollelemente) {
 		TextField start = new TextField();
 		start.setText(verbindung.getVerbindungsStart());
+		start.textProperty().bind(verbindung.verbindungsStartProperty());
 		start.setEditable(false);
 		
 		TextField ende = new TextField();
 		ende.setText(verbindung.getVerbindungsEnde());
+		ende.textProperty().bind(verbindung.verbindungsEndeProperty());
 		ende.setEditable(false);
 		
 		CheckBox ausgeblendet = new CheckBox();
