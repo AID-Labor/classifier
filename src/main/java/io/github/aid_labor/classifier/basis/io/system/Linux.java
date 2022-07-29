@@ -72,6 +72,8 @@ non-sealed class Linux extends Unix {
 				String ausgabeKlein = inhalt.toLowerCase();
 				if (ausgabeKlein.contains("dark") || ausgabeKlein.contains("black") || ausgabeKlein.contains("grey")) {
 					this.istDark = true;
+				} else {
+					this.istDark = false;
 				}
 			}, () -> {
 				log.warning(() -> """
