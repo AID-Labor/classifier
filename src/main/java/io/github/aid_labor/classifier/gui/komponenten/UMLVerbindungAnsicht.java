@@ -81,7 +81,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	private final DoubleProperty mitteVerschiebungProperty;
 	private final DoubleProperty endeXVerschiebungProperty;
 	private final DoubleProperty endeYVerschiebungProperty;
-	private final Path linie;
+	private final Path linieStart;
+	private final Path linieMitte;
+	private final Path linieEnde;
 	private final Path pfeil;
 	private final ObjectProperty<Orientierung> orientierungStartProperty;
 	private final ObjectProperty<Orientierung> orientierungEndeProperty;
@@ -121,7 +123,9 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		var orientierungStart = verbindung.getOrientierungStart();
 		var orientierungEnde = verbindung.getOrientierungEnde();
 		this.visibleProperty().bind(verbindung.ausgebelendetProperty().not());
-		this.linie = new Path();
+		this.linieStart = new Path();
+		this.linieMitte = new Path();
+		this.linieEnde = new Path();
 		this.pfeil = new Path();
 		this.startpunkt = new MoveTo();
 		this.linieA = new LineTo();
@@ -145,7 +149,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 				zeichneVererbungsPfeil();
 				this.pfeil.getStyleClass().add(VERERBUNGSPFEIL_CSS_KLASSE);
 			}
-			case ASSOZIATION -> {
+			case UNIDIREKTIONALE_ASSOZIATION -> {
 				zeichneAssoziationsPfeil();
 				this.pfeil.getStyleClass().add(ASSOZIATIONSPFEIL_CSS_KLASSE);
 			}
@@ -220,17 +224,29 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		startpunkt.xProperty().bind(startXProperty.add(startXVerschiebungProperty));
 		startpunkt.yProperty().bind(startYProperty.add(startYVerschiebungProperty));
 		
+		MoveTo startpunktMitte = new MoveTo();
+		startpunktMitte.xProperty().bind(linieA.xProperty());
+		startpunktMitte.yProperty().bind(linieA.yProperty());
+		
+		MoveTo startpunkEnde = new MoveTo();
+		startpunkEnde.xProperty().bind(linieB.xProperty());
+		startpunkEnde.yProperty().bind(linieB.yProperty());
+		
 		linieC.xProperty().bind(endeXProperty.add(endeXVerschiebungProperty));
 		linieC.yProperty().bind(endeYProperty.add(endeYVerschiebungProperty));
 		
-		this.linie.getElements().add(startpunkt);
-		this.linie.getElements().add(linieA);
-		this.linie.getElements().add(linieB);
-		this.linie.getElements().add(linieC);
+		this.linieStart.getElements().add(startpunkt);
+		this.linieStart.getElements().add(linieA);
+		this.linieMitte.getElements().add(startpunktMitte);
+		this.linieMitte.getElements().add(linieB);
+		this.linieEnde.getElements().add(startpunkEnde);
+		this.linieEnde.getElements().add(linieC);
 		
-		linie.getStyleClass().add(VERBINDUNGSLINIE_CSS_KLASSE);
-		linie.setViewOrder(Double.MAX_VALUE);
-		this.getChildren().add(linie);
+		for (var linie : new Path[] { linieStart, linieMitte, linieEnde }) {
+			linie.getStyleClass().add(VERBINDUNGSLINIE_CSS_KLASSE);
+			linie.setViewOrder(Double.MAX_VALUE);
+			this.getChildren().add(linie);
+		}
 		
 		var linieAPos = new Position(this, "linieAPos");
 		linieAPos.xProperty().bind(startpunkt.xProperty());
@@ -891,7 +907,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		boolean linksErlaubt = Orientierung.orientierungErlaubt(Orientierung.LINKS, andereOrientierung, position,
 				anderePosition);
 		
-		if (verbindung.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)) {
+		if (verbindung.getTyp().equals(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION)) {
 			return rechtsErlaubt ? Orientierung.RECHTS
 					: linksErlaubt ? Orientierung.LINKS
 							: untenErlaubt ? Orientierung.UNTEN : obenErlaubt ? Orientierung.OBEN : null;
@@ -913,15 +929,19 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			endeYPropertyBindung.unbind();
 			return;
 		}
-		if (ende.getTyp().equals(KlassifiziererTyp.Interface) && start != null
-				&& (!start.getTyp().equals(KlassifiziererTyp.Interface)
-						|| verbindung.getTyp().equals(UMLVerbindungstyp.ASSOZIATION))) {
-			if (!linie.getStyleClass().contains(GESTRICHELTE_LINIE_CSS_KLASSE)) {
-				linie.getStyleClass().add(GESTRICHELTE_LINIE_CSS_KLASSE);
+		if (!verbindung.getTyp().equals(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION)
+				&& ende.getTyp().equals(KlassifiziererTyp.Interface) && start != null
+				&& !start.getTyp().equals(KlassifiziererTyp.Interface)) {
+			for (var linie : new Path[] { linieStart, linieMitte, linieEnde }) {
+				if (!linie.getStyleClass().contains(GESTRICHELTE_LINIE_CSS_KLASSE)) {
+					linie.getStyleClass().add(GESTRICHELTE_LINIE_CSS_KLASSE);
+				}
 			}
 		} else {
-			if (linie.getStyleClass().contains(GESTRICHELTE_LINIE_CSS_KLASSE)) {
-				linie.getStyleClass().remove(GESTRICHELTE_LINIE_CSS_KLASSE);
+			for (var linie : new Path[] { linieStart, linieMitte, linieEnde }) {
+				if (linie.getStyleClass().contains(GESTRICHELTE_LINIE_CSS_KLASSE)) {
+					linie.getStyleClass().remove(GESTRICHELTE_LINIE_CSS_KLASSE);
+				}
 			}
 		}
 		

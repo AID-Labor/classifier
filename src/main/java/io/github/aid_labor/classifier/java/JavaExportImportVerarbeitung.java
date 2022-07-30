@@ -234,25 +234,25 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 				.map(Attribut::getDatentyp).map(Datentyp::getTypName).toList();
 		datentypen.addAll(attributeDatentypen);
 		
-		List<String> konstruktorParameter = klassifizierer.konstruktorProperty().parallelStream()
-				.flatMap(k -> k.parameterListeProperty().parallelStream()).map(Parameter::getDatentyp)
-				.map(Datentyp::getTypName).toList();
-		datentypen.addAll(konstruktorParameter);
-		
-		List<String> methodenDatentypen = klassifizierer.methodenProperty().parallelStream()
-				.map(Methode::getRueckgabeTyp).map(Datentyp::getTypName).toList();
-		datentypen.addAll(methodenDatentypen);
-		
-		List<String> methodenParameter = klassifizierer.methodenProperty().parallelStream()
-				.map(Methode::parameterListeProperty).flatMap(Collection::parallelStream).map(Parameter::getDatentyp)
-				.map(Datentyp::getTypName).toList();
-		datentypen.addAll(methodenParameter);
+//		List<String> konstruktorParameter = klassifizierer.konstruktorProperty().parallelStream()
+//				.flatMap(k -> k.parameterListeProperty().parallelStream()).map(Parameter::getDatentyp)
+//				.map(Datentyp::getTypName).toList();
+//		datentypen.addAll(konstruktorParameter);
+//		
+//		List<String> methodenDatentypen = klassifizierer.methodenProperty().parallelStream()
+//				.map(Methode::getRueckgabeTyp).map(Datentyp::getTypName).toList();
+//		datentypen.addAll(methodenDatentypen);
+//		
+//		List<String> methodenParameter = klassifizierer.methodenProperty().parallelStream()
+//				.map(Methode::parameterListeProperty).flatMap(Collection::parallelStream).map(Parameter::getDatentyp)
+//				.map(Datentyp::getTypName).toList();
+//		datentypen.addAll(methodenParameter);
 		
 		List<UMLVerbindung> assoziationen = new LinkedList<>();
 		for (String verwendeterDatentyp : datentypen) {
 			if (!klassifizierer.getNameVollstaendig().equals(verwendeterDatentyp)
 					&& !klassifizierer.getName().equals(verwendeterDatentyp)) {
-				UMLVerbindung assoziation = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION,
+				UMLVerbindung assoziation = new UMLVerbindung(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION,
 						klassifizierer.getNameVollstaendig(), verwendeterDatentyp);
 				assoziationen.add(assoziation);
 			}

@@ -344,20 +344,20 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 				eingabeValidierung, sprache, umlProjektRef.get(), false);
 		assoziationAnzeige.setVerbindungenFilter(v -> {
 			try {
-				return v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
+				return v.getTyp().equals(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION)
 						&& klassifizierer.getNameVollstaendig().equals(v.getVerbindungsStart());
 			} catch (Exception e) {
 				return false;
 			}
 		});
 		assoziationAnzeige.setVerbindungErzeuger(
-				() -> new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, klassifizierer.getName(), ""));
+				() -> new UMLVerbindung(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION, klassifizierer.getName(), ""));
 		var vererbungAnzeige = new VerbindungBearbeitenListe(
 				new String[] { "Klasse/Interface", "Superklasse/Interface", "Ausgeblendet" }, Typ.VERERBUNG,
 				eingabeValidierung, sprache, umlProjektRef.get(), false);
 		vererbungAnzeige.setVerbindungenFilter(v -> {
 			try {
-				return !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
+				return !v.getTyp().equals(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION)
 						&& (klassifizierer.getNameVollstaendig().equals(v.getVerbindungsStart())
 								|| klassifizierer.getNameVollstaendig().equals(v.getVerbindungsEnde()));
 			} catch (Exception e) {

@@ -127,7 +127,7 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 		BiFunction<UMLVerbindung, KontrollElemente<UMLVerbindung>, Node[]> erzeugeZeile = null;
 		EventHandler<ActionEvent> neuAktion = null;
 		Predicate<UMLVerbindung> filter = null;
-		verbindungErzeuger = () -> new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, "", "");
+		verbindungErzeuger = () -> new UMLVerbindung(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION, "", "");
 		
 		switch (typ) {
 			case ASSOZIATION -> {
@@ -137,12 +137,12 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 					verbindung.setzeAutomatisch(false);
 					this.umlProjekt.getAssoziationen().add(verbindung);
 				};
-				filter = v -> v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION);
+				filter = v -> v.getTyp().equals(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION);
 				verbindungen = umlProjekt.getAssoziationen().filtered(filter);
 			}
 			case VERERBUNG -> {
 				erzeugeZeile = this::erstelleVererbungZeile;
-				filter = v -> !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION);
+				filter = v -> !v.getTyp().equals(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION);
 				verbindungen = umlProjekt.getVererbungen().filtered(filter);
 			}
 			default -> verbindungen = null;
