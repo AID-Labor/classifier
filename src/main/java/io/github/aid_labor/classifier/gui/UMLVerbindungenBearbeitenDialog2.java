@@ -215,7 +215,7 @@ public class UMLVerbindungenBearbeitenDialog2 extends Alert {
 				new String[] { "Klasse/Interface", "Verwendet...", "Ausgeblendet" },
 				this.umlProjekt.getAssoziationen(),
 				this.erstelleAssoziationZeile(), event -> {
-					var verbindung = new UMLVerbindung(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION, "", "");
+					var verbindung = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, "", "");
 					verbindung.setzeAutomatisch(false);
 					this.umlProjekt.getAssoziationen().add(verbindung);
 				});

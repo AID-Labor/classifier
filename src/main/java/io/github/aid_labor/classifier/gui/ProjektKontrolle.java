@@ -379,7 +379,7 @@ class ProjektKontrolle {
 						}
 						neueKlassifizierer.addAll(ergebnis.getNeueKlassifizierer());
 						ergebnis.getNeueAssoziationen().stream()
-								.filter(v -> UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION.equals(v.getTyp())).forEach(assoziation -> {
+								.filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp())).forEach(assoziation -> {
 									assoziation.setzeAutomatisch(false);
 									neueAssoziationen.add(assoziation);
 								});

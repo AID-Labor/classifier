@@ -149,7 +149,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 				zeichneVererbungsPfeil();
 				this.pfeil.getStyleClass().add(VERERBUNGSPFEIL_CSS_KLASSE);
 			}
-			case UNIDIREKTIONALE_ASSOZIATION -> {
+			case ASSOZIATION -> {
 				zeichneAssoziationsPfeil();
 				this.pfeil.getStyleClass().add(ASSOZIATIONSPFEIL_CSS_KLASSE);
 			}
@@ -378,8 +378,6 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 	}
 	
 	private void bindeStartLinksRechts() {
-		var xMitte = startpunkt.xProperty().add(startXVerschiebungProperty)
-				.add(endeXProperty.add(endeXVerschiebungProperty)).add(VERERBUNGSPFEIL_GROESSE).divide(2);
 		mitteVerschiebungProperty.set(0);
 		
 		if (Orientierung.UNTEN.equals(orientierungEndeProperty.get())
@@ -388,7 +386,16 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			linieA.yProperty().bind(startYProperty.add(startYVerschiebungProperty));
 			linieB.xProperty().bind(linieA.xProperty());
 			linieB.yProperty().bind(linieA.yProperty());
+		} else if (Orientierung.RECHTS.equals(orientierungEndeProperty.get())) {
+			var xMitte = startpunkt.xProperty().add(startXVerschiebungProperty)
+					.add(endeXProperty.add(endeXVerschiebungProperty)).add(VERERBUNGSPFEIL_GROESSE).divide(2);
+			linieA.xProperty().bind(xMitte.add(mitteVerschiebungProperty));
+			linieA.yProperty().bind(startpunkt.yProperty());
+			linieB.xProperty().bind(xMitte.add(mitteVerschiebungProperty));
+			linieB.yProperty().bind(endeYProperty.add(endeYVerschiebungProperty));
 		} else {
+			var xMitte = startpunkt.xProperty().add(startXVerschiebungProperty)
+					.add(endeXProperty.add(endeXVerschiebungProperty)).subtract(VERERBUNGSPFEIL_GROESSE).divide(2);
 			linieA.xProperty().bind(xMitte.add(mitteVerschiebungProperty));
 			linieA.yProperty().bind(startpunkt.yProperty());
 			linieB.xProperty().bind(xMitte.add(mitteVerschiebungProperty));
@@ -907,7 +914,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 		boolean linksErlaubt = Orientierung.orientierungErlaubt(Orientierung.LINKS, andereOrientierung, position,
 				anderePosition);
 		
-		if (verbindung.getTyp().equals(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION)) {
+		if (verbindung.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)) {
 			return rechtsErlaubt ? Orientierung.RECHTS
 					: linksErlaubt ? Orientierung.LINKS
 							: untenErlaubt ? Orientierung.UNTEN : obenErlaubt ? Orientierung.OBEN : null;
@@ -929,7 +936,7 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 			endeYPropertyBindung.unbind();
 			return;
 		}
-		if (!verbindung.getTyp().equals(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION)
+		if (!verbindung.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
 				&& ende.getTyp().equals(KlassifiziererTyp.Interface) && start != null
 				&& !start.getTyp().equals(KlassifiziererTyp.Interface)) {
 			for (var linie : new Path[] { linieStart, linieMitte, linieEnde }) {

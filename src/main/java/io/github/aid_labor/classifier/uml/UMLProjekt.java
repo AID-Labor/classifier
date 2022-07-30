@@ -172,9 +172,9 @@ public class UMLProjekt extends ProjektBasis {
 		this(name, programmiersprache, automatischSpeichern);
 		if (verbindungen != null) {	// Support alter Programmdateien
 			this.assoziationen.addAll(
-					verbindungen.stream().filter(v -> UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION.equals(v.getTyp())).toList());
+					verbindungen.stream().filter(v -> UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp())).toList());
 			this.vererbungen.addAll(
-					verbindungen.stream().filter(v -> !UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION.equals(v.getTyp())).toList());
+					verbindungen.stream().filter(v -> !UMLVerbindungstyp.ASSOZIATION.equals(v.getTyp())).toList());
 		}
 		if (assoziationen != null) {
 			this.assoziationen.addAll(assoziationen);
@@ -474,7 +474,7 @@ public class UMLProjekt extends ProjektBasis {
 				for (UMLVerbindung entfernteVerbindung : aenderung.getRemoved()) {
 					entfernteVerbindung.setDarfGeschlossenWerden(true);
 					entfernteVerbindung.ausgebelendetProperty().unbind();
-					if (!UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION.equals(entfernteVerbindung.getTyp())) {
+					if (!UMLVerbindungstyp.ASSOZIATION.equals(entfernteVerbindung.getTyp())) {
 						entfernteVerbindung.meldeAb(this);
 					}
 				}
@@ -486,7 +486,7 @@ public class UMLProjekt extends ProjektBasis {
 					} else {
 						bindeElementeAnVerbindung(neueVerbindung);
 						neueVerbindung.setDarfGeschlossenWerden(false);
-						if (!UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION.equals(neueVerbindung.getTyp())) {
+						if (!UMLVerbindungstyp.ASSOZIATION.equals(neueVerbindung.getTyp())) {
 							neueVerbindung.meldeAn(this);
 						}
 					}

@@ -252,7 +252,7 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 		for (String verwendeterDatentyp : datentypen) {
 			if (!klassifizierer.getNameVollstaendig().equals(verwendeterDatentyp)
 					&& !klassifizierer.getName().equals(verwendeterDatentyp)) {
-				UMLVerbindung assoziation = new UMLVerbindung(UMLVerbindungstyp.UNIDIREKTIONALE_ASSOZIATION,
+				UMLVerbindung assoziation = new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION,
 						klassifizierer.getNameVollstaendig(), verwendeterDatentyp);
 				assoziationen.add(assoziation);
 			}
