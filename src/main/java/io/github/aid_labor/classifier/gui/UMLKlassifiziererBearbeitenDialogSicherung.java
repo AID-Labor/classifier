@@ -41,7 +41,6 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.gui.komponenten.DatentypFeld;
 import io.github.aid_labor.classifier.gui.komponenten.KontrollElemente;
-import io.github.aid_labor.classifier.gui.komponenten.MethodenBearbeitenListe;
 import io.github.aid_labor.classifier.gui.komponenten.VerbindungBearbeitenListe;
 import io.github.aid_labor.classifier.gui.komponenten.VerbindungBearbeitenListe.Typ;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
@@ -86,7 +85,6 @@ import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableView;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -103,8 +101,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 
-public class UMLKlassifiziererBearbeitenDialog extends Alert {
-	private static final Logger log = Logger.getLogger(UMLKlassifiziererBearbeitenDialog.class.getName());
+public class UMLKlassifiziererBearbeitenDialogSicherung extends Alert {
+	private static final Logger log = Logger.getLogger(UMLKlassifiziererBearbeitenDialogSicherung.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
@@ -149,7 +147,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public UMLKlassifiziererBearbeitenDialog(UMLKlassifizierer klassifizierer, UMLProjekt projekt) {
+	public UMLKlassifiziererBearbeitenDialogSicherung(UMLKlassifizierer klassifizierer, UMLProjekt projekt) {
 		super(AlertType.NONE);
 		this.klassifizierer = Objects.requireNonNull(klassifizierer);
 		this.umlProjektRef = new WeakReference<>(projekt);
@@ -210,28 +208,20 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		
 		this.setOnHidden(e -> {
 			log.config(() -> "räume UMLKlassifizeierBearbeitenDialog auf");
-			for (var beobachter : validierungsBeobachter) {
-				eingabeValidierung.validationResultProperty().removeListener(beobachter);
-			}
-			for (var c : eingabeValidierung.getRegisteredControls()) {
-				eingabeValidierung.registerValidator(c, Validator.createPredicateValidator(x -> true, ""));
-			}
-			try {
-				var eingabeValidierung = this.getClass().getField("eingabeValidierung");
-				eingabeValidierung.setAccessible(true);
-				eingabeValidierung.set(this, null);
-			} catch (Exception e1) {
-				// 
-			}
-			
 			for (var beobachter : typBeobachterListe) {
 				klassifizierer.typProperty().removeListener(beobachter);
+			}
+			for (var beobachter : validierungsBeobachter) {
+				eingabeValidierung.validationResultProperty().removeListener(beobachter);
 			}
 			
 			for (Node n : this.getDialogPane().getChildren()) {
 				entferneAlleBeobachter(n);
 			}
 			
+			for (var c : eingabeValidierung.getRegisteredControls()) {
+				eingabeValidierung.registerValidator(c, Validator.createPredicateValidator(x -> true, ""));
+			}
 			for (var prop : loeseBindungen) {
 				prop.run();
 			}
@@ -337,19 +327,18 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 						this.getKlassifizierer().konstruktorProperty().add(neuerKonstruktor);
 					}
 				});
-//		var methodenAnzeige = erzeugeTabellenAnzeige(new String[] { "Sichtbarkeit", "Methodenname", "Parameterliste",
-//			"Rueckgabetyp", "abstrakt", "static", "final" }, this.getKlassifizierer().methodenProperty(),
-//				this::erstelleMethodenZeile, event -> {
-//					var programmierEigenschaften = getKlassifizierer().getProgrammiersprache().getEigenschaften();
-//					var methode = new Methode(
-//							programmierEigenschaften.getStandardMethodenModifizierer(getKlassifizierer().getTyp()),
-//							programmierEigenschaften.getLetzerDatentyp(), getKlassifizierer().getProgrammiersprache());
-//					if (getKlassifizierer().getTyp().equals(KlassifiziererTyp.Interface)) {
-//						methode.setzeAbstrakt(true);
-//					}
-//					this.getKlassifizierer().methodenProperty().add(methode);
-//				});
-		var methodenAnzeige = erzeugeMethodenAnzeige();
+		var methodenAnzeige = erzeugeTabellenAnzeige(new String[] { "Sichtbarkeit", "Methodenname", "Parameterliste",
+			"Rueckgabetyp", "abstrakt", "static", "final" }, this.getKlassifizierer().methodenProperty(),
+				this::erstelleMethodenZeile, event -> {
+					var programmierEigenschaften = getKlassifizierer().getProgrammiersprache().getEigenschaften();
+					var methode = new Methode(
+							programmierEigenschaften.getStandardMethodenModifizierer(getKlassifizierer().getTyp()),
+							programmierEigenschaften.getLetzerDatentyp(), getKlassifizierer().getProgrammiersprache());
+					if (getKlassifizierer().getTyp().equals(KlassifiziererTyp.Interface)) {
+						methode.setzeAbstrakt(true);
+					}
+					this.getKlassifizierer().methodenProperty().add(methode);
+				});
 		var assoziationAnzeige = new VerbindungBearbeitenListe(
 				new String[] { "Klasse/Interface", "Verwendet...", "Ausgeblendet" }, Typ.ASSOZIATION,
 				eingabeValidierung, sprache, umlProjektRef.get(), false);
@@ -530,7 +519,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		superklasse.setSelectedItem(getKlassifizierer().getSuperklasse());
 		superklasse.setText(getKlassifizierer().getSuperklasse());
 		superklasse.cancel();
-		Platform.runLater(superklasse::cancel);
 		bindeBidirektional(superklasse.getEditor().textProperty(), getKlassifizierer().superklasseProperty());
 		Button loeschen = new Button();
 		loeschen.setOnMouseClicked(e -> superklasse.select(""));
@@ -696,49 +684,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 			}
 		}
 		return false;
-	}
-	
-	private <T> Pane erzeugeMethodenAnzeige() {
-		TableView<Methode> tabelle = new MethodenBearbeitenListe(klassifizierer.methodenProperty(), klassifizierer, sprache, eingabeValidierung);
-		
-		Button neu = new Button();
-		NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20, "neu-button-font-icon");
-		neu.setOnAction(event -> {
-			var programmierEigenschaften = getKlassifizierer().getProgrammiersprache().getEigenschaften();
-			var methode = new Methode(
-					programmierEigenschaften.getStandardMethodenModifizierer(getKlassifizierer().getTyp()),
-					programmierEigenschaften.getLetzerDatentyp(), getKlassifizierer().getProgrammiersprache());
-			if (getKlassifizierer().getTyp().equals(KlassifiziererTyp.Interface)) {
-				methode.setzeAbstrakt(true);
-			}
-			this.getKlassifizierer().methodenProperty().add(methode);
-		});
-		
-		HBox tabellenButtons = new HBox(neu);
-		tabellenButtons.setSpacing(5);
-		tabellenButtons.setAlignment(Pos.CENTER_LEFT);
-		tabellenButtons.setPadding(new Insets(5, 0, 0, 0));
-		
-		BorderPane ansicht = new BorderPane();
-		ansicht.setMaxWidth(Region.USE_PREF_SIZE);
-//		var scrollContainer = new ScrollPane(tabelle);
-//		scrollContainer.getStyleClass().add("edge-to-edge");
-//		ansicht.setCenter(scrollContainer);
-		ansicht.setCenter(tabelle);
-		ansicht.setBottom(tabellenButtons);
-		
-		tabelle.setMaxWidth(Double.MAX_VALUE);
-//		Platform.runLater(() -> {
-//			var vBar = ((ScrollPaneSkin) scrollContainer.getSkin()).getVerticalScrollBar();
-//			scrollContainer.prefWidthProperty().bind(tabelle.widthProperty()
-//					.add(new When(vBar.visibleProperty()).then(vBar.widthProperty()).otherwise(0)));
-//			loeseBindungen.add(scrollContainer.prefWidthProperty()::unbind);
-//		});
-//		
-//		NodeUtil.beobachteSchwach(tabelle, tabelle.widthProperty(),
-//				() -> Platform.runLater(scrollContainer::requestLayout));
-		
-		return ansicht;
 	}
 	
 	private <T> Pane erzeugeTabellenAnzeige(String[] labelBezeichnungen, ObservableList<T> inhalt,
@@ -919,6 +864,87 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		return sichtbarkeit;
 	}
 	
+	private Node[] erstelleMethodenZeile(Methode methode, KontrollElemente<Methode> kontrollelemente) {
+		ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
+		NodeUtil.beobachteSchwach(sichtbarkeit, sichtbarkeit.getSelectionModel().selectedItemProperty(),
+				methode::setSichtbarkeit);
+		
+		TextField name = new TextField();
+		bindeBidirektional(name.textProperty(), methode.nameProperty());
+		
+		TextField parameter = new TextField();
+		erzeugeParameterBindung(parameter, methode);
+		parameter.setEditable(false);
+		parameter.prefColumnCountProperty().bind(
+				new When(parameter.textProperty().length().greaterThanOrEqualTo(TextField.DEFAULT_PREF_COLUMN_COUNT))
+						.then(parameter.textProperty().length()).otherwise(TextField.DEFAULT_PREF_COLUMN_COUNT));
+		loeseBindungen.add(parameter.prefColumnCountProperty()::unbind);
+		parameter.setOnMousePressed(e -> bearbeiteParameter(parameter, methode));
+		parameter.setOnAction(e -> bearbeiteParameter(parameter, methode));
+		
+		SearchField<String> rueckgabetyp = new DatentypFeld(methode.getRueckgabeTyp().getTypName(), true,
+				umlProjektRef.get().getProgrammiersprache(), eingabeValidierung);
+		bindeBidirektional(rueckgabetyp.selectedItemProperty(), methode.getRueckgabeTyp().typNameProperty());
+		
+		CheckBox abstrakt = new CheckBox();
+		bindeBidirektional(abstrakt.selectedProperty(), methode.istAbstraktProperty());
+		GridPane.setHalignment(abstrakt, HPos.CENTER);
+		
+		CheckBox statisch = new CheckBox();
+		bindeBidirektional(statisch.selectedProperty(), methode.istStatischProperty());
+		GridPane.setHalignment(statisch, HPos.CENTER);
+		
+		CheckBox istFinal = new CheckBox();
+		bindeBidirektional(istFinal.selectedProperty(), methode.istFinalProperty());
+		GridPane.setHalignment(istFinal, HPos.CENTER);
+		
+		validiereMethode(parameter, name, rueckgabetyp, abstrakt, istFinal, methode);
+		
+		updateMethode(sichtbarkeit, abstrakt, statisch, methode, getKlassifizierer().getTyp());
+		ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateMethode(sichtbarkeit,
+				abstrakt, statisch, methode, neueWahl);
+		this.typBeobachterListe.add(typBeobachter);
+		getKlassifizierer().typProperty().addListener(typBeobachter);
+		
+		Runnable abstraktStatischBeobachter = () -> updateMethode(sichtbarkeit, abstrakt, statisch, methode,
+				getKlassifizierer().getTyp());
+		NodeUtil.beobachteSchwach(abstrakt, abstrakt.selectedProperty(), abstraktStatischBeobachter);
+		NodeUtil.beobachteSchwach(statisch, statisch.selectedProperty(), abstraktStatischBeobachter);
+		
+		if (methode.istGetter() || methode.istSetter()) {
+			rueckgabetyp.setDisable(true);
+			kontrollelemente.getLoeschen().setDisable(true);
+		}
+		
+		if (methode.istGetter()) {
+			parameter.setDisable(true);
+		}
+		
+		NodeUtil.beobachteSchwach(abstrakt, abstrakt.selectedProperty(), (alt, istAbstrakt) -> {
+			if (istAbstrakt.booleanValue()) {
+				statisch.setSelected(false);
+			}
+			eingabeValidierung.revalidate(istFinal);
+		});
+		
+		NodeUtil.beobachteSchwach(istFinal, istFinal.selectedProperty(), (alt, neu) -> {
+			eingabeValidierung.revalidate(abstrakt);
+		});
+		
+		NodeUtil.beobachteSchwach(statisch, statisch.selectedProperty(), (alt, istStatisch) -> {
+			if (istStatisch.booleanValue()) {
+				abstrakt.setSelected(false);
+			}
+		});
+		
+		if (name.getText().isEmpty()) {
+			Platform.runLater(name::requestFocus);
+		}
+		
+		return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, statisch, istFinal,
+			kontrollelemente.getHoch(), kontrollelemente.getRunter(), kontrollelemente.getLoeschen() };
+	}
+	
 	private void erzeugeParameterBindung(TextField parameter, HatParameterListe typMitParameterliste) {
 		parameter.textProperty().bind(Bindings.concat("(").concat(new StringBinding() {
 			{
@@ -955,6 +981,53 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		loeseBindungen.add(parameter.textProperty()::unbind);
 	}
 	
+	// @formatter:off
+	private void validiereMethode(TextField parameter, TextField name, SearchField<String> rueckgabetyp, 
+			CheckBox istAbstrakt, CheckBox istFinal, Methode methode) {
+		Platform.runLater(() -> {
+			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
+				eingabeValidierung.registerValidator(parameter, Validator.combine(
+						Validator.createPredicateValidator(tf -> getKlassifizierer().methodenProperty().stream()
+								.filter(m -> Objects.equals(m.getName(), methode.getName()) && Objects.deepEquals(
+										m.parameterListeProperty().stream().map(Parameter::getDatentyp).toList(), 
+										methode.parameterListeProperty().stream().map(Parameter::getDatentyp).toList()))
+								.count() <= 1,
+								sprache.getText("methodeValidierung",
+										"Eine Methode mit gleicher Signatur (Name und Parameterliste) "
+												+ "ist bereits vorhanden")),
+						Validator.createPredicateValidator(tf -> {
+							Set<String> params = new HashSet<>();
+							boolean doppelt = false;
+							for (var param : methode.parameterListeProperty()) {
+								if (!params.add(param.getName())) {
+									doppelt = true;
+									break;
+								}
+							}
+							return !doppelt;
+						}, sprache.getText("parameterValidierung2",
+								"Es darf keine Parameter mit gleichem Namen geben"))));
+				setzePlatzhalter(parameter);
+				NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
+			}
+			eingabeValidierung.registerValidator(name,
+					Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
+			eingabeValidierung.registerValidator(rueckgabetyp.getEditor(),
+					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
+			eingabeValidierung.registerValidator(istAbstrakt, Validator.createPredicateValidator(c -> {
+				return !(istAbstrakt.isSelected() && istFinal.isSelected());
+			}, sprache.getText("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein")));
+			eingabeValidierung.registerValidator(istFinal, Validator.createPredicateValidator(c -> {
+				return !(istAbstrakt.isSelected() && istFinal.isSelected());
+			}, sprache.getText("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein")));
+			
+			setzePlatzhalter(name);
+			setzePlatzhalter(rueckgabetyp);
+			setzePlatzhalter(istAbstrakt);
+			setzePlatzhalter(istFinal);
+		});
+	}
+	// @formatter:on
 	
 	private void bearbeiteParameter(TextField parameter, HatParameterListe typMitParameterliste) {
 		var parameterListe = erzeugeTabellenAnzeige(new String[] { "Parametername", "Datentyp" },
@@ -1179,6 +1252,38 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 		List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
 				.getAttributModifizierer(getKlassifizierer().getTyp());
 		var aktuellerModifizierer = attribut.getSichtbarkeit();
+		sichtbarkeit.getItems().setAll(modifizierer);
+		if (aktuellerModifizierer != null && modifizierer.contains(aktuellerModifizierer)) {
+			sichtbarkeit.getSelectionModel().select(aktuellerModifizierer);
+		} else {
+			sichtbarkeit.getSelectionModel().selectFirst();
+		}
+	}
+	
+	private void updateMethode(ComboBox<Modifizierer> sichtbarkeit, CheckBox abstrakt, CheckBox statisch,
+			Methode methode, KlassifiziererTyp typ) {
+		boolean abstraktErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+				.erlaubtAbstrakteMethode(typ);
+		boolean abstraktErzwungen = !getKlassifizierer().getProgrammiersprache().getEigenschaften()
+				.erlaubtNichtAbstrakteMethode(typ);
+		
+		abstrakt.setDisable(!abstraktErlaubt);
+		
+		if (abstraktErzwungen) {
+			abstrakt.setDisable(true);
+		}
+		
+		boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+				.erlaubtInstanzAttribute(typ);
+		if (!instanzAttributeErlaubt && (methode.istGetter() || methode.istSetter())) {
+			// Getter und Setter werden über Attribut gesteuert
+			abstrakt.setDisable(true);
+			statisch.setDisable(true);
+		}
+		
+		List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+				.getMethodenModifizierer(getKlassifizierer().getTyp(), methode.istStatisch(), methode.istAbstrakt());
+		var aktuellerModifizierer = methode.getSichtbarkeit();
 		sichtbarkeit.getItems().setAll(modifizierer);
 		if (aktuellerModifizierer != null && modifizierer.contains(aktuellerModifizierer)) {
 			sichtbarkeit.getSelectionModel().select(aktuellerModifizierer);

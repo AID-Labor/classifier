@@ -12,6 +12,9 @@ import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
 
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
 
@@ -70,6 +73,27 @@ public class KontrollElemente<T> {
 		loeschen = new Label();
 		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15, "tabelle-steuerung-font-icon");
 		loeschen.setOnMouseClicked(e -> liste.remove(element));
+		loeschen.getStyleClass().add("tabelle-steuerung-button");
+	}
+	
+	public KontrollElemente(ObservableList<T> liste, ReadOnlyObjectProperty<T> element, ReadOnlyIntegerProperty zeile) {
+		hoch = new Label();
+		NodeUtil.erzeugeIconNode(hoch, BootstrapIcons.CARET_UP_FILL, 15, "tabelle-steuerung-font-icon");
+		hoch.setOnMouseClicked(e -> tausche(liste, zeile.intValue(), zeile.intValue() - 1));
+		hoch.getStyleClass().add("tabelle-steuerung-button");
+		
+		hoch.disableProperty().bind(zeile.isEqualTo(0));
+		
+		runter = new Label();
+		NodeUtil.erzeugeIconNode(runter, BootstrapIcons.CARET_DOWN_FILL, 15, "tabelle-steuerung-font-icon");
+		runter.setOnMouseClicked(e -> tausche(liste, zeile.intValue(), zeile.intValue() + 1));
+		runter.getStyleClass().add("tabelle-steuerung-button");
+		
+		runter.disableProperty().bind(zeile.isEqualTo(Bindings.size(liste).subtract(1)));
+		
+		loeschen = new Label();
+		NodeUtil.erzeugeIconNode(loeschen, CarbonIcons.DELETE, 15, "tabelle-steuerung-font-icon");
+		loeschen.setOnMouseClicked(e -> liste.remove(element.get()));
 		loeschen.getStyleClass().add("tabelle-steuerung-button");
 	}
 	

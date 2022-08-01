@@ -194,13 +194,22 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 			eingabeValidierung.validationResultProperty().removeListener(beobachter);
 		}
 		
+		for (var c : eingabeValidierung.getRegisteredControls()) {
+			eingabeValidierung.registerValidator(c, Validator.createPredicateValidator(x -> true, ""));
+		}
+		
+		try {
+			var eingabeValidierung = this.getClass().getDeclaredField("eingabeValidierung");
+			eingabeValidierung.setAccessible(true);
+			eingabeValidierung.set(this, null);
+		} catch (Exception e) {
+			// 
+		}
+		
 		for (Node n : this.getChildren()) {
 			entferneAlleBeobachter(n);
 		}
 		
-		for (var c : eingabeValidierung.getRegisteredControls()) {
-			eingabeValidierung.registerValidator(c, Validator.createPredicateValidator(x -> true, ""));
-		}
 		for (var prop : loeseBindungen) {
 			prop.run();
 		}
