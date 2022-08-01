@@ -119,12 +119,15 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 	
 	@Override
 	public String erzeugeDateiName(UMLKlassifizierer klassifizierer) {
+		String name = klassifizierer.getName();
+		if (name.contains("<")) {
+			name = name.substring(0, name.indexOf("<"));
+		}
 		if (klassifizierer.getPaket() != null && !klassifizierer.getPaket().isBlank()) {
 			String[] paket = klassifizierer.getPaket().split("\\.");
-			return OS.getDefault().pfadAus(OS.getDefault().pfadAus(paket), klassifizierer.getName()).toString()
-					+ ".java";
+			return OS.getDefault().pfadAus(OS.getDefault().pfadAus(paket), name).toString() + ".java";
 		} else {
-			return klassifizierer.getName() + ".java";
+			return name + ".java";
 		}
 	}
 	
@@ -330,17 +333,30 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 	}
 	
 	private void fuelleInhalt(UMLKlassifizierer klassifizierer, TypeDeclaration<?> typDeklaration) {
+		var statischeAttribute = klassifizierer.attributeProperty().filtered(Attribut::istStatisch);
+		if (klassifizierer.getTyp().equals(KlassifiziererTyp.Enumeration)) {
+			fuelleEnumKonstanten(
+					statischeAttribute.filtered(a -> a.getDatentyp().getTypName().equals(klassifizierer.getName())),
+					typDeklaration.asEnumDeclaration());
+			statischeAttribute = statischeAttribute
+					.filtered(a -> !a.getDatentyp().getTypName().equals(klassifizierer.getName()));
+		}
+		
 		var klassenAttributKommentar = " Klassenattribute ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##";
-		fuelleAttribute(klassifizierer.attributeProperty().filtered(Attribut::istStatisch), typDeklaration,
-				new LineComment(klassenAttributKommentar));
+		fuelleAttribute(statischeAttribute, typDeklaration, new LineComment(klassenAttributKommentar));
 		
 		var klassenMethodenKommentar = " Klassenmethoden  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##";
 		fuelleMethoden(klassifizierer.methodenProperty().filtered(Methode::istStatisch), typDeklaration,
 				klassifizierer.getTyp().equals(KlassifiziererTyp.Interface), new LineComment(klassenMethodenKommentar));
 		
-		var attributeKommentar = " Attribute    ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##";
-		fuelleAttribute(klassifizierer.attributeProperty().filtered(a -> !a.istStatisch()), typDeklaration,
-				new LineComment(attributeKommentar));
+		if (klassifizierer.getTyp().equals(KlassifiziererTyp.Record)) {
+			fuelleRecordKomponenten(klassifizierer.attributeProperty().filtered(a -> !a.istStatisch()),
+					typDeklaration.asRecordDeclaration());
+		} else {
+			var attributeKommentar = " Attribute    ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##";
+			fuelleAttribute(klassifizierer.attributeProperty().filtered(a -> !a.istStatisch()), typDeklaration,
+					new LineComment(attributeKommentar));
+		}
 		
 		var konstruktorenKommentar = " Konstruktoren    ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##";
 		fuelleKonstruktoren(klassifizierer.konstruktorProperty(), typDeklaration,
@@ -367,7 +383,11 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 			}
 			for (var interf : klassifizierer.getInterfaces()) {
 				var interfaceDeklaration = erzeugeSupertyp(interf);
-				clazz.getImplementedTypes().add(interfaceDeklaration);
+				if (klassifizierer.getTyp().equals(KlassifiziererTyp.Interface)) {
+					clazz.getExtendedTypes().add(interfaceDeklaration);
+				} else {
+					clazz.getImplementedTypes().add(interfaceDeklaration);
+				}
 			}
 		});
 	}
@@ -380,6 +400,20 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 			supertyp.setName(name);
 		}
 		return supertyp;
+	}
+	
+	private void fuelleEnumKonstanten(List<Attribut> attribute, EnumDeclaration typDeklaration) {
+		for (var attribut : attribute) {
+			typDeklaration.addEnumConstant(attribut.getName());
+		}
+	}
+	
+	private void fuelleRecordKomponenten(List<Attribut> attribute, RecordDeclaration typDeklaration) {
+		for (var attribut : attribute) {
+			var datentyp = konvertiereDatentyp(attribut.getDatentyp());
+			var recordKomponente = new com.github.javaparser.ast.body.Parameter(datentyp, attribut.getName());
+			typDeklaration.addParameter(recordKomponente);
+		}
 	}
 	
 	private void fuelleAttribute(List<Attribut> attribute, TypeDeclaration<?> typDeklaration, Comment kommentar) {

@@ -133,8 +133,7 @@ public class Java implements ProgrammierEigenschaften {
 	public boolean istAttributModifiziererErlaubt(KlassifiziererTyp typ, Modifizierer m) {
 		return switch (typ) {
 			case Interface -> m.istPublic();
-			case Klasse, AbstrakteKlasse, Enumeration -> m.istPrivate();
-			case Record -> false;
+			case Klasse, AbstrakteKlasse, Enumeration, Record -> m.istPrivate();
 			default -> {
 				log.warning(() -> "unbekannter typ: " + typ);
 				yield false;
@@ -170,7 +169,7 @@ public class Java implements ProgrammierEigenschaften {
 	@Override
 	public Modifizierer getStandardAttributModifizierer(KlassifiziererTyp typ) {
 		return switch (typ) {
-			case Interface, Enumeration -> Modifizierer.PUBLIC;
+			case Interface, Enumeration, Record -> Modifizierer.PUBLIC;
 			default -> {
 				yield Modifizierer.PRIVATE;
 			}
@@ -189,7 +188,7 @@ public class Java implements ProgrammierEigenschaften {
 					yield List.of(Modifizierer.PUBLIC, Modifizierer.PRIVATE);
 				}
 			}
-			case Klasse, Enumeration ->
+			case Klasse, Enumeration, Record ->
 				List.of(Modifizierer.PUBLIC, Modifizierer.PROTECTED, Modifizierer.PACKAGE, Modifizierer.PRIVATE);
 			case AbstrakteKlasse -> {
 				if (istAbstrakt) {
@@ -232,7 +231,7 @@ public class Java implements ProgrammierEigenschaften {
 	@Override
 	public boolean erlaubtInstanzAttribute(KlassifiziererTyp typ) {
 		return switch (typ) {
-			case Interface, Record -> false;
+			case Interface -> false;
 			default -> true;
 		};
 	}
