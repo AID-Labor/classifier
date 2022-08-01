@@ -184,9 +184,9 @@ public class MenueLeisteKomponente {
 		rueckgaengig.setAccelerator(new KeyCharacterCombination("z", KeyCodeCombination.SHORTCUT_DOWN));
 		wiederholen.setAccelerator(
 				new KeyCharacterCombination("z", KeyCodeCombination.SHORTCUT_DOWN, KeyCodeCombination.SHIFT_DOWN));
-		kopieren.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCodeCombination.SHORTCUT_DOWN));
-		einfuegen.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCodeCombination.SHORTCUT_DOWN));
-		loeschen.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
+//		kopieren.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCodeCombination.SHORTCUT_DOWN));
+//		einfuegen.setAccelerator(new KeyCodeCombination(KeyCode.V, KeyCodeCombination.SHORTCUT_DOWN));
+//		loeschen.setAccelerator(new KeyCodeCombination(KeyCode.DELETE));
 		
 		// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 		// Menue Einfuegen
