@@ -6,6 +6,8 @@
 
 package io.github.aid_labor.classifier.basis;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -31,6 +33,7 @@ import io.github.aid_labor.classifier.basis.json.JsonIntegerProperty;
 import io.github.aid_labor.classifier.basis.json.JsonLocaleProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.json.JsonUtil;
+import javafx.beans.property.Property;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 
@@ -99,19 +102,30 @@ public class Einstellungen {
 	}
 	
 	/**
-	 * Setzt die benutzerdefinierten Einstellungen auf den letzten gespeicherten Stand zurück. 
-	 * @return {@code true}, wenn das Zurücksetzen erfolgreich war, sonst {@code false}
+	 * Setzt die benutzerdefinierten Einstellungen auf den Ausgangszustand zurück.
 	 */
-	public static boolean resetBenutzerdefiniert() {
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static void resetBenutzerdefiniert() {
 		log.config(() -> "Benutzereinstellungen zuruecksetzen");
-		var benutzerInstanzNeu = laden(Ressourcen.get().NUTZER_EINSTELLUNGEN.alsPath());
-		if (benutzerInstanzNeu.isPresent()) {
-			benutzerInstanz = benutzerInstanzNeu.get();
-			log.config(() -> "Reset erfolgreich");
-			return true;
-		} else {
-			log.warning(() -> "Reset nicht erfolgreich");
-			return false;
+		Einstellungen standard = getStandard();
+		
+		for (Field attribut : Einstellungen.class.getDeclaredFields()) {
+			if (Modifier.isStatic(attribut.getModifiers())) {
+				continue;
+			}
+			
+			if (attribut.trySetAccessible()) {
+				try {
+					if (attribut.get(benutzerInstanz) instanceof Property eigenschaft
+							&& attribut.get(standard) instanceof Property eigenschaftStandard) {
+						// beide Eigenschaften haben zwingend den gleichen Generic-Typ!
+						eigenschaft.setValue(eigenschaftStandard.getValue());
+					}
+				} catch (Exception e) {
+					log.log(Level.WARNING, e, () -> "Fehler beim zuruecksetzen von " + attribut.getName());
+				}
+			}
+			
 		}
 	}
 	
@@ -191,7 +205,7 @@ public class Einstellungen {
 					
 					@Override
 					public boolean contains(Object o) {
-						var elemente = this.iterator();
+						var<DatumWrapper<Path>> elemente = this.iterator();
 						while (elemente.hasNext()) {
 							if (elemente.next().equals(o)) {
 								return true;
@@ -202,7 +216,7 @@ public class Einstellungen {
 					
 					@Override
 					public boolean remove(Object o) {
-						var elemente = this.iterator();
+						var<DatumWrapper<Path>> elemente = this.iterator();
 						while (elemente.hasNext()) {
 							var element = elemente.next();
 							if (element.equals(o)) {
@@ -245,6 +259,7 @@ public class Einstellungen {
 	
 	/**
 	 * Verwendetes Layout-Theme
+	 * 
 	 * @return themeProperty
 	 */
 	public final JsonEnumProperty<Theme> themeProperty() {
@@ -253,6 +268,7 @@ public class Einstellungen {
 	
 	/**
 	 * Verwendete Programmsprache
+	 * 
 	 * @return sprachProperty
 	 */
 	public final JsonLocaleProperty sprachProperty() {
@@ -261,6 +277,7 @@ public class Einstellungen {
 	
 	/**
 	 * letzter verwendeter Speicherort vom Oeffnen oder Speichern eines Projektes
+	 * 
 	 * @return letzterSpeicherortProperty
 	 */
 	public final JsonStringProperty letzterSpeicherortProperty() {
@@ -270,6 +287,7 @@ public class Einstellungen {
 	/**
 	 * Letzte verwendete Datei sortiert nach dem Zeitpunkt des Hinzufuegens. Es werden nur die
 	 * letzten 10 Dateien behalten. Gelöschte Dateien werden beim Laden der Einstellungen ignoriert.
+	 * 
 	 * @return letzteDateienProperty
 	 */
 	public final ObservableSet<DatumWrapper<Path>> letzteDateienProperty() {
@@ -279,6 +297,7 @@ public class Einstellungen {
 	/**
 	 * Anzahl der Elemente, die im Verlauf zum Rueckgaengig machen bzw. Wiederholen
 	 * gespeichert werden
+	 * 
 	 * @return verlaufAnzahlProperty
 	 */
 	public final JsonIntegerProperty verlaufAnzahlProperty() {
@@ -287,6 +306,7 @@ public class Einstellungen {
 	
 	/**
 	 * {@code true}, wenn der Modifizierer 'package' im UML-Diagramm angezeigt werden soll
+	 * 
 	 * @return zeigePackageModifierProperty
 	 */
 	public final JsonBooleanProperty zeigePackageModifierProperty() {
@@ -295,6 +315,7 @@ public class Einstellungen {
 	
 	/**
 	 * {@code true}, wenn 'void' im UML-Diagramm angezeigt werden soll
+	 * 
 	 * @return zeigeVoidProperty
 	 */
 	public final JsonBooleanProperty zeigeVoidProperty() {
@@ -303,6 +324,7 @@ public class Einstellungen {
 	
 	/**
 	 * {@code true}, wenn Parameternamen im UML-Diagramm angezeigt werden sollen
+	 * 
 	 * @return zeigeParameterNamenProperty
 	 */
 	public final JsonBooleanProperty zeigeParameterNamenProperty() {
@@ -311,6 +333,7 @@ public class Einstellungen {
 	
 	/**
 	 * {@code true}, wenn die erweiterte Eingabevalidierung im UML-Diagramm aktiviert ist
+	 * 
 	 * @return erweiterteValidierungAktivierenProperty
 	 */
 	public final JsonBooleanProperty erweiterteValidierungAktivierenProperty() {

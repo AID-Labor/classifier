@@ -12,6 +12,8 @@ import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.oe;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.sz;
 import static io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute.ue;
 
+import java.util.Objects;
+
 import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.io.Theme;
@@ -127,6 +129,7 @@ public class MenueLeisteKomponente {
 	private MenuItem info;
 	private MenuItem konfigurationsordnerOeffnen;
 	private MenuItem konfigurationsordnerBereinigen;
+	private MenuItem einstellungenReset;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -445,6 +448,10 @@ public class MenueLeisteKomponente {
 		return konfigurationsordnerBereinigen;
 	}
 	
+	public MenuItem getEinstellungenReset() {
+		return einstellungenReset;
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -604,6 +611,12 @@ public class MenueLeisteKomponente {
 					Einstellungen.getBenutzerdefiniert().themeProperty().set(thema);
 				}
 			});
+			NodeUtil.beobachteSchwach(menueleiste, Einstellungen.getBenutzerdefiniert().themeProperty(),
+					aktuellesThema -> {
+						if (Objects.equals(aktuellesThema, thema)) {
+							themaGruppe.selectToggle(themeButton);
+						}
+					});
 			themeButton.setToggleGroup(themaGruppe);
 			theme.getItems().add(themeButton);
 		}
@@ -613,11 +626,13 @@ public class MenueLeisteKomponente {
 				"Konfigurationsordner %cffnen".formatted(oe));
 		konfigurationsordnerBereinigen = SprachUtil.bindText(new MenuItem(), sprache, "konfigBereinigen",
 				"Konfigurationsordner bereinigen".formatted(oe));
+		einstellungenReset = SprachUtil.bindText(new MenuItem(), sprache, "resetEinstellungen",
+				"Einstellungen zur%ccksetzen".formatted(ue));
 		
 		einstellungenMenue.getItems().addAll(voidAnzeigen, packageModifiziererAnzeigen, parameternamenAnzeigen,
 				erweiterteValidierungAktivieren, linienRasterungAktivieren, positionsRasterungAktivieren,
 				groessenRasterungAktivieren, new SeparatorMenuItem(), theme, new SeparatorMenuItem(), info,
-				konfigurationsordnerOeffnen, konfigurationsordnerBereinigen);
+				konfigurationsordnerOeffnen, konfigurationsordnerBereinigen, einstellungenReset);
 		
 		return einstellungenMenue;
 	}

@@ -355,6 +355,7 @@ public class HauptAnsicht {
 		
 		menue.getKonfigurationsordnerOeffnen().setOnAction(this.controller::konigurationsordnerOeffnen);
 		menue.getKonfigurationsordnerBereinigen().setOnAction(this.controller::konigurationsordnerBereinigen);
+		menue.getEinstellungenReset().setOnAction(e -> Einstellungen.resetBenutzerdefiniert());
 		
 		setzeMenueBindungen(menue);
 	}
