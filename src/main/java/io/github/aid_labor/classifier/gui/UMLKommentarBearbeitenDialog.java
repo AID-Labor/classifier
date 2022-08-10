@@ -104,7 +104,6 @@ public class UMLKommentarBearbeitenDialog extends Alert {
 							pos.setEndAfter(body);
 							window.getSelection().addRange(pos);
 							body.focus();
-							alert("HEY");
 							""";
 					Platform.runLater(() -> web.getEngine().executeScript(js));
 				}
