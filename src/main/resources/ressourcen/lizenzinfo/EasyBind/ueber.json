@@ -1,0 +1,11 @@
+{
+    "name" : "EasyBind",
+    "version" : "2.2",
+    "beschreibung" : "Custom JavaFX bindings made easy with lambdas.",
+    "github" : "https://github.com/tobiasdiez/EasyBind",
+    "link" : "https://github.com/tobiasdiez/EasyBind",
+    "license" : {
+        "name" : "BSD-2-Clause license",
+        "link" : "https://choosealicense.com/licenses/bsd-2-clause/"
+    }
+}
