@@ -17,6 +17,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.util.StdConverter;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
@@ -56,6 +58,18 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	public static class OrientierungKonverter extends StdConverter<String, Orientierung> {
+		@Override
+		public Orientierung convert(String value) {
+			try {
+				return Orientierung.valueOf(value);
+			} catch (Exception e) {
+				// 
+			}
+			return null;
+		}
+	}
+	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
@@ -74,7 +88,9 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	private final JsonBooleanProperty automatischProperty;
 	private final Position startPosition;
 	private final Position endPosition;
+	@JsonDeserialize(converter = OrientierungKonverter.class)
 	private final JsonObjectProperty<Orientierung> orientierungStartProperty;
+	@JsonDeserialize(converter = OrientierungKonverter.class)
 	private final JsonObjectProperty<Orientierung> orientierungEndeProperty;
 	@JsonIgnore
 	private final ObjectProperty<UMLKlassifizierer> startElementProperty;
@@ -97,8 +113,7 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	public UMLVerbindung(@JsonProperty("typ") UMLVerbindungstyp typ,
 			@JsonProperty("verbindungsStartProperty") String verbindungsStart,
 			@JsonProperty("verbindungsEndeProperty") String verbindungsEnde,
-			@JsonProperty("startPosition") Position startPosition,
-			@JsonProperty("endPosition") Position endPosition,
+			@JsonProperty("startPosition") Position startPosition, @JsonProperty("endPosition") Position endPosition,
 			@JsonProperty("ausgebelendetProperty") boolean ausgeblendet,
 			@JsonProperty(value = "automatischProperty", defaultValue = "true") boolean automatisch,
 			@JsonProperty(value = "orientierungStartProperty", defaultValue = "UNBEKANNT") Orientierung orientierungStart,
@@ -111,8 +126,10 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		this.automatischProperty = new JsonBooleanProperty(this, "automatisch", automatisch);
 		this.startElementProperty = new SimpleObjectProperty<>(this, "startElement", null);
 		this.endElementProperty = new SimpleObjectProperty<>(this, "endElement", null);
-		this.startPosition = startPosition == null ? new Position(this, "start-NULL") : new Position(this, "start", startPosition);
-		this.endPosition = endPosition == null ? new Position(this, "ende-NULL") : new Position(this, "ende", endPosition);
+		this.startPosition = startPosition == null ? new Position(this, "start-NULL")
+				: new Position(this, "start", startPosition);
+		this.endPosition = endPosition == null ? new Position(this, "ende-NULL")
+				: new Position(this, "ende", endPosition);
 		this.mitteVerschiebungProperty = new JsonDoubleProperty(this, "mitteVerschiebung", mitteVerschiebung);
 		this.orientierungStartProperty = new JsonObjectProperty<>(this, "orientierungStart", orientierungStart);
 		this.orientierungEndeProperty = new JsonObjectProperty<>(this, "orientierungEnde", orientierungEnde);
@@ -408,11 +425,8 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 		boolean verbindungsEndeGleich = Objects.equals(getVerbindungsEnde(), other.getVerbindungsEnde());
 		boolean mitteVerschiebungGleich = getMitteVerschiebung() == other.getMitteVerschiebung();
 		
-		boolean istGleich = ausgebelendetPropertyGleich
-				&& startPositionGleich && endPositionGleich
-				&& typGleich && verbindungsStartGleich
-				&& verbindungsEndeGleich
-				&& mitteVerschiebungGleich;
+		boolean istGleich = ausgebelendetPropertyGleich && startPositionGleich && endPositionGleich && typGleich
+				&& verbindungsStartGleich && verbindungsEndeGleich && mitteVerschiebungGleich;
 		
 		log.finest(() -> """
 				istGleich: %s
@@ -422,9 +436,9 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 				   |-- typGleich: %s
 				   |-- verbindungsStartGleich: %s
 				   |-- verbindungsEndeGleich: %s
-				   ╰-- mitteVerschiebungGleich: %s"""
-				.formatted(istGleich, ausgebelendetPropertyGleich, startPositionGleich, endPositionGleich, typGleich,
-						verbindungsStartGleich, verbindungsEndeGleich, mitteVerschiebungGleich));
+				   ╰-- mitteVerschiebungGleich: %s""".formatted(istGleich, ausgebelendetPropertyGleich,
+				startPositionGleich, endPositionGleich, typGleich, verbindungsStartGleich, verbindungsEndeGleich,
+				mitteVerschiebungGleich));
 		
 		return istGleich;
 	}
@@ -436,9 +450,9 @@ public final class UMLVerbindung extends EditierbarBasis implements Editierbarer
 	}
 	
 	public UMLVerbindung erzeugeTiefeKopie() {
-		return new UMLVerbindung(typ, getVerbindungsStart(), getVerbindungsEnde(), new Position(null, "", startPosition),
-				new Position(null, "", endPosition), istAusgebelendet(), istAutomatisch(), getOrientierungStart(),
-				getOrientierungEnde(), getMitteVerschiebung());
+		return new UMLVerbindung(typ, getVerbindungsStart(), getVerbindungsEnde(),
+				new Position(null, "", startPosition), new Position(null, "", endPosition), istAusgebelendet(),
+				istAutomatisch(), getOrientierungStart(), getOrientierungEnde(), getMitteVerschiebung());
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

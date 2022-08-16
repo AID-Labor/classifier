@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -205,7 +206,7 @@ public class Einstellungen {
 					
 					@Override
 					public boolean contains(Object o) {
-						var<DatumWrapper<Path>> elemente = this.iterator();
+						Iterator<DatumWrapper<Path>> elemente = this.iterator();
 						while (elemente.hasNext()) {
 							if (elemente.next().equals(o)) {
 								return true;
@@ -216,7 +217,7 @@ public class Einstellungen {
 					
 					@Override
 					public boolean remove(Object o) {
-						var<DatumWrapper<Path>> elemente = this.iterator();
+						Iterator<DatumWrapper<Path>> elemente = this.iterator();
 						while (elemente.hasNext()) {
 							var element = elemente.next();
 							if (element.equals(o)) {
