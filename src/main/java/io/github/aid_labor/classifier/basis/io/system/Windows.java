@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 
 
-non-sealed class Windows extends OS {
+final class Windows extends OS {
 	
 	private static Logger log = Logger.getLogger(Windows.class.getName());
 	

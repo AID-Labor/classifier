@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import io.github.aid_labor.classifier.basis.ProgrammDetails;
 
 
-non-sealed class MacOS extends Unix {
+final class MacOS extends Unix {
 	
 	private static Logger log = Logger.getLogger(MacOS.class.getName());
 	
