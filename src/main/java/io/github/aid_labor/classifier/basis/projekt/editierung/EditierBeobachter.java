@@ -77,50 +77,57 @@ public interface EditierBeobachter extends AutoCloseable {
 		@Override
 		public void changed(ObservableValue<? extends T> aufrufer, T alterWert, T neuerWert) {
 			if (!Objects.equals(alterWert, neuerWert) && !wiederhole) {
-				beobachterRef.get().verarbeiteEditierung(new WertEditierBefehl<T>() {
-					
-					@Override
-					public String toString() {
-						return "EditierBefehl: %s -> %s { alt: %s neu: %s }".formatted(beobachterRef.get(),
-								propertyRef.get(), alterWert, neuerWert);
-					}
-					
-					@Override
-					public String id() {
-						return id;
-					}
-					
-					@Override
-					public T getVorher() {
-						return alterWert;
-					}
-					
-					@Override
-					public T getNachher() {
-						return neuerWert;
-					}
-					
-					@Override
-					public void set(T wert) {
-						wiederhole = true;
-						try {
-							System.err.println(">>>" + propertyRef.get());
-							propertyRef.get().setValue(wert);
-						} catch (Exception e) {
-							log.log(Level.WARNING, e,
-									() -> "Setzen von Property >%s< fehlgeschlagen".formatted(propertyRef.get()));
-						}
-						wiederhole = false;
-					}
-
-					@Override
-					public void close() throws Exception {
-						// 
-					}
-				});
+				beobachterRef.get().verarbeiteEditierung(new PropertyEditierBefehl(alterWert, neuerWert));
 			}
 		}
 		
+		private class PropertyEditierBefehl implements WertEditierBefehl<T> {
+			private final T vorher;
+			private final T nachher;
+			
+			PropertyEditierBefehl(T vorher, T nachher) {
+				this.vorher = vorher;
+				this.nachher = nachher;
+			}
+
+			@Override
+			public String toString() {
+				return "EditierBefehl: %s -> %s { alt: %s neu: %s }".formatted(beobachterRef.get(),
+						propertyRef.get(), vorher, nachher);
+			}
+			
+			@Override
+			public String id() {
+				return id;
+			}
+			
+			@Override
+			public T getVorher() {
+				return vorher;
+			}
+			
+			@Override
+			public T getNachher() {
+				return nachher;
+			}
+			
+			@Override
+			public void set(T wert) {
+				wiederhole = true;
+				try {
+					propertyRef.get().setValue(wert);
+				} catch (Exception e) {
+					log.log(Level.WARNING, e,
+							() -> "Setzen von Property >%s< fehlgeschlagen".formatted(propertyRef.get()));
+				}
+				wiederhole = false;
+			}
+
+			@Override
+			public void close() throws Exception {
+				// nicht benötigt
+			}
+		}
 	}
 	
 	public default <E extends Editierbar> void ueberwacheListenAenderung(ObservableList<E> liste) {
