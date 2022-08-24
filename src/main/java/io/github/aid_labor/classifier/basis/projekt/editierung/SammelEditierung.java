@@ -30,10 +30,10 @@ public class SammelEditierung implements EditierBefehl {
 	
 	private static class AenderbareWertEditierung<T> implements WertEditierBefehl<T> {
 		
-		private final String id;
 		private T vorher;
 		private T nachher;
-		private Consumer<T> setter;
+		private final Consumer<T> setter;
+		private final String id;
 		
 		public AenderbareWertEditierung(WertEditierBefehl<T> wertEditierung) {
 			this(wertEditierung.id(), wertEditierung.getVorher(), wertEditierung.getNachher(), wertEditierung::set);
