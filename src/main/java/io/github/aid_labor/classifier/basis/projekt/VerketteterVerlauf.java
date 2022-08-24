@@ -274,12 +274,11 @@ public class VerketteterVerlauf<T> implements Verlaufspuffer<T> {
 				log.finest(() -> "    -> " + this + " -> entfernen: " + entfernt);
 				
 				if (entfernt instanceof AutoCloseable ac) {
-					String entferntStr = entfernt.toString();
 					try {
 						ac.close();
-						log.fine(() -> entferntStr + " wurde geschlossen");
+						log.fine(() -> entfernt.toString() + " wurde geschlossen");
 					} catch (Exception e) {
-						log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen von " + entferntStr);
+						log.log(Level.CONFIG, e, () -> "Fehler beim Schliessen von " + entfernt.toString());
 					}
 				}
 			}
