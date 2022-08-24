@@ -11,6 +11,7 @@ import java.util.Objects;
 import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Methode;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 import javafx.beans.Observable;
@@ -63,6 +64,8 @@ public class MethodenListeAnsicht extends ListenAnsicht<Methode> {
 		this.programmiersprache = Objects.requireNonNull(programmiersprache);
 		fuelleListe();
 		this.getStyleClass().add("methoden-liste");
+		this.setVisible(!methodenListe.isEmpty() && Einstellungen.getBenutzerdefiniert().zeigeMethodenProperty().get());
+		NodeUtil.beobachteSchwach(this, Einstellungen.getBenutzerdefiniert().zeigeMethodenProperty(), this::setVisible);
 	}
 	
 	@Override

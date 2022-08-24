@@ -8,6 +8,8 @@ package io.github.aid_labor.classifier.gui.komponenten;
 
 import com.dlsc.gemsfx.EnhancedLabel;
 
+import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -52,6 +54,8 @@ public class AttributListeAnsicht extends ListenAnsicht<Attribut> {
 		super(attributListe);
 		fuelleListe();
 		this.getStyleClass().add("attribut-liste");
+		this.setVisible(!attributListe.isEmpty() && Einstellungen.getBenutzerdefiniert().zeigeAttributeProperty().get());
+		NodeUtil.beobachteSchwach(this, Einstellungen.getBenutzerdefiniert().zeigeAttributeProperty(), this::setVisible);
 	}
 	
 	@Override

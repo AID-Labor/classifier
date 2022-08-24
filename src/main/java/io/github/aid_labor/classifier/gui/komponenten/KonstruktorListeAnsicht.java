@@ -9,6 +9,7 @@ package io.github.aid_labor.classifier.gui.komponenten;
 import com.dlsc.gemsfx.EnhancedLabel;
 
 import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Konstruktor;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -47,6 +48,8 @@ public class KonstruktorListeAnsicht extends ListenAnsicht<Konstruktor> {
 		super(konstruktorListe);
 		fuelleListe();
 		this.getStyleClass().add("konstruktor-liste");
+		this.setVisible(!konstruktorListe.isEmpty() && Einstellungen.getBenutzerdefiniert().zeigeKonstruktorenProperty().get());
+		NodeUtil.beobachteSchwach(this, Einstellungen.getBenutzerdefiniert().zeigeKonstruktorenProperty(), this::setVisible);
 	}
 	
 	@Override

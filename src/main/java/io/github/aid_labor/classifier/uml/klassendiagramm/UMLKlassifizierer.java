@@ -56,6 +56,14 @@ public class UMLKlassifizierer extends UMLBasisElement {
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	public static String nameOhnePaket(String name) {
+		if (name.contains(":")) {
+			return name.substring(name.indexOf(":")+1);
+		} else {
+			return name;
+		}
+	}
+	
 	private class KonstruktorLinkedList extends LinkedList<Konstruktor> {
 		
 		private static final long serialVersionUID = 1628790459929603311L;

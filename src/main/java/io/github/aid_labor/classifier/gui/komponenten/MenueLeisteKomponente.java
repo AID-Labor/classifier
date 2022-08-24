@@ -121,6 +121,10 @@ public class MenueLeisteKomponente {
 	private CheckMenuItem voidAnzeigen;
 	private CheckMenuItem packageModifiziererAnzeigen;
 	private CheckMenuItem parameternamenAnzeigen;
+	private CheckMenuItem attributeAnzeigen;
+	private CheckMenuItem konstruktorenAnzeigen;
+	private CheckMenuItem methodenAnzeigen;
+	private CheckMenuItem paketnamenAnzeigen;
 	private CheckMenuItem erweiterteValidierungAktivieren;
 	private CheckMenuItem linienRasterungAktivieren;
 	private CheckMenuItem positionsRasterungAktivieren;
@@ -416,6 +420,22 @@ public class MenueLeisteKomponente {
 		return parameternamenAnzeigen;
 	}
 	
+	public CheckMenuItem getAttributeAnzeigen() {
+		return attributeAnzeigen;
+	}
+	
+	public CheckMenuItem getKonstruktorenAnzeigen() {
+		return konstruktorenAnzeigen;
+	}
+	
+	public CheckMenuItem getMethodenAnzeigen() {
+		return methodenAnzeigen;
+	}
+	
+	public CheckMenuItem getPaketnamenAnzeigen() {
+		return paketnamenAnzeigen;
+	}
+	
 	public CheckMenuItem getErweiterteValidierungAktivieren() {
 		return erweiterteValidierungAktivieren;
 	}
@@ -586,11 +606,19 @@ public class MenueLeisteKomponente {
 	
 	private Menu erstelleEinstellungenMenue() {
 		Menu einstellungenMenue = SprachUtil.bindText(new Menu(), sprache, "einstellungenMenue", "Einstellungen");
-		voidAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "voidAnzeigen", "void Anzeigen");
+		voidAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "voidAnzeigen", "void anzeigen");
 		packageModifiziererAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "packageModifiziererAnzeigen",
-				"Sichtbarkeit 'package' Anzeigen");
+				"Sichtbarkeit 'package' anzeigen");
 		parameternamenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "parameternamenAnzeigen",
-				"Parameternamen Anzeigen");
+				"Parameternamen anzeigen");
+		attributeAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "attributeAnzeigen",
+				"Attribute anzeigen");
+		konstruktorenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "konstruktorenAnzeigen",
+				"Konstruktoren anzeigen");
+		methodenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "methodenAnzeigen",
+				"Methoden anzeigen");
+		paketnamenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "paketnamenAnzeigen",
+				"Paketnamen anzeigen");
 		erweiterteValidierungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache,
 				"erweiterteValidierungAktivieren", "Erweiterte Validierung");
 		linienRasterungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache, "linienRasterungAktivieren",
@@ -629,7 +657,8 @@ public class MenueLeisteKomponente {
 		einstellungenReset = SprachUtil.bindText(new MenuItem(), sprache, "resetEinstellungen",
 				"Einstellungen zur%ccksetzen".formatted(ue));
 		
-		einstellungenMenue.getItems().addAll(voidAnzeigen, packageModifiziererAnzeigen, parameternamenAnzeigen,
+		einstellungenMenue.getItems().addAll(paketnamenAnzeigen, attributeAnzeigen, konstruktorenAnzeigen, 
+				methodenAnzeigen, packageModifiziererAnzeigen, voidAnzeigen, parameternamenAnzeigen,
 				erweiterteValidierungAktivieren, linienRasterungAktivieren, positionsRasterungAktivieren,
 				groessenRasterungAktivieren, new SeparatorMenuItem(), theme, new SeparatorMenuItem(), info,
 				konfigurationsordnerOeffnen, konfigurationsordnerBereinigen, einstellungenReset);

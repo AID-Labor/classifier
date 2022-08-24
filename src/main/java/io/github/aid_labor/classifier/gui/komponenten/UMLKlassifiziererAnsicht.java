@@ -6,6 +6,7 @@
 
 package io.github.aid_labor.classifier.gui.komponenten;
 
+import io.github.aid_labor.classifier.basis.Einstellungen;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.InvalidationListener;
@@ -142,13 +143,17 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 				return typ == null || typ.isBlank() ? "" : "\u00AB" + typ + "\u00BB";
 			}
 		});
-		var paket = new When(umlElementModel.get().paketProperty().isNotEmpty())
+		var paket = new When(umlElementModel.get().paketProperty().isNotEmpty()
+				.and(Einstellungen.getBenutzerdefiniert().zeigePaketProperty()))
 				.then(umlElementModel.get().paketProperty().concat("::")).otherwise("");
 		this.name.textProperty().bind(paket.concat(umlElementModel.get().nameProperty()));
 		trennerBeobachter = this::checkeTrenner;
 		umlElementModel.get().attributeProperty().addListener(new WeakInvalidationListener(trennerBeobachter));
 		methoden.getChildren().addListener(new WeakInvalidationListener(trennerBeobachter));
 		konstruktoren.getChildren().addListener(new WeakInvalidationListener(trennerBeobachter));
+		attribute.visibleProperty().addListener(new WeakInvalidationListener(trennerBeobachter));
+		konstruktoren.visibleProperty().addListener(new WeakInvalidationListener(trennerBeobachter));
+		methoden.visibleProperty().addListener(new WeakInvalidationListener(trennerBeobachter));
 	}
 	
 	private void beobachte() {
@@ -174,7 +179,10 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 		boolean hatAttributOderMethode = !umlElementModel.get().attributeProperty().isEmpty()
 				|| !umlElementModel.get().methodenProperty().isEmpty()
 				|| !umlElementModel.get().konstruktorProperty().isEmpty();
-		if (hatAttributOderMethode) {
+		boolean zeigeEigenschaften = Einstellungen.getBenutzerdefiniert().zeigeAttributeProperty().get()
+				|| Einstellungen.getBenutzerdefiniert().zeigeKonstruktorenProperty().get()
+				|| Einstellungen.getBenutzerdefiniert().zeigeMethodenProperty().get();
+		if (hatAttributOderMethode && zeigeEigenschaften) {
 			if (!this.inhalt.getChildren().contains(this.eigenschaften)) {
 				this.inhalt.getChildren().add(eigenschaften);
 			}

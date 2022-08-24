@@ -555,8 +555,9 @@ class ProjektKontrolle {
 		}
 		
 		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getVererbungen()) {
-			if (klassennamen.contains(verbindung.getVerbindungsStart())
-					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
+			String start = UMLKlassifizierer.nameOhnePaket(verbindung.getVerbindungsStart());
+			String ende = UMLKlassifizierer.nameOhnePaket(verbindung.getVerbindungsEnde());
+			if (klassennamen.contains(start) && klassennamen.contains(ende)) {
 				var verbindungKopie = verbindung.erzeugeTiefeKopie();
 				verbindungKopie.setStartElement(verbindung.getStartElement());
 				verbindungKopie.setEndElement(verbindung.getEndElement());
@@ -566,8 +567,9 @@ class ProjektKontrolle {
 			}
 		}
 		for (var verbindung : ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt().getAssoziationen()) {
-			if (klassennamen.contains(verbindung.getVerbindungsStart())
-					&& klassennamen.contains(verbindung.getVerbindungsEnde())) {
+			String start = UMLKlassifizierer.nameOhnePaket(verbindung.getVerbindungsStart());
+			String ende = UMLKlassifizierer.nameOhnePaket(verbindung.getVerbindungsEnde());
+			if (klassennamen.contains(start) && klassennamen.contains(ende)) {
 				var verbindungKopie = verbindung.erzeugeTiefeKopie();
 				verbindungKopie.setStartElement(verbindung.getStartElement());
 				verbindungKopie.setEndElement(verbindung.getEndElement());

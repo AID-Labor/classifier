@@ -333,8 +333,16 @@ public class HauptAnsicht {
 		menue.getNaechsterTab().setOnAction(e -> this.projekteAnsicht.naechsterTab());
 		
 		// Menue Einstellungen
+		menue.getPaketnamenAnzeigen().selectedProperty()
+			.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigePaketProperty());
+		menue.getAttributeAnzeigen().selectedProperty()
+				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeAttributeProperty());
+		menue.getKonstruktorenAnzeigen().selectedProperty()
+			.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeKonstruktorenProperty());
+		menue.getMethodenAnzeigen().selectedProperty()
+			.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeMethodenProperty());
 		menue.getVoidAnzeigen().selectedProperty()
-				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeVoidProperty());
+			.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigeVoidProperty());
 		menue.getPackageSichtbarkeitAnzeigen().selectedProperty()
 				.bindBidirectional(Einstellungen.getBenutzerdefiniert().zeigePackageModifierProperty());
 		menue.getParameternamenAnzeigen().selectedProperty()

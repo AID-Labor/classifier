@@ -173,6 +173,10 @@ public class Einstellungen {
 	private final JsonBooleanProperty zeigePackageModifierProperty;
 	private final JsonBooleanProperty zeigeVoidProperty;
 	private final JsonBooleanProperty zeigeParameterNamenProperty;
+	private final JsonBooleanProperty zeigeAttributeProperty;
+	private final JsonBooleanProperty zeigeKonstruktorenProperty;
+	private final JsonBooleanProperty zeigeMethodenProperty;
+	private final JsonBooleanProperty zeigePaketProperty;
 	private final JsonBooleanProperty erweiterteValidierungAktivierenProperty;
 	private final JsonEnumProperty<Theme> exportThemeProperty;
 	private final JsonDoubleProperty exportSkalierungProperty;
@@ -240,6 +244,10 @@ public class Einstellungen {
 		this.linienRasterungAktivierenProperty = new JsonBooleanProperty(true);
 		this.positionRasterungAktivierenProperty = new JsonBooleanProperty(true);
 		this.groesseRasterungAktivierenProperty = new JsonBooleanProperty(true);
+		this.zeigeAttributeProperty = new JsonBooleanProperty(true);
+		this.zeigeKonstruktorenProperty = new JsonBooleanProperty(true);
+		this.zeigeMethodenProperty = new JsonBooleanProperty(true);
+		this.zeigePaketProperty = new JsonBooleanProperty(true);
 	}
 	
 	/**
@@ -330,6 +338,22 @@ public class Einstellungen {
 	 */
 	public final JsonBooleanProperty zeigeParameterNamenProperty() {
 		return zeigeParameterNamenProperty;
+	}
+	
+	public final JsonBooleanProperty zeigeAttributeProperty() {
+		return zeigeAttributeProperty;
+	}
+	
+	public final JsonBooleanProperty zeigeKonstruktorenProperty() {
+		return zeigeKonstruktorenProperty;
+	}
+	
+	public final JsonBooleanProperty zeigeMethodenProperty() {
+		return zeigeMethodenProperty;
+	}
+	
+	public final JsonBooleanProperty zeigePaketProperty() {
+		return zeigePaketProperty;
 	}
 	
 	/**

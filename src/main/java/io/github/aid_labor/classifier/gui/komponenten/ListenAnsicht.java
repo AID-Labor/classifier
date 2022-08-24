@@ -8,11 +8,13 @@ package io.github.aid_labor.classifier.gui.komponenten;
 
 import java.lang.ref.WeakReference;
 
+import javafx.beans.binding.When;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.WeakListChangeListener;
 import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
 
 
 public abstract class ListenAnsicht<T> extends GridPane {
@@ -46,6 +48,8 @@ public abstract class ListenAnsicht<T> extends GridPane {
 	public ListenAnsicht(ObservableList<T> inhaltListe) {
 		this.setMinSize(0, 0);
 		this.setVisible(!inhaltListe.isEmpty());
+		this.prefHeightProperty().bind(new When(this.visibleProperty()).then(Region.USE_COMPUTED_SIZE).otherwise(0));
+		this.prefWidthProperty().bind(new When(this.visibleProperty()).then(Region.USE_COMPUTED_SIZE).otherwise(0));
 		this.inhaltListeRef = new WeakReference<ObservableList<T>>(inhaltListe);
 		
 		WeakReference<ListenAnsicht<T>> ref = new WeakReference<ListenAnsicht<T>>(this);
