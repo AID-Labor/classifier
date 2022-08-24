@@ -15,8 +15,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierBefehl;
-import io.github.aid_labor.classifier.basis.projekt.editierung.EditierBeobachter;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
+import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 
 
 /**
@@ -32,7 +32,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
  *
  */
 @JsonSubTypes({ @JsonSubTypes.Type(value = UMLKlassifizierer.class), @JsonSubTypes.Type(value = UMLKommentar.class) })
-abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammElement, EditierBeobachter {
+abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammElement, EditierbarerBeobachter {
 //	private static final Logger log = Logger.getLogger(UMLBasisElement.class.getName());
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -115,16 +115,6 @@ abstract class UMLBasisElement extends EditierbarBasis implements UMLDiagrammEle
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	/**
-	 * Dieses Objekt leitet alle Informationen zu Editierungen weiter an seine eigenen
-	 * Beobachter
-	 */
-	@Override
-	public void verarbeiteEditierung(EditierBefehl editierung) {
-		log.finest(() -> "verarbeite " + editierung);
-		informiere(editierung);
-	}
 	
 	@Override
 	public void schliesse() throws Exception {
