@@ -58,8 +58,8 @@ public class FensterUtil {
 	 * @param minBreite   kleinste erlaubte Breite des Fensters
 	 * @param speicherort Ordner, in dem die Einstellungen fuer das Fenster gespeichert werden
 	 */
-	public static void installiereFensterwiederherstellung(Stage fenster, int minHoehe,
-			int minBreite, Path speicherort) {
+	public static void installiereFensterwiederherstellung(Stage fenster, int minHoehe, int minBreite,
+			Path speicherort) {
 		new Fensterwiederherstellung(fenster, minHoehe, minBreite, speicherort);
 	}
 	
@@ -80,26 +80,24 @@ public class FensterUtil {
 		private boolean positioniert = false;
 		
 		private DialogPositionierung(Window elternFenster, Dialog<?> dialog) {
-			Bounds position = new BoundingBox(elternFenster.getX(), elternFenster.getY(),
-					elternFenster.getWidth(), elternFenster.getHeight());
+			Bounds position = new BoundingBox(elternFenster.getX(), elternFenster.getY(), elternFenster.getWidth(),
+					elternFenster.getHeight());
 			
 			dialog.widthProperty().addListener((breite, alt, neueBreite) -> {
-				if(!positioniert) {
+				if (!positioniert) {
 					dialog.setX(position.getCenterX() - neueBreite.doubleValue() / 2);
 				}
 				
-				log.finest(() -> "Dialog %s: x=%f y=%f hoehe=%f breite=%f".formatted(
-						dialog.getTitle(), dialog.getX(), dialog.getY(), dialog.getHeight(),
-						dialog.getWidth()));
+				log.finest(() -> "Dialog %s: x=%f y=%f hoehe=%f breite=%f".formatted(dialog.getTitle(), dialog.getX(),
+						dialog.getY(), dialog.getHeight(), dialog.getWidth()));
 			});
 			dialog.heightProperty().addListener((hoehe, alt, neueHoehe) -> {
-				if(!positioniert) {
+				if (!positioniert) {
 					dialog.setY(position.getCenterY() - neueHoehe.doubleValue() / 2);
 				}
 				
-				log.finest(() -> "Dialog %s: x=%f y=%f hoehe=%f breite=%f".formatted(
-						dialog.getTitle(), dialog.getX(), dialog.getY(), dialog.getHeight(),
-						dialog.getWidth()));
+				log.finest(() -> "Dialog %s: x=%f y=%f hoehe=%f breite=%f".formatted(dialog.getTitle(), dialog.getX(),
+						dialog.getY(), dialog.getHeight(), dialog.getWidth()));
 			});
 			
 			dialog.setOnShown(e -> {
@@ -112,8 +110,7 @@ public class FensterUtil {
 			dialog.setX(position.getCenterX() - dialog.getWidth() / 2);
 			dialog.setY(position.getCenterY() - dialog.getHeight() / 2);
 			
-			dialog.getDialogPane().getStylesheets()
-					.addAll(elternFenster.getScene().getStylesheets());
+			dialog.getDialogPane().getStylesheets().addAll(elternFenster.getScene().getStylesheets());
 		}
 		
 	}
@@ -123,11 +120,7 @@ public class FensterUtil {
 		private final Stage fenster;
 		private final Path speicherort;
 		
-		private static record Fensterpositonierung(
-				double positionX,
-				double positionY,
-				double hoehe,
-				double breite) {
+		private static record Fensterpositonierung(double positionX, double positionY, double hoehe, double breite) {
 			
 			public Rectangle2D alsRectangle2D() {
 				return new Rectangle2D(positionX, positionY, breite, hoehe);
@@ -135,13 +128,12 @@ public class FensterUtil {
 			
 			@Override
 			public String toString() {
-				return "x = %f, y = %f, hoehe = %f, breite = %f".formatted(this.positionX,
-						this.positionY, this.hoehe, this.breite);
+				return "x = %f, y = %f, hoehe = %f, breite = %f".formatted(this.positionX, this.positionY, this.hoehe,
+						this.breite);
 			}
 		}
 		
-		Fensterwiederherstellung(Stage fenster, int minHoehe, int minBreite,
-				Path speicherort) {
+		Fensterwiederherstellung(Stage fenster, int minHoehe, int minBreite, Path speicherort) {
 			this.fenster = fenster;
 			this.speicherort = speicherort.resolve("fensterposition.json");
 			
@@ -152,8 +144,7 @@ public class FensterUtil {
 		}
 		
 		private void ladePostiton() {
-			try (var parser = JsonUtil
-					.getUTF8JsonParser(this.speicherort)) {
+			try (var parser = JsonUtil.getUTF8JsonParser(this.speicherort)) {
 				Fensterpositonierung position = parser.readValueAs(Fensterpositonierung.class);
 				this.fenster.setHeight(position.hoehe);
 				this.fenster.setWidth(position.breite);
@@ -182,14 +173,13 @@ public class FensterUtil {
 		}
 		
 		private void speicherFensterposition(Observable beobachtbar) {
-			var position = new Fensterpositonierung(this.fenster.getX(), this.fenster.getY(),
-					this.fenster.getHeight(), this.fenster.getWidth());
+			var position = new Fensterpositonierung(this.fenster.getX(), this.fenster.getY(), this.fenster.getHeight(),
+					this.fenster.getWidth());
 			try (var generator = JsonUtil.getUTF8JsonGenerator(this.speicherort)) {
 				generator.writePOJO(position);
 				log.finest(() -> "Gespeicherte Fensterposition: " + position);
 			} catch (IOException e) {
-				log.log(Level.WARNING, e,
-						() -> "Fensterposititon konnte nicht gespeichert werden");
+				log.log(Level.WARNING, e, () -> "Fensterposititon konnte nicht gespeichert werden");
 			}
 		}
 	}
