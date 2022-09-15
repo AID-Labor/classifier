@@ -42,10 +42,7 @@ public interface ProgrammierEigenschaften {
 	public SortedSet<String> getBekannteEnumerationen();
 	public Map<String, String> getKlassenPaketMap();
 
-
 	public Modifizierer getStandardAttributModifizierer(KlassifiziererTyp typ);
 	public Modifizierer getStandardMethodenModifizierer(KlassifiziererTyp typ);
 	public Modifizierer getStandardKonstruktorModifizierer(KlassifiziererTyp typ);
-
-	
 }
