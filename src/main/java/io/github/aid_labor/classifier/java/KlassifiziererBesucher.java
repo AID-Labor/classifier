@@ -120,9 +120,9 @@ public class KlassifiziererBesucher extends VoidVisitorAdapter<Void> {
 	@Override
 	public void visit(PackageDeclaration paketDeklaration, Void arg) {
 		this.paket = paketDeklaration.getNameAsString();
-		for (var klassifizierer : klassifiziererListe) {
+		for (var klassifizierer : this.klassifiziererListe) {
 			if (klassifizierer.getPaket() == null || klassifizierer.getPaket().isBlank()) {
-				klassifizierer.setPaket(paket);
+				klassifizierer.setPaket(this.paket);
 			}
 		}
 	}
