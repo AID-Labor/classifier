@@ -180,11 +180,9 @@ public class JavaExportImportVerarbeitung implements ExportImportVerarbeitung {
 		if (ergebnis.getResult().isPresent()) {
 			try {
 				List<UMLKlassifizierer> klassifiziererListe = new LinkedList<>();
-				List<UMLVerbindung> verbindungen = new LinkedList<>();
 				ergebnis.getResult().get().accept(new KlassifiziererBesucher(klassifiziererListe), null);
 				
 				List<UMLVerbindung> assoziationen = sucheAssoziationen(klassifiziererListe);
-				verbindungen.addAll(assoziationen);
 				
 				return new ImportErgebnis(klassifiziererListe, assoziationen, erzeugeFehler(ergebnis, quelle));
 			} catch (Exception e) {
