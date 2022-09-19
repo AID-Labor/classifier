@@ -1,6 +1,6 @@
 @echo off
-rem ---- Benoetigte Informationen in Variablen speichern ---------------------------------------------- rem Mit den folgeneden Variablen koennen die Grundlegenden Daten fuer das Projekt rem eingestellt werden:
-rem Mit den folgeneden Variablen koennen die Grundlegenden Daten fuer das Projekt # eingestellt werden:
+rem ---- Benoetigte Informationen in Variablen speichern ----------------------------------------------
+rem Mit den folgeneden Variablen koennen die Grundlegenden Daten fuer das Projekt eingestellt werden:
 set NAME=Classifier
 set DESCRIPTION=UML-Klassenmodellierung
 rem Version muss groesser gleich 1.0.0 sein!
@@ -29,7 +29,8 @@ rem ---- Eingabeordner leeren --------------------------------------------------
 if exist %INPUT% del /Q %INPUT%
 if exist %OUT% del /Q %OUT%
 
-rem ---- Maven build ---------------------------------------------------------------------------------- echo.
+rem ---- Maven build ----------------------------------------------------------------------------------
+echo.
 echo Maven build durchfuehren
 echo.
 call mvn clean install
@@ -119,5 +120,6 @@ ren %OUT%\%NAME%-%VERSION%.msi %NAME%-%VERSION%-windows-install.msi
 echo.
 echo.
 
-rem ---- Auf Bestaetigung von Benutzer warten --------------------------------------------------------- echo "Zum Abschliessen eine beliebige Taste druecken"
+rem ---- Auf Bestaetigung von Benutzer warten ---------------------------------------------------------
+echo "Zum Abschliessen eine beliebige Taste druecken"
 pause
