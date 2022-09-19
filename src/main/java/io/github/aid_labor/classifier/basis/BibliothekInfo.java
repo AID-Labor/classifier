@@ -39,7 +39,7 @@ public record BibliothekInfo (
 	 * @author Tim Muehle
 	 *
 	 */
-	public record LizenzInfo (
+	public static record LizenzInfo (
 			String name,
 			String link
 	) {
@@ -62,9 +62,8 @@ public record BibliothekInfo (
 			return json.readValueAs(BibliothekInfo.class);
 		} catch (IOException e) {
 			log.log(Level.WARNING, e, () -> "BibliothekInfo konnte nicht aus json %s erzeugt werden".formatted(jsondatei));
+			return null;
 		}
-		
-		return null;
 	}
 	
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
