@@ -110,7 +110,7 @@ echo '1) -----------------------'
 echo ''
 echo copy program to /opt/
 cp -rv --copy-contents ./opt/* /opt/
-EXIT_CODE=\$(expr $EXIT_CODE + \$?)
+EXIT_CODE=\$(expr \$EXIT_CODE + \$?)
 
 echo ''
 echo '2) -----------------------'
@@ -118,7 +118,7 @@ echo ''
 echo copy desktop-file for Application-Menu to /usr/share/applications/
 mkdir --parents /usr/share/applications
 cp -v --copy-contents ./opt/*/lib/*.desktop /usr/share/applications/
-EXIT_CODE=\$(expr $EXIT_CODE + \$?)
+EXIT_CODE=\$(expr \$EXIT_CODE + \$?)
 
 echo ''
 echo '--------------------------'
@@ -146,14 +146,14 @@ echo '1) -----------------------'
 echo ''
 echo delete program path
 rm -rfv /opt/${NAME_KLEIN}
-EXIT_CODE=\$(expr $EXIT_CODE + \$?)
+EXIT_CODE=\$(expr \$EXIT_CODE + \$?)
 
 echo ''
 echo '2) -----------------------'
 echo ''
 echo delete desktop-file
 rm -v /usr/share/applications/${NAME_KLEIN}-${NAME}.desktop
-EXIT_CODE=\$(expr $EXIT_CODE + \$?)
+EXIT_CODE=\$(expr \$EXIT_CODE + \$?)
 
 echo ''
 echo '--------------------------'
