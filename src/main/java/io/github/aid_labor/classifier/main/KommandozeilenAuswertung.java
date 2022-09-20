@@ -59,11 +59,11 @@ class KommandozeilenAuswertung {
 	KommandozeilenAuswertung(String[] args, ProgrammDetails programm) {
 		this.args = args;
 		this.programm = programm;
-		debug = builder("d").longOpt("debug").desc("Schlatet Debug-Meldungen ein")
+		debug = builder("d").longOpt("debug").desc("Schaltet Debug-Meldungen ein")
 				.build();
-		debugCSS = builder().longOpt("debug-css").desc("Schlatet CSS-Auto-Update ein")
+		debugCSS = builder().longOpt("debug-css").desc("Schaltet CSS-Auto-Update ein")
 				.build();
-		info = builder("i").longOpt("info").desc("Schlatet Info-Meldungen ein").build();
+		info = builder("i").longOpt("info").desc("Schaltet Info-Meldungen ein").build();
 		
 		loglevel = builder().longOpt("log").argName("level").hasArg().desc("""
 				Bestimmt, welche Logging-Informationen ausgegeben werden. Moegliche Werte sind:
@@ -72,7 +72,7 @@ class KommandozeilenAuswertung {
 				.type(String.class).build();
 		loglevelJavaFX = builder().longOpt("log-javafx").argName("level").hasArg()
 				.desc("""
-						Bestimmt, welche Logging-Informationen von javaFX ausgegeben werden. \
+						Bestimmt, welche Logging-Informationen von JavaFX ausgegeben werden. \
 						Moegliche Werte sind:
 						%s
 						Der Standardwert ist WARNING"""
