@@ -594,8 +594,8 @@ public class MenueLeisteKomponente {
 	
 	private Menu erstelleFensterMenue() {
 		Menu fensterMenue = SprachUtil.bindText(new Menu(), sprache, "fensterMenue", "Fenster");
-		vorherigerTab = SprachUtil.bindText(new MenuItem(), sprache, "vorherigerTab", "vorheriger Tab");
-		naechsterTab = SprachUtil.bindText(new MenuItem(), sprache, "naechsterTab", "n%cchster Tab".formatted(ae));
+		vorherigerTab = SprachUtil.bindText(new MenuItem(), sprache, "vorherigerTab", "Vorheriger Tab");
+		naechsterTab = SprachUtil.bindText(new MenuItem(), sprache, "naechsterTab", "N%cchster Tab".formatted(ae));
 		
 		fensterMenue.getItems().addAll(vorherigerTab, naechsterTab);
 		
@@ -606,7 +606,7 @@ public class MenueLeisteKomponente {
 	
 	private Menu erstelleEinstellungenMenue() {
 		Menu einstellungenMenue = SprachUtil.bindText(new Menu(), sprache, "einstellungenMenue", "Einstellungen");
-		voidAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "voidAnzeigen", "void anzeigen");
+		voidAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "voidAnzeigen", "'void' anzeigen");
 		packageModifiziererAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "packageModifiziererAnzeigen",
 				"Sichtbarkeit 'package' anzeigen");
 		parameternamenAnzeigen = SprachUtil.bindText(new CheckMenuItem(), sprache, "parameternamenAnzeigen",
