@@ -11,6 +11,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,6 +43,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 import javafx.collections.WeakListChangeListener;
 
 
@@ -101,6 +103,10 @@ public class UMLProjekt extends ProjektBasis {
 	private final ObservableList<UMLVerbindung> vererbungen;
 	private final ObservableList<UMLVerbindung> assoziationen;
 	@JsonIgnore
+	private final ObservableSet<StringProperty> elementNamenPrivate;
+	@JsonIgnore
+	private final ObservableSet<StringProperty> elementNamenUnmodifiable;
+	@JsonIgnore
 	private final Map<String, ChangeListener<String>> superklassenBeobachter = new HashMap<>();
 	@JsonIgnore
 	private final Map<String, ListChangeListener<String>> interfaceBeobachter = new HashMap<>();
@@ -140,6 +146,9 @@ public class UMLProjekt extends ProjektBasis {
 		});
 		this.vererbungen = FXCollections.observableArrayList();
 		this.assoziationen = FXCollections.observableArrayList();
+		this.elementNamenPrivate = FXCollections.observableSet(new HashSet<>());
+		this.elementNamenUnmodifiable = FXCollections.unmodifiableObservableSet(this.elementNamenPrivate);
+		
 		
 		// Diagramm-Elemente auf Aenderung Ueberwachen (sowhol die Liste als auch geaenderte
 		// Objekte in der Liste)
@@ -220,6 +229,11 @@ public class UMLProjekt extends ProjektBasis {
 		return assoziationen;
 	}
 	
+	@JsonIgnore
+	public ObservableSet<StringProperty> getElementNamen() {
+        return elementNamenUnmodifiable;
+	}
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -281,6 +295,7 @@ public class UMLProjekt extends ProjektBasis {
 	public void close() throws Exception {
 		log.finest(() -> this + " leere diagrammelemente");
 		this.setUeberwachungsStatus(UeberwachungsStatus.IGNORIEREN);
+		this.elementNamenPrivate.clear();
 		for (var element : getDiagrammElemente()) {
 			element.setDarfGeschlossenWerden(true);
 			element.close();
@@ -317,6 +332,8 @@ public class UMLProjekt extends ProjektBasis {
 					if (!(element instanceof UMLKlassifizierer klassifizierer)) {
 						continue;
 					}
+					
+					this.elementNamenPrivate.remove(klassifizierer.nameProperty());
 					vererbungen.removeIf(v -> Objects.equals(v.getVerbindungsStart(), klassifizierer.getName()));
 					assoziationen.removeIf(v -> Objects.equals(v.getVerbindungsStart(), klassifizierer.getName()));
 					
@@ -344,6 +361,7 @@ public class UMLProjekt extends ProjektBasis {
 						continue;
 					}
 					
+					this.elementNamenPrivate.add(klassifizierer.nameProperty());
 					vererbungen.removeAll(zuEntfernendeVerbindungen);
 					zuEntfernendeVerbindungen.clear();
 					
@@ -386,6 +404,7 @@ public class UMLProjekt extends ProjektBasis {
 					var nameUeberwacher = ueberwacheName(klassifizierer);
 					namenBeobachter.put(klassifizierer.getName(), nameUeberwacher);
 					
+					klassifizierer.setUMLProjekt(this);
 					element.setDarfGeschlossenWerden(false);
 				}
 			}
