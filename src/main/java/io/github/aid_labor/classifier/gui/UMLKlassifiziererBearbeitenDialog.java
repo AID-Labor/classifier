@@ -373,7 +373,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         StackPane container = new StackPane(allgemeinAnzeige, attributeAnzeige, konstruktorenAnzeige, methodenAnzeige,
                 assoziationAnzeige, vererbungAnzeige);
         container.setPadding(new Insets(0, 20, 10, 20));
-        container.setMaxWidth(Region.USE_PREF_SIZE);
         container.setAlignment(Pos.TOP_CENTER);
         BorderPane.setAlignment(container, Pos.TOP_CENTER);
         wurzel.setCenter(container);
@@ -696,7 +695,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
     private <T> Pane erzeugeTabellenAnzeige(ObservableList<T> inhalt, Collection<TableColumn<T, ?>> spalten,
             EventHandler<ActionEvent> neuAktion) {
         TableView<T> tabelle = new TableView<>(inhalt);
-//		tabelle.setPlaceholder(new Label(""));
         tabelle.getColumns().addAll(spalten);
         tabelle.setEditable(true);
 
@@ -708,23 +706,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         tabellenButtons.setSpacing(5);
         tabellenButtons.setAlignment(Pos.CENTER_LEFT);
         tabellenButtons.setPadding(new Insets(5, 0, 0, 0));
+        tabelle.setPadding(new Insets(0));
 
         BorderPane ansicht = new BorderPane();
-        ansicht.setMaxWidth(Region.USE_PREF_SIZE);
-        var scrollContainer = new ScrollPane(tabelle);
-        scrollContainer.getStyleClass().add("edge-to-edge");
-        ansicht.setCenter(scrollContainer);
+        ansicht.setCenter(tabelle);
         ansicht.setBottom(tabellenButtons);
-
-        Platform.runLater(() -> {
-            var vBar = ((ScrollPaneSkin) scrollContainer.getSkin()).getVerticalScrollBar();
-            scrollContainer.prefWidthProperty().bind(tabelle.widthProperty()
-                    .add(new When(vBar.visibleProperty()).then(vBar.widthProperty()).otherwise(0)));
-            loeseBindungen.add(scrollContainer.prefWidthProperty()::unbind);
-        });
-
-        NodeUtil.beobachteSchwach(tabelle, tabelle.widthProperty(),
-                () -> Platform.runLater(scrollContainer::requestLayout));
 
         return ansicht;
     }
@@ -774,12 +760,14 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         getterSpalte.setCellValueFactory(param -> param.getValue().hatGetterProperty());
         getterSpalte.setEditable(true);
         getterSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        getterSpalte.setMinWidth(Region.USE_PREF_SIZE);
         
         TableColumn<Attribut, Boolean> setterSpalte = new TableColumn<>();
         SprachUtil.bindText(setterSpalte.textProperty(), sprache, "setter", "Setter");
         setterSpalte.setCellValueFactory(param -> param.getValue().hatSetterProperty());
         setterSpalte.setEditable(true);
         setterSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        setterSpalte.setMinWidth(Region.USE_PREF_SIZE);
         
         TableColumn<Attribut, Boolean> staticSpalte = new TableColumn<>();
         SprachUtil.bindText(staticSpalte.textProperty(), sprache, "static", "static");
@@ -788,16 +776,19 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         });
         staticSpalte.setEditable(true);
         staticSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        staticSpalte.setMinWidth(Region.USE_PREF_SIZE);
         
         TableColumn<Attribut, Boolean> finalSpalte = new TableColumn<>();
         SprachUtil.bindText(finalSpalte.textProperty(), sprache, "final", "final");
         finalSpalte.setCellValueFactory(param -> param.getValue().istFinalProperty());
         finalSpalte.setEditable(true);
         finalSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        finalSpalte.setMinWidth(Region.USE_PREF_SIZE);
         
         TableColumn<Attribut, Attribut> kontrollSpalte = new TableColumn<>();
         kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
         kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
+        kontrollSpalte.setResizable(false);
         
         return List.of(sichtbarkeitSpalte, nameSpalte, datentypSpalte, initialwertSpalte, getterSpalte, setterSpalte,
                 staticSpalte, finalSpalte, kontrollSpalte);

@@ -157,6 +157,32 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Tab-Pane                                                                                                                  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+.table-row-cell, .table-view .table-cell, .check-box-table-cell {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-alignment: center;
+}
+
+.table-view .table-cell:filled {
+    -fx-border-color: -fx-background;
+}
+
+.table-view .table-cell:empty {
+    -fx-border-color: transparent;
+}
+
+.table-view, .table-view:focused {
+    -fx-background-color: transparent;
+    -fx-fixed-cell-size: 40px;
+    -fx-selection-bar: transparent;
+    -fx-selection-bar-non-focused: transparent;
+}
+
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * Tab-Pane                                                                                                                  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 .tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
     -fx-padding: 0 5 0 0;

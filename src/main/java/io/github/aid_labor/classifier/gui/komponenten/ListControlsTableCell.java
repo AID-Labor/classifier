@@ -22,6 +22,7 @@ import javafx.collections.FXCollections;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 
 public class ListControlsTableCell<S> extends TableCell<S, S> {
 
@@ -109,8 +110,10 @@ public class ListControlsTableCell<S> extends TableCell<S, S> {
         
         this.controlElements = new HBox(hoch, runter, loeschen);
         controlElements.setSpacing(10);
+        controlElements.setMinWidth(Region.USE_PREF_SIZE);
         // by default the graphic is null until the cell stops being empty
         setGraphic(null);
+        this.minWidthProperty().bind(controlElements.minWidthProperty());
     }
 
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
