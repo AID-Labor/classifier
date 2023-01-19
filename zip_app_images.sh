@@ -1,4 +1,4 @@
-VERSION="1.1.2"
+VERSION="1.1.3"
 NAME="Classifier"
 OUT="auslieferung/${VERSION}"
 MAC="${OUT}/macOS/app"
