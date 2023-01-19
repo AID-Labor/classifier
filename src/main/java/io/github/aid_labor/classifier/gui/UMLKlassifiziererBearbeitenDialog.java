@@ -101,7 +101,6 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.scene.control.skin.ScrollPaneSkin;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -760,14 +759,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         getterSpalte.setCellValueFactory(param -> param.getValue().hatGetterProperty());
         getterSpalte.setEditable(true);
         getterSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        getterSpalte.setMinWidth(Region.USE_PREF_SIZE);
         
         TableColumn<Attribut, Boolean> setterSpalte = new TableColumn<>();
         SprachUtil.bindText(setterSpalte.textProperty(), sprache, "setter", "Setter");
         setterSpalte.setCellValueFactory(param -> param.getValue().hatSetterProperty());
         setterSpalte.setEditable(true);
         setterSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        setterSpalte.setMinWidth(Region.USE_PREF_SIZE);
         
         TableColumn<Attribut, Boolean> staticSpalte = new TableColumn<>();
         SprachUtil.bindText(staticSpalte.textProperty(), sprache, "static", "static");
@@ -776,14 +773,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         });
         staticSpalte.setEditable(true);
         staticSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        staticSpalte.setMinWidth(Region.USE_PREF_SIZE);
         
         TableColumn<Attribut, Boolean> finalSpalte = new TableColumn<>();
         SprachUtil.bindText(finalSpalte.textProperty(), sprache, "final", "final");
         finalSpalte.setCellValueFactory(param -> param.getValue().istFinalProperty());
         finalSpalte.setEditable(true);
         finalSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        finalSpalte.setMinWidth(Region.USE_PREF_SIZE);
         
         TableColumn<Attribut, Attribut> kontrollSpalte = new TableColumn<>();
         kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
@@ -902,10 +897,24 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         TableColumn<Methode, Modifizierer> sichtbarkeitSpalte = new TableColumn<>();
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
+        var modifiziererCellBuilder = CustomNodeTableCell.builder(Methode.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>)(Class<?>)ComboBox.class)
+                .nodeFactory(() -> {
+                    ComboBox<Modifizierer> modifiziererCombo = new ComboBox<>();
+                    modifiziererCombo.getItems().setAll(getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                            .getMethodenModifizierer(getKlassifizierer().getTyp(), false, false));
+                    return modifiziererCombo;
+                })
+                .getProperty(combo -> combo.valueProperty())
+                .getValue(combo -> combo.getSelectionModel().getSelectedItem())
+                .setValue((combo, v) -> combo.getSelectionModel().select(v));
+        sichtbarkeitSpalte.setEditable(true);
+        sichtbarkeitSpalte.setCellFactory(spalte -> modifiziererCellBuilder.build());
 
         TableColumn<Methode, String> nameSpalte = new TableColumn<>();
         SprachUtil.bindText(nameSpalte.textProperty(), sprache, "methodenname", "Methodenname");
         nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
+        nameSpalte.setEditable(true);
+        nameSpalte.setCellFactory(col -> new OnlyTextFieldTableCell<>());
 
         TableColumn<Methode, String> parameterlisteSpalte = new TableColumn<>();
         SprachUtil.bindText(parameterlisteSpalte.textProperty(), sprache, "parameterliste", "Parameterliste");
@@ -960,19 +969,30 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         TableColumn<Methode, Boolean> abstraktSpalte = new TableColumn<>();
         SprachUtil.bindText(abstraktSpalte.textProperty(), sprache, "abstrakt", "abstrakt");
         abstraktSpalte.setCellValueFactory(param -> param.getValue().istAbstraktProperty());
+        abstraktSpalte.setEditable(true);
+        abstraktSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
 
         TableColumn<Methode, Boolean> staticSpalte = new TableColumn<>();
         SprachUtil.bindText(staticSpalte.textProperty(), sprache, "static", "static");
         staticSpalte.setCellValueFactory(param -> {
             return param.getValue().istStatischProperty();
         });
+        staticSpalte.setEditable(true);
+        staticSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
 
         TableColumn<Methode, Boolean> finalSpalte = new TableColumn<>();
         SprachUtil.bindText(finalSpalte.textProperty(), sprache, "final", "final");
         finalSpalte.setCellValueFactory(param -> param.getValue().istStatischProperty());
+        finalSpalte.setEditable(true);
+        finalSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        
+        TableColumn<Methode, Methode> kontrollSpalte = new TableColumn<>();
+        kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
+        kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
+        kontrollSpalte.setResizable(false);
 
         return List.of(sichtbarkeitSpalte, nameSpalte, parameterlisteSpalte, rueckgabeSpalte, abstraktSpalte,
-                staticSpalte, finalSpalte);
+                staticSpalte, finalSpalte, kontrollSpalte);
     }
 
     private Node[] erstelleMethodenZeile(Methode methode, KontrollElemente<Methode> kontrollelemente) {
@@ -1233,10 +1253,23 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         TableColumn<Konstruktor, Modifizierer> sichtbarkeitSpalte = new TableColumn<>();
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
+        var modifiziererCellBuilder = CustomNodeTableCell.builder(Konstruktor.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>)(Class<?>)ComboBox.class)
+                .nodeFactory(() -> {
+                    ComboBox<Modifizierer> modifiziererCombo = new ComboBox<>();
+                    modifiziererCombo.getItems().setAll(getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                            .getKonstruktorModifizierer(getKlassifizierer().getTyp()));
+                    return modifiziererCombo;
+                })
+                .getProperty(combo -> combo.valueProperty())
+                .getValue(combo -> combo.getSelectionModel().getSelectedItem())
+                .setValue((combo, v) -> combo.getSelectionModel().select(v));
+        sichtbarkeitSpalte.setCellFactory(spalte -> modifiziererCellBuilder.build());
 
         TableColumn<Konstruktor, String> nameSpalte = new TableColumn<>();
         SprachUtil.bindText(nameSpalte.textProperty(), sprache, "konstruktorname", "Konstruktorname");
         nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
+        nameSpalte.setEditable(true);
+        nameSpalte.setCellFactory(col -> new OnlyTextFieldTableCell<>());
 
         TableColumn<Konstruktor, String> parameterlisteSpalte = new TableColumn<>();
         SprachUtil.bindText(parameterlisteSpalte.textProperty(), sprache, "parameterliste", "Parameterliste");
@@ -1277,8 +1310,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             loeseBindungen.add(parameter::unbind);
             return parameter;
         });
+        
+        TableColumn<Konstruktor, Konstruktor> kontrollSpalte = new TableColumn<>();
+        kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
+        kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
+        kontrollSpalte.setResizable(false);
 
-        return List.of(sichtbarkeitSpalte, nameSpalte, parameterlisteSpalte);
+        return List.of(sichtbarkeitSpalte, nameSpalte, parameterlisteSpalte, kontrollSpalte);
     }
 
     private Node[] erstelleKonstruktorZeile(Konstruktor konstruktor, KontrollElemente<Konstruktor> kontrollelemente) {
