@@ -302,6 +302,25 @@ public final class NodeUtil {
 		return bewegung.wirdBewegt;
 	}
 	
+	public static void starteBewegung(Node element, MouseEvent event) {
+	    Object obj = element.getProperties().getOrDefault("bewegungsEinstellung", new BewegungsEinstellungen());
+        if (!(obj instanceof BewegungsEinstellungen bewegung)) {
+            log.warning(() -> "unbekanntes Objekt fuer Schluessel 'bewegungsEinstellung'. " + " Node " + element
+                    + " kann nicht beweglich gemacht werden!");
+            return;
+        }
+        
+	    log.finer(() -> "Starte Bewegung");
+        bewegung.ausgangsPosition = element.getBoundsInParent();
+        bewegung.letzterCursor = element.getCursor();
+        element.setCursor(Cursor.CLOSED_HAND);
+        bewegung.wirdBewegt = true;
+        bewegung.mausStartX = event.getSceneX();
+        bewegung.mausStartY = event.getSceneY();
+        bewegung.positionStartX = element.getTranslateX();
+        bewegung.positionStartY = element.getTranslateY();
+	}
+	
 	public static void macheBeweglich(Node element, Runnable vorBewegung, BiConsumer<Bounds, Bounds> nachBewegung) {
 		Object obj = element.getProperties().getOrDefault("bewegungsEinstellung", new BewegungsEinstellungen());
 		if (!(obj instanceof BewegungsEinstellungen bewegung)) {

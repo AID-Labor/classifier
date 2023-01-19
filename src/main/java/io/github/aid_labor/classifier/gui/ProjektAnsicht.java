@@ -392,6 +392,7 @@ public class ProjektAnsicht extends Tab {
 		}
 	}
 	
+	boolean multiMoved = false;
 	private void fuegeHinzu(UMLElementBasisAnsicht<? extends UMLDiagrammElement> ansicht, int index) {
 		this.zeichenflaeche.getChildren().add(index, ansicht);
 		ansicht.getUmlElement().setId(idZaehler);
@@ -400,26 +401,41 @@ public class ProjektAnsicht extends Tab {
 		
 		ansicht.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
 			if (e.getButton().equals(MouseButton.PRIMARY)) {
-				boolean multiSelektion = OS.getDefault().istMacOS() && e.isMetaDown()
-						|| !OS.getDefault().istMacOS() && e.isControlDown();
-				if (!multiSelektion) {
-					selektion.clear();
-				}
+				if (selektion.size() > 1 && e.getTarget() != ansicht && selektion.contains(ansicht)) {
+                    for (var element: selektion) {
+                        if (!e.getSource().equals(element)) {
+                            NodeUtil.starteBewegung(element, e);
+                        }
+                    }
+                }
 			}
 		});
+		
+		ansicht.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
+            if (selektion.size() > 1 && e.getTarget() != ansicht) {
+                for (var element: selektion) {
+                    if (!e.getSource().equals(element)) {
+                        var eventCopy = e.copyFor(e.getSource(), element);
+                        element.fireEvent(eventCopy);
+                    }
+                }
+                multiMoved = true;
+            }
+        });
 		
 		ansicht.addEventFilter(MouseEvent.MOUSE_RELEASED, e -> {
 			if (e.getButton().equals(MouseButton.PRIMARY)) {
 				boolean multiSelektion = OS.getDefault().istMacOS() && e.isMetaDown()
 						|| !OS.getDefault().istMacOS() && e.isControlDown();
-				if (!multiSelektion) {
+				if (!multiSelektion && !multiMoved) {
 					selektion.clear();
 				}
-				if (selektion.contains(ansicht)) {
+				if (selektion.contains(ansicht) && !multiMoved) {
 					selektion.remove(ansicht);
 				} else {
 					selektion.add(ansicht);
 				}
+				multiMoved = false;
 				e.consume();
 			}
 		});
