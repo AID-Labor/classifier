@@ -64,16 +64,20 @@ public class DatentypFeld extends SearchField<String> {
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	private final ValidationSupport validierung;
 	private final SortedSet<String> bekannteDatentypen;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
+	
 	public DatentypFeld(String startText, boolean voidErlaubt, Programmiersprache programmiersprache,
-			ValidationSupport validierung) {
-		this.validierung = validierung;
+	        ValidationSupport validierung) {
+	    this(startText, voidErlaubt, programmiersprache);
+	    System.err.println("DatentypFeld: Validierung nicht mehr unterstützt!");
+	}
+	
+	public DatentypFeld(String startText, boolean voidErlaubt, Programmiersprache programmiersprache) {
 		setSelectedItem(startText);
 		setText(startText);
 		cancel();
@@ -172,7 +176,6 @@ public class DatentypFeld extends SearchField<String> {
 		
 		setSelectedItem(eingabe);
 		super.commit();
-		validierung.revalidate();
 		wirdUpgedatet = false;
 	}
 	
