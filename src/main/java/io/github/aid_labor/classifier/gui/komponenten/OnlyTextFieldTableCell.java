@@ -5,7 +5,9 @@
  */
 package io.github.aid_labor.classifier.gui.komponenten;
 
-import javafx.beans.binding.Bindings;
+import java.util.function.Function;
+
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
@@ -43,6 +45,7 @@ public class OnlyTextFieldTableCell<S,T> extends TableCell<S,T> {
     private final TextField textField;
     private StringConverter<T> converter;
     private boolean keyPressed = false;
+    private final Function<S, BooleanProperty> disableBinding;
     
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -51,9 +54,14 @@ public class OnlyTextFieldTableCell<S,T> extends TableCell<S,T> {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	public OnlyTextFieldTableCell(StringConverter<T> converter) {
+    public OnlyTextFieldTableCell(StringConverter<T> converter) {
+        this(converter, null);
+    }
+    
+	public OnlyTextFieldTableCell(StringConverter<T> converter, Function<S, BooleanProperty> disableBinding) {
 	    this.converter = converter;
 	    this.textField = new TextField();
+	    this.disableBinding = disableBinding;
 	    
 	    textField.setOnAction(event -> {
 	        if (getConverter() == null) {
@@ -74,26 +82,30 @@ public class OnlyTextFieldTableCell<S,T> extends TableCell<S,T> {
     }
 	
 	public OnlyTextFieldTableCell() {
-        this(new StringConverter<>() {
-
-            @Override
-            public String toString(T object) {
-                return String.valueOf(object);
-            }
-
-            @Override
-            @SuppressWarnings("unchecked")
-            public T fromString(String string) {
-                T value;
-                try {
-                    value = (T) string;
-                } catch (Exception e) {
-                    throw new UnsupportedOperationException("Value cannot be converted from String! Please provide a custom StringConverter.", e);
-                }
-                return value;
-            }
-        });
+        this((Function<S, BooleanProperty>)null);
     }
+	
+	public OnlyTextFieldTableCell(Function<S, BooleanProperty> disableBinding) {
+	    this(new StringConverter<>() {
+	        
+	        @Override
+	        public String toString(T object) {
+	            return String.valueOf(object);
+	        }
+	        
+	        @Override
+	        @SuppressWarnings("unchecked")
+	        public T fromString(String string) {
+	            T value;
+	            try {
+	                value = (T) string;
+	            } catch (Exception e) {
+	                throw new UnsupportedOperationException("Value cannot be converted from String! Please provide a custom StringConverter.", e);
+	            }
+	            return value;
+	        }
+	    }, disableBinding);
+	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -176,11 +188,9 @@ public class OnlyTextFieldTableCell<S,T> extends TableCell<S,T> {
                 textField.textProperty().bindBidirectional(boundProp, converter);
             }
             setGraphic(textField);
-            textField.disableProperty().bind(Bindings.not(
-                    getTableView().editableProperty().and(
-                    getTableColumn().editableProperty()).and(
-                    editableProperty())
-                ));
+            if (disableBinding != null) {
+                textField.disableProperty().bind(disableBinding.apply(getTableView().getItems().get(getIndex())));
+            }
         }
     }
 	

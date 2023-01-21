@@ -42,7 +42,6 @@ import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.KlassifiziererTyp;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
 import javafx.application.HostServices;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.collections.SetChangeListener;
@@ -93,7 +92,6 @@ public class HauptAnsicht {
 	private final RibbonKomponente ribbonKomponente;
 	private final HostServices rechnerService;
 	private final BooleanBinding hatKeinProjekt;
-	private final BooleanBinding zuVieleVerbindungen;
 	private final Runnable easterEgg;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -111,8 +109,6 @@ public class HauptAnsicht {
 		this.rechnerService = rechnerService;
 		this.easterEgg = easterEgg;
 		this.hatKeinProjekt = projekteAnsicht.angezeigtesProjektProperty().isNull();
-		
-		this.zuVieleVerbindungen = erstelleAnzahlVerbindungenBindung();
 		
 		boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
 				"HauptAnsicht");
@@ -213,59 +209,6 @@ public class HauptAnsicht {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	private BooleanBinding erstelleAnzahlVerbindungenBindung() {
-		return new BooleanBinding() {
-			private Observable bindung1;
-			private Observable bindung2;
-			
-			{
-				super.bind(projekteAnsicht.angezeigtesProjektProperty());
-			}
-			
-			@Override
-			protected boolean computeValue() {
-				var projekt = projekteAnsicht.getAngezeigtesProjekt();
-				if (projekt != null) {
-					checkeBindung1(projekt);
-					checkeBindung2(projekt);
-					return projekt.getVererbungen().size() > 50 || projekt.getAssoziationen().size() > 50;
-				} else {
-					if (bindung1 != null) {
-						super.unbind(bindung1);
-						bindung1 = null;
-					}
-					if (bindung2 != null) {
-						super.unbind(bindung2);
-						bindung2 = null;
-					}
-				}
-				return false;
-			}
-			
-			private void checkeBindung1(UMLProjekt projekt) {
-				if (bindung1 != null && !bindung1.equals(projekt.getVererbungen())) {
-					super.unbind(bindung1);
-					super.bind(projekt.getVererbungen());
-					bindung1 = projekt.getVererbungen();
-				} else if (bindung1 == null) {
-					super.bind(projekt.getVererbungen());
-					bindung1 = projekt.getVererbungen();
-				}
-			}
-			
-			private void checkeBindung2(UMLProjekt projekt) {
-				if (bindung2 != null && !bindung2.equals(projekt.getAssoziationen())) {
-					super.unbind(bindung2);
-					super.bind(projekt.getAssoziationen());
-					bindung2 = projekt.getAssoziationen();
-				} else if (bindung2 == null) {
-					super.bind(projekt.getAssoziationen());
-					bindung2 = projekt.getAssoziationen();
-				}
-			}
-		};
-	}
 	
 	// =====================================================================================
 	// Beginn Menue
@@ -385,8 +328,8 @@ public class HauptAnsicht {
 		menue.getExportierenBild().disableProperty().bind(hatKeinProjekt);
 		menue.getDateiImportieren().disableProperty().bind(hatKeinProjekt);
 		menue.getExportierenQuellcode().disableProperty().bind(hatKeinProjekt);
-		menue.getVererbungEinfuegen().disableProperty().bind(hatKeinProjekt.or(zuVieleVerbindungen));
-		menue.getAssoziationEinfuegen().disableProperty().bind(hatKeinProjekt.or(zuVieleVerbindungen));
+		menue.getVererbungEinfuegen().disableProperty().bind(hatKeinProjekt);
+        menue.getAssoziationEinfuegen().disableProperty().bind(hatKeinProjekt);
 		
 		// Menue Bearbeiten
 		this.projekteAnsicht.angezeigtesProjektProperty().addListener((p, alt, projekt) -> {
@@ -533,8 +476,8 @@ public class HauptAnsicht {
 		ribbon.getNeueEnumeration().disableProperty().bind(hatKeinProjekt);
 		ribbon.getKommentar().disableProperty().bind(hatKeinProjekt);
 		ribbon.getScreenshot().disableProperty().bind(hatKeinProjekt);
-		ribbon.getVererbung().disableProperty().bind(hatKeinProjekt.or(zuVieleVerbindungen));
-		ribbon.getAssoziation().disableProperty().bind(hatKeinProjekt.or(zuVieleVerbindungen));
+		ribbon.getVererbung().disableProperty().bind(hatKeinProjekt);
+        ribbon.getAssoziation().disableProperty().bind(hatKeinProjekt);
 		ribbon.getImportieren().disableProperty().bind(hatKeinProjekt);
 		ribbon.getExportieren().disableProperty().bind(hatKeinProjekt);
 		

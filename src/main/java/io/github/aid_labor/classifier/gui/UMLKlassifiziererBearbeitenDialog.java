@@ -144,7 +144,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
     private final ValidationSupport eingabeValidierung;
     private final List<ChangeListener<KlassifiziererTyp>> typBeobachterListe;
     private final List<ChangeListener<ValidationResult>> validierungsBeobachter;
-    private final List<String> vorhandeneElementNamen;
     private final List<Runnable> loeseBindungen;
     private final SortedMap<String, UMLKlassifizierer> klassenSuchBaum;
     private final List<String> vorhandeneKlassen;
@@ -163,8 +162,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         this.typBeobachterListe = new LinkedList<>();
         this.validierungsBeobachter = new LinkedList<>();
         this.loeseBindungen = new LinkedList<>();
-        this.vorhandeneElementNamen = projekt.getDiagrammElemente().parallelStream()
-                .filter(element -> element.getId() != klassifizierer.getId()).map(UMLDiagrammElement::getName).toList();
         List<UMLKlassifizierer> klassen = projekt.getDiagrammElemente().stream()
                 .filter(UMLKlassifizierer.class::isInstance).map(UMLKlassifizierer.class::cast).toList();
         this.klassenSuchBaum = new TreeMap<>(
@@ -349,8 +346,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         assoziationAnzeige.setVerbindungenFilter(v -> {
             try {
                 return v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
-                        && klassifizierer.getNameVollstaendig().equals(v.getVerbindungsStart());
+                        && klassifizierer.getName().equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsStart()));
             } catch (Exception e) {
+                e.printStackTrace();
                 return false;
             }
         });
@@ -362,9 +360,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         vererbungAnzeige.setVerbindungenFilter(v -> {
             try {
                 return !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
-                        && (klassifizierer.getNameVollstaendig().equals(v.getVerbindungsStart())
-                                || klassifizierer.getNameVollstaendig().equals(v.getVerbindungsEnde()));
+                        && (klassifizierer.getName().equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsStart()))
+                                || klassifizierer.getName().equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsEnde())));
             } catch (Exception e) {
+                e.printStackTrace();
                 return false;
             }
         });

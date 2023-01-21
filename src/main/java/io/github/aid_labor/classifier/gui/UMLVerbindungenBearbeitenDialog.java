@@ -33,7 +33,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 
@@ -205,7 +204,6 @@ public class UMLVerbindungenBearbeitenDialog extends Alert {
 		
 		StackPane container = new StackPane(assoziationAnzeige, vererbungAnzeige);
 		container.setPadding(new Insets(0, 20, 10, 20));
-		container.setMaxWidth(Region.USE_PREF_SIZE);
 		container.setAlignment(Pos.TOP_CENTER);
 		BorderPane.setAlignment(container, Pos.TOP_CENTER);
 		wurzel.setCenter(container);

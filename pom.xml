@@ -572,7 +572,7 @@
 		<dependency>
 			<groupId>com.dlsc.gemsfx</groupId>
 			<artifactId>gemsfx</artifactId>
-			<version>1.45.2</version>
+			<version>1.55.0</version>
 		</dependency>
 
 		<!-- EasyBind (einfache Bindung fuer JavaFX Properties) -->

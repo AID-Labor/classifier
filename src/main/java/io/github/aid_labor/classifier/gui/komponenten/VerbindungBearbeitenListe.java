@@ -7,12 +7,14 @@
 package io.github.aid_labor.classifier.gui.komponenten;
 
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 
 import org.controlsfx.control.SearchableComboBox;
 import org.controlsfx.validation.ValidationResult;
@@ -20,7 +22,9 @@ import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
 import org.kordamp.ikonli.typicons.Typicons;
 
-import com.dlsc.gemsfx.EnhancedLabel;
+import com.dlsc.gemsfx.FilterView;
+import com.dlsc.gemsfx.FilterView.Filter;
+import com.dlsc.gemsfx.FilterView.FilterGroup;
 import com.tobiasdiez.easybind.EasyBind;
 
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
@@ -30,18 +34,22 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.util.NodeUtil;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLDiagrammElement;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLVerbindungstyp;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.When;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
@@ -53,17 +61,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Control;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Skin;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.skin.ScrollPaneSkin;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 
 
 public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseable {
@@ -73,6 +79,8 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 	public static final String CSS_EINGABE_FEHLER = "eingabefehler";
+	
+	private static final Logger log = Logger.getLogger(VerbindungBearbeitenListe.class.getName());
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
@@ -96,24 +104,28 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 	private final ValidationSupport eingabeValidierung;
 	private final List<ChangeListener<ValidationResult>> validierungsBeobachter;
 	private final Sprache sprache;
-	private final Sprache spracheLabels;
 	private final UMLProjekt umlProjekt;
 	private final BooleanProperty startBearbeitbar;
-	private final FilteredList<UMLVerbindung> verbindungen;
+	private final ObservableList<UMLVerbindung> verbindungen;
+	private final FilterView<UMLVerbindung> filterView;
 	private final ObservableList<String> vorhandeneElementNamen;
-	private Supplier<UMLVerbindung> verbindungErzeuger;
+	private final ObjectProperty<Supplier<UMLVerbindung>> verbindungErzeugerProperty;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
-	public VerbindungBearbeitenListe(String[] labelBezeichnungen, Typ typ, ValidationSupport eingabeValidierung,
-			Sprache sprache, UMLProjekt umlProjekt, boolean startBearbeitbar) {
+	public VerbindungBearbeitenListe(String[] spaltenNamen, Typ typ, ValidationSupport eingabeValidierung,
+	        Sprache sprache, UMLProjekt umlProjekt, boolean startBearbeitbar) {
+	    this(spaltenNamen, typ, eingabeValidierung, sprache, umlProjekt, startBearbeitbar, true);
+	}
+	@SuppressWarnings("unchecked")
+    public VerbindungBearbeitenListe(String[] spaltenNamen, Typ typ, ValidationSupport eingabeValidierung,
+			Sprache sprache, UMLProjekt umlProjekt, boolean startBearbeitbar, boolean showFilter) {
 		this.loeseBindungen = new LinkedList<>();
 		this.validierungsBeobachter = new LinkedList<>();
 		this.eingabeValidierung = eingabeValidierung;
 		this.sprache = new Sprache();
-		this.spracheLabels = sprache;
 		this.umlProjekt = umlProjekt;
 		this.startBearbeitbar = new SimpleBooleanProperty(startBearbeitbar);
 		this.vorhandeneElementNamen = EasyBind.map(umlProjekt.getDiagrammElemente(), UMLDiagrammElement::getName);
@@ -124,39 +136,87 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 			sprache.ignoriereSprachen();
 		}
 		
-		BiFunction<UMLVerbindung, KontrollElemente<UMLVerbindung>, Node[]> erzeugeZeile = null;
 		EventHandler<ActionEvent> neuAktion = null;
 		Predicate<UMLVerbindung> filter = null;
-		verbindungErzeuger = () -> new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, "", "");
+		verbindungErzeugerProperty = new SimpleObjectProperty<>(() -> new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, "", ""));
+		Function<String[], Collection<TableColumn<UMLVerbindung, ?>>> spaltenErzeuger = null;
+		
+		ObservableList<UMLVerbindung> sourceListe = null;
 		
 		switch (typ) {
 			case ASSOZIATION -> {
-				erzeugeZeile = this::erstelleAssoziationZeile;
 				neuAktion = event -> {
-					var verbindung = verbindungErzeuger.get();
+					var verbindung = verbindungErzeugerProperty.get().get();
 					verbindung.setzeAutomatisch(false);
 					this.umlProjekt.getAssoziationen().add(verbindung);
 				};
 				filter = v -> v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION);
-				verbindungen = umlProjekt.getAssoziationen().filtered(filter);
+				spaltenErzeuger = this::getAssoziationSpalten;
+				sourceListe = umlProjekt.getAssoziationen();
 			}
 			case VERERBUNG -> {
-				erzeugeZeile = this::erstelleVererbungZeile;
 				filter = v -> !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION);
-				verbindungen = umlProjekt.getVererbungen().filtered(filter);
+				spaltenErzeuger = this::getVererbungSpalten;
+				sourceListe = umlProjekt.getVererbungen();
 			}
-			default -> verbindungen = null;
 		}
 		
-		GridPane tabelle = new GridPane();
-		fuelleTabelle(tabelle, labelBezeichnungen, verbindungen, erzeugeZeile);
-		tabelle.setHgap(5);
-		tabelle.setVgap(10);
+		if (showFilter) {
+		    filterView = new FilterView<>();
+		    filterView.setShowHeader(false);
+		    
+		    FilterGroup<UMLVerbindung> startFilter = new FilterGroup<>(sprache.getText(spaltenNamen[0].toLowerCase(), spaltenNamen[0]));
+		    
+		    for (StringProperty name: umlProjekt.getElementNamen()) {
+		        startFilter.getFilters().add(new Filter<UMLVerbindung>(name.get()) {
+		            
+		            {
+		                nameProperty().bind(name);
+		            }
+		            
+		            @Override
+		            public boolean test(UMLVerbindung t) {
+		                return UMLKlassifizierer.nameOhnePaket(t.getVerbindungsStart()).equals(name.get()) 
+		                        || UMLKlassifizierer.nameOhnePaket(t.getVerbindungsEnde()).equals(name.get());
+		            }
+		        });
+		    }
+		    
+		    FilterGroup<UMLVerbindung> ausgeblendetFilter = new FilterGroup<>(sprache.getText(spaltenNamen[2].toLowerCase(), spaltenNamen[2]));
+		    
+		    ausgeblendetFilter.getFilters().add(new Filter<UMLVerbindung>(sprache.getText("ausgeblendet", "Ausgeblendet")) {
+		        @Override
+		        public boolean test(UMLVerbindung t) {
+		            return t.istAusgebelendet();
+		        }
+		    });
+		    ausgeblendetFilter.getFilters().add(new Filter<UMLVerbindung>(sprache.getText("nichtAusgeblendet", "Nicht ausgeblendet")) {
+		        @Override
+		        public boolean test(UMLVerbindung t) {
+		            return !t.istAusgebelendet();
+		        }
+		    });
+		    
+		    filterView.getFilterGroups().setAll(startFilter, ausgeblendetFilter);
+		    filterView.setAdditionalFilterPredicate(filter);
+		    filterView.setItems(sourceListe);
+		    filterView.setPadding(new Insets(0, 0, 10, 0));
+		    
+		    verbindungen = new SortedList<>(filterView.getFilteredItems());
+		    
+		    this.setTop(filterView);
+		} else {
+		    verbindungen = sourceListe.filtered(filter);
+		    filterView = null;
+		}
 		
-		this.setMaxWidth(Region.USE_PREF_SIZE);
-		var scrollContainer = new ScrollPane(tabelle);
-		scrollContainer.getStyleClass().add("edge-to-edge");
-		this.setCenter(scrollContainer);
+		TableView<UMLVerbindung> tabelle = erzeugeTabellenAnzeige(verbindungen, spaltenErzeuger.apply(spaltenNamen), neuAktion);
+		
+		if (verbindungen instanceof SortedList<UMLVerbindung> sl) {
+		    sl.comparatorProperty().bind(tabelle.comparatorProperty());
+		}
+		
+		this.setCenter(tabelle);
 		
 		if (neuAktion != null) {
 			Button neu = new Button();
@@ -169,23 +229,6 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 			tabellenButtons.setPadding(new Insets(5, 0, 0, 0));
 			this.setBottom(tabellenButtons);
 		}
-		
-		ChangeListener<Skin<?>> skinUeberwacher = (o, alt, skin) -> {
-			if (skin != null) {
-				Platform.runLater(() -> {
-					var vBar = ((ScrollPaneSkin) scrollContainer.getSkin()).getVerticalScrollBar();
-					scrollContainer.prefWidthProperty().bind(tabelle.widthProperty()
-							.add(new When(vBar.visibleProperty()).then(vBar.widthProperty()).otherwise(0)));
-					loeseBindungen.add(scrollContainer.prefWidthProperty()::unbind);
-				});
-			}
-		};
-		scrollContainer.skinProperty().addListener(skinUeberwacher);
-		loeseBindungen.add(() -> scrollContainer.skinProperty().removeListener(skinUeberwacher));
-		
-		NodeUtil.beobachteSchwach(tabelle, tabelle.widthProperty(),
-				() -> Platform.runLater(scrollContainer::requestLayout));
-		
 	}
 	
 	@Override
@@ -242,11 +285,17 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	public void setVerbindungenFilter(Predicate<UMLVerbindung> filter) {
-		verbindungen.predicateProperty().set(filter);
+		if (verbindungen instanceof FilteredList<UMLVerbindung> fl) {
+		    fl.predicateProperty().set(filter);
+		} else if (filterView != null) {
+		    filterView.setAdditionalFilterPredicate(filter);
+		} else {
+		    log.warning("Filter konnten nicht angewendet werden");
+		}
 	}
 	
 	public void setVerbindungErzeuger(Supplier<UMLVerbindung> verbindungErzeuger) {
-		this.verbindungErzeuger = verbindungErzeuger;
+		this.verbindungErzeugerProperty.set(verbindungErzeuger);
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -267,43 +316,77 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private void fuelleTabelle(GridPane tabelle, String[] labelBezeichnungen, ObservableList<UMLVerbindung> inhalt,
-			BiFunction<UMLVerbindung, KontrollElemente<UMLVerbindung>, Node[]> erzeugeZeile) {
-		for (String bezeichnung : labelBezeichnungen) {
-			Label spaltenUeberschrift = SprachUtil.bindText(new EnhancedLabel(), spracheLabels,
-					bezeichnung.toLowerCase(), bezeichnung);
-			tabelle.addRow(0, spaltenUeberschrift);
-		}
-		
-		fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
-		
-		ListChangeListener<? super UMLVerbindung> beobachter = aenderung -> {
-			if (aenderung.next()) {
-				fuelleListenInhalt(tabelle, inhalt, erzeugeZeile);
-			}
-		};
-		loeseBindungen.add(() -> inhalt.removeListener(beobachter));
-		inhalt.addListener(beobachter);
-	}
 	
-	private void fuelleListenInhalt(GridPane tabelle, ObservableList<UMLVerbindung> inhalt,
-			BiFunction<UMLVerbindung, KontrollElemente<UMLVerbindung>, Node[]> erzeugeZeile) {
-		var zuEntfernen = tabelle.getChildren().stream().filter(kind -> GridPane.getRowIndex(kind) > 0).toList();
-		for (var kind : zuEntfernen) {
-			if (kind instanceof Control c) {
-				eingabeValidierung.registerValidator(c, false,
-						(control, wert) -> ValidationResult.fromInfoIf(control, "ungenutzt", false));
-				NodeUtil.entferneSchwacheBeobachtung(kind);
-			}
-		}
-		tabelle.getChildren().removeIf(kind -> GridPane.getRowIndex(kind) > 0);
-		int zeile = 1;
-		for (UMLVerbindung element : inhalt) {
-			var zeilenInhalt = erzeugeZeile.apply(element, new KontrollElemente<>(inhalt, element, zeile - 1));
-			tabelle.addRow(zeile, zeilenInhalt);
-			zeile++;
-		}
-	}
+	private <T> TableView<T> erzeugeTabellenAnzeige(ObservableList<T> inhalt, Collection<TableColumn<T, ?>> spalten,
+            EventHandler<ActionEvent> neuAktion) {
+        TableView<T> tabelle = new TableView<>(inhalt);
+        tabelle.getColumns().addAll(spalten);
+        tabelle.setEditable(true);
+
+        Button neu = new Button();
+        NodeUtil.fuegeIconHinzu(neu, Typicons.PLUS, 20, "neu-button-font-icon");
+        neu.setOnAction(neuAktion);
+
+        return tabelle;
+    }
+	
+	private Collection<TableColumn<UMLVerbindung, ?>> getAssoziationSpalten(String[] spaltenNamen) {
+        TableColumn<UMLVerbindung, String> startSpalte = new TableColumn<>();
+        SprachUtil.bindText(startSpalte.textProperty(), sprache, spaltenNamen[0].toLowerCase(), spaltenNamen[0]);
+        startSpalte.setCellValueFactory(param -> param.getValue().verbindungsStartProperty());
+        var verbindungWahlCellBuilder = CustomNodeTableCell.builder(UMLVerbindung.class, String.class, (Class<SearchableComboBox<String>>)(Class<?>)SearchableComboBox.class)
+                .nodeFactory(() -> {
+                    SearchableComboBox<String> verbindungWahl = new SearchableComboBox<>();
+                    verbindungWahl.getItems().setAll(vorhandeneElementNamen);
+                    return verbindungWahl;
+                })
+                .getProperty(combo -> combo.valueProperty())
+                .getValue(combo -> combo.getSelectionModel().getSelectedItem())
+                .setValue((combo, v) -> combo.getSelectionModel().select(v))
+                .disableBinding(UMLVerbindung::automatischProperty);
+        if (startBearbeitbar.get()) {
+            startSpalte.setEditable(true);
+            startSpalte.setCellFactory(spalte -> verbindungWahlCellBuilder.build());
+        }
+        
+        TableColumn<UMLVerbindung, String> endSpalte = new TableColumn<>();
+        SprachUtil.bindText(endSpalte.textProperty(), sprache, spaltenNamen[1].toLowerCase(), spaltenNamen[1]);
+        endSpalte.setCellValueFactory(param -> param.getValue().verbindungsEndeProperty());
+        endSpalte.setEditable(true);
+        endSpalte.setCellFactory(spalte -> verbindungWahlCellBuilder.build());
+        
+        TableColumn<UMLVerbindung, Boolean> ausgeblendetSpalte = new TableColumn<>();
+        SprachUtil.bindText(ausgeblendetSpalte.textProperty(), sprache, spaltenNamen[2].toLowerCase(), spaltenNamen[2]);
+        ausgeblendetSpalte.setCellValueFactory(param -> param.getValue().ausgebelendetProperty());
+        ausgeblendetSpalte.setEditable(true);
+        ausgeblendetSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        
+        TableColumn<UMLVerbindung, UMLVerbindung> kontrollSpalte = new TableColumn<>();
+        kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
+        kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>(true, false, umlProjekt.getAssoziationen()));
+        kontrollSpalte.setResizable(false);
+        
+        return List.of(startSpalte, endSpalte, ausgeblendetSpalte, kontrollSpalte);
+    }
+	
+	private Collection<TableColumn<UMLVerbindung, ?>> getVererbungSpalten(String[] spaltenNamen) {
+        TableColumn<UMLVerbindung, String> startSpalte = new TableColumn<>();
+        SprachUtil.bindText(startSpalte.textProperty(), sprache, spaltenNamen[0].toLowerCase(), spaltenNamen[0]);
+        startSpalte.setCellValueFactory(param -> param.getValue().verbindungsStartProperty());
+        
+        TableColumn<UMLVerbindung, String> endSpalte = new TableColumn<>();
+        SprachUtil.bindText(endSpalte.textProperty(), sprache, spaltenNamen[1].toLowerCase(), spaltenNamen[1]);
+        endSpalte.setCellValueFactory(param -> param.getValue().verbindungsEndeProperty());
+        endSpalte.setEditable(true);
+        
+        TableColumn<UMLVerbindung, Boolean> ausgeblendetSpalte = new TableColumn<>();
+        SprachUtil.bindText(ausgeblendetSpalte.textProperty(), sprache, spaltenNamen[2].toLowerCase(), spaltenNamen[2]);
+        ausgeblendetSpalte.setCellValueFactory(param -> param.getValue().ausgebelendetProperty());
+        ausgeblendetSpalte.setEditable(true);
+        ausgeblendetSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        
+        return List.of(startSpalte, endSpalte, ausgeblendetSpalte);
+    }
 	
 	private Node[] erstelleAssoziationZeile(UMLVerbindung verbindung,
 			KontrollElemente<UMLVerbindung> kontrollelemente) {

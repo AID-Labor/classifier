@@ -10,7 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -21,6 +21,7 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
     
     public static class CustomNodeTableCellBuilder<S, T, N extends Node> {
         private Supplier<N> nodeFactory;
+        private Function<S, BooleanProperty> disableBinding;
         private Function<N, Property<T>> getProperty;
         private Function<N, T> getValue;
         private BiConsumer<N, T> setValue;
@@ -49,6 +50,11 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
             return this;
         }
         
+        public CustomNodeTableCellBuilder<S, T, N> disableBinding(Function<S, BooleanProperty> disableBinding) {
+            this.disableBinding = disableBinding;
+            return this;
+        }
+        
         public CustomNodeTableCell<S, T, N> build() {
             Objects.requireNonNull(nodeFactory);
             Objects.requireNonNull(getValue);
@@ -57,7 +63,7 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
             
             N node = nodeFactory.get();
             
-            return new CustomNodeTableCell<>(node, getProperty, getValue, setValue);
+            return new CustomNodeTableCell<>(node, getProperty, getValue, setValue, disableBinding);
         }
     }
     
@@ -93,6 +99,7 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
     private final Function<N, Property<T>> getProperty;
     private final Function<N, T> getValue;
     private final BiConsumer<N, T> setValue;
+    private final Function<S, BooleanProperty> disableBinding;
             
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -102,11 +109,12 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	public CustomNodeTableCell(N node, Function<N, Property<T>> getProperty, Function<N, T> getValue,
-	        BiConsumer<N, T> setValue) {
+	        BiConsumer<N, T> setValue, Function<S, BooleanProperty> disableBinding) {
         this.node = node;
         this.getProperty = getProperty;
         this.getValue = getValue;
         this.setValue = setValue;
+        this.disableBinding = disableBinding;
         
         node.addEventHandler(ActionEvent.ACTION, event -> {
             this.commitEdit(getValue.apply(node));
@@ -171,11 +179,9 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
             ObservableValue<T> ov = getTableColumn().getCellObservableValue(getIndex());
             setGraphic(node);
             setValue.accept(node, item);
-            node.disableProperty().bind(Bindings.not(
-                    getTableView().editableProperty().and(
-                    getTableColumn().editableProperty()).and(
-                    editableProperty())
-                ));
+            if (disableBinding != null) {
+                node.disableProperty().bind(disableBinding.apply(getTableView().getItems().get(getIndex())));
+            }
             
             if (ov instanceof Property) {
                 boundProp = (Property<T>) ov;
