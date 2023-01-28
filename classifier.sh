@@ -1,3 +1,8 @@
 VERSION=1.2.0
-DIR=auslieferung/${VERSION}/macOS/input
+OS=$(uname -o)
+if [[ "$OS" == "Darwin" ]]; then
+    DIR=deploy/${VERSION}/macOS/input
+else
+    DIR=deploy/${VERSION}/Linux/input
+fi
 java --module-path ${DIR}/lib:${DIR} --add-modules ALL-MODULE-PATH -jar ${DIR}/classifier-${VERSION}.jar classifier/is.github.aid_labor.classifier.basis.Ressourcen $@
