@@ -228,8 +228,10 @@ class ProjektKontrolle {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
 			dateiDialog.setInitialFileName(projekt.getSpeicherort().getFileName().toString());
 		} else {
-			dateiDialog.setInitialDirectory(
-					new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get()));
+		    File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get());
+			if (letzterSpeicherort.exists()) {
+			    dateiDialog.setInitialDirectory(letzterSpeicherort);
+			}
 			dateiDialog.setInitialFileName(projekt.getName());
 		}
 		
@@ -291,13 +293,15 @@ class ProjektKontrolle {
 		
 		DirectoryChooser dateiDialog = new DirectoryChooser();
 		
-		if (Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get() != null) {
-			dateiDialog.setInitialDirectory(
-					new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get()));
-		} else if (projekt.getSpeicherort() != null) {
+		if (projekt.getSpeicherort() != null) {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
 		} else {
-			dateiDialog.setInitialDirectory(new File(OS.getDefault().getDokumenteOrdner()));
+		    File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get());
+            if (letzterSpeicherort.exists()) {
+                dateiDialog.setInitialDirectory(letzterSpeicherort);
+            } else {
+                dateiDialog.setInitialDirectory(new File(OS.getDefault().getDokumenteOrdner()));
+            }
 		}
 		
 		String titel = sprache.getText("speichernQuellcodeDialogTitel", "Quellcode speichern unter...");
@@ -326,10 +330,10 @@ class ProjektKontrolle {
 		var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
 		FileChooser dateiDialog = new FileChooser();
 		
-		if (Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get() != null) {
-			dateiDialog.setInitialDirectory(
-					new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get()));
-		} else if (projekt.getSpeicherort() != null) {
+		File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get());
+        if (letzterSpeicherort.exists()) {
+            dateiDialog.setInitialDirectory(letzterSpeicherort);
+        } else if (projekt.getSpeicherort() != null) {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
 		} else {
 			dateiDialog.setInitialDirectory(new File(OS.getDefault().getDokumenteOrdner()));
@@ -345,7 +349,7 @@ class ProjektKontrolle {
 		List<File> dateien = dateiDialog.showOpenMultipleDialog(ansicht.get().getTabPane().getScene().getWindow());
 		
 		if (dateien != null && !dateien.isEmpty()) {
-			Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty()
+			Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty()
 					.set(dateien.get(0).getParentFile().getAbsolutePath());
 			
 			importiereAusDateien(dateien);
@@ -651,12 +655,12 @@ class ProjektKontrolle {
 		
 		var projekt = ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt();
 		
-		if (Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get() != null) {
-			dateiDialog.setInitialDirectory(
-					new File(Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get()));
-		} else if (projekt.getSpeicherort() != null) {
+		File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get());
+		if (projekt.getSpeicherort() != null) {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
-		} else {
+		} else if (letzterSpeicherort.exists()) {
+            dateiDialog.setInitialDirectory(letzterSpeicherort);
+        } else {
 			dateiDialog.setInitialDirectory(new File(OS.getDefault().getBilderOrdner()));
 		}
 		

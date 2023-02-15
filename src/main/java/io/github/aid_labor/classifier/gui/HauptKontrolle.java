@@ -206,8 +206,12 @@ class HauptKontrolle {
 	void projektOeffnen(Event event) {
 		FileChooser dateiDialog = new FileChooser();
 		
-		dateiDialog
-				.setInitialDirectory(new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get()));
+		File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get());
+        if (letzterSpeicherort.exists()) {
+            dateiDialog.setInitialDirectory(letzterSpeicherort);
+        } else {
+            dateiDialog.setInitialDirectory(new File(OS.getDefault().getDokumenteOrdner()));
+        }
 		
 		if (!OS.getDefault().istLinux()) {	// Workaraound, da in Linux die Dateierweitung nicht erkannt wird
 			dateiDialog.getExtensionFilters().addAll(ansicht.get().getProgrammDetails().dateiZuordnung());
