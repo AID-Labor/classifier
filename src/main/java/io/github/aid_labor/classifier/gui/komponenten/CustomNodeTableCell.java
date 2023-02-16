@@ -25,6 +25,7 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
         private Function<N, Property<T>> getProperty;
         private Function<N, T> getValue;
         private BiConsumer<N, T> setValue;
+        private UpdateCallback<T, N> onUpdateCallback;
         
         private CustomNodeTableCellBuilder() {
             
@@ -55,15 +56,17 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
             return this;
         }
         
+        public CustomNodeTableCellBuilder<S, T, N> updateCallback(UpdateCallback<T, N> onUpdateCallback) {
+            this.onUpdateCallback = onUpdateCallback;
+            return this;
+        }
+        
         public CustomNodeTableCell<S, T, N> build() {
             Objects.requireNonNull(nodeFactory);
-            Objects.requireNonNull(getValue);
-            Objects.requireNonNull(setValue);
-            Objects.requireNonNull(getProperty);
             
             N node = nodeFactory.get();
             
-            return new CustomNodeTableCell<>(node, getProperty, getValue, setValue, disableBinding);
+            return new CustomNodeTableCell<>(node, getProperty, getValue, setValue, disableBinding, onUpdateCallback);
         }
     }
     
@@ -71,6 +74,11 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
         return new CustomNodeTableCellBuilder<>();
     }
 	
+    public static interface UpdateCallback<T, N extends Node> {
+        void onUpdate(N node, T item);
+        void onEmpty(N node, T item);
+    }
+    
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
@@ -97,9 +105,9 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
 	
     private final N node;
     private final Function<N, Property<T>> getProperty;
-    private final Function<N, T> getValue;
     private final BiConsumer<N, T> setValue;
     private final Function<S, BooleanProperty> disableBinding;
+    private final UpdateCallback<T, N> onUpdateCallback;
             
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -109,15 +117,17 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	public CustomNodeTableCell(N node, Function<N, Property<T>> getProperty, Function<N, T> getValue,
-	        BiConsumer<N, T> setValue, Function<S, BooleanProperty> disableBinding) {
+	        BiConsumer<N, T> setValue, Function<S, BooleanProperty> disableBinding, UpdateCallback<T, N> onUpdateCallback) {
         this.node = node;
         this.getProperty = getProperty;
-        this.getValue = getValue;
         this.setValue = setValue;
         this.disableBinding = disableBinding;
+        this.onUpdateCallback = onUpdateCallback;
         
         node.addEventHandler(ActionEvent.ACTION, event -> {
-            this.commitEdit(getValue.apply(node));
+            if (getValue != null) {
+                this.commitEdit(getValue.apply(node));
+            }
             event.consume();
         });
         
@@ -174,20 +184,31 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
         }
         
         if (empty || getIndex() < 0) {
+            if (onUpdateCallback != null) {
+                onUpdateCallback.onEmpty(node, item);
+            }
             setGraphic(null);
         } else {
             ObservableValue<T> ov = getTableColumn().getCellObservableValue(getIndex());
             setGraphic(node);
-            setValue.accept(node, item);
+            if (setValue != null) {
+                setValue.accept(node, item);
+            }
             if (disableBinding != null) {
                 node.disableProperty().bind(disableBinding.apply(getTableView().getItems().get(getIndex())));
             }
             
-            if (ov instanceof Property) {
-                boundProp = (Property<T>) ov;
-                getProperty.apply(node).bindBidirectional(boundProp);
-            } else if (ov != null) {
-                throw new IllegalStateException("ObservableValue<T> " + ov + " must be instance of Property<T>");
+            if (getProperty != null) {
+                if (ov instanceof Property) {
+                    boundProp = (Property<T>) ov;
+                    getProperty.apply(node).bindBidirectional(boundProp);
+                } else if (ov != null) {
+                    throw new IllegalStateException("ObservableValue<T> " + ov + " must be instance of Property<T>");
+                }
+            }
+            
+            if (onUpdateCallback != null) {
+                onUpdateCallback.onUpdate(node, item);
             }
         }
     }

@@ -40,6 +40,7 @@ import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
 import io.github.aid_labor.classifier.gui.komponenten.CustomNodeTableCell;
+import io.github.aid_labor.classifier.gui.komponenten.CustomNodeTableCell.UpdateCallback;
 import io.github.aid_labor.classifier.gui.komponenten.DatentypFeld;
 import io.github.aid_labor.classifier.gui.komponenten.KontrollElemente;
 import io.github.aid_labor.classifier.gui.komponenten.ListControlsTableCell;
@@ -104,7 +105,6 @@ import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
@@ -200,16 +200,20 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         initialisiereButtons();
         this.setResizable(true);
         this.getDialogPane().setPrefSize(920, 512);
-
+        
         NodeUtil.beobachteSchwach(wurzel, klassifizierer.nameProperty(), (alterName, neuerName) -> {
-            if (alterName != null && klassenSuchBaum.get(alterName) != null) {
-                klassenSuchBaum.remove(alterName);
+            if (this.klassenSuchBaum == null) {
+                log.fine("klassenSuchBaum is null");
+                return;
+            }
+            if (alterName != null && this.klassenSuchBaum.get(alterName) != null) {
+                this.klassenSuchBaum.remove(alterName);
             }
             if (neuerName != null) {
-                klassenSuchBaum.put(neuerName, getKlassifizierer());
+                this.klassenSuchBaum.put(neuerName, getKlassifizierer());
             }
         });
-
+        
         this.setOnHidden(e -> {
             log.config(() -> "räume UMLKlassifizeierBearbeitenDialog auf");
             for (var beobachter : typBeobachterListe) {
@@ -690,9 +694,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         return false;
     }
 
-    private <T> Pane erzeugeTabellenAnzeige(ObservableList<T> inhalt, Collection<TableColumn<T, ?>> spalten,
+    private <T> BorderPane erzeugeTabellenAnzeige(ObservableList<T> inhalt, Collection<TableColumn<T, ?>> spalten,
             EventHandler<ActionEvent> neuAktion) {
         TableView<T> tabelle = new TableView<>(inhalt);
+        spalten.forEach(spalte -> spalte.setReorderable(false));
         tabelle.getColumns().addAll(spalten);
         tabelle.setEditable(true);
 
@@ -718,6 +723,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
         sichtbarkeitSpalte.setEditable(true);
+        @SuppressWarnings("unchecked")
         var modifiziererCellBuilder = CustomNodeTableCell.builder(Attribut.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>)(Class<?>)ComboBox.class)
                 .nodeFactory(() -> {
                     ComboBox<Modifizierer> modifiziererCombo = new ComboBox<>();
@@ -896,6 +902,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         TableColumn<Methode, Modifizierer> sichtbarkeitSpalte = new TableColumn<>();
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
+        @SuppressWarnings("unchecked")
         var modifiziererCellBuilder = CustomNodeTableCell.builder(Methode.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>)(Class<?>)ComboBox.class)
                 .nodeFactory(() -> {
                     ComboBox<Modifizierer> modifiziererCombo = new ComboBox<>();
@@ -914,8 +921,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
         nameSpalte.setEditable(true);
         nameSpalte.setCellFactory(col -> new OnlyTextFieldTableCell<>());
-
-        TableColumn<Methode, String> parameterlisteSpalte = new TableColumn<>();
+        
+        record MethodeParameter(Methode methode, StringProperty parameter) {}
+        
+        TableColumn<Methode, MethodeParameter> parameterlisteSpalte = new TableColumn<>();
         SprachUtil.bindText(parameterlisteSpalte.textProperty(), sprache, "parameterliste", "Parameterliste");
         parameterlisteSpalte.setCellValueFactory(param -> {
             StringProperty parameter = new SimpleStringProperty();
@@ -952,8 +961,34 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 }
             }).concat(")"));
             loeseBindungen.add(parameter::unbind);
-            return parameter;
+            return new SimpleObjectProperty<>(new MethodeParameter(param.getValue(), parameter));
         });
+        var parameterCellBuilder = CustomNodeTableCell.builder(Methode.class, MethodeParameter.class, TextField.class)
+                .nodeFactory(() -> {
+                    TextField tf = new TextField();
+                    tf.setEditable(false);
+                    tf.prefColumnCountProperty().bind(tf.textProperty().length());
+                    return tf;
+                })
+                .updateCallback(new UpdateCallback<MethodeParameter, TextField>() {
+                    @Override
+                    public void onUpdate(TextField tf, MethodeParameter item) {
+                        tf.textProperty().bind(item.parameter());
+                        tf.setOnAction(e -> {
+                            bearbeiteParameter(tf, item.methode);
+                        });
+                        tf.setOnMousePressed(e -> bearbeiteParameter(tf, item.methode));
+                    }
+                    
+                    @Override
+                    public void onEmpty(TextField tf, MethodeParameter item) {
+                        tf.textProperty().unbind();
+                        tf.clear();
+                        tf.setOnAction(null);
+                        tf.setOnMousePressed(null);
+                    }
+                });
+        parameterlisteSpalte.setCellFactory(spalte -> parameterCellBuilder.build());
 
         TableColumn<Methode, String> rueckgabeSpalte = new TableColumn<>();
         SprachUtil.bindText(rueckgabeSpalte.textProperty(), sprache, "Rueckgabetyp",
@@ -1168,8 +1203,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                                 .add(new Parameter(programmierEigenschaften.getLetzerDatentyp()));
                     }
                 });
-
+        
         parameterListe.setPadding(new Insets(15));
+        TableView<?> tabelle = (TableView<?>) parameterListe.getCenter();
+        tabelle.setMinSize(450, 200);
+        tabelle.setPrefHeight(200);
+        
         PopOver parameterDialog = new PopOver(parameterListe);
         parameterDialog.setArrowLocation(ArrowLocation.TOP_CENTER);
         parameterDialog.getRoot().getStylesheets().addAll(parameter.getScene().getStylesheets());
@@ -1180,12 +1219,28 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         TableColumn<Parameter, String> nameSpalte = new TableColumn<>();
         SprachUtil.bindText(nameSpalte.textProperty(), sprache, "parametername", "Parametername");
         nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
+        nameSpalte.setCellFactory(param -> new OnlyTextFieldTableCell<>());
 
         TableColumn<Parameter, String> datentypSpalte = new TableColumn<>();
         SprachUtil.bindText(datentypSpalte.textProperty(), sprache, "datentyp", "Datentyp");
         datentypSpalte.setCellValueFactory(param -> param.getValue().getDatentyp().typNameProperty());
+        var datentypBuilder = CustomNodeTableCell.builder(Parameter.class, String.class, DatentypFeld.class)
+                .nodeFactory(() -> {
+                    var dtf = new DatentypFeld(null, false, umlProjektRef.get().getProgrammiersprache());
+                    Platform.runLater(dtf::cancel);
+                    return dtf;
+                })
+                .getProperty(DatentypFeld::textProperty)
+                .getValue(DatentypFeld::getText)
+                .setValue(DatentypFeld::setText);
+        datentypSpalte.setCellFactory(col -> datentypBuilder.build());
+        
+        TableColumn<Parameter, Parameter> kontrollSpalte = new TableColumn<>();
+        kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
+        kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
+        kontrollSpalte.setResizable(false);
 
-        return List.of(nameSpalte, datentypSpalte);
+        return List.of(nameSpalte, datentypSpalte, kontrollSpalte);
     }
 
     private Node[] erzeugeParameterZeile(Parameter param, HatParameterListe typMitParameterliste,
@@ -1252,6 +1307,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         TableColumn<Konstruktor, Modifizierer> sichtbarkeitSpalte = new TableColumn<>();
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
+        @SuppressWarnings("unchecked")
         var modifiziererCellBuilder = CustomNodeTableCell.builder(Konstruktor.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>)(Class<?>)ComboBox.class)
                 .nodeFactory(() -> {
                     ComboBox<Modifizierer> modifiziererCombo = new ComboBox<>();
@@ -1264,13 +1320,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .setValue((combo, v) -> combo.getSelectionModel().select(v));
         sichtbarkeitSpalte.setCellFactory(spalte -> modifiziererCellBuilder.build());
 
-        TableColumn<Konstruktor, String> nameSpalte = new TableColumn<>();
-        SprachUtil.bindText(nameSpalte.textProperty(), sprache, "konstruktorname", "Konstruktorname");
-        nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
-        nameSpalte.setEditable(true);
-        nameSpalte.setCellFactory(col -> new OnlyTextFieldTableCell<>());
-
-        TableColumn<Konstruktor, String> parameterlisteSpalte = new TableColumn<>();
+        record KonstruktorParameter(Konstruktor konstruktor, StringProperty parameter) {}
+        
+        TableColumn<Konstruktor, KonstruktorParameter> parameterlisteSpalte = new TableColumn<>();
         SprachUtil.bindText(parameterlisteSpalte.textProperty(), sprache, "parameterliste", "Parameterliste");
         parameterlisteSpalte.setCellValueFactory(param -> {
             StringProperty parameter = new SimpleStringProperty();
@@ -1307,15 +1359,41 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 }
             }).concat(")"));
             loeseBindungen.add(parameter::unbind);
-            return parameter;
+            return new SimpleObjectProperty<>(new KonstruktorParameter(param.getValue(), parameter));
         });
+        var parameterCellBuilder = CustomNodeTableCell.builder(Konstruktor.class, KonstruktorParameter.class, TextField.class)
+                .nodeFactory(() -> {
+                    TextField tf = new TextField();
+                    tf.setEditable(false);
+                    tf.prefColumnCountProperty().bind(tf.textProperty().length());
+                    return tf;
+                })
+                .updateCallback(new UpdateCallback<KonstruktorParameter, TextField>() {
+                    @Override
+                    public void onUpdate(TextField tf, KonstruktorParameter item) {
+                        tf.textProperty().bind(item.parameter());
+                        tf.setOnAction(e -> {
+                            bearbeiteParameter(tf, item.konstruktor);
+                        });
+                        tf.setOnMousePressed(e -> bearbeiteParameter(tf, item.konstruktor));
+                    }
+                    
+                    @Override
+                    public void onEmpty(TextField tf, KonstruktorParameter item) {
+                        tf.textProperty().unbind();
+                        tf.clear();
+                        tf.setOnAction(null);
+                        tf.setOnMousePressed(null);
+                    }
+                });
+        parameterlisteSpalte.setCellFactory(spalte -> parameterCellBuilder.build());
         
         TableColumn<Konstruktor, Konstruktor> kontrollSpalte = new TableColumn<>();
         kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
         kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
         kontrollSpalte.setResizable(false);
-
-        return List.of(sichtbarkeitSpalte, nameSpalte, parameterlisteSpalte, kontrollSpalte);
+        
+        return List.of(sichtbarkeitSpalte, parameterlisteSpalte, kontrollSpalte);
     }
 
     private Node[] erstelleKonstruktorZeile(Konstruktor konstruktor, KontrollElemente<Konstruktor> kontrollelemente) {

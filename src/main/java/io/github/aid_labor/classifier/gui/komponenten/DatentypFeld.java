@@ -80,7 +80,6 @@ public class DatentypFeld extends SearchField<String> {
 	public DatentypFeld(String startText, boolean voidErlaubt, Programmiersprache programmiersprache) {
 		setSelectedItem(startText);
 		setText(startText);
-		cancel();
 		Button loeschen = new Button();
 		loeschen.setOnMouseClicked(e -> select(""));
 		NodeUtil.fuegeIconHinzu(loeschen, RemixiconAL.DELETE_BACK_2_LINE, 18, ContentDisplay.GRAPHIC_ONLY, "loeschen-button-font-icon");
