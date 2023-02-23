@@ -1,4 +1,4 @@
-VERSION=1.2.0
+VERSION=1.2.1
 OS=$(uname -o)
 if [[ "$OS" == "Darwin" ]]; then
     DIR=deploy/${VERSION}/macOS/input
