@@ -9,6 +9,13 @@ ROOT=$(pwd)
 echo "Zip Mac"
 cd "${ROOT}/${MAC}"
 zip -rq "${NAME}-${VERSION}-App-Image-Mac.zip" -xi "./${NAME}.app"
+mkdir "${ROOT}/${MAC}/classifier-mac"
+cp -r "${ROOT}/${OUT}/macOS/input" "${ROOT}/${MAC}/classifier-mac/classifier"
+echo "#!/bin/sh
+cd \"\$(dirname \"\$0\")\" # zum Pfad dieses Skriptes wechseln
+java --module-path ./classifier:./classifier/lib --add-modules ALL-MODULE-PATH -jar ./classifier/classifier-${VERSION}.jar classifier/is.github.aid_labor.classifier.basis.Ressourcen $@" > "${ROOT}/${MAC}/classifier-mac/classifier.command"
+chmod 555 "${ROOT}/${MAC}/classifier-mac/classifier.command"
+zip -rq "${NAME}-${VERSION}-Mac.zip" -xi "${ROOT}/${MAC}/classifier-mac"
 
 echo "Zip Linux"
 cd "${ROOT}/${LINUX}"
@@ -28,3 +35,5 @@ cp "${MAC}/${NAME}-${VERSION}-mac-install.pkg" "${OUT}/RELEASE/"
 cp "${LINUX}/${NAME}-${VERSION}-linux-install.tar.gz" "${OUT}/RELEASE/"
 cp "${WIN}/${NAME}-${VERSION}-windows-install.exe" "${OUT}/RELEASE/"
 cp "${WIN}/${NAME}-${VERSION}-windows-install.msi" "${OUT}/RELEASE/"
+
+cp "${MAC}/${NAME}-${VERSION}-Mac.zip" "${OUT}/RELEASE/"
