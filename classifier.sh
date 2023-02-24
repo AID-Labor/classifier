@@ -5,4 +5,4 @@ if [[ "$OS" == "Darwin" ]]; then
 else
     DIR=deploy/${VERSION}/Linux/input
 fi
-java --module-path ${DIR}/lib:${DIR} --add-modules ALL-MODULE-PATH -jar ${DIR}/classifier-${VERSION}.jar classifier/is.github.aid_labor.classifier.basis.Ressourcen $@
+java --module-path ${DIR}/lib:${DIR} --add-modules ALL-MODULE-PATH -jar ${DIR}/classifier-${VERSION}.jar classifier/io.github.aid_labor.classifier.basis.Ressourcen $@
