@@ -30,6 +30,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
 import io.github.aid_labor.classifier.basis.validierung.Validierung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
@@ -100,13 +101,13 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
     @JsonIgnore
     private UMLKlassifizierer klassifizierer;
     @JsonIgnore
-    private Validierung signaturValidierung;
+    private SimpleValidierung signaturValidierung;
     @JsonIgnore
-    private Validierung nameValidierung;
+    private SimpleValidierung nameValidierung;
     @JsonIgnore
-    private Validierung parameterValidierung;
+    private SimpleValidierung parameterValidierung;
     @JsonIgnore
-    private Validierung abstraktFinalValidierung;
+    private SimpleValidierung abstraktFinalValidierung;
     @JsonIgnore
     private final Sprache sprache;
 
@@ -242,11 +243,11 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
                                             .toList());
                         }),
                 methoden, nameProperty(), parameterListe);
-        this.signaturValidierung = Validierung.of(gleicheSignatur.not(),
+        this.signaturValidierung = SimpleValidierung.of(gleicheSignatur.not(),
                 sprache.getTextProperty("methodeValidierung",
                         "Eine Methode mit gleicher Signatur (Name und Parameterliste) ist bereits vorhanden"))
                 .build();
-        this.nameValidierung = Validierung.of(name.isNotEmpty(),
+        this.nameValidierung = SimpleValidierung.of(name.isNotEmpty(),
                 sprache.getTextProperty("nameValidierung", "Name angegeben"))
                 .build();
         BooleanBinding doppelteParamter = Bindings.createBooleanBinding(() -> {
@@ -261,11 +262,11 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
             return !doppelt;
         }, new Observable[] { FXCollections.observableList(
                 parameterListe, parameter -> new Observable[] { parameter.nameProperty() }) });
-        this.parameterValidierung = Validierung.of(doppelteParamter.not(),
+        this.parameterValidierung = SimpleValidierung.of(doppelteParamter.not(),
                 sprache.getTextProperty("parameterValidierung2",
                         "Es darf keine Parameter mit gleichem Namen geben"))
                 .build();
-        this.abstraktFinalValidierung = Validierung.of(istAbstrakt.and(istFinal).not(),
+        this.abstraktFinalValidierung = SimpleValidierung.of(istAbstrakt.and(istFinal).not(),
                 sprache.getTextProperty("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein"))
                 .build();
     }
@@ -285,19 +286,19 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
         initialisiereValidierung(klassifizierer);
     }
 
-    public Validierung getSignaturValidierung() {
+    public SimpleValidierung getSignaturValidierung() {
         return signaturValidierung;
     }
 
-    public Validierung getNameValidierung() {
+    public SimpleValidierung getNameValidierung() {
         return nameValidierung;
     }
 
-    public Validierung getParameterValidierung() {
+    public SimpleValidierung getParameterValidierung() {
         return parameterValidierung;
     }
 
-    public Validierung getAbstraktFinalValidierung() {
+    public SimpleValidierung getAbstraktFinalValidierung() {
         return abstraktFinalValidierung;
     }
 

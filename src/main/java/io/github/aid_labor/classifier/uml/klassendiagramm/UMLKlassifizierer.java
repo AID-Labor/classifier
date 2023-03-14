@@ -33,7 +33,9 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.ListenAenderungsU
 import io.github.aid_labor.classifier.basis.projekt.editierung.ListenEditierUeberwacher;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
 import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import io.github.aid_labor.classifier.basis.validierung.ValidierungCollection;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Konstruktor;
@@ -184,9 +186,11 @@ public class UMLKlassifizierer extends UMLBasisElement {
     @JsonIgnore
     private Sprache sprache;
     @JsonIgnore
-    private Validierung nameValidierung;
+    private SimpleValidierung nameValidierung;
     @JsonIgnore
     private ObservableSet<StringProperty> klassenNamen;
+    @JsonIgnore
+    private final ValidierungCollection attributeValid;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -210,6 +214,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
         if (!spracheGesetzt) {
             sprache.ignoriereSprachen();
         }
+        this.attributeValid = new ValidierungCollection();
 
         this.attribute.addListener(new ListenEditierUeberwacher<>(this.attribute, this));
         this.methoden.addListener(new ListenEditierUeberwacher<>(this.methoden, this));
@@ -227,6 +232,10 @@ public class UMLKlassifizierer extends UMLBasisElement {
             while (aenderung.next()) {
                 for (var attributHinzu : aenderung.getAddedSubList()) {
                     attributHinzu.setUMLKlassifizierer(this);
+                    this.attributeValid.add(attributHinzu.getNameValidierung());
+                }
+                for (var attributGeloescht : aenderung.getRemoved()) {
+                    this.attributeValid.remove(attributGeloescht.getNameValidierung());
                 }
             }
         };
@@ -352,7 +361,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
                     return getName().equals(kn.get()) && kn.getBean() != this;
                 }),
                 klassenNamen, name);
-        this.nameValidierung = Validierung.of(gleicherName.not(), 
+        this.nameValidierung = SimpleValidierung.of(gleicherName.not(), 
                         sprache.getTextProperty("klassennameValidierung2", "Ein Element mit diesem Namen ist bereits vorhanden"))
                 .and(name.isNotEmpty(),
                         sprache.getTextProperty("klassennameValidierung", "Der Klassenname muss angegeben werden"))
@@ -463,8 +472,12 @@ public class UMLKlassifizierer extends UMLBasisElement {
         this.initialisiereValidierung(projekt);
     }
     
-    public Validierung getNameValidierung() {
+    public SimpleValidierung getNameValidierung() {
         return nameValidierung;
+    }
+    
+    public ValidierungCollection getAttributeValid() {
+        return attributeValid;
     }
     
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

@@ -621,6 +621,7 @@ public class MenueLeisteKomponente {
 				"Paketnamen anzeigen");
 		erweiterteValidierungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache,
 				"erweiterteValidierungAktivieren", "Erweiterte Validierung");
+		erweiterteValidierungAktivieren.setVisible(false);
 		linienRasterungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache, "linienRasterungAktivieren",
 				"Linienraster");
 		positionsRasterungAktivieren = SprachUtil.bindText(new CheckMenuItem(), sprache, "positionsRasterungAktivieren",

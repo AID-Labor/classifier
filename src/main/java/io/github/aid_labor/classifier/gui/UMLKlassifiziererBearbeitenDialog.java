@@ -40,7 +40,8 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
-import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
+import io.github.aid_labor.classifier.basis.validierung.ValidierungCollection;
 import io.github.aid_labor.classifier.gui.komponenten.CustomNodeTableCell;
 import io.github.aid_labor.classifier.gui.komponenten.CustomNodeTableCell.UpdateCallback;
 import io.github.aid_labor.classifier.gui.komponenten.DatentypFeld;
@@ -306,6 +307,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                         buttonBar.getToggleGroup().selectToggle(alteWahl);
                     }
                 });
+        addValidierungCollection(this.attribute, getKlassifizierer().getAttributeValid());
         HBox buttonContainer = new HBox(buttonBar);
         buttonContainer.setPadding(new Insets(5, 20, 40, 20));
         buttonContainer.setAlignment(Pos.CENTER);
@@ -1418,23 +1420,23 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         loeseBindungen.add(() -> p1.unbindBidirectional(p2));
     }
 
-    private <N extends TextInputControl> void addValidierung(N node, Object sourceObj,
-            Supplier<Validierung> validierungSupplier) {
+    private void addValidierung(TextInputControl node, Object sourceObj,
+            Supplier<SimpleValidierung> validierungSupplier) {
         addValidierung(node, sourceObj, validierungSupplier, validierungKey);
     }
 
-    private <N extends SearchField<?>> void addValidierung(N node, Object sourceObj,
-            Supplier<Validierung> validierungSupplier) {
+    private void addValidierung(SearchField<?> node, Object sourceObj,
+            Supplier<SimpleValidierung> validierungSupplier) {
         addValidierung(node, sourceObj, validierungSupplier, validierungKey);
     }
 
-    private <N extends CheckBox> void addValidierung(N node, Object sourceObj,
-            Supplier<Validierung> validierungSupplier) {
+    private void addValidierung(CheckBox node, Object sourceObj,
+            Supplier<SimpleValidierung> validierungSupplier) {
         addValidierung(node, sourceObj, validierungSupplier, validierungKey);
     }
 
-    private <N extends TextInputControl> void addValidierung(N node, Object sourceObj,
-            Supplier<Validierung> validierungSupplier, String key) {
+    private void addValidierung(TextInputControl node, Object sourceObj,
+            Supplier<SimpleValidierung> validierungSupplier, String key) {
         if (node.getProperties().containsKey(key)) {
             var prop = node.getProperties().get(key);
             if (prop instanceof Subscription sub) {
@@ -1448,8 +1450,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         }
     }
 
-    private <N extends SearchField<?>> void addValidierung(N node, Object sourceObj,
-            Supplier<Validierung> validierungSupplier, String key) {
+    private void addValidierung(SearchField<?> node, Object sourceObj,
+            Supplier<SimpleValidierung> validierungSupplier, String key) {
         if (node.getProperties().containsKey(key)) {
             var prop = node.getProperties().get(key);
             if (prop instanceof Subscription sub) {
@@ -1463,8 +1465,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         }
     }
 
-    private <N extends CheckBox> void addValidierung(N node, Object sourceObj,
-            Supplier<Validierung> validierungSupplier, String key) {
+    private void addValidierung(CheckBox node, Object sourceObj,
+            Supplier<SimpleValidierung> validierungSupplier, String key) {
         if (node.getProperties().containsKey(key)) {
             var prop = node.getProperties().get(key);
             if (prop instanceof Subscription sub) {
@@ -1476,5 +1478,17 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             this.loeseBindungen.add(nameBeobachter::unsubscribe);
             node.getProperties().put(key, nameBeobachter);
         }
+    }
+    
+    private void addValidierungCollection(Node node, ValidierungCollection validierung) {
+        if (node.getProperties().containsKey(validierungKey)) {
+            var prop = node.getProperties().get(validierungKey);
+            if (prop instanceof Subscription sub) {
+                sub.unsubscribe();
+            }
+        }
+        Subscription nameBeobachter = FXValidierungUtil.setzeValidierungStyle(node, validierung);
+        this.loeseBindungen.add(nameBeobachter::unsubscribe);
+        node.getProperties().put(validierungKey, nameBeobachter);
     }
 }

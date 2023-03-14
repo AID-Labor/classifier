@@ -24,6 +24,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
 import io.github.aid_labor.classifier.basis.validierung.Validierung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.binding.Bindings;
@@ -50,7 +51,7 @@ public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter 
     @JsonIgnore
     private final Sprache sprache;
     @JsonIgnore
-    private Validierung typValidierung;
+    private SimpleValidierung typValidierung;
 
     @JsonCreator
     public Datentyp(@JsonProperty("typName") String typName) {
@@ -71,11 +72,11 @@ public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter 
         BooleanBinding isVoid = Bindings.createBooleanBinding(
                 () -> klassifizierer.getProgrammiersprache().getEigenschaften().istVoid(this), typName);
         if (erlaubtVoid) {
-            this.typValidierung = Validierung.of(typName.isNotEmpty(),
+            this.typValidierung = SimpleValidierung.of(typName.isNotEmpty(),
                     sprache.getTextProperty("datentypValidierung", "Datentyp angeben"))
                     .build();
         } else {
-            this.typValidierung = Validierung.of(typName.isNotEmpty(),
+            this.typValidierung = SimpleValidierung.of(typName.isNotEmpty(),
                     sprache.getTextProperty("datentypValidierung", "Datentyp angeben"))
                     .and(isVoid.not(),
                             sprache.getTextProperty("attributValidierungVoid", "Der Typ void ist hier nicht erlaubt"))
@@ -87,7 +88,7 @@ public class Datentyp extends EditierbarBasis implements EditierbarerBeobachter 
         this.initialisiereNameValidierung(klassifizierer, erlaubtVoid);
     }
     
-    public Validierung getTypValidierung() {
+    public SimpleValidierung getTypValidierung() {
         return typValidierung;
     }
 

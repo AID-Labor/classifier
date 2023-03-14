@@ -26,6 +26,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
 import io.github.aid_labor.classifier.basis.validierung.Validierung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.Observable;
@@ -71,9 +72,9 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
     @JsonIgnore
     private UMLKlassifizierer klassifizierer;
     @JsonIgnore
-    private Validierung signaturValidierung;
+    private SimpleValidierung signaturValidierung;
     @JsonIgnore
-    private Validierung parameterValidierung;
+    private SimpleValidierung parameterValidierung;
     @JsonIgnore
     private final Sprache sprache;
 
@@ -139,7 +140,7 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
                                             .toList());
                         }),
                 konstruktoren, name);
-        this.signaturValidierung = Validierung.of(gleicheSignatur.not(),
+        this.signaturValidierung = SimpleValidierung.of(gleicheSignatur.not(),
                 sprache.getTextProperty("konstruktorValidierung",
                         "Ein Konstruktor mit gleicher Parameterliste ist bereits vorhanden"))
                 .build();
@@ -155,7 +156,7 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
             return !doppelt;
         }, new Observable[] { FXCollections.observableList(
                 parameterListe, parameter -> new Observable[] { parameter.nameProperty() }) });
-        this.parameterValidierung = Validierung.of(doppelteParamter.not(),
+        this.parameterValidierung = SimpleValidierung.of(doppelteParamter.not(),
                 sprache.getTextProperty("parameterValidierung2",
                         "Es darf keine Parameter mit gleichem Namen geben"))
                 .build();
@@ -175,11 +176,11 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
         initialisiereValidierung(klassifizierer);
     }
 
-    public Validierung getSignaturValidierung() {
+    public SimpleValidierung getSignaturValidierung() {
         return signaturValidierung;
     }
 
-    public Validierung getParameterValidierung() {
+    public SimpleValidierung getParameterValidierung() {
         return parameterValidierung;
     }
 

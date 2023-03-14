@@ -24,6 +24,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
 import io.github.aid_labor.classifier.basis.validierung.Validierung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.Observable;
@@ -82,7 +83,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	@JsonIgnore
     private Sprache sprache;
 	@JsonIgnore
-    private Validierung nameValidierung;
+    private SimpleValidierung nameValidierung;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -162,7 +163,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
                     return getName().equals(a.getName()) && a != this;
                 }),
                 attributNamen, nameProperty());
-        this.nameValidierung = Validierung.of(gleicherName.not(), 
+        this.nameValidierung = SimpleValidierung.of(gleicherName.not(), 
                         sprache.getTextProperty("nameValidierung2", "Ein Attribut mit diesem Namen ist bereits vorhanden"))
                 .and(name.isNotEmpty(),
                         sprache.getTextProperty("nameValidierung", "Name angegeben"))
@@ -292,7 +293,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		return istFinal;
 	}
 	
-	public Validierung getNameValidierung() {
+	public SimpleValidierung getNameValidierung() {
         return nameValidierung;
     }
 	

@@ -22,6 +22,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
 import io.github.aid_labor.classifier.basis.validierung.Validierung;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.Observable;
@@ -62,7 +63,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
     @JsonIgnore
     private final Sprache sprache;
     @JsonIgnore
-    private Validierung nameValidierung;
+    private SimpleValidierung nameValidierung;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -98,7 +99,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
                 }),
                 parameterNamen, nameProperty());
         var supressValidierung = Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty().not();
-        this.nameValidierung = Validierung.of(gleicherName.not(),
+        this.nameValidierung = SimpleValidierung.of(gleicherName.not(),
                 sprache.getTextProperty("parameterValidierung", "Ein Parameter mit diesem Namen ist bereits vorhanden"))
                 .and(name.isNotEmpty().or(supressValidierung),
                         sprache.getTextProperty("nameValidierung", "Name angegeben"))
@@ -119,7 +120,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
         this.initialisiereNameValidierung(typ);
     }
 
-    public Validierung getNameValidierung() {
+    public SimpleValidierung getNameValidierung() {
         return nameValidierung;
     }
 
