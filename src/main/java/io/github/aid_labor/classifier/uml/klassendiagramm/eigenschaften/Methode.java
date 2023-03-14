@@ -18,6 +18,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tobiasdiez.easybind.EasyBind;
+import com.tobiasdiez.easybind.Subscription;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
@@ -92,6 +94,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
     @JsonIgnore
     private final List<Object> beobachterListe;
     @JsonIgnore
+    private final List<Subscription> subscriptions;
+    @JsonIgnore
     private final long id;
     @JsonIgnore
     private UMLKlassifizierer klassifizierer;
@@ -133,6 +137,7 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
         if (!spracheGesetzt) {
             sprache.ignoriereSprachen();
         }
+        this.subscriptions = new LinkedList<>();
 
         this.name = new JsonStringProperty(this, "methodenname", "");
         this.istStatisch = new JsonBooleanProperty(this, "istStatisch", istStatisch);
@@ -189,6 +194,17 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
         };
         this.beobachterListe.add(parameterUeberwacher);
         this.parameterListe.addListener(new WeakListChangeListener<>(parameterUeberwacher));
+        
+        subscriptions.add(EasyBind.subscribe(this.istAbstrakt, abstraktNeu -> {
+            if (abstraktNeu.booleanValue()) {
+                setzeStatisch(false);
+            }
+        }));
+        subscriptions.add(EasyBind.subscribe(this.istStatisch, statischNeu -> {
+            if (statischNeu.booleanValue()) {
+                setzeAbstrakt(false);
+            }
+        }));
     }
 
     @JsonCreator
@@ -487,6 +503,9 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
         log.finest(() -> this + " leere Parameter");
         for (var param : parameterListe) {
             param.close();
+        }
+        for (var sub : subscriptions) {
+            sub.unsubscribe();
         }
         try {
             parameterListe.clear();

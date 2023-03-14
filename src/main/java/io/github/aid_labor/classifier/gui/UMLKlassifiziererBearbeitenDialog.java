@@ -100,7 +100,6 @@ import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -808,17 +807,23 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         initialwertSpalte.setEditable(true);
         initialwertSpalte.setCellFactory(col -> new OnlyTextFieldTableCell<>());
 
+        var checkBoxCellBuilder = CustomNodeTableCell.builder(Attribut.class, Boolean.class, CheckBox.class)
+                .nodeFactory(CheckBox::new)
+                .getProperty(CheckBox::selectedProperty)
+                .getValue(CheckBox::isSelected)
+                .setValue(CheckBox::setSelected);
+        
         TableColumn<Attribut, Boolean> getterSpalte = new TableColumn<>();
         SprachUtil.bindText(getterSpalte.textProperty(), sprache, "getter", "Getter");
         getterSpalte.setCellValueFactory(param -> param.getValue().hatGetterProperty());
         getterSpalte.setEditable(true);
-        getterSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        getterSpalte.setCellFactory(col -> checkBoxCellBuilder.build());
 
         TableColumn<Attribut, Boolean> setterSpalte = new TableColumn<>();
         SprachUtil.bindText(setterSpalte.textProperty(), sprache, "setter", "Setter");
         setterSpalte.setCellValueFactory(param -> param.getValue().hatSetterProperty());
         setterSpalte.setEditable(true);
-        setterSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        setterSpalte.setCellFactory(col -> checkBoxCellBuilder.build());
 
         TableColumn<Attribut, Boolean> staticSpalte = new TableColumn<>();
         SprachUtil.bindText(staticSpalte.textProperty(), sprache, "static", "static");
@@ -859,7 +864,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         SprachUtil.bindText(finalSpalte.textProperty(), sprache, "final", "final");
         finalSpalte.setCellValueFactory(param -> param.getValue().istFinalProperty());
         finalSpalte.setEditable(true);
-        finalSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        finalSpalte.setCellFactory(col -> checkBoxCellBuilder.build());
 
         TableColumn<Attribut, Attribut> kontrollSpalte = new TableColumn<>();
         kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
@@ -1061,18 +1066,33 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         abstraktSpalte.setCellValueFactory(param -> param.getValue().istAbstraktProperty());
         abstraktSpalte.setEditable(true);
         var abstraktBuilder = CustomNodeTableCell.builder(Methode.class, Boolean.class, CheckBox.class)
-                .nodeFactory(() -> new CheckBox())
+                .nodeFactory(CheckBox::new)
                 .getProperty(CheckBox::selectedProperty)
                 .getValue(CheckBox::isSelected)
                 .setValue(CheckBox::setSelected)
                 .onUpdateAction((cb, methode) -> {
                     addValidierung(cb, methode, () -> methode.getAbstraktFinalValidierung());
-                    cb.setDisable(false);
+                    updateMethodeAbstrakt(cb, getKlassifizierer().getTyp());
                     if (methode != null && (methode.istGetter() || methode.istSetter())) {
                         cb.setDisable(true);
                     }
+                    var prop = cb.getProperties().get("typSubscriptionAbstrakt");
+                    if (prop instanceof Subscription sub) {
+                        sub.unsubscribe();
+                    }
+                    Subscription typSubscription = EasyBind.subscribe(klassifizierer.typProperty(), neuerTyp -> {
+                        updateMethodeAbstrakt(cb, getKlassifizierer().getTyp());
+                        if (methode != null && (methode.istGetter() || methode.istSetter())) {
+                            cb.setDisable(true);
+                        }
+                    });
+                    cb.getProperties().put("typSubscriptionAbstrakt", typSubscription);
                 });
-        abstraktSpalte.setCellFactory(col -> abstraktBuilder.build());
+        abstraktSpalte.setCellFactory(col -> {
+            var abstraktCell = abstraktBuilder.build();
+            updateMethodeAbstrakt(abstraktCell.getNode(), getKlassifizierer().getTyp());
+            return abstraktCell;
+        });
 
         TableColumn<Methode, Boolean> staticSpalte = new TableColumn<>();
         SprachUtil.bindText(staticSpalte.textProperty(), sprache, "static", "static");
@@ -1158,6 +1178,19 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             combo.getSelectionModel().select(aktuellerModifizierer);
         } else {
             combo.getSelectionModel().selectFirst();
+        }
+    }
+    
+    private void updateMethodeAbstrakt(Node n, KlassifiziererTyp typ) {
+        boolean abstraktErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                .erlaubtAbstrakteMethode(typ);
+        boolean abstraktErzwungen = !getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                .erlaubtNichtAbstrakteMethode(typ);
+        
+        n.setDisable(!abstraktErlaubt);
+        
+        if (abstraktErzwungen) {
+            n.setDisable(true);
         }
     }
 

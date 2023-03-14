@@ -97,7 +97,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
                     return getName().equals(a.getName()) && a != this;
                 }),
                 parameterNamen, nameProperty());
-        var supressValidierung = Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty();
+        var supressValidierung = Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty().not();
         this.nameValidierung = Validierung.of(gleicherName.not(),
                 sprache.getTextProperty("parameterValidierung", "Ein Parameter mit diesem Namen ist bereits vorhanden"))
                 .and(name.isNotEmpty().or(supressValidierung),
