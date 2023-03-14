@@ -222,11 +222,32 @@ public class UMLKlassifizierer extends UMLBasisElement {
         ueberwacheGetterUndSetter();
         ueberwacheTyp();
         this.interfaceListe.addListener(new ListenAenderungsUeberwacher<>(this.interfaceListe, this));
-
+        
+        ListChangeListener<Attribut> attributUeberwacher = aenderung -> {
+            while (aenderung.next()) {
+                for (var attributHinzu : aenderung.getAddedSubList()) {
+                    attributHinzu.setUMLKlassifizierer(this);
+                }
+            }
+        };
+        this.schwacheUeberwacher.add(attributUeberwacher);
+        this.attribute.addListener(new WeakListChangeListener<>(attributUeberwacher));
+        
+        ListChangeListener<Methode> methodenUeberwacher = aenderung -> {
+            while (aenderung.next()) {
+                for (var methodeHinzu : aenderung.getAddedSubList()) {
+                    methodeHinzu.setUMLKlassifizierer(this);
+                }
+            }
+        };
+        this.schwacheUeberwacher.add(methodenUeberwacher);
+        this.methoden.addListener(new WeakListChangeListener<>(methodenUeberwacher));
+        
         ListChangeListener<Konstruktor> konstruktorUeberwacher = aenderung -> {
             while (aenderung.next()) {
                 for (var konstruktorHinzu : aenderung.getAddedSubList()) {
                     konstruktorHinzu.setName(getName());
+                    konstruktorHinzu.setUMLKlassifizierer(this);
                 }
             }
         };

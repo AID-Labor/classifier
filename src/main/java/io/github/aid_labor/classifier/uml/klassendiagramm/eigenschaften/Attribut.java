@@ -16,14 +16,23 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.json.JsonBooleanProperty;
 import io.github.aid_labor.classifier.basis.json.JsonObjectProperty;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 
 /**
  * Model für Attribute in UML-Klassifizierern
@@ -68,7 +77,12 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	private Methode setter;
 	@JsonIgnore
 	private final List<Object> beobachterListe;
-	@JsonIgnore private final long id;
+	@JsonIgnore
+	private final long id;
+	@JsonIgnore
+    private Sprache sprache;
+	@JsonIgnore
+    private Validierung nameValidierung;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -112,6 +126,12 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.setter = setter;
 		this.beobachterListe = new LinkedList<>();
 		this.id = naechsteId++;
+		this.sprache = new Sprache();
+        boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
+                "UMLKlassifiziererBearbeitenDialog");
+        if (!spracheGesetzt) {
+            sprache.ignoriereSprachen();
+        }
 		
 		this.ueberwachePropertyAenderung(this.sichtbarkeit, id + "_attribut_sichtbarkeit");
 		this.ueberwachePropertyAenderung(this.datentyp.typNameProperty(), id + "_attribut_datentyp");
@@ -134,11 +154,31 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this(sichtbarkeit, "", datentyp, null, false, false, false, false, null, null);
 	}
 	
+	private void initialisiereNameValidierung(UMLKlassifizierer klassifizierer) {
+        var attributNamen = FXCollections.observableList(klassifizierer.attributeProperty(),
+                attribut -> new Observable[] { attribut.nameProperty() });
+        BooleanBinding gleicherName = Bindings.createBooleanBinding(
+                () -> attributNamen.stream().anyMatch(a -> {
+                    return getName().equals(a.getName()) && a != this;
+                }),
+                attributNamen, nameProperty());
+        this.nameValidierung = Validierung.of(gleicherName.not(), 
+                        sprache.getTextProperty("nameValidierung2", "Ein Attribut mit diesem Namen ist bereits vorhanden"))
+                .and(name.isNotEmpty(),
+                        sprache.getTextProperty("nameValidierung", "Name angegeben"))
+                .build();
+    }
+	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
+	
+	public void setUMLKlassifizierer(UMLKlassifizierer klassifizierer) {
+	    this.initialisiereNameValidierung(klassifizierer);
+	    datentyp.setValidierung(klassifizierer, false);
+	}
 	
 	@Override
 	public List<Object> getBeobachterListe() {
@@ -247,9 +287,14 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	public BooleanProperty istStatischProperty() {
 		return istStatisch;
 	}
+	
 	public BooleanProperty istFinalProperty() {
 		return istFinal;
 	}
+	
+	public Validierung getNameValidierung() {
+        return nameValidierung;
+    }
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -338,6 +383,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		log.finest(() -> this + " leere listeners");
 		beobachterListe.clear();
 	}
+
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	

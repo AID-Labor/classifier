@@ -10,14 +10,14 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -32,6 +32,7 @@ import org.kordamp.ikonli.typicons.Typicons;
 
 import com.dlsc.gemsfx.SearchField;
 import com.dlsc.gemsfx.TagsField;
+import com.tobiasdiez.easybind.EasyBind;
 import com.tobiasdiez.easybind.Subscription;
 
 import io.github.aid_labor.classifier.basis.Einstellungen;
@@ -39,10 +40,10 @@ import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Umlaute;
+import io.github.aid_labor.classifier.basis.validierung.Validierung;
 import io.github.aid_labor.classifier.gui.komponenten.CustomNodeTableCell;
 import io.github.aid_labor.classifier.gui.komponenten.CustomNodeTableCell.UpdateCallback;
 import io.github.aid_labor.classifier.gui.komponenten.DatentypFeld;
-import io.github.aid_labor.classifier.gui.komponenten.KontrollElemente;
 import io.github.aid_labor.classifier.gui.komponenten.ListControlsTableCell;
 import io.github.aid_labor.classifier.gui.komponenten.OnlyTextFieldTableCell;
 import io.github.aid_labor.classifier.gui.komponenten.VerbindungBearbeitenListe;
@@ -75,7 +76,6 @@ import javafx.beans.value.WeakChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
@@ -88,7 +88,6 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
-import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
@@ -116,6 +115,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     public static final String CSS_EINGABE_FEHLER = "eingabefehler";
+
+    private static final String validierungKey = "ValidierungSubscription";
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
@@ -193,14 +194,14 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 
         BorderPane wurzel = new BorderPane();
         wurzel.setTop(buttonContainer);
-        
+
         erzeugeInhalt(wurzel);
 
         getDialogPane().setContent(wurzel);
         initialisiereButtons();
         this.setResizable(true);
         this.getDialogPane().setPrefSize(920, 512);
-        
+
         NodeUtil.beobachteSchwach(wurzel, klassifizierer.nameProperty(), (alterName, neuerName) -> {
             if (this.klassenSuchBaum == null) {
                 log.fine("klassenSuchBaum is null");
@@ -213,7 +214,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 this.klassenSuchBaum.put(neuerName, getKlassifizierer());
             }
         });
-        
+
         this.setOnHidden(e -> {
             log.config(() -> "räume UMLKlassifizeierBearbeitenDialog auf");
             for (var beobachter : typBeobachterListe) {
@@ -365,7 +366,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             try {
                 return !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
                         && (klassifizierer.getName().equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsStart()))
-                                || klassifizierer.getName().equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsEnde())));
+                                || klassifizierer.getName()
+                                        .equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsEnde())));
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
@@ -444,7 +446,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             NodeUtil.setzeBreite(name.getWidth(), superklasse);
         });
 
-        NodeUtil.beobachteSchwach(typ, typ.getSelectionModel().selectedItemProperty(), 
+        NodeUtil.beobachteSchwach(typ, typ.getSelectionModel().selectedItemProperty(),
                 t -> getKlassifizierer().setTyp(t));
         bindeBidirektional(getKlassifizierer().paketProperty(), paket.textProperty());
         bindeBidirektional(getKlassifizierer().nameProperty(), name.textProperty());
@@ -551,15 +553,20 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 
     private void validiereAllgemein(TextField name, SearchField<?> superklasse, TagsField<String> interfaces) {
         Platform.runLater(() -> {
-            /*eingabeValidierung.registerValidator(name,
-                    Validator.combine(
-                            Validator.createEmptyValidator(
-                                    sprache.getText("klassennameValidierung", "Der Klassenname muss angegeben werden")),
-                            Validator.createPredicateValidator(tf -> !vorhandeneElementNamen.contains(name.getText()),
-                                    sprache.getText("klassennameValidierung2",
-                                            "Ein Element mit diesem Namen ist bereits vorhanden"))));
-            setzePlatzhalter(name);*/
-            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(name, this.getKlassifizierer().getNameValidierung());
+            /*
+             * eingabeValidierung.registerValidator(name,
+             * Validator.combine(
+             * Validator.createEmptyValidator(
+             * sprache.getText("klassennameValidierung",
+             * "Der Klassenname muss angegeben werden")),
+             * Validator.createPredicateValidator(tf ->
+             * !vorhandeneElementNamen.contains(name.getText()),
+             * sprache.getText("klassennameValidierung2",
+             * "Ein Element mit diesem Namen ist bereits vorhanden"))));
+             * setzePlatzhalter(name);
+             */
+            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(name,
+                    this.getKlassifizierer().getNameValidierung());
             this.loeseBindungen.add(nameBeobachter::unsubscribe);
             if (umlProjektRef.get().getProgrammiersprache().getEigenschaften()
                     .erlaubtSuperklasse(getKlassifizierer().getTyp())) {
@@ -724,11 +731,23 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
         sichtbarkeitSpalte.setEditable(true);
         @SuppressWarnings("unchecked")
-        var modifiziererCellBuilder = CustomNodeTableCell.builder(Attribut.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>)(Class<?>)ComboBox.class)
+        var modifiziererCellBuilder = CustomNodeTableCell
+                .builder(Attribut.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>) (Class<?>) ComboBox.class)
                 .nodeFactory(() -> {
                     ComboBox<Modifizierer> modifiziererCombo = new ComboBox<>();
                     modifiziererCombo.getItems().setAll(getKlassifizierer().getProgrammiersprache().getEigenschaften()
                             .getAttributModifizierer(getKlassifizierer().getTyp()));
+                    updateOnKlassifiziererTyp(neuerTyp -> {
+                        List<Modifizierer> neueModifizierer = getKlassifizierer().getProgrammiersprache()
+                                .getEigenschaften().getAttributModifizierer(getKlassifizierer().getTyp());
+                        modifiziererCombo.getItems().setAll(neueModifizierer);
+                        var aktuellerModifizierer = modifiziererCombo.getSelectionModel().getSelectedItem();
+                        if (aktuellerModifizierer != null && neueModifizierer.contains(aktuellerModifizierer)) {
+                            modifiziererCombo.getSelectionModel().select(aktuellerModifizierer);
+                        } else {
+                            modifiziererCombo.getSelectionModel().selectFirst();
+                        }
+                    });
                     return modifiziererCombo;
                 })
                 .getProperty(combo -> combo.valueProperty())
@@ -740,7 +759,23 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         SprachUtil.bindText(nameSpalte.textProperty(), sprache, "attributname", "Attributname");
         nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
         nameSpalte.setEditable(true);
-        nameSpalte.setCellFactory(col -> new OnlyTextFieldTableCell<>());
+        nameSpalte.setCellFactory(col -> {
+            var nameCell = new OnlyTextFieldTableCell<Attribut, String>();
+            nameCell.setOnUpdateAction((tf, attribut) -> {
+                if (tf.getProperties().containsKey(validierungKey)) {
+                    var prop = tf.getProperties().get(validierungKey);
+                    if (prop instanceof Subscription sub) {
+                        sub.unsubscribe();
+                    }
+                }
+                if (attribut != null) {
+                    Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(tf, attribut.getNameValidierung());
+                    this.loeseBindungen.add(nameBeobachter::unsubscribe);
+                    tf.getProperties().put(validierungKey, nameBeobachter);
+                }
+            });
+            return nameCell;
+        });
 
         TableColumn<Attribut, String> datentypSpalte = new TableColumn<>();
         SprachUtil.bindText(datentypSpalte.textProperty(), sprache, "datentyp", "Datentyp");
@@ -750,123 +785,89 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .nodeFactory(() -> new DatentypFeld(null, false, umlProjektRef.get().getProgrammiersprache()))
                 .getProperty(DatentypFeld::textProperty)
                 .getValue(DatentypFeld::getText)
-                .setValue(DatentypFeld::select);
+                .setValue(DatentypFeld::select)
+                .onUpdateAction((df, attribut) -> {
+                    if (df.getProperties().containsKey(validierungKey)) {
+                        var prop = df.getProperties().get(validierungKey);
+                        if (prop instanceof Subscription sub) {
+                            sub.unsubscribe();
+                        }
+                    }
+                    if (attribut != null) {
+                        Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(df,
+                                attribut.getDatentyp().getTypValidierung());
+                        this.loeseBindungen.add(nameBeobachter::unsubscribe);
+                        df.getProperties().put(validierungKey, nameBeobachter);
+                    }
+                });
         datentypSpalte.setCellFactory(col -> datentypBuilder.build());
-        
+
         TableColumn<Attribut, String> initialwertSpalte = new TableColumn<>();
         SprachUtil.bindText(initialwertSpalte.textProperty(), sprache, "initialwert", "Initialwert");
         initialwertSpalte.setCellValueFactory(param -> param.getValue().initialwertProperty());
         initialwertSpalte.setEditable(true);
         initialwertSpalte.setCellFactory(col -> new OnlyTextFieldTableCell<>());
-        
+
         TableColumn<Attribut, Boolean> getterSpalte = new TableColumn<>();
         SprachUtil.bindText(getterSpalte.textProperty(), sprache, "getter", "Getter");
         getterSpalte.setCellValueFactory(param -> param.getValue().hatGetterProperty());
         getterSpalte.setEditable(true);
         getterSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        
+
         TableColumn<Attribut, Boolean> setterSpalte = new TableColumn<>();
         SprachUtil.bindText(setterSpalte.textProperty(), sprache, "setter", "Setter");
         setterSpalte.setCellValueFactory(param -> param.getValue().hatSetterProperty());
         setterSpalte.setEditable(true);
         setterSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        
+
         TableColumn<Attribut, Boolean> staticSpalte = new TableColumn<>();
         SprachUtil.bindText(staticSpalte.textProperty(), sprache, "static", "static");
         staticSpalte.setCellValueFactory(param -> {
             return param.getValue().istStatischProperty();
         });
         staticSpalte.setEditable(true);
-        staticSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        
+        var staticBuilder = CustomNodeTableCell.builder(Attribut.class, Boolean.class, CheckBox.class)
+                .nodeFactory(CheckBox::new)
+                .getProperty(CheckBox::selectedProperty)
+                .getValue(CheckBox::isSelected)
+                .setValue(CheckBox::setSelected)
+                .onUpdateAction((cb, attribut) -> {
+                    cb.setDisable(false);
+                    if (attribut != null) {
+                        boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                                .erlaubtInstanzAttribute(getKlassifizierer().getTyp());
+                        cb.setDisable(!instanzAttributeErlaubt);
+                    }
+                });
+        staticSpalte.setCellFactory(col -> {
+            var staticCell = staticBuilder.build();
+            updateOnKlassifiziererTyp(neuerTyp -> {
+                var cb = staticCell.getNode();
+                cb.setDisable(false);
+                if (staticCell.getIndex() < 0
+                        || staticCell.getIndex() >= col.getTableView().getItems().size()) {
+                    return;
+                }
+                boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                        .erlaubtInstanzAttribute(neuerTyp);
+                cb.setDisable(!instanzAttributeErlaubt);
+            });
+            return staticCell;
+        });
+
         TableColumn<Attribut, Boolean> finalSpalte = new TableColumn<>();
         SprachUtil.bindText(finalSpalte.textProperty(), sprache, "final", "final");
         finalSpalte.setCellValueFactory(param -> param.getValue().istFinalProperty());
         finalSpalte.setEditable(true);
         finalSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        
+
         TableColumn<Attribut, Attribut> kontrollSpalte = new TableColumn<>();
         kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
         kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
         kontrollSpalte.setResizable(false);
-        
+
         return List.of(sichtbarkeitSpalte, nameSpalte, datentypSpalte, initialwertSpalte, getterSpalte, setterSpalte,
                 staticSpalte, finalSpalte, kontrollSpalte);
-    }
-
-    private Node[] erstelleAttributZeile(Attribut attribut, KontrollElemente<Attribut> kontrollelemente) {
-        ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
-        NodeUtil.beobachteSchwach(sichtbarkeit, sichtbarkeit.getSelectionModel().selectedItemProperty(),
-                attribut::setSichtbarkeit);
-
-        TextField name = new TextField();
-        bindeBidirektional(name.textProperty(), attribut.nameProperty());
-
-        SearchField<String> datentyp = new DatentypFeld(attribut.getDatentyp().getTypName(), false,
-                umlProjektRef.get().getProgrammiersprache(), eingabeValidierung);
-        bindeBidirektional(datentyp.selectedItemProperty(), attribut.getDatentyp().typNameProperty());
-
-        TextField initialwert = new TextField(attribut.getInitialwert());
-        bindeBidirektional(initialwert.textProperty(), attribut.initialwertProperty());
-
-        CheckBox getter = new CheckBox();
-        bindeBidirektional(getter.selectedProperty(), attribut.hatGetterProperty());
-        GridPane.setHalignment(getter, HPos.CENTER);
-
-        CheckBox setter = new CheckBox();
-        bindeBidirektional(setter.selectedProperty(), attribut.hatSetterProperty());
-        GridPane.setHalignment(setter, HPos.CENTER);
-
-        CheckBox statisch = new CheckBox();
-        bindeBidirektional(statisch.selectedProperty(), attribut.istStatischProperty());
-        GridPane.setHalignment(statisch, HPos.CENTER);
-
-        CheckBox istFinal = new CheckBox();
-        bindeBidirektional(istFinal.selectedProperty(), attribut.istFinalProperty());
-        GridPane.setHalignment(istFinal, HPos.CENTER);
-
-        validiereAttribut(name, datentyp, attribut);
-
-        updateAttribut(sichtbarkeit, statisch, attribut, getKlassifizierer().getTyp());
-        ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateAttribut(sichtbarkeit,
-                statisch, attribut, neueWahl);
-        this.typBeobachterListe.add(typBeobachter);
-        getKlassifizierer().typProperty().addListener(typBeobachter);
-
-        if (name.getText().isEmpty()) {
-            Platform.runLater(name::requestFocus);
-        }
-
-        return new Node[] { sichtbarkeit, name, datentyp, initialwert, getter, setter, statisch, istFinal,
-                kontrollelemente.getHoch(), kontrollelemente.getRunter(), kontrollelemente.getLoeschen() };
-    }
-
-    private void validiereAttribut(TextField name, SearchField<String> datentyp, Attribut attribut) {
-        Platform.runLater(() -> {
-            if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
-                eingabeValidierung.registerValidator(name,
-                        Validator.combine(
-                                Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")),
-                                Validator.createPredicateValidator(
-                                        tf -> getKlassifizierer().attributeProperty().stream()
-                                                .filter(a -> Objects.equals(a.getName(), name.getText())).count() <= 1,
-                                        sprache.getText("nameValidierung2",
-                                                "Ein Attribut mit diesem Namen ist bereits vorhanden"))));
-                NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
-            } else {
-                eingabeValidierung.registerValidator(name,
-                        Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
-            }
-
-            eingabeValidierung.registerValidator(datentyp.getEditor(), Validator.combine(
-                    Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")),
-                    Validator.createPredicateValidator(
-                            tf -> !umlProjektRef.get().getProgrammiersprache().getEigenschaften()
-                                    .istVoid(attribut.getDatentyp()),
-                            sprache.getText("attributValidierungVoid", "Der Typ void ist hier nicht erlaubt"))));
-            setzePlatzhalter(name);
-            setzePlatzhalter(datentyp);
-        });
     }
 
     private HBox erzeugeSichtbarkeit() {
@@ -903,7 +904,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
         @SuppressWarnings("unchecked")
-        var modifiziererCellBuilder = CustomNodeTableCell.builder(Methode.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>)(Class<?>)ComboBox.class)
+        var modifiziererCellBuilder = CustomNodeTableCell
+                .builder(Methode.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>) (Class<?>) ComboBox.class)
                 .nodeFactory(() -> {
                     ComboBox<Modifizierer> modifiziererCombo = new ComboBox<>();
                     modifiziererCombo.getItems().setAll(getKlassifizierer().getProgrammiersprache().getEigenschaften()
@@ -912,18 +914,56 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 })
                 .getProperty(combo -> combo.valueProperty())
                 .getValue(combo -> combo.getSelectionModel().getSelectedItem())
-                .setValue((combo, v) -> combo.getSelectionModel().select(v));
+                .setValue((combo, v) -> combo.getSelectionModel().select(v))
+                .onUpdateAction((combo, methode) -> {
+                    final String subKey = "abstraktStatischSubscription";
+                    var subscriptionProp = combo.getProperties().get(subKey);
+                    if (subscriptionProp instanceof Subscription subscription) {
+                        subscription.unsubscribe();
+                    }
+                    if (methode != null) {
+                        var sub = EasyBind.subscribe(methode.istAbstraktProperty(), istAbstrakt -> {
+                            updateMethodeSichtbarkeit(combo, methode.istStatisch(), istAbstrakt,
+                                    methode.getSichtbarkeit(), getKlassifizierer().getTyp());
+                        }).and(EasyBind.subscribe(methode.istStatischProperty(), istStatisch -> {
+                            updateMethodeSichtbarkeit(combo, istStatisch, methode.istAbstrakt(),
+                                    methode.getSichtbarkeit(), getKlassifizierer().getTyp());
+                        }));
+                        combo.getProperties().put(subKey, sub);
+                    }
+                });
         sichtbarkeitSpalte.setEditable(true);
-        sichtbarkeitSpalte.setCellFactory(spalte -> modifiziererCellBuilder.build());
+        sichtbarkeitSpalte.setCellFactory(spalte -> {
+            var modifiziererCell = modifiziererCellBuilder.build();
+            updateOnKlassifiziererTyp(neuerTyp -> {
+                if (modifiziererCell.getIndex() < 0
+                        || modifiziererCell.getIndex() >= spalte.getTableView().getItems().size()) {
+                    return;
+                }
+                Methode methode = spalte.getTableView().getItems().get(modifiziererCell.getIndex());
+                var combo = modifiziererCell.getNode();
+                updateMethodeSichtbarkeit(combo, methode.istStatisch(), methode.istAbstrakt(),
+                        methode.getSichtbarkeit(), neuerTyp);
+            });
+            return modifiziererCell;
+        });
 
         TableColumn<Methode, String> nameSpalte = new TableColumn<>();
         SprachUtil.bindText(nameSpalte.textProperty(), sprache, "methodenname", "Methodenname");
         nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
         nameSpalte.setEditable(true);
-        nameSpalte.setCellFactory(col -> new OnlyTextFieldTableCell<>());
-        
-        record MethodeParameter(Methode methode, StringProperty parameter) {}
-        
+        nameSpalte.setCellFactory(col -> {
+            var nameCell = new OnlyTextFieldTableCell<Methode, String>();
+            nameCell.setOnUpdateAction((tf, methode) -> {
+                addValidierung(tf, methode, () -> methode.getNameValidierung());
+                addValidierung(tf, methode, () -> methode.getSignaturValidierung(), "signaturValidierung");
+            });
+            return nameCell;
+        });
+
+        record MethodeParameter(Methode methode, StringProperty parameter) {
+        }
+
         TableColumn<Methode, MethodeParameter> parameterlisteSpalte = new TableColumn<>();
         SprachUtil.bindText(parameterlisteSpalte.textProperty(), sprache, "parameterliste", "Parameterliste");
         parameterlisteSpalte.setCellValueFactory(param -> {
@@ -979,13 +1019,22 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                         });
                         tf.setOnMousePressed(e -> bearbeiteParameter(tf, item.methode));
                     }
-                    
+
                     @Override
                     public void onEmpty(TextField tf, MethodeParameter item) {
                         tf.textProperty().unbind();
                         tf.clear();
                         tf.setOnAction(null);
                         tf.setOnMousePressed(null);
+                    }
+                })
+                .onUpdateAction((tf, methode) -> {
+                    addValidierung(tf, methode, () -> methode.getParameterValidierung(), "parameterValidierung");
+                    addValidierung(tf, methode, () -> methode.getSignaturValidierung(), "signaturValidierung");
+                    if (methode != null && (methode.istGetter() || methode.istSetter())) {
+                        tf.setDisable(true);
+                    } else {
+                        tf.setDisable(false);
                     }
                 });
         parameterlisteSpalte.setCellFactory(spalte -> parameterCellBuilder.build());
@@ -997,14 +1046,33 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .nodeFactory(() -> new DatentypFeld(null, false, umlProjektRef.get().getProgrammiersprache()))
                 .getProperty(DatentypFeld::textProperty)
                 .getValue(DatentypFeld::getText)
-                .setValue(DatentypFeld::setText);
+                .setValue(DatentypFeld::setText)
+                .onUpdateAction((tf, methode) -> {
+                    addValidierung(tf, methode, () -> methode.getRueckgabeTyp().getTypValidierung());
+                    tf.setDisable(false);
+                    if (methode != null && (methode.istGetter() || methode.istSetter())) {
+                        tf.setDisable(true);
+                    }
+                });
         rueckgabeSpalte.setCellFactory(col -> datentypBuilder.build());
 
         TableColumn<Methode, Boolean> abstraktSpalte = new TableColumn<>();
         SprachUtil.bindText(abstraktSpalte.textProperty(), sprache, "abstrakt", "abstrakt");
         abstraktSpalte.setCellValueFactory(param -> param.getValue().istAbstraktProperty());
         abstraktSpalte.setEditable(true);
-        abstraktSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        var abstraktBuilder = CustomNodeTableCell.builder(Methode.class, Boolean.class, CheckBox.class)
+                .nodeFactory(() -> new CheckBox())
+                .getProperty(CheckBox::selectedProperty)
+                .getValue(CheckBox::isSelected)
+                .setValue(CheckBox::setSelected)
+                .onUpdateAction((cb, methode) -> {
+                    addValidierung(cb, methode, () -> methode.getAbstraktFinalValidierung());
+                    cb.setDisable(false);
+                    if (methode != null && (methode.istGetter() || methode.istSetter())) {
+                        cb.setDisable(true);
+                    }
+                });
+        abstraktSpalte.setCellFactory(col -> abstraktBuilder.build());
 
         TableColumn<Methode, Boolean> staticSpalte = new TableColumn<>();
         SprachUtil.bindText(staticSpalte.textProperty(), sprache, "static", "static");
@@ -1012,187 +1080,86 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             return param.getValue().istStatischProperty();
         });
         staticSpalte.setEditable(true);
-        staticSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
+        var staticBuilder = CustomNodeTableCell.builder(Methode.class, Boolean.class, CheckBox.class)
+                .nodeFactory(() -> new CheckBox())
+                .getProperty(CheckBox::selectedProperty)
+                .getValue(CheckBox::isSelected)
+                .setValue(CheckBox::setSelected)
+                .onUpdateAction((cb, methode) -> {
+                    cb.setDisable(false);
+                    if (methode != null) {
+                        boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                                .erlaubtInstanzAttribute(getKlassifizierer().getTyp());
+                        if (!instanzAttributeErlaubt && (methode.istGetter() || methode.istSetter())) {
+                            // Getter und Setter werden über Attribut gesteuert
+                            cb.setDisable(true);
+                        }
+                    }
+                });
+        staticSpalte.setCellFactory(col -> {
+            var staticCell = staticBuilder.build();
+            updateOnKlassifiziererTyp(neuerTyp -> {
+                var cb = staticCell.getNode();
+                cb.setDisable(false);
+                if (staticCell.getIndex() < 0
+                        || staticCell.getIndex() >= col.getTableView().getItems().size()) {
+                    return;
+                }
+                Methode methode = col.getTableView().getItems().get(staticCell.getIndex());
+                boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                        .erlaubtInstanzAttribute(getKlassifizierer().getTyp());
+                if (!instanzAttributeErlaubt && (methode.istGetter() || methode.istSetter())) {
+                    // Getter und Setter werden über Attribut gesteuert
+                    cb.setDisable(true);
+                }
+            });
+            return staticCell;
+        });
 
         TableColumn<Methode, Boolean> finalSpalte = new TableColumn<>();
         SprachUtil.bindText(finalSpalte.textProperty(), sprache, "final", "final");
-        finalSpalte.setCellValueFactory(param -> param.getValue().istStatischProperty());
+        finalSpalte.setCellValueFactory(param -> param.getValue().istFinalProperty());
         finalSpalte.setEditable(true);
-        finalSpalte.setCellFactory(col -> new CheckBoxTableCell<>());
-        
+        var finalBuilder = CustomNodeTableCell.builder(Methode.class, Boolean.class, CheckBox.class)
+                .nodeFactory(() -> new CheckBox())
+                .getProperty(CheckBox::selectedProperty)
+                .getValue(CheckBox::isSelected)
+                .setValue(CheckBox::setSelected)
+                .onUpdateAction((cb, methode) -> {
+                    addValidierung(cb, methode, () -> methode.getAbstraktFinalValidierung());
+                });
+        finalSpalte.setCellFactory(col -> finalBuilder.build());
+
         TableColumn<Methode, Methode> kontrollSpalte = new TableColumn<>();
         kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
-        kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
+        kontrollSpalte.setCellFactory(col -> {
+            var controllCell = new ListControlsTableCell<Methode>();
+            controllCell.setOnUpdateAction(params -> {
+                params.loeschen().setDisable(false);
+                Methode methode = params.rowItem();
+                if (methode != null && (methode.istGetter() || methode.istSetter())) {
+                    params.loeschen().setDisable(true);
+                }
+            });
+            return controllCell;
+        });
         kontrollSpalte.setResizable(false);
 
         return List.of(sichtbarkeitSpalte, nameSpalte, parameterlisteSpalte, rueckgabeSpalte, abstraktSpalte,
                 staticSpalte, finalSpalte, kontrollSpalte);
     }
 
-    private Node[] erstelleMethodenZeile(Methode methode, KontrollElemente<Methode> kontrollelemente) {
-        ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
-        NodeUtil.beobachteSchwach(sichtbarkeit, sichtbarkeit.getSelectionModel().selectedItemProperty(),
-                methode::setSichtbarkeit);
-
-        TextField name = new TextField();
-        bindeBidirektional(name.textProperty(), methode.nameProperty());
-
-        TextField parameter = new TextField();
-        erzeugeParameterBindung(parameter, methode);
-        parameter.setEditable(false);
-        parameter.prefColumnCountProperty().bind(
-                new When(parameter.textProperty().length().greaterThanOrEqualTo(TextField.DEFAULT_PREF_COLUMN_COUNT))
-                        .then(parameter.textProperty().length()).otherwise(TextField.DEFAULT_PREF_COLUMN_COUNT));
-        loeseBindungen.add(parameter.prefColumnCountProperty()::unbind);
-        parameter.setOnMousePressed(e -> bearbeiteParameter(parameter, methode));
-        parameter.setOnAction(e -> bearbeiteParameter(parameter, methode));
-
-        SearchField<String> rueckgabetyp = new DatentypFeld(methode.getRueckgabeTyp().getTypName(), true,
-                umlProjektRef.get().getProgrammiersprache(), eingabeValidierung);
-        bindeBidirektional(rueckgabetyp.selectedItemProperty(), methode.getRueckgabeTyp().typNameProperty());
-
-        CheckBox abstrakt = new CheckBox();
-        bindeBidirektional(abstrakt.selectedProperty(), methode.istAbstraktProperty());
-        GridPane.setHalignment(abstrakt, HPos.CENTER);
-
-        CheckBox statisch = new CheckBox();
-        bindeBidirektional(statisch.selectedProperty(), methode.istStatischProperty());
-        GridPane.setHalignment(statisch, HPos.CENTER);
-
-        CheckBox istFinal = new CheckBox();
-        bindeBidirektional(istFinal.selectedProperty(), methode.istFinalProperty());
-        GridPane.setHalignment(istFinal, HPos.CENTER);
-
-        validiereMethode(parameter, name, rueckgabetyp, abstrakt, istFinal, methode);
-
-        updateMethode(sichtbarkeit, abstrakt, statisch, methode, getKlassifizierer().getTyp());
-        ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateMethode(sichtbarkeit,
-                abstrakt, statisch, methode, neueWahl);
-        this.typBeobachterListe.add(typBeobachter);
-        getKlassifizierer().typProperty().addListener(typBeobachter);
-
-        Runnable abstraktStatischBeobachter = () -> updateMethode(sichtbarkeit, abstrakt, statisch, methode,
-                getKlassifizierer().getTyp());
-        NodeUtil.beobachteSchwach(abstrakt, abstrakt.selectedProperty(), abstraktStatischBeobachter);
-        NodeUtil.beobachteSchwach(statisch, statisch.selectedProperty(), abstraktStatischBeobachter);
-
-        if (methode.istGetter() || methode.istSetter()) {
-            rueckgabetyp.setDisable(true);
-            kontrollelemente.getLoeschen().setDisable(true);
+    private void updateMethodeSichtbarkeit(ComboBox<Modifizierer> combo, boolean istStatisch, boolean istAbstrakt,
+            Modifizierer aktuellerModifizierer, KlassifiziererTyp typ) {
+        List<Modifizierer> erlaubteModifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                .getMethodenModifizierer(getKlassifizierer().getTyp(), istStatisch, istAbstrakt);
+        combo.getItems().setAll(erlaubteModifizierer);
+        if (aktuellerModifizierer != null && erlaubteModifizierer.contains(aktuellerModifizierer)) {
+            combo.getSelectionModel().select(aktuellerModifizierer);
+        } else {
+            combo.getSelectionModel().selectFirst();
         }
-
-        if (methode.istGetter()) {
-            parameter.setDisable(true);
-        }
-
-        NodeUtil.beobachteSchwach(abstrakt, abstrakt.selectedProperty(), (alt, istAbstrakt) -> {
-            if (istAbstrakt.booleanValue()) {
-                statisch.setSelected(false);
-            }
-            eingabeValidierung.revalidate(istFinal);
-        });
-
-        NodeUtil.beobachteSchwach(istFinal, istFinal.selectedProperty(), (alt, neu) -> {
-            eingabeValidierung.revalidate(abstrakt);
-        });
-
-        NodeUtil.beobachteSchwach(statisch, statisch.selectedProperty(), (alt, istStatisch) -> {
-            if (istStatisch.booleanValue()) {
-                abstrakt.setSelected(false);
-            }
-        });
-
-        if (name.getText().isEmpty()) {
-            Platform.runLater(name::requestFocus);
-        }
-
-        return new Node[] { sichtbarkeit, name, parameter, rueckgabetyp, abstrakt, statisch, istFinal,
-                kontrollelemente.getHoch(), kontrollelemente.getRunter(), kontrollelemente.getLoeschen() };
     }
-
-    private void erzeugeParameterBindung(TextField parameter, HatParameterListe typMitParameterliste) {
-        parameter.textProperty().bind(Bindings.concat("(").concat(new StringBinding() {
-            {
-                super.bind(typMitParameterliste.parameterListeProperty());
-            }
-            StringExpression stringExpr = null;
-
-            @Override
-            protected String computeValue() {
-                if (stringExpr != null) {
-                    super.unbind(stringExpr);
-                }
-                var params = typMitParameterliste.parameterListeProperty().stream()
-                        .map(param -> Bindings.concat(
-                                new When(Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty())
-                                        .then(param.nameProperty().concat(": ")).otherwise(""),
-                                param.getDatentyp().typNameProperty()))
-                        .toArray();
-
-                if (params.length < 1) {
-                    return "";
-                }
-
-                stringExpr = Bindings.concat(params[0]);
-                for (int i = 1; i < params.length; i++) {
-                    stringExpr = stringExpr.concat(", ");
-                    stringExpr = stringExpr.concat(params[i]);
-                }
-
-                super.bind(stringExpr);
-                return stringExpr.get();
-            }
-        }).concat(")"));
-        loeseBindungen.add(parameter.textProperty()::unbind);
-    }
-
-    // @formatter:off
-	private void validiereMethode(TextField parameter, TextField name, SearchField<String> rueckgabetyp, 
-			CheckBox istAbstrakt, CheckBox istFinal, Methode methode) {
-		Platform.runLater(() -> {
-			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
-				eingabeValidierung.registerValidator(parameter, Validator.combine(
-						Validator.createPredicateValidator(tf -> getKlassifizierer().methodenProperty().stream()
-								.filter(m -> Objects.equals(m.getName(), methode.getName()) && Objects.deepEquals(
-										m.parameterListeProperty().stream().map(Parameter::getDatentyp).toList(), 
-										methode.parameterListeProperty().stream().map(Parameter::getDatentyp).toList()))
-								.count() <= 1,
-								sprache.getText("methodeValidierung",
-										"Eine Methode mit gleicher Signatur (Name und Parameterliste) "
-												+ "ist bereits vorhanden")),
-						Validator.createPredicateValidator(tf -> {
-							Set<String> params = new HashSet<>();
-							boolean doppelt = false;
-							for (var param : methode.parameterListeProperty()) {
-								if (!params.add(param.getName())) {
-									doppelt = true;
-									break;
-								}
-							}
-							return !doppelt;
-						}, sprache.getText("parameterValidierung2",
-								"Es darf keine Parameter mit gleichem Namen geben"))));
-				setzePlatzhalter(parameter);
-				NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
-			}
-			eingabeValidierung.registerValidator(name,
-					Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
-			eingabeValidierung.registerValidator(rueckgabetyp.getEditor(),
-					Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")));
-			eingabeValidierung.registerValidator(istAbstrakt, Validator.createPredicateValidator(c -> {
-				return !(istAbstrakt.isSelected() && istFinal.isSelected());
-			}, sprache.getText("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein")));
-			eingabeValidierung.registerValidator(istFinal, Validator.createPredicateValidator(c -> {
-				return !(istAbstrakt.isSelected() && istFinal.isSelected());
-			}, sprache.getText("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein")));
-			
-			setzePlatzhalter(name);
-			setzePlatzhalter(rueckgabetyp);
-			setzePlatzhalter(istAbstrakt);
-			setzePlatzhalter(istFinal);
-		});
-	}
-	// @formatter:on
 
     private void bearbeiteParameter(TextField parameter, HatParameterListe typMitParameterliste) {
         var parameterListe = erzeugeTabellenAnzeige(typMitParameterliste.parameterListeProperty(),
@@ -1203,12 +1170,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                                 .add(new Parameter(programmierEigenschaften.getLetzerDatentyp()));
                     }
                 });
-        
+
         parameterListe.setPadding(new Insets(15));
         TableView<?> tabelle = (TableView<?>) parameterListe.getCenter();
         tabelle.setMinSize(450, 200);
         tabelle.setPrefHeight(200);
-        
+
         PopOver parameterDialog = new PopOver(parameterListe);
         parameterDialog.setArrowLocation(ArrowLocation.TOP_CENTER);
         parameterDialog.getRoot().getStylesheets().addAll(parameter.getScene().getStylesheets());
@@ -1219,7 +1186,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         TableColumn<Parameter, String> nameSpalte = new TableColumn<>();
         SprachUtil.bindText(nameSpalte.textProperty(), sprache, "parametername", "Parametername");
         nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
-        nameSpalte.setCellFactory(param -> new OnlyTextFieldTableCell<>());
+        nameSpalte.setCellFactory(param -> {
+            var nameCell = new OnlyTextFieldTableCell<Parameter, String>();
+            nameCell.setOnUpdateAction((tf, parameter) -> {
+                addValidierung(tf, parameter, () -> parameter.getNameValidierung());
+            });
+            return nameCell;
+        });
 
         TableColumn<Parameter, String> datentypSpalte = new TableColumn<>();
         SprachUtil.bindText(datentypSpalte.textProperty(), sprache, "datentyp", "Datentyp");
@@ -1232,9 +1205,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 })
                 .getProperty(DatentypFeld::textProperty)
                 .getValue(DatentypFeld::getText)
-                .setValue(DatentypFeld::setText);
+                .setValue(DatentypFeld::setText)
+                .onUpdateAction((df, parameter) -> {
+                    addValidierung(df, parameter, () -> parameter.getDatentyp().getTypValidierung());
+                });
         datentypSpalte.setCellFactory(col -> datentypBuilder.build());
-        
+
         TableColumn<Parameter, Parameter> kontrollSpalte = new TableColumn<>();
         kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
         kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
@@ -1243,85 +1219,44 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         return List.of(nameSpalte, datentypSpalte, kontrollSpalte);
     }
 
-    private Node[] erzeugeParameterZeile(Parameter param, HatParameterListe typMitParameterliste,
-            KontrollElemente<Parameter> kontrollelemente) {
-        TextField name = new TextField();
-        bindeBidirektional(name.textProperty(), param.nameProperty());
-
-        SearchField<String> datentyp = new DatentypFeld(param.getDatentyp().getTypName(), true,
-                umlProjektRef.get().getProgrammiersprache(), eingabeValidierung);
-        bindeBidirektional(datentyp.selectedItemProperty(), param.getDatentyp().typNameProperty());
-
-        if (typMitParameterliste instanceof Methode m && (m.istGetter() || m.istSetter())) {
-            datentyp.setDisable(true);
-            kontrollelemente.getHoch().setDisable(true);
-            kontrollelemente.getRunter().setDisable(true);
-            kontrollelemente.getLoeschen().setDisable(true);
-        }
-
-        validiereParameter(name, datentyp, typMitParameterliste, param);
-
-        if (name.getText().isEmpty()) {
-            Platform.runLater(name::requestFocus);
-        }
-
-        return new Node[] { name, datentyp, kontrollelemente.getHoch(), kontrollelemente.getRunter(),
-                kontrollelemente.getLoeschen() };
-    }
-
-    private void validiereParameter(TextField name, SearchField<String> datentyp,
-            HatParameterListe typMitParameterListe, Parameter param) {
-        Platform.runLater(() -> {
-            if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
-                eingabeValidierung.registerValidator(name,
-                        Validator.combine(
-                                Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")),
-                                Validator.createPredicateValidator(
-                                        tf -> typMitParameterListe.parameterListeProperty().stream()
-                                                .filter(p -> Objects.equals(p.getName(), name.getText())).count() <= 1,
-                                        sprache.getText("parameterValidierung",
-                                                "Ein Parameter mit diesem Namen ist bereits vorhanden"))));
-                NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
-            } else {
-                eingabeValidierung.registerValidator(name,
-                        Validator.createEmptyValidator(sprache.getText("nameValidierung", "Name angeben")));
-            }
-
-            eingabeValidierung.registerValidator(datentyp.getEditor(), Validator.combine(
-                    Validator.createEmptyValidator(sprache.getText("datentypValidierung", "Datentyp angeben")),
-                    Validator.createPredicateValidator(
-                            tf -> !umlProjektRef.get().getProgrammiersprache().getEigenschaften()
-                                    .istVoid(param.getDatentyp()),
-                            sprache.getText("attributValidierungVoid", "Der Typ void ist hier nicht erlaubt"))));
-            setzePlatzhalter(name);
-            setzePlatzhalter(datentyp);
-
-            if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
-                NodeUtil.beobachteSchwach(name, name.textProperty(), () -> eingabeValidierung.revalidate());
-                NodeUtil.beobachteSchwach(datentyp, datentyp.textProperty(), () -> eingabeValidierung.revalidate());
-            }
-        });
-    }
-
     private Collection<TableColumn<Konstruktor, ?>> getKonstruktorSpalten() {
         TableColumn<Konstruktor, Modifizierer> sichtbarkeitSpalte = new TableColumn<>();
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
         @SuppressWarnings("unchecked")
-        var modifiziererCellBuilder = CustomNodeTableCell.builder(Konstruktor.class, Modifizierer.class, (Class<ComboBox<Modifizierer>>)(Class<?>)ComboBox.class)
+        var modifiziererCellBuilder = CustomNodeTableCell
+                .builder(Konstruktor.class, Modifizierer.class,
+                        (Class<ComboBox<Modifizierer>>) (Class<?>) ComboBox.class)
                 .nodeFactory(() -> {
-                    ComboBox<Modifizierer> modifiziererCombo = new ComboBox<>();
-                    modifiziererCombo.getItems().setAll(getKlassifizierer().getProgrammiersprache().getEigenschaften()
-                            .getKonstruktorModifizierer(getKlassifizierer().getTyp()));
-                    return modifiziererCombo;
+                    ComboBox<Modifizierer> combo = new ComboBox<>();
+                    List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                            .getKonstruktorModifizierer(getKlassifizierer().getTyp());
+                    combo.getItems().setAll(modifizierer);
+                    updateOnKlassifiziererTyp(neuerTyp -> {
+                        List<Modifizierer> neueModifizierer = getKlassifizierer().getProgrammiersprache()
+                                .getEigenschaften()
+                                .getKonstruktorModifizierer(getKlassifizierer().getTyp());
+                        combo.getItems().setAll(neueModifizierer);
+                        var aktuellerModifizierer = combo.getSelectionModel().getSelectedItem();
+                        if (aktuellerModifizierer != null
+                                && getKlassifizierer().getProgrammiersprache().getEigenschaften()
+                                        .getKonstruktorModifizierer(getKlassifizierer().getTyp())
+                                        .contains(aktuellerModifizierer)) {
+                            combo.getSelectionModel().select(aktuellerModifizierer);
+                        } else {
+                            combo.getSelectionModel().selectFirst();
+                        }
+                    });
+                    return combo;
                 })
                 .getProperty(combo -> combo.valueProperty())
                 .getValue(combo -> combo.getSelectionModel().getSelectedItem())
                 .setValue((combo, v) -> combo.getSelectionModel().select(v));
         sichtbarkeitSpalte.setCellFactory(spalte -> modifiziererCellBuilder.build());
 
-        record KonstruktorParameter(Konstruktor konstruktor, StringProperty parameter) {}
-        
+        record KonstruktorParameter(Konstruktor konstruktor, StringProperty parameter) {
+        }
+
         TableColumn<Konstruktor, KonstruktorParameter> parameterlisteSpalte = new TableColumn<>();
         SprachUtil.bindText(parameterlisteSpalte.textProperty(), sprache, "parameterliste", "Parameterliste");
         parameterlisteSpalte.setCellValueFactory(param -> {
@@ -1361,7 +1296,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             loeseBindungen.add(parameter::unbind);
             return new SimpleObjectProperty<>(new KonstruktorParameter(param.getValue(), parameter));
         });
-        var parameterCellBuilder = CustomNodeTableCell.builder(Konstruktor.class, KonstruktorParameter.class, TextField.class)
+        var parameterCellBuilder = CustomNodeTableCell
+                .builder(Konstruktor.class, KonstruktorParameter.class, TextField.class)
                 .nodeFactory(() -> {
                     TextField tf = new TextField();
                     tf.setEditable(false);
@@ -1377,7 +1313,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                         });
                         tf.setOnMousePressed(e -> bearbeiteParameter(tf, item.konstruktor));
                     }
-                    
+
                     @Override
                     public void onEmpty(TextField tf, KonstruktorParameter item) {
                         tf.textProperty().unbind();
@@ -1385,78 +1321,21 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                         tf.setOnAction(null);
                         tf.setOnMousePressed(null);
                     }
+                })
+                .onUpdateAction((tf, konstruktor) -> {
+                    addValidierung(tf, konstruktor, () -> konstruktor.getParameterValidierung(),
+                            "parameterValidierung");
+                    addValidierung(tf, konstruktor, () -> konstruktor.getSignaturValidierung(), "signaturValidierung");
                 });
         parameterlisteSpalte.setCellFactory(spalte -> parameterCellBuilder.build());
-        
+
         TableColumn<Konstruktor, Konstruktor> kontrollSpalte = new TableColumn<>();
         kontrollSpalte.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
         kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
         kontrollSpalte.setResizable(false);
-        
+
         return List.of(sichtbarkeitSpalte, parameterlisteSpalte, kontrollSpalte);
     }
-
-    private Node[] erstelleKonstruktorZeile(Konstruktor konstruktor, KontrollElemente<Konstruktor> kontrollelemente) {
-        ComboBox<Modifizierer> sichtbarkeit = new ComboBox<>();
-        NodeUtil.beobachteSchwach(sichtbarkeit, sichtbarkeit.getSelectionModel().selectedItemProperty(),
-                konstruktor::setSichtbarkeit);
-
-        TextField name = new TextField();
-        bindeBidirektional(name.textProperty(), konstruktor.nameProperty());
-        name.setEditable(false);
-
-        TextField parameter = new TextField();
-        erzeugeParameterBindung(parameter, konstruktor);
-        parameter.setEditable(false);
-        parameter.prefColumnCountProperty().bind(
-                new When(parameter.textProperty().length().greaterThanOrEqualTo(TextField.DEFAULT_PREF_COLUMN_COUNT))
-                        .then(parameter.textProperty().length()).otherwise(TextField.DEFAULT_PREF_COLUMN_COUNT));
-        loeseBindungen.add(parameter.prefColumnCountProperty()::unbind);
-        parameter.setOnMousePressed(e -> bearbeiteParameter(parameter, konstruktor));
-        parameter.setOnAction(e -> bearbeiteParameter(parameter, konstruktor));
-
-        validiereKonstruktor(parameter, konstruktor);
-
-        updateKonstruktor(sichtbarkeit, konstruktor, getKlassifizierer().getTyp());
-        ChangeListener<KlassifiziererTyp> typBeobachter = (p, alteWahl, neueWahl) -> updateKonstruktor(sichtbarkeit,
-                konstruktor, getKlassifizierer().getTyp());
-        this.typBeobachterListe.add(typBeobachter);
-        getKlassifizierer().typProperty().addListener(typBeobachter);
-
-        return new Node[] { sichtbarkeit, name, parameter, kontrollelemente.getHoch(), kontrollelemente.getRunter(),
-                kontrollelemente.getLoeschen() };
-    }
-
-    // @formatter:off
-	private void validiereKonstruktor(TextField parameter, Konstruktor konstruktor) {
-		Platform.runLater(() -> {
-			if (Einstellungen.getBenutzerdefiniert().erweiterteValidierungAktivierenProperty().get()) {
-				eingabeValidierung.registerValidator(parameter, Validator.combine(
-						Validator.createPredicateValidator(tf -> getKlassifizierer().konstruktorProperty().stream()
-								.filter(k -> Objects.deepEquals(
-										k.parameterListeProperty().stream().map(Parameter::getDatentyp).toList(), 
-										konstruktor.parameterListeProperty().stream().map(Parameter::getDatentyp)
-										.toList()))
-								.count() <= 1,
-								sprache.getText("konstruktorValidierung",
-										"Ein Konstruktor mit gleicher Parameterliste ist bereits vorhanden")),
-						Validator.createPredicateValidator(tf -> {
-							Set<String> params = new HashSet<>();
-							boolean doppelt = false;
-							for (var param : konstruktor.parameterListeProperty()) {
-								if (!params.add(param.getName())) {
-									doppelt = true;
-									break;
-								}
-							}
-							return !doppelt;
-						}, sprache.getText("parameterValidierung2",
-								"Es darf keine Parameter mit gleichem Namen geben"))));
-				setzePlatzhalter(parameter);
-			}
-		});
-	}
-	// @formatter:on
 
     private void initialisiereButtons() {
         ButtonType[] buttons = { new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.FINISH),
@@ -1464,46 +1343,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         this.getDialogPane().getButtonTypes().addAll(buttons);
         this.getDialogPane().lookupButton(buttons[0]).disableProperty().bind(eingabeValidierung.invalidProperty());
         loeseBindungen.add(this.getDialogPane().lookupButton(buttons[0]).disableProperty()::unbind);
-    }
-
-    private void setzePlatzhalter(TextInputControl eingabefeld) {
-        ChangeListener<ValidationResult> beobachter = (p, alt, neu) -> {
-            var fehler = eingabeValidierung.getHighestMessage(eingabefeld);
-            if (fehler.isPresent()) {
-                eingabefeld.setPromptText(fehler.get().getText());
-                if (!eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
-                    eingabefeld.getStyleClass().add(CSS_EINGABE_FEHLER);
-                }
-                eingabefeld.setTooltip(new Tooltip(fehler.get().getText()));
-            } else {
-                eingabefeld.setPromptText(null);
-                if (eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
-                    eingabefeld.getStyleClass().remove(CSS_EINGABE_FEHLER);
-                }
-                eingabefeld.setTooltip(null);
-            }
-        };
-        eingabeValidierung.validationResultProperty().addListener(beobachter);
-        validierungsBeobachter.add(beobachter);
-    }
-
-    private void setzePlatzhalter(Control eingabefeld) {
-        ChangeListener<ValidationResult> beobachter = (p, alt, neu) -> {
-            var fehler = eingabeValidierung.getHighestMessage(eingabefeld);
-            if (fehler.isPresent()) {
-                if (!eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
-                    eingabefeld.getStyleClass().add(CSS_EINGABE_FEHLER);
-                }
-                eingabefeld.setTooltip(new Tooltip(fehler.get().getText()));
-            } else {
-                if (eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
-                    eingabefeld.getStyleClass().remove(CSS_EINGABE_FEHLER);
-                }
-                eingabefeld.setTooltip(null);
-            }
-        };
-        eingabeValidierung.validationResultProperty().addListener(beobachter);
-        validierungsBeobachter.add(beobachter);
     }
 
     private void setzePlatzhalter(SearchField<?> eingabefeld) {
@@ -1536,70 +1375,73 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         superklasse.setDisable(!superklasseErlaubt);
     }
 
-    private void updateAttribut(ComboBox<Modifizierer> sichtbarkeit, CheckBox statisch, Attribut attribut,
-            KlassifiziererTyp typ) {
-        boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
-                .erlaubtInstanzAttribute(typ);
-        statisch.setDisable(!instanzAttributeErlaubt);
-
-        List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
-                .getAttributModifizierer(getKlassifizierer().getTyp());
-        var aktuellerModifizierer = attribut.getSichtbarkeit();
-        sichtbarkeit.getItems().setAll(modifizierer);
-        if (aktuellerModifizierer != null && modifizierer.contains(aktuellerModifizierer)) {
-            sichtbarkeit.getSelectionModel().select(aktuellerModifizierer);
-        } else {
-            sichtbarkeit.getSelectionModel().selectFirst();
-        }
-    }
-
-    private void updateMethode(ComboBox<Modifizierer> sichtbarkeit, CheckBox abstrakt, CheckBox statisch,
-            Methode methode, KlassifiziererTyp typ) {
-        boolean abstraktErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
-                .erlaubtAbstrakteMethode(typ);
-        boolean abstraktErzwungen = !getKlassifizierer().getProgrammiersprache().getEigenschaften()
-                .erlaubtNichtAbstrakteMethode(typ);
-
-        abstrakt.setDisable(!abstraktErlaubt);
-
-        if (abstraktErzwungen) {
-            abstrakt.setDisable(true);
-        }
-
-        boolean instanzAttributeErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
-                .erlaubtInstanzAttribute(typ);
-        if (!instanzAttributeErlaubt && (methode.istGetter() || methode.istSetter())) {
-            // Getter und Setter werden über Attribut gesteuert
-            abstrakt.setDisable(true);
-            statisch.setDisable(true);
-        }
-
-        List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
-                .getMethodenModifizierer(getKlassifizierer().getTyp(), methode.istStatisch(), methode.istAbstrakt());
-        var aktuellerModifizierer = methode.getSichtbarkeit();
-        sichtbarkeit.getItems().setAll(modifizierer);
-        if (aktuellerModifizierer != null && modifizierer.contains(aktuellerModifizierer)) {
-            sichtbarkeit.getSelectionModel().select(aktuellerModifizierer);
-        } else {
-            sichtbarkeit.getSelectionModel().selectFirst();
-        }
-    }
-
-    private void updateKonstruktor(ComboBox<Modifizierer> sichtbarkeit, Konstruktor konstruktor,
-            KlassifiziererTyp typ) {
-        List<Modifizierer> modifizierer = getKlassifizierer().getProgrammiersprache().getEigenschaften()
-                .getKonstruktorModifizierer(getKlassifizierer().getTyp());
-        var aktuellerModifizierer = konstruktor.getSichtbarkeit();
-        sichtbarkeit.getItems().setAll(modifizierer);
-        if (aktuellerModifizierer != null && modifizierer.contains(aktuellerModifizierer)) {
-            sichtbarkeit.getSelectionModel().select(aktuellerModifizierer);
-        } else {
-            sichtbarkeit.getSelectionModel().selectFirst();
-        }
+    private void updateOnKlassifiziererTyp(Consumer<KlassifiziererTyp> updateAction) {
+        Subscription typSubscription = EasyBind.subscribe(klassifizierer.typProperty(), updateAction);
+        this.loeseBindungen.add(typSubscription::unsubscribe);
     }
 
     private <T> void bindeBidirektional(Property<T> p1, Property<T> p2) {
         p1.bindBidirectional(p2);
         loeseBindungen.add(() -> p1.unbindBidirectional(p2));
+    }
+
+    private <N extends TextInputControl> void addValidierung(N node, Object sourceObj,
+            Supplier<Validierung> validierungSupplier) {
+        addValidierung(node, sourceObj, validierungSupplier, validierungKey);
+    }
+
+    private <N extends SearchField<?>> void addValidierung(N node, Object sourceObj,
+            Supplier<Validierung> validierungSupplier) {
+        addValidierung(node, sourceObj, validierungSupplier, validierungKey);
+    }
+
+    private <N extends CheckBox> void addValidierung(N node, Object sourceObj,
+            Supplier<Validierung> validierungSupplier) {
+        addValidierung(node, sourceObj, validierungSupplier, validierungKey);
+    }
+
+    private <N extends TextInputControl> void addValidierung(N node, Object sourceObj,
+            Supplier<Validierung> validierungSupplier, String key) {
+        if (node.getProperties().containsKey(key)) {
+            var prop = node.getProperties().get(key);
+            if (prop instanceof Subscription sub) {
+                sub.unsubscribe();
+            }
+        }
+        if (sourceObj != null) {
+            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get());
+            this.loeseBindungen.add(nameBeobachter::unsubscribe);
+            node.getProperties().put(key, nameBeobachter);
+        }
+    }
+
+    private <N extends SearchField<?>> void addValidierung(N node, Object sourceObj,
+            Supplier<Validierung> validierungSupplier, String key) {
+        if (node.getProperties().containsKey(key)) {
+            var prop = node.getProperties().get(key);
+            if (prop instanceof Subscription sub) {
+                sub.unsubscribe();
+            }
+        }
+        if (sourceObj != null) {
+            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get());
+            this.loeseBindungen.add(nameBeobachter::unsubscribe);
+            node.getProperties().put(key, nameBeobachter);
+        }
+    }
+
+    private <N extends CheckBox> void addValidierung(N node, Object sourceObj,
+            Supplier<Validierung> validierungSupplier, String key) {
+        if (node.getProperties().containsKey(key)) {
+            var prop = node.getProperties().get(key);
+            if (prop instanceof Subscription sub) {
+                sub.unsubscribe();
+            }
+        }
+        if (sourceObj != null) {
+            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get());
+            this.loeseBindungen.add(nameBeobachter::unsubscribe);
+            node.getProperties().put(key, nameBeobachter);
+        }
     }
 }

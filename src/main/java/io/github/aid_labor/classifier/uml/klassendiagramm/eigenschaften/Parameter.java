@@ -15,11 +15,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
+import io.github.aid_labor.classifier.basis.Einstellungen;
+import io.github.aid_labor.classifier.basis.io.Ressourcen;
 import io.github.aid_labor.classifier.basis.json.JsonStringProperty;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarBasis;
 import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeobachter;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
+import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
+import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
+import javafx.beans.Observable;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.StringProperty;
-
+import javafx.collections.FXCollections;
 
 public class Parameter extends EditierbarBasis implements EditierbarerBeobachter {
 //	private static final Logger log = Logger.getLogger(Parameter.class.getName());
@@ -27,124 +36,163 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenattribute																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	private static long naechsteId = 0;
-	
+
+    private static long naechsteId = 0;
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
 // #                                                                              		      #
 // #	Instanzen																			  #
 // #																						  #
 // ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ## ##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Attribute																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	private final JsonStringProperty name;
-	private final Datentyp datentyp;
-	@JsonIgnore
-	private final List<Object> beobachterListe;
-	@JsonIgnore
-	private final long id;
-	
+
+    private final JsonStringProperty name;
+    private final Datentyp datentyp;
+    @JsonIgnore
+    private final List<Object> beobachterListe;
+    @JsonIgnore
+    private final long id;
+    @JsonIgnore
+    private final Sprache sprache;
+    @JsonIgnore
+    private Validierung nameValidierung;
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	@JsonCreator
-	public Parameter(@JsonProperty("datentyp") Datentyp datentyp, @JsonProperty("name") String name) {
-		this.datentyp = Objects.requireNonNull(datentyp);
-		this.name = new JsonStringProperty(name);
-		this.beobachterListe = new LinkedList<>();
-		this.id = naechsteId++;
-		
-		this.ueberwachePropertyAenderung(datentyp.typNameProperty(), id + "_parameter_typ");
-		this.ueberwachePropertyAenderung(this.name, id + "_parameter_name");
-	}
-	
-	public Parameter(Datentyp datentyp) {
-		this(datentyp, "");
-	}
-	
+
+    @JsonCreator
+    public Parameter(@JsonProperty("datentyp") Datentyp datentyp, @JsonProperty("name") String name) {
+        this.datentyp = Objects.requireNonNull(datentyp);
+        this.name = new JsonStringProperty(name);
+        this.beobachterListe = new LinkedList<>();
+        this.id = naechsteId++;
+
+        this.ueberwachePropertyAenderung(datentyp.typNameProperty(), id + "_parameter_typ");
+        this.ueberwachePropertyAenderung(this.name, id + "_parameter_name");
+        this.sprache = new Sprache();
+        boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
+                "UMLKlassifiziererBearbeitenDialog");
+        if (!spracheGesetzt) {
+            sprache.ignoriereSprachen();
+        }
+    }
+
+    public Parameter(Datentyp datentyp) {
+        this(datentyp, "");
+    }
+
+    private void initialisiereNameValidierung(HatParameterListe typ) {
+        var parameterNamen = FXCollections.observableList(typ.parameterListeProperty(),
+                parameter -> new Observable[] { parameter.nameProperty() });
+        BooleanBinding gleicherName = Bindings.createBooleanBinding(
+                () -> parameterNamen.stream().anyMatch(a -> {
+                    return getName().equals(a.getName()) && a != this;
+                }),
+                parameterNamen, nameProperty());
+        var supressValidierung = Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty();
+        this.nameValidierung = Validierung.of(gleicherName.not(),
+                sprache.getTextProperty("parameterValidierung", "Ein Parameter mit diesem Namen ist bereits vorhanden"))
+                .and(name.isNotEmpty().or(supressValidierung),
+                        sprache.getTextProperty("nameValidierung", "Name angegeben"))
+                .build();
+    }
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Getter und Setter																	*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	@Override
-	public List<Object> getBeobachterListe() {
-		return beobachterListe;
-	}
-	
-	public String getName() {
-		return name.get();
-	}
-	
-	public void setName(String name) {
-		this.name.set(name);
-	}
-	
-	public Datentyp getDatentyp() {
-		return datentyp;
-	}
-	
-	// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
-	public StringProperty nameProperty() {
-		return name;
-	}
-	
+
+    public void setUMLKlassifizierer(UMLKlassifizierer klassifizierer) {
+        datentyp.setValidierung(klassifizierer, false);
+    }
+
+    public void setTypMitParameterliste(HatParameterListe typ) {
+        this.initialisiereNameValidierung(typ);
+    }
+
+    public Validierung getNameValidierung() {
+        return nameValidierung;
+    }
+
+    @Override
+    public List<Object> getBeobachterListe() {
+        return beobachterListe;
+    }
+
+    public String getName() {
+        return name.get();
+    }
+
+    public void setName(String name) {
+        this.name.set(name);
+    }
+
+    public Datentyp getDatentyp() {
+        return datentyp;
+    }
+
+    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    // * * * *
+
+    public StringProperty nameProperty() {
+        return name;
+    }
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Methoden																			*
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-	
+
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
-	@Override
-	public int hashCode() {
-		return ClassifierUtil.hashAlle(getDatentyp(), getName());
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		Parameter other = (Parameter) obj;
-		return Objects.equals(getDatentyp(), other.getDatentyp()) && Objects.equals(getName(), other.getName());
-	}
-	
-	public Parameter erzeugeTiefeKopie() {
-		return new Parameter(getDatentyp().erzeugeTiefeKopie(), getName());
-	}
-	
-	@Override
-	public void close() throws Exception {
-		log.finest(() -> this + " leere listener");
-		beobachterListe.clear();
-	}
-	
+
+    @Override
+    public int hashCode() {
+        return ClassifierUtil.hashAlle(getDatentyp(), getName());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Parameter other = (Parameter) obj;
+        return Objects.equals(getDatentyp(), other.getDatentyp()) && Objects.equals(getName(), other.getName());
+    }
+
+    public Parameter erzeugeTiefeKopie() {
+        return new Parameter(getDatentyp().erzeugeTiefeKopie(), getName());
+    }
+
+    @Override
+    public void close() throws Exception {
+        log.finest(() -> this + " leere listener");
+        beobachterListe.clear();
+    }
+
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+
 }

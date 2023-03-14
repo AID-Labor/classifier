@@ -7,10 +7,12 @@ package io.github.aid_labor.classifier.gui.util;
 
 import java.util.Optional;
 
+import com.dlsc.gemsfx.SearchField;
 import com.tobiasdiez.easybind.EasyBind;
 import com.tobiasdiez.easybind.Subscription;
 
 import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.Tooltip;
 
@@ -29,7 +31,7 @@ public class FXValidierungUtil {
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-	
+    
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
@@ -55,6 +57,51 @@ public class FXValidierungUtil {
                     eingabefeld.setTooltip(new Tooltip(fehler.get()));
                 } else {
                     eingabefeld.setPromptText(null);
+                    eingabefeld.setTooltip(null);
+                }
+            }
+        });
+    }
+    
+    public static Subscription setzePlatzhalter(SearchField<?> eingabefeld, Validierung validierung) {
+        return EasyBind.subscribe(validierung.isValidProperty(), valid -> {
+            if (valid.booleanValue()) {
+                if (eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
+                    eingabefeld.getStyleClass().remove(CSS_EINGABE_FEHLER);
+                }
+                eingabefeld.setPromptText(null);
+                eingabefeld.setTooltip(null);
+            } else {
+                if (!eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
+                    eingabefeld.getStyleClass().add(CSS_EINGABE_FEHLER);
+                }
+                Optional<String> fehler = validierung.getHighestErrorMessage();
+                if (fehler.isPresent()) {
+                    eingabefeld.setPromptText(fehler.get());
+                    eingabefeld.setTooltip(new Tooltip(fehler.get()));
+                } else {
+                    eingabefeld.setPromptText(null);
+                    eingabefeld.setTooltip(null);
+                }
+            }
+        });
+    }
+    
+    public static Subscription setzePlatzhalter(CheckBox eingabefeld, Validierung validierung) {
+        return EasyBind.subscribe(validierung.isValidProperty(), valid -> {
+            if (valid.booleanValue()) {
+                if (eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
+                    eingabefeld.getStyleClass().remove(CSS_EINGABE_FEHLER);
+                }
+                eingabefeld.setTooltip(null);
+            } else {
+                if (!eingabefeld.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
+                    eingabefeld.getStyleClass().add(CSS_EINGABE_FEHLER);
+                }
+                Optional<String> fehler = validierung.getHighestErrorMessage();
+                if (fehler.isPresent()) {
+                    eingabefeld.setTooltip(new Tooltip(fehler.get()));
+                } else {
                     eingabefeld.setTooltip(null);
                 }
             }

@@ -5,6 +5,7 @@
  */
 package io.github.aid_labor.classifier.gui.komponenten;
 
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import javafx.beans.property.BooleanProperty;
@@ -46,6 +47,7 @@ public class OnlyTextFieldTableCell<S,T> extends TableCell<S,T> {
     private StringConverter<T> converter;
     private boolean keyPressed = false;
     private final Function<S, BooleanProperty> disableBinding;
+    private BiConsumer<TextField, S> onUpdateAction;
     
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -142,6 +144,10 @@ public class OnlyTextFieldTableCell<S,T> extends TableCell<S,T> {
     public final StringConverter<T> getConverter() {
         return converter;
     }
+    
+    public void setOnUpdateAction(BiConsumer<TextField, S> onUpdateAction) {
+        this.onUpdateAction = onUpdateAction;
+    }
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -191,6 +197,13 @@ public class OnlyTextFieldTableCell<S,T> extends TableCell<S,T> {
             if (disableBinding != null) {
                 textField.disableProperty().bind(disableBinding.apply(getTableView().getItems().get(getIndex())));
             }
+        }
+        
+        if (onUpdateAction != null) {
+            S rowItem = getIndex() < this.getTableView().getItems().size() && getIndex() > 0 ? 
+                    this.getTableView().getItems().get(getIndex()) : this.getTableRow() != null ? 
+                            this.getTableRow().getItem() : null;
+            onUpdateAction.accept(textField, rowItem);
         }
     }
 	

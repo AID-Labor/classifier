@@ -8,6 +8,7 @@ package io.github.aid_labor.classifier.gui.komponenten;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.carbonicons.CarbonIcons;
@@ -34,7 +35,9 @@ public class ListControlsTableCell<S> extends TableCell<S, S> {
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *   Klassenmethoden                                                                     *
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
+    
+    public record UpdateParams<S>(S rowItem, boolean empty, Label hoch, Label runter, Label loeschen) {}
+    
     private static <E> void tausche(List<E> liste, int indexA, int indexB) {
         Collections.swap(liste, indexA, indexB);
     }
@@ -64,6 +67,7 @@ public class ListControlsTableCell<S> extends TableCell<S, S> {
     private final EasyBinding<Number> listSize;
     private final BooleanBinding sizeBinding;
     private Optional<S> item;
+    private Consumer<UpdateParams<S>> onUpdateAction;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -153,7 +157,11 @@ public class ListControlsTableCell<S> extends TableCell<S, S> {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
-
+    
+    public void setOnUpdateAction(Consumer<UpdateParams<S>> onUpdateAction) {
+        this.onUpdateAction = onUpdateAction;
+    }
+    
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -182,7 +190,12 @@ public class ListControlsTableCell<S> extends TableCell<S, S> {
                     getTableView().editableProperty().and(
                             getTableColumn().editableProperty()).and(
                                     editableProperty())));
-
+        }
+        if (onUpdateAction != null) {
+            S rowItem = getIndex() < this.getTableView().getItems().size() && getIndex() > 0 ? 
+                    this.getTableView().getItems().get(getIndex()) : this.getTableRow() != null ? 
+                            this.getTableRow().getItem() : null;
+            onUpdateAction.accept(new UpdateParams<>(rowItem, empty, hoch, runter, loeschen));
         }
     }
 

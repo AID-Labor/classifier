@@ -26,6 +26,7 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
         private Function<N, T> getValue;
         private BiConsumer<N, T> setValue;
         private UpdateCallback<T, N> onUpdateCallback;
+        private BiConsumer<N, S> onUpdateAction;
         
         private CustomNodeTableCellBuilder() {
             
@@ -61,12 +62,18 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
             return this;
         }
         
+        public CustomNodeTableCellBuilder<S, T, N> onUpdateAction(BiConsumer<N, S> onUpdateAction) {
+            this.onUpdateAction = onUpdateAction;
+            return this;
+        }
+        
         public CustomNodeTableCell<S, T, N> build() {
             Objects.requireNonNull(nodeFactory);
             
             N node = nodeFactory.get();
             
-            return new CustomNodeTableCell<>(node, getProperty, getValue, setValue, disableBinding, onUpdateCallback);
+            return new CustomNodeTableCell<>(node, getProperty, getValue, setValue, disableBinding, onUpdateCallback,
+                    onUpdateAction);
         }
     }
     
@@ -108,6 +115,7 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
     private final BiConsumer<N, T> setValue;
     private final Function<S, BooleanProperty> disableBinding;
     private final UpdateCallback<T, N> onUpdateCallback;
+    private final BiConsumer<N, S> onUpdateAction;
             
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -117,12 +125,14 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 	public CustomNodeTableCell(N node, Function<N, Property<T>> getProperty, Function<N, T> getValue,
-	        BiConsumer<N, T> setValue, Function<S, BooleanProperty> disableBinding, UpdateCallback<T, N> onUpdateCallback) {
+	        BiConsumer<N, T> setValue, Function<S, BooleanProperty> disableBinding, 
+	        UpdateCallback<T, N> onUpdateCallback, BiConsumer<N, S> onUpdateAction) {
         this.node = node;
         this.getProperty = getProperty;
         this.setValue = setValue;
         this.disableBinding = disableBinding;
         this.onUpdateCallback = onUpdateCallback;
+        this.onUpdateAction = onUpdateAction;
         
         node.addEventHandler(ActionEvent.ACTION, event -> {
             if (getValue != null) {
@@ -154,7 +164,9 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
 	
 // public	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-
+	public N getNode() {
+        return node;
+    }
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
@@ -210,6 +222,13 @@ public class CustomNodeTableCell<S, T, N extends Node> extends TableCell<S,T> {
             if (onUpdateCallback != null) {
                 onUpdateCallback.onUpdate(node, item);
             }
+        }
+        
+        if (onUpdateAction != null) {
+            S rowItem = getIndex() < this.getTableView().getItems().size() && getIndex() > 0 ? 
+                    this.getTableView().getItems().get(getIndex()) : this.getTableRow() != null ? 
+                            this.getTableRow().getItem() : null;
+            onUpdateAction.accept(node, rowItem);
         }
     }
 	
