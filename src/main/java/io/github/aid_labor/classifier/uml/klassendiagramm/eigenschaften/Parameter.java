@@ -98,7 +98,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
                 parameter -> new Observable[] { parameter.nameProperty() });
         BooleanBinding gleicherName = Bindings.createBooleanBinding(
                 () -> parameterNamen.stream().anyMatch(a -> {
-                    return a != this && getName().equals(a.getName()) && !getName().isEmpty();
+                    return a.id != id && getName().equals(a.getName()) && !getName().isEmpty();
                 }),
                 parameterNamen, nameProperty());
         var supressValidierung = Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty().not();

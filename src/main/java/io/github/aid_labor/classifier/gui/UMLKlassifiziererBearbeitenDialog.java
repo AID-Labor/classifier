@@ -307,10 +307,12 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                         buttonBar.getToggleGroup().selectToggle(alteWahl);
                     }
                 });
-        addValidierungCollection(this.attribute, getKlassifizierer(), () -> getKlassifizierer().getAttributeValid());
-        addValidierungCollection(this.methoden, getKlassifizierer(), () -> getKlassifizierer().getMethodenValid());
+        addValidierungCollection(this.attribute, getKlassifizierer(), () -> getKlassifizierer().getAttributeValid(),
+                false);
+        addValidierungCollection(this.methoden, getKlassifizierer(), () -> getKlassifizierer().getMethodenValid(),
+                false);
         addValidierungCollection(this.konstruktoren, getKlassifizierer(),
-                () -> getKlassifizierer().getKonstruktorenValid());
+                () -> getKlassifizierer().getKonstruktorenValid(), false);
         HBox buttonContainer = new HBox(buttonBar);
         buttonContainer.setPadding(new Insets(5, 20, 40, 20));
         buttonContainer.setAlignment(Pos.CENTER);
@@ -558,21 +560,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 
     private void validiereAllgemein(TextField name, SearchField<?> superklasse, TagsField<String> interfaces) {
         Platform.runLater(() -> {
-            /*
-             * eingabeValidierung.registerValidator(name,
-             * Validator.combine(
-             * Validator.createEmptyValidator(
-             * sprache.getText("klassennameValidierung",
-             * "Der Klassenname muss angegeben werden")),
-             * Validator.createPredicateValidator(tf ->
-             * !vorhandeneElementNamen.contains(name.getText()),
-             * sprache.getText("klassennameValidierung2",
-             * "Ein Element mit diesem Namen ist bereits vorhanden"))));
-             * setzePlatzhalter(name);
-             */
-            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(name,
-                    this.getKlassifizierer().getNameValidierung());
-            this.loeseBindungen.add(nameBeobachter::unsubscribe);
+            addValidierung(name, getKlassifizierer(), () -> getKlassifizierer().getNameValidierung());
             if (umlProjektRef.get().getProgrammiersprache().getEigenschaften()
                     .erlaubtSuperklasse(getKlassifizierer().getTyp())) {
                 eingabeValidierung.registerValidator(superklasse.getEditor(),
@@ -767,17 +755,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         nameSpalte.setCellFactory(col -> {
             var nameCell = new OnlyTextFieldTableCell<Attribut, String>();
             nameCell.setOnUpdateAction((tf, attribut) -> {
-                if (tf.getProperties().containsKey(validierungKey)) {
-                    var prop = tf.getProperties().get(validierungKey);
-                    if (prop instanceof Subscription sub) {
-                        sub.unsubscribe();
-                    }
-                }
-                if (attribut != null) {
-                    Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(tf, attribut.getNameValidierung());
-                    this.loeseBindungen.add(nameBeobachter::unsubscribe);
-                    tf.getProperties().put(validierungKey, nameBeobachter);
-                }
+                addValidierung(tf, attribut, () -> attribut.getNameValidierung());
             });
             return nameCell;
         });
@@ -792,18 +770,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .getValue(DatentypFeld::getText)
                 .setValue(DatentypFeld::select)
                 .onUpdateAction((df, attribut) -> {
-                    if (df.getProperties().containsKey(validierungKey)) {
-                        var prop = df.getProperties().get(validierungKey);
-                        if (prop instanceof Subscription sub) {
-                            sub.unsubscribe();
-                        }
-                    }
-                    if (attribut != null) {
-                        Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(df,
-                                attribut.getDatentyp().getTypValidierung());
-                        this.loeseBindungen.add(nameBeobachter::unsubscribe);
-                        df.getProperties().put(validierungKey, nameBeobachter);
-                    }
+                    addValidierung(df, attribut, () -> attribut.getDatentyp().getTypValidierung());
                 });
         datentypSpalte.setCellFactory(col -> datentypBuilder.build());
 
@@ -1453,9 +1420,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             }
         }
         if (sourceObj != null) {
-            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get());
-            this.loeseBindungen.add(nameBeobachter::unsubscribe);
-            node.getProperties().put(key, nameBeobachter);
+            Subscription subscription = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get())
+                    .and(FXValidierungUtil.setzeValidierungMeldungen(node, validierungSupplier.get()));
+            this.loeseBindungen.add(subscription::unsubscribe);
+            node.getProperties().put(key, subscription);
         }
     }
 
@@ -1473,9 +1441,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             }
         }
         if (sourceObj != null) {
-            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get());
-            this.loeseBindungen.add(nameBeobachter::unsubscribe);
-            node.getProperties().put(key, nameBeobachter);
+            Subscription subscription = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get())
+                    .and(FXValidierungUtil.setzeValidierungMeldungen(node, validierungSupplier.get()));
+            this.loeseBindungen.add(subscription::unsubscribe);
+            node.getProperties().put(key, subscription);
         }
     }
 
@@ -1485,7 +1454,17 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
     }
 
     private void addValidierungCollection(Node node, Object sourceObj,
+            Supplier<ValidierungCollection> validierungSupplier, boolean mitMeldungen) {
+        addValidierungCollection(node, sourceObj, validierungSupplier, validierungKey, mitMeldungen);
+    }
+
+    private void addValidierungCollection(Node node, Object sourceObj,
             Supplier<ValidierungCollection> validierungSupplier, String key) {
+        addValidierungCollection(node, sourceObj, validierungSupplier, key, true);
+    }
+
+    private void addValidierungCollection(Node node, Object sourceObj,
+            Supplier<ValidierungCollection> validierungSupplier, String key, boolean mitMeldungen) {
         if (node.getProperties().containsKey(key)) {
             var prop = node.getProperties().get(key);
             if (prop instanceof Subscription sub) {
@@ -1493,9 +1472,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             }
         }
         if (sourceObj != null) {
-            Subscription nameBeobachter = FXValidierungUtil.setzeValidierungStyle(node, validierungSupplier.get());
-            this.loeseBindungen.add(nameBeobachter::unsubscribe);
-            node.getProperties().put(key, nameBeobachter);
+            Subscription subscription = FXValidierungUtil.setzeValidierungStyle(node, validierungSupplier.get());
+            if (mitMeldungen) {
+                subscription = subscription
+                        .and(FXValidierungUtil.setzeValidierungMeldungen(node, validierungSupplier.get()));
+            }
+            this.loeseBindungen.add(subscription::unsubscribe);
+            node.getProperties().put(key, subscription);
         }
     }
 }

@@ -7,8 +7,10 @@ package io.github.aid_labor.classifier.basis.validierung;
 
 import java.util.LinkedList;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.tobiasdiez.easybind.EasyBind;
+import com.tobiasdiez.easybind.Subscription;
 
 import io.github.aid_labor.classifier.basis.projekt.Schliessbar;
 import javafx.beans.binding.BooleanBinding;
@@ -66,27 +68,31 @@ public class SimpleValidierung implements FehlerValidierung, Schliessbar {
         
         private final ObservableList<ObservableValue<String>> errorMessages;
         private BooleanBinding validierung;
+        private Subscription subscriptions = Subscription.EMPTY;
         
         private ValidierungBuilder(BooleanBinding valid, ObservableValue<String> errorMessage) {
             errorMessages = FXCollections.observableList(new LinkedList<>());
             this.validierung = valid;
-            EasyBind.includeWhen(errorMessages, errorMessage, valid.not());
+            var sub = EasyBind.includeWhen(errorMessages, errorMessage, valid.not());
+            subscriptions = subscriptions.and(sub);
         }
         
         public ValidierungBuilder and(BooleanBinding valid, ObservableValue<String> errorMessage) {
             this.validierung = this.validierung.and(valid);
-            EasyBind.includeWhen(errorMessages, errorMessage, valid.not());
+            var sub = EasyBind.includeWhen(errorMessages, errorMessage, valid.not());
+            subscriptions = subscriptions.and(sub);
             return this;
         }
         
         public ValidierungBuilder or(BooleanBinding valid, ObservableValue<String> errorMessage) {
             this.validierung = this.validierung.or(valid);
-            EasyBind.includeWhen(errorMessages, errorMessage, valid.not());
+            var sub = EasyBind.includeWhen(errorMessages, errorMessage, valid.not());
+            subscriptions = subscriptions.and(sub);
             return this;
         }
         
         public SimpleValidierung build() {
-            return new SimpleValidierung(validierung, errorMessages);
+            return new SimpleValidierung(validierung, errorMessages, subscriptions);
         }
     }
     
@@ -112,6 +118,7 @@ public class SimpleValidierung implements FehlerValidierung, Schliessbar {
 	private final ReadOnlyBooleanWrapper valid;
 	private final ObservableList<ObservableValue<String>> errorMessages;
 	private boolean darfGeschlossenWerden;
+	private Subscription subscriptions;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -125,11 +132,13 @@ public class SimpleValidierung implements FehlerValidierung, Schliessbar {
 	
 // private	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
-	private SimpleValidierung(BooleanBinding valid, ObservableList<ObservableValue<String>> errorMessages) {
+	private SimpleValidierung(BooleanBinding valid, ObservableList<ObservableValue<String>> errorMessages, 
+	        Subscription subscriptions) {
 	    this.valid = new ReadOnlyBooleanWrapper(this, "valid_property");
 	    this.valid.bind(valid);
         this.errorMessages = FXCollections.unmodifiableObservableList(errorMessages);
         this.darfGeschlossenWerden = true;
+        this.subscriptions = subscriptions;
     }
 	
 	
@@ -161,6 +170,7 @@ public class SimpleValidierung implements FehlerValidierung, Schliessbar {
     public void schliesse() throws Exception {
         this.errorMessages.clear();
         this.valid.unbind();
+        this.subscriptions.unsubscribe();
     }
 
 

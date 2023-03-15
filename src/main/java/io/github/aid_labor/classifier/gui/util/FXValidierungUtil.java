@@ -70,6 +70,14 @@ public class FXValidierungUtil {
                 if (!node.getStyleClass().contains(CSS_EINGABE_FEHLER)) {
                     node.getStyleClass().add(CSS_EINGABE_FEHLER);
                 }
+            }
+        });
+    }
+    
+    public static Subscription setzeValidierungMeldungen(Node node, Validierung validierung) {
+        return EasyBind.subscribe(validierung.isValidProperty(), valid -> {
+            removeAllEventDefinitions(node);
+            if (!valid.booleanValue()) {
                 EventHandler<? super MouseEvent> showPopUp = e -> {
                     TextFlow errorsTF = new TextFlow(validierung.getErrorMessages().stream()
                             .map(err -> {

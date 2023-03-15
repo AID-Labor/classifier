@@ -169,7 +169,7 @@ public class ValidierungCollection implements Validierung, Schliessbar {
 // private  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##
     
     private void subscribeValidierung(Validierung v) {
-        var sub = EasyBind.subscribe(v.isValidProperty(), valid -> {
+        var sub = EasyBind.listen(v.isValidProperty(), valid -> {
             updateValid();
         });
         if (this.validierungsSubscriptions.containsKey(v)) {
@@ -177,6 +177,7 @@ public class ValidierungCollection implements Validierung, Schliessbar {
         } else {
             this.validierungsSubscriptions.put(v, sub);
         }
+        updateValid();
     }
     
     private void updateValid() {

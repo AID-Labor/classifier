@@ -167,7 +167,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
                 attribut -> new Observable[] { attribut.nameProperty() });
         BooleanBinding gleicherName = Bindings.createBooleanBinding(
                 () -> attributNamen.stream().anyMatch(a -> {
-                    return getName().equals(a.getName()) && a != this;
+                    return getName().equals(a.getName()) && a.id != id && !getName().isEmpty();
                 }),
                 attributNamen, nameProperty());
         this.nameValidierung = SimpleValidierung.of(gleicherName.not(), 
