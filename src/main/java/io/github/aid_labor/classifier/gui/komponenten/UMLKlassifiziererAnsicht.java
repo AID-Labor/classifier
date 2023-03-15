@@ -76,6 +76,8 @@ public class UMLKlassifiziererAnsicht extends UMLElementBasisAnsicht<UMLKlassifi
 				klassifizierer.getProgrammiersprache());
 		this.attributeTrenner = new Separator();
 		this.methodenTrenner = new Separator();
+		this.methodenTrenner.getStyleClass().add("methoden-trenner");
+		this.methodenTrenner.setPadding(new Insets(5, 0, 5, 0));
 		
 		formatiere();
 		erstelleBindungen();

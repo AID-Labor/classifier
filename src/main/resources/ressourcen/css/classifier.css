@@ -248,11 +248,11 @@
 }
 
 .attribut-liste {
-    -fx-padding: 5 10 5 10;
+    -fx-padding: 5 10 0 10;
 }
 
 .konstruktor-liste {
-    -fx-padding: 5 10 0 10;
+    -fx-padding: 0 10 0 10;
 }
 
 .methoden-liste {
