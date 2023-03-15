@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.CompletionService;
@@ -228,7 +229,8 @@ class ProjektKontrolle {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
 			dateiDialog.setInitialFileName(projekt.getSpeicherort().getFileName().toString());
 		} else {
-		    File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get());
+		    String letzterSpeicherortProp = Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get();
+		    File letzterSpeicherort = new File(Objects.requireNonNullElse(letzterSpeicherortProp, ""));
 			if (letzterSpeicherort.exists()) {
 			    dateiDialog.setInitialDirectory(letzterSpeicherort);
 			}
@@ -296,7 +298,8 @@ class ProjektKontrolle {
 		if (projekt.getSpeicherort() != null) {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
 		} else {
-		    File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get());
+		    String letzterQuellcodeSpeicherort = Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get();
+		    File letzterSpeicherort = new File(letzterQuellcodeSpeicherort != null ? letzterQuellcodeSpeicherort : "");
             if (letzterSpeicherort.exists()) {
                 dateiDialog.setInitialDirectory(letzterSpeicherort);
             } else {
@@ -330,7 +333,7 @@ class ProjektKontrolle {
 		var importVerwaltung = projekt.getProgrammiersprache().getVerarbeitung();
 		FileChooser dateiDialog = new FileChooser();
 		
-		File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get());
+		File letzterSpeicherort = new File(Objects.requireNonNullElse(Einstellungen.getBenutzerdefiniert().letzterQuellcodeSpeicherortProperty().get(), ""));
         if (letzterSpeicherort.exists()) {
             dateiDialog.setInitialDirectory(letzterSpeicherort);
         } else if (projekt.getSpeicherort() != null) {
@@ -598,31 +601,6 @@ class ProjektKontrolle {
 			Einstellungen.getBenutzerdefiniert().exportSkalierungProperty().set(parameter.getSkalierung());
 			Einstellungen.getBenutzerdefiniert().exportTransparentProperty().set(parameter.istHintergrundTransparent());
 			
-			// Workaround fuer Webview
-			// Quelle: https://stackoverflow.com/a/60746994/1534698
-			// without this runlater, the first capture is missed and all following captures are offset
-//			var kontrolle = this;
-//			Platform.runLater(new Runnable() {
-//			    @Override
-//				public void run() {
-//			        // start a new animation timer which waits for exactly two pulses
-//			        new AnimationTimer() {
-//			            int frames = 0;
-//
-//			            @Override
-//			            public void handle(long l) {
-//			                // capture at exactly two frames
-//			                if (++frames == 2) {
-//			                	vorschau.snapshot(kontrolle::snapshotSpeichern, null, null);
-//
-//			                    //stop timer after snapshot
-//			                    stop();
-//			                }
-//			            }
-//			        }.start();
-//			    }
-//			});
-			
 			// Achtung: WebView muss mindestens zwei Pulse in einem Fenster angezeigt worden sein!
 			SnapshotParameters snapParam = new SnapshotParameters();
 			if (parameter.istHintergrundTransparent()) {
@@ -654,8 +632,8 @@ class ProjektKontrolle {
 		FileChooser dateiDialog = new FileChooser();
 		
 		var projekt = ansicht.get().getProjekteAnsicht().getAngezeigtesProjekt();
-		
-		File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get());
+		String letzterBildSpeicherort = Einstellungen.getBenutzerdefiniert().letzterBildSpeicherortProperty().get();
+		File letzterSpeicherort = new File(letzterBildSpeicherort != null ? letzterBildSpeicherort : "");
 		if (projekt.getSpeicherort() != null) {
 			dateiDialog.setInitialDirectory(projekt.getSpeicherort().getParent().toFile());
 		} else if (letzterSpeicherort.exists()) {

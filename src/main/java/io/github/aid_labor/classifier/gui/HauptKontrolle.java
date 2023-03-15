@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -206,7 +207,7 @@ class HauptKontrolle {
 	void projektOeffnen(Event event) {
 		FileChooser dateiDialog = new FileChooser();
 		
-		File letzterSpeicherort = new File(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get());
+		File letzterSpeicherort = new File(Objects.requireNonNullElse(Einstellungen.getBenutzerdefiniert().letzterSpeicherortProperty().get(), ""));
         if (letzterSpeicherort.exists()) {
             dateiDialog.setInitialDirectory(letzterSpeicherort);
         } else {
