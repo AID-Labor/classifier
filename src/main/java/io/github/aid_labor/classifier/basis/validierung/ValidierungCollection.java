@@ -7,6 +7,7 @@ package io.github.aid_labor.classifier.basis.validierung;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 
 public class ValidierungCollection implements Validierung, Schliessbar {
 
@@ -70,6 +72,7 @@ public class ValidierungCollection implements Validierung, Schliessbar {
     private final ObservableList<Validierung> validierungen;
     private final Map<Validierung, Subscription> validierungsSubscriptions;
     private final ObservableList<ObservableValue<String>> errorMessages;
+    private final ObservableSet<ObservableValue<String>> errorMessagesSet;
 
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *   Konstruktoren                                                                       *
@@ -90,6 +93,7 @@ public class ValidierungCollection implements Validierung, Schliessbar {
         this.darfGeschlossenWerden = true;
         this.validierungsSubscriptions = new HashMap<>();
         this.errorMessages = FXCollections.observableList(new LinkedList<>());
+        this.errorMessagesSet = FXCollections.observableSet(new HashSet<>());
     }
 
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -183,12 +187,14 @@ public class ValidierungCollection implements Validierung, Schliessbar {
     private void updateValid() {
         boolean newValid = true;
         this.errorMessages.clear();
+        this.errorMessagesSet.clear();
         for (var val : validierungen) {
             if (!val.isValidProperty().get()) {
                 newValid = false;
-                errorMessages.addAll(val.getErrorMessages());
+                errorMessagesSet.addAll(val.getErrorMessages());
             }
         }
+        this.errorMessages.addAll(this.errorMessagesSet);
         this.valid.set(newValid);
     }
     

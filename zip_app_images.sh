@@ -1,4 +1,4 @@
-VERSION="1.2.1"
+VERSION="1.3.0"
 NAME="Classifier"
 NAME_LOW="classifier"
 MODULE="classifier"
@@ -37,10 +37,11 @@ zip -rq "${NAME}-${VERSION}-Mac-with-jre.zip" -xi "./${MODULE}-${VERSION}-with-j
 rm -rf "./${MODULE}-${VERSION}-with-jre"
 
 echo ""
-echo "Zip Linux"
-echo " └─ Zip App-Image"
+echo "Tar Linux"
+echo " └─ Tar App-Image"
 cd "${ROOT}/${LINUX}"
-zip -rq "${NAME}-${VERSION}-App-Image-Linux.zip" -xi "./${NAME}"
+#zip -rq "${NAME}-${VERSION}-App-Image-Linux.zip" -xi "./${NAME}"
+tar -czf "${NAME}-${VERSION}-App-Image-Linux.tar.gz" "./${NAME}"
 
 echo ""
 echo "Zip Windows"
@@ -60,8 +61,8 @@ else
 fi
 echo " ├─ move ${MAC}/${NAME}-${VERSION}-App-Image-Mac.zip"
 mv "${MAC}/${NAME}-${VERSION}-App-Image-Mac.zip" "${OUT}/RELEASE/"
-echo " ├─ move ${LINUX}/${NAME}-${VERSION}-App-Image-Linux.zip"
-mv "${LINUX}/${NAME}-${VERSION}-App-Image-Linux.zip" "${OUT}/RELEASE/"
+echo " ├─ move ${LINUX}/${NAME}-${VERSION}-App-Image-Linux.tar.gz"
+mv "${LINUX}/${NAME}-${VERSION}-App-Image-Linux.tar.gz" "${OUT}/RELEASE/"
 echo " ├─ move ${WIN}/${NAME}-${VERSION}-App-Image-Windows.zip"
 mv "${WIN}/${NAME}-${VERSION}-App-Image-Windows.zip" "${OUT}/RELEASE/"
 

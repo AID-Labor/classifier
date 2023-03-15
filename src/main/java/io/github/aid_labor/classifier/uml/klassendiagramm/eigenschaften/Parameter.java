@@ -13,6 +13,8 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tobiasdiez.easybind.EasyBind;
+import com.tobiasdiez.easybind.Subscription;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.Einstellungen;
@@ -30,6 +32,8 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.WeakListChangeListener;
 
 public class Parameter extends EditierbarBasis implements EditierbarerBeobachter {
 //	private static final Logger log = Logger.getLogger(Parameter.class.getName());
@@ -66,6 +70,8 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
     private SimpleValidierung nameValidierung;
     @JsonIgnore
     private final ValidierungCollection parameterValid;
+    @JsonIgnore
+    private final List<Subscription> subscriptions;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -78,6 +84,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
         this.beobachterListe = new LinkedList<>();
         this.id = naechsteId++;
         this.parameterValid = new ValidierungCollection();
+        this.subscriptions = new LinkedList<>();
 
         this.ueberwachePropertyAenderung(datentyp.typNameProperty(), id + "_parameter_typ");
         this.ueberwachePropertyAenderung(this.name, id + "_parameter_name");
@@ -93,10 +100,24 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
         this(datentyp, "");
     }
 
+    @JsonIgnore
+    private BooleanBinding gleicherName;
+    @JsonIgnore
+    boolean doRevalidate = true;
+
+    private void revalidate(long sourceID) {
+        if (sourceID == this.id || gleicherName == null || !doRevalidate) {
+            return;
+        }
+        doRevalidate = false;
+        gleicherName.invalidate();
+        doRevalidate = true;
+    }
+
     private void initialisiereNameValidierung(HatParameterListe typ) {
         var parameterNamen = FXCollections.observableList(typ.parameterListeProperty(),
                 parameter -> new Observable[] { parameter.nameProperty() });
-        BooleanBinding gleicherName = Bindings.createBooleanBinding(
+        gleicherName = Bindings.createBooleanBinding(
                 () -> parameterNamen.stream().anyMatch(a -> {
                     return a.id != id && getName().equals(a.getName()) && !getName().isEmpty();
                 }),
@@ -107,6 +128,27 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
                 .and(name.isNotEmpty().or(supressValidierung),
                         sprache.getTextProperty("nameValidierung", "Name angegeben"))
                 .build();
+        doRevalidate = false;
+        var sub = EasyBind.listen(gleicherName, observable -> {
+            if (doRevalidate) {
+                typ.parameterListeProperty().stream()
+                        .forEach(p -> p.revalidate(id));
+            }
+        });
+        doRevalidate = true;
+        ListChangeListener<Parameter> parameterUeberwacher = aenderung -> {
+            while (aenderung.next()) {
+                for (var parameterGeloescht : aenderung.getRemoved()) {
+                    revalidate(Long.MIN_VALUE);
+                }
+                for (var parameterHinzu : aenderung.getAddedSubList()) {
+                    revalidate(Long.MIN_VALUE);
+                }
+            }
+        };
+        this.beobachterListe.add(parameterUeberwacher);
+        typ.parameterListeProperty().addListener(new WeakListChangeListener<>(parameterUeberwacher));
+        this.subscriptions.add(sub);
         this.parameterValid.add(nameValidierung);
     }
 
@@ -128,7 +170,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
     public SimpleValidierung getNameValidierung() {
         return nameValidierung;
     }
-    
+
     public ValidierungCollection getParameterValid() {
         return parameterValid;
     }
@@ -197,6 +239,9 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
     public void close() throws Exception {
         log.finest(() -> this + " leere listener");
         beobachterListe.clear();
+        for (var sub : subscriptions) {
+            sub.unsubscribe();
+        }
     }
 
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

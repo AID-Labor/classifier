@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html lang="de">
+<head>
+<title>Download Classifier</title>
+
+</head>
+<body>
+    <p>Download Classifier (latest version)</p>
+    <div id="lists">
+        <label for="osSelect">Your OS:</label>
+        <select name="osSelect" id="osSelect">
+            <option value="windows">Windows</option>
+            <option value="macOS">macOS</option>
+            <option value="linux">Linux</option>
+        </select>
+        <p>Downloads:</p>
+        <div hidden id="downloads-macOS">
+            <ul id="listMac">
+            </ul>
+        </div>
+        <div hidden id="downloads-linux">
+            <ul id="listLinux"></ul>
+        </div>
+        <div hidden id="downloads-windows">
+            <ul id="listWindows"></ul>
+        </div>
+    </div>
+</body>
+<script type="module">
+    import { Octokit, App } from "https://cdn.skypack.dev/octokit";
+</script>
+<script crossorigin="https://api.github.com" type="module" src="download.js"></script>

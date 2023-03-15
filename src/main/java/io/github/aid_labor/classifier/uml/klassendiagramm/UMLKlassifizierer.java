@@ -238,12 +238,12 @@ public class UMLKlassifizierer extends UMLBasisElement {
         
         ListChangeListener<Attribut> attributUeberwacher = aenderung -> {
             while (aenderung.next()) {
+                for (var attributGeloescht : aenderung.getRemoved()) {
+                    this.attributeValid.remove(attributGeloescht.getAttributValid());
+                }
                 for (var attributHinzu : aenderung.getAddedSubList()) {
                     attributHinzu.setUMLKlassifizierer(this);
                     this.attributeValid.add(attributHinzu.getAttributValid());
-                }
-                for (var attributGeloescht : aenderung.getRemoved()) {
-                    this.attributeValid.remove(attributGeloescht.getAttributValid());
                 }
             }
         };
@@ -252,12 +252,12 @@ public class UMLKlassifizierer extends UMLBasisElement {
         
         ListChangeListener<Methode> methodenUeberwacher = aenderung -> {
             while (aenderung.next()) {
+                for (var methodeGeloescht : aenderung.getRemoved()) {
+                    this.methodenValid.remove(methodeGeloescht.getMethodeValid());
+                }
                 for (var methodeHinzu : aenderung.getAddedSubList()) {
                     methodeHinzu.setUMLKlassifizierer(this);
                     this.methodenValid.add(methodeHinzu.getMethodeValid());
-                }
-                for (var methodeGeloescht : aenderung.getRemoved()) {
-                    this.methodenValid.remove(methodeGeloescht.getMethodeValid());
                 }
             }
         };
@@ -266,13 +266,13 @@ public class UMLKlassifizierer extends UMLBasisElement {
         
         ListChangeListener<Konstruktor> konstruktorUeberwacher = aenderung -> {
             while (aenderung.next()) {
+                for (var konstruktorGeloescht : aenderung.getRemoved()) {
+                    this.konstruktorenValid.remove(konstruktorGeloescht.getKonstruktorValid());
+                }
                 for (var konstruktorHinzu : aenderung.getAddedSubList()) {
                     konstruktorHinzu.setName(getName());
                     konstruktorHinzu.setUMLKlassifizierer(this);
                     this.konstruktorenValid.add(konstruktorHinzu.getKonstruktorValid());
-                }
-                for (var konstruktorGeloescht : aenderung.getRemoved()) {
-                    this.konstruktorenValid.remove(konstruktorGeloescht.getKonstruktorValid());
                 }
             }
         };

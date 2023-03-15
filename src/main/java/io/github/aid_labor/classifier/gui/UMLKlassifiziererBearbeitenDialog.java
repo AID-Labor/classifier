@@ -27,6 +27,7 @@ import org.controlsfx.control.SegmentedButton;
 import org.controlsfx.validation.ValidationResult;
 import org.controlsfx.validation.ValidationSupport;
 import org.controlsfx.validation.Validator;
+import org.kordamp.ikonli.bootstrapicons.BootstrapIcons;
 import org.kordamp.ikonli.remixicon.RemixiconAL;
 import org.kordamp.ikonli.typicons.Typicons;
 
@@ -115,8 +116,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     public static final String CSS_EINGABE_FEHLER = "eingabefehler";
+    public static final String CSS_FEHLER_ICON = "fehler-icon";
 
     private static final String validierungKey = "ValidierungSubscription";
+    private static final String labelValidierungKey = "labelValidierungSubscription";
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Klassenmethoden																		*
@@ -365,15 +368,15 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             }
         });
         assoziationAnzeige.setVerbindungErzeuger(
-                () -> new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, klassifizierer.getName(), ""));
+                () -> new UMLVerbindung(UMLVerbindungstyp.ASSOZIATION, getKlassifizierer().getName(), ""));
         var vererbungAnzeige = new VerbindungBearbeitenListe(
                 new String[] { "Klasse/Interface", "Superklasse/Interface", "Ausgeblendet" }, Typ.VERERBUNG,
                 eingabeValidierung, sprache, umlProjektRef.get(), false);
         vererbungAnzeige.setVerbindungenFilter(v -> {
             try {
-                return !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
-                        && (klassifizierer.getName().equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsStart()))
-                                || klassifizierer.getName()
+                return getKlassifizierer() != null && !v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
+                        && (getKlassifizierer().getName().equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsStart()))
+                                || getKlassifizierer().getName()
                                         .equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsEnde())));
             } catch (Exception e) {
                 e.printStackTrace();
@@ -719,6 +722,9 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
     }
 
     private Collection<TableColumn<Attribut, ?>> getAttributSpalten() {
+        TableColumn<Attribut, ValidierungCollection> validierungSpalte = getValidierungSpalte(Attribut.class,
+                Attribut::getAttributValid);
+
         TableColumn<Attribut, Modifizierer> sichtbarkeitSpalte = new TableColumn<>();
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
@@ -754,9 +760,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         nameSpalte.setEditable(true);
         nameSpalte.setCellFactory(col -> {
             var nameCell = new OnlyTextFieldTableCell<Attribut, String>();
-            nameCell.setOnUpdateAction((tf, attribut) -> {
-                addValidierung(tf, attribut, () -> attribut.getNameValidierung());
-            });
+            /*
+             * nameCell.setOnUpdateAction((tf, attribut) -> {
+             * addValidierung(tf, attribut, () -> attribut.getNameValidierung());
+             * });
+             */
             return nameCell;
         });
 
@@ -770,7 +778,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .getValue(DatentypFeld::getText)
                 .setValue(DatentypFeld::select)
                 .onUpdateAction((df, attribut) -> {
-                    addValidierung(df, attribut, () -> attribut.getDatentyp().getTypValidierung());
+//                    addValidierung(df, attribut, () -> attribut.getDatentyp().getTypValidierung());
                 });
         datentypSpalte.setCellFactory(col -> datentypBuilder.build());
 
@@ -844,8 +852,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
         kontrollSpalte.setResizable(false);
 
-        return List.of(sichtbarkeitSpalte, nameSpalte, datentypSpalte, initialwertSpalte, getterSpalte, setterSpalte,
-                staticSpalte, finalSpalte, kontrollSpalte);
+        return List.of(validierungSpalte, sichtbarkeitSpalte, nameSpalte, datentypSpalte, initialwertSpalte,
+                getterSpalte, setterSpalte, staticSpalte, finalSpalte, kontrollSpalte);
     }
 
     private HBox erzeugeSichtbarkeit() {
@@ -877,7 +885,61 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         return sichtbarkeit;
     }
 
+    private <T> TableColumn<T, ValidierungCollection> getValidierungSpalte(Class<T> cls,
+            Function<T, ValidierungCollection> extractor) {
+        TableColumn<T, ValidierungCollection> validierungSpalte = new TableColumn<>();
+        validierungSpalte.setCellValueFactory(param -> new SimpleObjectProperty<>(extractor.apply(param.getValue())));
+        var validierungCellBuilder = CustomNodeTableCell
+                .builder(cls, ValidierungCollection.class, Label.class)
+                .nodeFactory(() -> {
+                    Label l = new Label();
+                    var icon = NodeUtil.fuegeIconHinzu(l, BootstrapIcons.EXCLAMATION_OCTAGON_FILL,
+                            ContentDisplay.TEXT_ONLY, CSS_FEHLER_ICON);
+                    l.setMinWidth(icon.getIconSize());
+                    return l;
+                })
+                .updateCallback(new UpdateCallback<ValidierungCollection, Label>() {
+                    @Override
+                    public void onUpdate(Label l, ValidierungCollection validierung) {
+                        if (l.getProperties().containsKey(labelValidierungKey)) {
+                            var prop = l.getProperties().get(labelValidierungKey);
+                            if (prop instanceof Subscription sub) {
+                                sub.unsubscribe();
+                            }
+                        }
+                        if (validierung != null) {
+                            Subscription subscription = FXValidierungUtil.setzeValidierungMeldungen(l, validierung)
+                                    .and(EasyBind.subscribe(validierung.isValidProperty(), isValid -> {
+                                        if (isValid.booleanValue()) {
+                                            l.setContentDisplay(ContentDisplay.TEXT_ONLY);
+                                        } else {
+                                            l.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+                                        }
+                                    })).and(FXValidierungUtil.setzeValidierungStyle(l, validierung));
+                            loeseBindungen.add(subscription::unsubscribe);
+                            l.getProperties().put(labelValidierungKey, subscription);
+                        }
+                    }
+
+                    @Override
+                    public void onEmpty(Label l, ValidierungCollection validierung) {
+                        if (l.getProperties().containsKey(labelValidierungKey)) {
+                            var prop = l.getProperties().get(labelValidierungKey);
+                            if (prop instanceof Subscription sub) {
+                                sub.unsubscribe();
+                            }
+                        }
+                        l.setContentDisplay(ContentDisplay.TEXT_ONLY);
+                    }
+                });
+        validierungSpalte.setCellFactory(col -> validierungCellBuilder.build());
+        return validierungSpalte;
+    }
+
     private Collection<TableColumn<Methode, ?>> getMethodeSpalten() {
+        TableColumn<Methode, ValidierungCollection> validierungSpalte = getValidierungSpalte(Methode.class,
+                Methode::getMethodeValid);
+
         TableColumn<Methode, Modifizierer> sichtbarkeitSpalte = new TableColumn<>();
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
@@ -932,10 +994,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         nameSpalte.setEditable(true);
         nameSpalte.setCellFactory(col -> {
             var nameCell = new OnlyTextFieldTableCell<Methode, String>();
-            nameCell.setOnUpdateAction((tf, methode) -> {
-                addValidierung(tf, methode, () -> methode.getNameValidierung());
-                addValidierung(tf, methode, () -> methode.getSignaturValidierung(), "signaturValidierung");
-            });
+            /*
+             * nameCell.setOnUpdateAction((tf, methode) -> {
+             * addValidierung(tf, methode, () -> methode.getNameValidierung());
+             * addValidierung(tf, methode, () -> methode.getSignaturValidierung(),
+             * "signaturValidierung");
+             * });
+             */
             return nameCell;
         });
 
@@ -1007,10 +1072,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                     }
                 })
                 .onUpdateAction((tf, methode) -> {
-                    addValidierung(tf, methode, () -> methode.getParameterValidierung(), "parameterValidierung");
-                    addValidierung(tf, methode, () -> methode.getSignaturValidierung(), "signaturValidierung");
-                    addValidierungCollection(tf, methode, () -> methode.getParameterValid(),
-                            "parameterNamenValidierung");
+//                    addValidierung(tf, methode, () -> methode.getParameterValidierung(), "parameterValidierung");
+//                    addValidierung(tf, methode, () -> methode.getSignaturValidierung(), "signaturValidierung");
+//                    addValidierungCollection(tf, methode, () -> methode.getParameterValid(),
+//                            "parameterNamenValidierung");
                     if (methode != null && (methode.istGetter() || methode.istSetter())) {
                         tf.setDisable(true);
                     } else {
@@ -1028,7 +1093,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .getValue(DatentypFeld::getText)
                 .setValue(DatentypFeld::setText)
                 .onUpdateAction((tf, methode) -> {
-                    addValidierung(tf, methode, () -> methode.getRueckgabeTyp().getTypValidierung());
+//                    addValidierung(tf, methode, () -> methode.getRueckgabeTyp().getTypValidierung());
                     tf.setDisable(false);
                     if (methode != null && (methode.istGetter() || methode.istSetter())) {
                         tf.setDisable(true);
@@ -1046,7 +1111,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .getValue(CheckBox::isSelected)
                 .setValue(CheckBox::setSelected)
                 .onUpdateAction((cb, methode) -> {
-                    addValidierung(cb, methode, () -> methode.getAbstraktFinalValidierung());
+//                    addValidierung(cb, methode, () -> methode.getAbstraktFinalValidierung());
                     updateMethodeAbstrakt(cb, getKlassifizierer().getTyp());
                     if (methode != null && (methode.istGetter() || methode.istSetter())) {
                         cb.setDisable(true);
@@ -1121,7 +1186,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .getValue(CheckBox::isSelected)
                 .setValue(CheckBox::setSelected)
                 .onUpdateAction((cb, methode) -> {
-                    addValidierung(cb, methode, () -> methode.getAbstraktFinalValidierung());
+//                    addValidierung(cb, methode, () -> methode.getAbstraktFinalValidierung());
                 });
         finalSpalte.setCellFactory(col -> finalBuilder.build());
 
@@ -1140,7 +1205,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         });
         kontrollSpalte.setResizable(false);
 
-        return List.of(sichtbarkeitSpalte, nameSpalte, parameterlisteSpalte, rueckgabeSpalte, abstraktSpalte,
+        return List.of(validierungSpalte, sichtbarkeitSpalte, nameSpalte, parameterlisteSpalte, rueckgabeSpalte,
+                abstraktSpalte,
                 staticSpalte, finalSpalte, kontrollSpalte);
     }
 
@@ -1191,14 +1257,19 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
     }
 
     private Collection<TableColumn<Parameter, ?>> getParameterSpalten() {
+        TableColumn<Parameter, ValidierungCollection> validierungSpalte = getValidierungSpalte(Parameter.class,
+                Parameter::getParameterValid);
+
         TableColumn<Parameter, String> nameSpalte = new TableColumn<>();
         SprachUtil.bindText(nameSpalte.textProperty(), sprache, "parametername", "Parametername");
         nameSpalte.setCellValueFactory(param -> param.getValue().nameProperty());
         nameSpalte.setCellFactory(param -> {
             var nameCell = new OnlyTextFieldTableCell<Parameter, String>();
-            nameCell.setOnUpdateAction((tf, parameter) -> {
-                addValidierung(tf, parameter, () -> parameter.getNameValidierung());
-            });
+            /*
+             * nameCell.setOnUpdateAction((tf, parameter) -> {
+             * addValidierung(tf, parameter, () -> parameter.getNameValidierung());
+             * });
+             */
             return nameCell;
         });
 
@@ -1215,7 +1286,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .getValue(DatentypFeld::getText)
                 .setValue(DatentypFeld::setText)
                 .onUpdateAction((df, parameter) -> {
-                    addValidierung(df, parameter, () -> parameter.getDatentyp().getTypValidierung());
+//                    addValidierung(df, parameter, () -> parameter.getDatentyp().getTypValidierung());
                 });
         datentypSpalte.setCellFactory(col -> datentypBuilder.build());
 
@@ -1224,10 +1295,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
         kontrollSpalte.setResizable(false);
 
-        return List.of(nameSpalte, datentypSpalte, kontrollSpalte);
+        return List.of(validierungSpalte, nameSpalte, datentypSpalte, kontrollSpalte);
     }
 
     private Collection<TableColumn<Konstruktor, ?>> getKonstruktorSpalten() {
+        TableColumn<Konstruktor, ValidierungCollection> validierungSpalte = getValidierungSpalte(Konstruktor.class,
+                Konstruktor::getKonstruktorValid);
+
         TableColumn<Konstruktor, Modifizierer> sichtbarkeitSpalte = new TableColumn<>();
         SprachUtil.bindText(sichtbarkeitSpalte.textProperty(), sprache, "sichtbarkeit", "Sichtbarkeit");
         sichtbarkeitSpalte.setCellValueFactory(param -> param.getValue().sichtbarkeitProperty());
@@ -1331,11 +1405,11 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                     }
                 })
                 .onUpdateAction((tf, konstruktor) -> {
-                    addValidierung(tf, konstruktor, () -> konstruktor.getParameterValidierung(),
-                            "parameterValidierung");
-                    addValidierung(tf, konstruktor, () -> konstruktor.getSignaturValidierung(), "signaturValidierung");
-                    addValidierungCollection(tf, konstruktor, () -> konstruktor.getParameterValid(),
-                            "parameterNamenValidierung");
+//                    addValidierung(tf, konstruktor, () -> konstruktor.getParameterValidierung(),
+//                            "parameterValidierung");
+//                    addValidierung(tf, konstruktor, () -> konstruktor.getSignaturValidierung(), "signaturValidierung");
+//                    addValidierungCollection(tf, konstruktor, () -> konstruktor.getParameterValid(),
+//                            "parameterNamenValidierung");
                 });
         parameterlisteSpalte.setCellFactory(spalte -> parameterCellBuilder.build());
 
@@ -1344,7 +1418,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         kontrollSpalte.setCellFactory(col -> new ListControlsTableCell<>());
         kontrollSpalte.setResizable(false);
 
-        return List.of(sichtbarkeitSpalte, parameterlisteSpalte, kontrollSpalte);
+        return List.of(validierungSpalte, sichtbarkeitSpalte, parameterlisteSpalte, kontrollSpalte);
     }
 
     private void initialisiereButtons() {
@@ -1401,16 +1475,6 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         addValidierung(node, sourceObj, validierungSupplier, validierungKey);
     }
 
-    private void addValidierung(SearchField<?> node, Object sourceObj,
-            Supplier<SimpleValidierung> validierungSupplier) {
-        addValidierung(node, sourceObj, validierungSupplier, validierungKey);
-    }
-
-    private void addValidierung(CheckBox node, Object sourceObj,
-            Supplier<SimpleValidierung> validierungSupplier) {
-        addValidierung(node, sourceObj, validierungSupplier, validierungKey);
-    }
-
     private void addValidierung(TextInputControl node, Object sourceObj,
             Supplier<SimpleValidierung> validierungSupplier, String key) {
         if (node.getProperties().containsKey(key)) {
@@ -1421,46 +1485,17 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         }
         if (sourceObj != null) {
             Subscription subscription = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get())
-                    .and(FXValidierungUtil.setzeValidierungMeldungen(node, validierungSupplier.get()));
+                    .and(FXValidierungUtil.setzeValidierungMeldungen(node, validierungSupplier.get()))
+                    .and(EasyBind.includeWhen(node.getStyleClass(), CSS_EINGABE_FEHLER,
+                            validierungSupplier.get().isValidProperty().not()));
             this.loeseBindungen.add(subscription::unsubscribe);
             node.getProperties().put(key, subscription);
         }
-    }
-
-    private void addValidierung(SearchField<?> node, Object sourceObj,
-            Supplier<SimpleValidierung> validierungSupplier, String key) {
-        addValidierung(node.getEditor(), sourceObj, validierungSupplier, key);
-    }
-
-    private void addValidierung(CheckBox node, Object sourceObj,
-            Supplier<SimpleValidierung> validierungSupplier, String key) {
-        if (node.getProperties().containsKey(key)) {
-            var prop = node.getProperties().get(key);
-            if (prop instanceof Subscription sub) {
-                sub.unsubscribe();
-            }
-        }
-        if (sourceObj != null) {
-            Subscription subscription = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get())
-                    .and(FXValidierungUtil.setzeValidierungMeldungen(node, validierungSupplier.get()));
-            this.loeseBindungen.add(subscription::unsubscribe);
-            node.getProperties().put(key, subscription);
-        }
-    }
-
-    private void addValidierungCollection(Node node, Object sourceObj,
-            Supplier<ValidierungCollection> validierungSupplier) {
-        addValidierungCollection(node, sourceObj, validierungSupplier, validierungKey);
     }
 
     private void addValidierungCollection(Node node, Object sourceObj,
             Supplier<ValidierungCollection> validierungSupplier, boolean mitMeldungen) {
         addValidierungCollection(node, sourceObj, validierungSupplier, validierungKey, mitMeldungen);
-    }
-
-    private void addValidierungCollection(Node node, Object sourceObj,
-            Supplier<ValidierungCollection> validierungSupplier, String key) {
-        addValidierungCollection(node, sourceObj, validierungSupplier, key, true);
     }
 
     private void addValidierungCollection(Node node, Object sourceObj,

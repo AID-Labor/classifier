@@ -6,9 +6,11 @@
 
 package io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -114,6 +116,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
     private final ValidierungCollection methodeValid;
     @JsonIgnore
     private final ValidierungCollection parameterValid;
+    @JsonIgnore
+    private final Map<Object, Subscription> subs = new HashMap<>();
     
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -192,15 +196,27 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
 
         ListChangeListener<Parameter> parameterUeberwacher = aenderung -> {
             while (aenderung.next()) {
+                for (var parameterGeloescht : aenderung.getRemoved()) {
+                    this.parameterValid.remove(parameterGeloescht.getParameterValid());
+                    if (subs.containsKey(parameterGeloescht)) {
+                        subs.remove(parameterGeloescht).unsubscribe();
+                    }
+                    if (klassifizierer != null) {
+                        klassifizierer.methodenProperty().stream().forEach(m -> m.revalidate(Long.MIN_VALUE));
+                    }
+                }
                 for (var parameterHinzu : aenderung.getAddedSubList()) {
                     if (klassifizierer != null) {
                         parameterHinzu.setUMLKlassifizierer(klassifizierer);
                     }
                     parameterHinzu.setTypMitParameterliste(this);
                     this.parameterValid.add(parameterHinzu.getParameterValid());
-                }
-                for (var parameterGeloescht : aenderung.getRemoved()) {
-                    this.parameterValid.remove(parameterGeloescht.getParameterValid());
+                    var pSub = EasyBind.subscribe(parameterHinzu.getDatentyp().typNameProperty(), obs -> {
+                        if (klassifizierer != null) {
+                            klassifizierer.methodenProperty().stream().forEach(m -> m.revalidate(Long.MIN_VALUE));
+                        }
+                    });
+                    subs.put(parameterHinzu, pSub);
                 }
             }
         };
@@ -238,12 +254,26 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
         this.setzeFinal(istFinal);
     }
     
+    @JsonIgnore
+    private BooleanBinding gleicheSignatur;
+    @JsonIgnore
+    boolean doRevalidate = true;
+
+    private void revalidate(long sourceID) {
+        if (sourceID == this.id || gleicheSignatur == null || !doRevalidate) {
+            return;
+        }
+        doRevalidate = false;
+        gleicheSignatur.invalidate();
+        doRevalidate = true;
+    }
+    
     private void initialisiereValidierung(UMLKlassifizierer klassifizierer) {
         var methoden = FXCollections.observableList(klassifizierer.methodenProperty(),
                 methode -> new Observable[] { methode.nameProperty(), FXCollections.observableList(
                         methode.parameterListe,
                         parameter -> new Observable[] { parameter.getDatentyp().typNameProperty() }) });
-        BooleanBinding gleicheSignatur = Bindings.createBooleanBinding(
+        gleicheSignatur = Bindings.createBooleanBinding(
                 () -> methoden.stream()
                         .filter(m -> m != this && Objects.equals(m.getName(), getName()))
                         .anyMatch(m -> {
@@ -254,6 +284,15 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
                                             .toList());
                         }),
                 methoden, nameProperty(), parameterListe);
+        doRevalidate = false;
+        var sub = EasyBind.listen(gleicheSignatur, observable -> {
+           if (doRevalidate) {
+               klassifizierer.methodenProperty().stream()
+                       .forEach(m -> m.revalidate(id));
+           }
+        });
+        doRevalidate = true;
+        this.subscriptions.add(sub);
         this.signaturValidierung = SimpleValidierung.of(gleicheSignatur.not(),
                 sprache.getTextProperty("methodeValidierung",
                         "Eine Methode mit gleicher Signatur (Name und Parameterliste) ist bereits vorhanden"))
@@ -284,7 +323,7 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
                 sprache.getTextProperty("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein"))
                 .build();
         this.methodeValid.addAll(signaturValidierung, nameValidierung, parameterValidierung, abstraktFinalValidierung,
-                parameterValid);
+                parameterValid, rueckgabeTyp.getTypValidierung());
     }
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

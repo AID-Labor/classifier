@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tobiasdiez.easybind.EasyBind;
 import com.tobiasdiez.easybind.Subscription;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
@@ -162,14 +163,37 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this(sichtbarkeit, "", datentyp, null, false, false, false, false, null, null);
 	}
 	
+    @JsonIgnore
+    private BooleanBinding gleicherName;
+    @JsonIgnore
+    boolean doRevalidate = true;
+
+    private void revalidate(long sourceID) {
+        if (sourceID == this.id || gleicherName == null || !doRevalidate) {
+            return;
+        }
+        doRevalidate = false;
+        gleicherName.invalidate();
+        doRevalidate = true;
+    }
+	
 	private void initialisiereNameValidierung(UMLKlassifizierer klassifizierer) {
         var attributNamen = FXCollections.observableList(klassifizierer.attributeProperty(),
                 attribut -> new Observable[] { attribut.nameProperty() });
-        BooleanBinding gleicherName = Bindings.createBooleanBinding(
+        gleicherName = Bindings.createBooleanBinding(
                 () -> attributNamen.stream().anyMatch(a -> {
                     return getName().equals(a.getName()) && a.id != id && !getName().isEmpty();
                 }),
                 attributNamen, nameProperty());
+        doRevalidate = false;
+        var sub = EasyBind.listen(gleicherName, observable -> {
+           if (doRevalidate) {
+               klassifizierer.attributeProperty().stream()
+                       .forEach(a -> a.revalidate(id));
+           }
+        });
+        doRevalidate = true;
+        this.subscriptions.add(sub);
         this.nameValidierung = SimpleValidierung.of(gleicherName.not(), 
                         sprache.getTextProperty("nameValidierung2", "Ein Attribut mit diesem Namen ist bereits vorhanden"))
                 .and(name.isNotEmpty(),
@@ -187,6 +211,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	public void setUMLKlassifizierer(UMLKlassifizierer klassifizierer) {
 	    this.initialisiereNameValidierung(klassifizierer);
 	    datentyp.setValidierung(klassifizierer, false);
+	    this.attributValid.add(datentyp.getTypValidierung());
 	}
 	
 	@Override
