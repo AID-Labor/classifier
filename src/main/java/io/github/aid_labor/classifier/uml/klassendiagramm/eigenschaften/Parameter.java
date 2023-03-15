@@ -23,7 +23,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeoba
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
-import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import io.github.aid_labor.classifier.basis.validierung.ValidierungCollection;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -64,6 +64,8 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
     private final Sprache sprache;
     @JsonIgnore
     private SimpleValidierung nameValidierung;
+    @JsonIgnore
+    private final ValidierungCollection parameterValid;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -75,6 +77,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
         this.name = new JsonStringProperty(name);
         this.beobachterListe = new LinkedList<>();
         this.id = naechsteId++;
+        this.parameterValid = new ValidierungCollection();
 
         this.ueberwachePropertyAenderung(datentyp.typNameProperty(), id + "_parameter_typ");
         this.ueberwachePropertyAenderung(this.name, id + "_parameter_name");
@@ -95,7 +98,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
                 parameter -> new Observable[] { parameter.nameProperty() });
         BooleanBinding gleicherName = Bindings.createBooleanBinding(
                 () -> parameterNamen.stream().anyMatch(a -> {
-                    return getName().equals(a.getName()) && a != this;
+                    return a != this && getName().equals(a.getName()) && !getName().isEmpty();
                 }),
                 parameterNamen, nameProperty());
         var supressValidierung = Einstellungen.getBenutzerdefiniert().zeigeParameterNamenProperty().not();
@@ -104,6 +107,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
                 .and(name.isNotEmpty().or(supressValidierung),
                         sprache.getTextProperty("nameValidierung", "Name angegeben"))
                 .build();
+        this.parameterValid.add(nameValidierung);
     }
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -114,6 +118,7 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 
     public void setUMLKlassifizierer(UMLKlassifizierer klassifizierer) {
         datentyp.setValidierung(klassifizierer, false);
+        this.parameterValid.add(datentyp.getTypValidierung());
     }
 
     public void setTypMitParameterliste(HatParameterListe typ) {
@@ -122,6 +127,10 @@ public class Parameter extends EditierbarBasis implements EditierbarerBeobachter
 
     public SimpleValidierung getNameValidierung() {
         return nameValidierung;
+    }
+    
+    public ValidierungCollection getParameterValid() {
+        return parameterValid;
     }
 
     @Override

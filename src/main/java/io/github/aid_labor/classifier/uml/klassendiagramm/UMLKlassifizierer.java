@@ -34,7 +34,6 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.ListenEditierUebe
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
-import io.github.aid_labor.classifier.basis.validierung.Validierung;
 import io.github.aid_labor.classifier.basis.validierung.ValidierungCollection;
 import io.github.aid_labor.classifier.uml.UMLProjekt;
 import io.github.aid_labor.classifier.uml.klassendiagramm.eigenschaften.Attribut;
@@ -191,6 +190,12 @@ public class UMLKlassifizierer extends UMLBasisElement {
     private ObservableSet<StringProperty> klassenNamen;
     @JsonIgnore
     private final ValidierungCollection attributeValid;
+    @JsonIgnore
+    private final ValidierungCollection methodenValid;
+    @JsonIgnore
+    private final ValidierungCollection konstruktorenValid;
+    @JsonIgnore
+    private final ValidierungCollection klassifiziererValid;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -215,6 +220,9 @@ public class UMLKlassifizierer extends UMLBasisElement {
             sprache.ignoriereSprachen();
         }
         this.attributeValid = new ValidierungCollection();
+        this.methodenValid = new ValidierungCollection();
+        this.konstruktorenValid = new ValidierungCollection();
+        this.klassifiziererValid = new ValidierungCollection();
 
         this.attribute.addListener(new ListenEditierUeberwacher<>(this.attribute, this));
         this.methoden.addListener(new ListenEditierUeberwacher<>(this.methoden, this));
@@ -232,10 +240,10 @@ public class UMLKlassifizierer extends UMLBasisElement {
             while (aenderung.next()) {
                 for (var attributHinzu : aenderung.getAddedSubList()) {
                     attributHinzu.setUMLKlassifizierer(this);
-                    this.attributeValid.add(attributHinzu.getNameValidierung());
+                    this.attributeValid.add(attributHinzu.getAttributValid());
                 }
                 for (var attributGeloescht : aenderung.getRemoved()) {
-                    this.attributeValid.remove(attributGeloescht.getNameValidierung());
+                    this.attributeValid.remove(attributGeloescht.getAttributValid());
                 }
             }
         };
@@ -246,6 +254,10 @@ public class UMLKlassifizierer extends UMLBasisElement {
             while (aenderung.next()) {
                 for (var methodeHinzu : aenderung.getAddedSubList()) {
                     methodeHinzu.setUMLKlassifizierer(this);
+                    this.methodenValid.add(methodeHinzu.getMethodeValid());
+                }
+                for (var methodeGeloescht : aenderung.getRemoved()) {
+                    this.methodenValid.remove(methodeGeloescht.getMethodeValid());
                 }
             }
         };
@@ -257,6 +269,10 @@ public class UMLKlassifizierer extends UMLBasisElement {
                 for (var konstruktorHinzu : aenderung.getAddedSubList()) {
                     konstruktorHinzu.setName(getName());
                     konstruktorHinzu.setUMLKlassifizierer(this);
+                    this.konstruktorenValid.add(konstruktorHinzu.getKonstruktorValid());
+                }
+                for (var konstruktorGeloescht : aenderung.getRemoved()) {
+                    this.konstruktorenValid.remove(konstruktorGeloescht.getKonstruktorValid());
                 }
             }
         };
@@ -366,7 +382,7 @@ public class UMLKlassifizierer extends UMLBasisElement {
                 .and(name.isNotEmpty(),
                         sprache.getTextProperty("klassennameValidierung", "Der Klassenname muss angegeben werden"))
                 .build();
-        
+        this.klassifiziererValid.addAll(nameValidierung, attributeValid, konstruktorenValid, methodenValid);
     }
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -478,6 +494,18 @@ public class UMLKlassifizierer extends UMLBasisElement {
     
     public ValidierungCollection getAttributeValid() {
         return attributeValid;
+    }
+    
+    public ValidierungCollection getMethodenValid() {
+        return methodenValid;
+    }
+    
+    public ValidierungCollection getKonstruktorenValid() {
+        return konstruktorenValid;
+    }
+    
+    public ValidierungCollection getKlassifiziererValid() {
+        return klassifiziererValid;
     }
     
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##

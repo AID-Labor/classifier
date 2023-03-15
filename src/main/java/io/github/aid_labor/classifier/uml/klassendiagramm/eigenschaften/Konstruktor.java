@@ -27,7 +27,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeoba
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
-import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import io.github.aid_labor.classifier.basis.validierung.ValidierungCollection;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -77,6 +77,10 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
     private SimpleValidierung parameterValidierung;
     @JsonIgnore
     private final Sprache sprache;
+    @JsonIgnore
+    private final ValidierungCollection konstruktorValid;
+    @JsonIgnore
+    private final ValidierungCollection parameterValid;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -91,6 +95,8 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
         if (!spracheGesetzt) {
             sprache.ignoriereSprachen();
         }
+        this.konstruktorValid = new ValidierungCollection();
+        this.parameterValid = new ValidierungCollection();
 
         this.name = new JsonStringProperty(this, "konstruktornname", "");
         this.parameterListe = FXCollections.observableList(new LinkedList<>());
@@ -109,6 +115,10 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
                         parameterHinzu.setUMLKlassifizierer(klassifizierer);
                     }
                     parameterHinzu.setTypMitParameterliste(this);
+                    this.parameterValid.add(parameterHinzu.getParameterValid());
+                }
+                for (var parameterGeloescht : aenderung.getRemoved()) {
+                    this.parameterValid.remove(parameterGeloescht.getParameterValid());
                 }
             }
         };
@@ -148,18 +158,22 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
             Set<String> params = new HashSet<>();
             boolean doppelt = false;
             for (var param : parameterListeProperty()) {
+                if (param.getName().isEmpty()) {
+                    continue;
+                }
                 if (!params.add(param.getName())) {
                     doppelt = true;
                     break;
                 }
             }
-            return !doppelt;
+            return doppelt;
         }, new Observable[] { FXCollections.observableList(
                 parameterListe, parameter -> new Observable[] { parameter.nameProperty() }) });
         this.parameterValidierung = SimpleValidierung.of(doppelteParamter.not(),
                 sprache.getTextProperty("parameterValidierung2",
                         "Es darf keine Parameter mit gleichem Namen geben"))
                 .build();
+        this.konstruktorValid.addAll(signaturValidierung, parameterValidierung, parameterValid);
     }
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -182,6 +196,14 @@ public class Konstruktor extends EditierbarBasis implements EditierbarerBeobacht
 
     public SimpleValidierung getParameterValidierung() {
         return parameterValidierung;
+    }
+    
+    public ValidierungCollection getKonstruktorValid() {
+        return konstruktorValid;
+    }
+    
+    public ValidierungCollection getParameterValid() {
+        return parameterValid;
     }
 
     @Override

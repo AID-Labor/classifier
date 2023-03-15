@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tobiasdiez.easybind.Subscription;
 
 import io.github.aid_labor.classifier.basis.ClassifierUtil;
 import io.github.aid_labor.classifier.basis.io.Ressourcen;
@@ -25,7 +26,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeoba
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
-import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import io.github.aid_labor.classifier.basis.validierung.ValidierungCollection;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -79,11 +80,15 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 	@JsonIgnore
 	private final List<Object> beobachterListe;
 	@JsonIgnore
+	private final List<Subscription> subscriptions;
+	@JsonIgnore
 	private final long id;
 	@JsonIgnore
     private Sprache sprache;
 	@JsonIgnore
     private SimpleValidierung nameValidierung;
+	@JsonIgnore
+	private ValidierungCollection attributValid;
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -126,6 +131,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		this.getter = getter;
 		this.setter = setter;
 		this.beobachterListe = new LinkedList<>();
+		this.subscriptions = new LinkedList<>();
 		this.id = naechsteId++;
 		this.sprache = new Sprache();
         boolean spracheGesetzt = SprachUtil.setUpSprache(sprache, Ressourcen.get().SPRACHDATEIEN_ORDNER.alsPath(),
@@ -133,6 +139,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
         if (!spracheGesetzt) {
             sprache.ignoriereSprachen();
         }
+        this.attributValid = new ValidierungCollection();
 		
 		this.ueberwachePropertyAenderung(this.sichtbarkeit, id + "_attribut_sichtbarkeit");
 		this.ueberwachePropertyAenderung(this.datentyp.typNameProperty(), id + "_attribut_datentyp");
@@ -168,6 +175,7 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
                 .and(name.isNotEmpty(),
                         sprache.getTextProperty("nameValidierung", "Name angegeben"))
                 .build();
+        attributValid.add(nameValidierung);
     }
 	
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -297,6 +305,10 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
         return nameValidierung;
     }
 	
+	public ValidierungCollection getAttributValid() {
+        return attributValid;
+    }
+	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
 	
 // package	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -383,6 +395,9 @@ public class Attribut extends EditierbarBasis implements EditierbarerBeobachter 
 		setter = null;
 		log.finest(() -> this + " leere listeners");
 		beobachterListe.clear();
+		for (var sub: subscriptions) {
+		    sub.unsubscribe();
+		}
 	}
 
 	

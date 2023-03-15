@@ -6,8 +6,10 @@
 package io.github.aid_labor.classifier.basis.validierung;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 
 public interface Validierung {
     public ReadOnlyBooleanProperty isValidProperty();
-    
+    public ObservableList<ObservableValue<String>> getErrorMessages();
 }

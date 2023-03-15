@@ -17,6 +17,7 @@ import io.github.aid_labor.classifier.basis.projekt.Schliessbar;
 import javafx.beans.Observable;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -68,6 +69,7 @@ public class ValidierungCollection implements Validierung, Schliessbar {
     private boolean darfGeschlossenWerden;
     private final ObservableList<Validierung> validierungen;
     private final Map<Validierung, Subscription> validierungsSubscriptions;
+    private final ObservableList<ObservableValue<String>> errorMessages;
 
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *   Konstruktoren                                                                       *
@@ -84,9 +86,10 @@ public class ValidierungCollection implements Validierung, Schliessbar {
     public ValidierungCollection() {
         this.validierungen = FXCollections.observableList(new LinkedList<>(),
                 v -> new Observable[] { v.isValidProperty() });
-        this.valid = new ReadOnlyBooleanWrapper(this, "valid_property");
+        this.valid = new ReadOnlyBooleanWrapper(this, "valid_property", true);
         this.darfGeschlossenWerden = true;
         this.validierungsSubscriptions = new HashMap<>();
+        this.errorMessages = FXCollections.observableList(new LinkedList<>());
     }
 
 //  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -122,6 +125,9 @@ public class ValidierungCollection implements Validierung, Schliessbar {
     public void remove(Validierung v) {
         this.validierungen.remove(v);
         unsubscribeValidierung(v);
+        if (this.validierungen.isEmpty()) {
+            this.valid.set(true);
+        }
     }
 
     @Override
@@ -137,6 +143,11 @@ public class ValidierungCollection implements Validierung, Schliessbar {
     @Override
     public void setDarfGeschlossenWerden(boolean darfGeschlossenWerden) {
         this.darfGeschlossenWerden = darfGeschlossenWerden;
+    }
+    
+    @Override
+    public ObservableList<ObservableValue<String>> getErrorMessages() {
+        return errorMessages;
     }
 
 // protected    ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##  ##
@@ -159,14 +170,7 @@ public class ValidierungCollection implements Validierung, Schliessbar {
     
     private void subscribeValidierung(Validierung v) {
         var sub = EasyBind.subscribe(v.isValidProperty(), valid -> {
-            boolean newValid = true;
-            for (var val : validierungen) {
-                if (!val.isValidProperty().get()) {
-                    newValid = false;
-                    break;
-                }
-            }
-            this.valid.set(newValid);
+            updateValid();
         });
         if (this.validierungsSubscriptions.containsKey(v)) {
             this.validierungsSubscriptions.put(v, this.validierungsSubscriptions.get(v).and(sub));
@@ -175,11 +179,25 @@ public class ValidierungCollection implements Validierung, Schliessbar {
         }
     }
     
+    private void updateValid() {
+        boolean newValid = true;
+        this.errorMessages.clear();
+        for (var val : validierungen) {
+            if (!val.isValidProperty().get()) {
+                newValid = false;
+                errorMessages.addAll(val.getErrorMessages());
+            }
+        }
+        this.valid.set(newValid);
+    }
+    
     private void unsubscribeValidierung(Validierung v) {
+        this.validierungen.remove(v);
         if (this.validierungsSubscriptions.containsKey(v)) {
             var sub = this.validierungsSubscriptions.remove(v);
             sub.unsubscribe();
         }
+        updateValid();
     }
-    
+
 }

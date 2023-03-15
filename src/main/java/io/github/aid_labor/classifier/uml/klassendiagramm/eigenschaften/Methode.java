@@ -31,7 +31,7 @@ import io.github.aid_labor.classifier.basis.projekt.editierung.EditierbarerBeoba
 import io.github.aid_labor.classifier.basis.sprachverwaltung.SprachUtil;
 import io.github.aid_labor.classifier.basis.sprachverwaltung.Sprache;
 import io.github.aid_labor.classifier.basis.validierung.SimpleValidierung;
-import io.github.aid_labor.classifier.basis.validierung.Validierung;
+import io.github.aid_labor.classifier.basis.validierung.ValidierungCollection;
 import io.github.aid_labor.classifier.uml.klassendiagramm.UMLKlassifizierer;
 import io.github.aid_labor.classifier.uml.programmierung.Programmiersprache;
 import javafx.beans.Observable;
@@ -110,6 +110,11 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
     private SimpleValidierung abstraktFinalValidierung;
     @JsonIgnore
     private final Sprache sprache;
+    @JsonIgnore
+    private final ValidierungCollection methodeValid;
+    @JsonIgnore
+    private final ValidierungCollection parameterValid;
+    
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -139,6 +144,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
             sprache.ignoriereSprachen();
         }
         this.subscriptions = new LinkedList<>();
+        this.methodeValid = new ValidierungCollection();
+        this.parameterValid = new ValidierungCollection();
 
         this.name = new JsonStringProperty(this, "methodenname", "");
         this.istStatisch = new JsonBooleanProperty(this, "istStatisch", istStatisch);
@@ -190,6 +197,10 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
                         parameterHinzu.setUMLKlassifizierer(klassifizierer);
                     }
                     parameterHinzu.setTypMitParameterliste(this);
+                    this.parameterValid.add(parameterHinzu.getParameterValid());
+                }
+                for (var parameterGeloescht : aenderung.getRemoved()) {
+                    this.parameterValid.remove(parameterGeloescht.getParameterValid());
                 }
             }
         };
@@ -254,12 +265,15 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
             Set<String> params = new HashSet<>();
             boolean doppelt = false;
             for (var param : parameterListeProperty()) {
+                if (param.getName().isEmpty()) {
+                    continue;
+                }
                 if (!params.add(param.getName())) {
                     doppelt = true;
                     break;
                 }
             }
-            return !doppelt;
+            return doppelt;
         }, new Observable[] { FXCollections.observableList(
                 parameterListe, parameter -> new Observable[] { parameter.nameProperty() }) });
         this.parameterValidierung = SimpleValidierung.of(doppelteParamter.not(),
@@ -269,6 +283,8 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
         this.abstraktFinalValidierung = SimpleValidierung.of(istAbstrakt.and(istFinal).not(),
                 sprache.getTextProperty("abstraktFinalValidierung", "Eine abstrakte Methode darf nicht final sein"))
                 .build();
+        this.methodeValid.addAll(signaturValidierung, nameValidierung, parameterValidierung, abstraktFinalValidierung,
+                parameterValid);
     }
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -300,6 +316,14 @@ public class Methode extends EditierbarBasis implements EditierbarerBeobachter, 
 
     public SimpleValidierung getAbstraktFinalValidierung() {
         return abstraktFinalValidierung;
+    }
+    
+    public ValidierungCollection getMethodeValid() {
+        return methodeValid;
+    }
+    
+    public ValidierungCollection getParameterValid() {
+        return parameterValid;
     }
 
     @Override

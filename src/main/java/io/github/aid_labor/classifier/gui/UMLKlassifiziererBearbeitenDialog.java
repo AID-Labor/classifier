@@ -307,7 +307,10 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                         buttonBar.getToggleGroup().selectToggle(alteWahl);
                     }
                 });
-        addValidierungCollection(this.attribute, getKlassifizierer().getAttributeValid());
+        addValidierungCollection(this.attribute, getKlassifizierer(), () -> getKlassifizierer().getAttributeValid());
+        addValidierungCollection(this.methoden, getKlassifizierer(), () -> getKlassifizierer().getMethodenValid());
+        addValidierungCollection(this.konstruktoren, getKlassifizierer(),
+                () -> getKlassifizierer().getKonstruktorenValid());
         HBox buttonContainer = new HBox(buttonBar);
         buttonContainer.setPadding(new Insets(5, 20, 40, 20));
         buttonContainer.setAlignment(Pos.CENTER);
@@ -352,7 +355,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         assoziationAnzeige.setVerbindungenFilter(v -> {
             try {
                 return v.getTyp().equals(UMLVerbindungstyp.ASSOZIATION)
-                        && klassifizierer.getName().equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsStart()));
+                        && getKlassifizierer().getName()
+                                .equals(UMLKlassifizierer.nameOhnePaket(v.getVerbindungsStart()));
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
@@ -814,7 +818,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .getProperty(CheckBox::selectedProperty)
                 .getValue(CheckBox::isSelected)
                 .setValue(CheckBox::setSelected);
-        
+
         TableColumn<Attribut, Boolean> getterSpalte = new TableColumn<>();
         SprachUtil.bindText(getterSpalte.textProperty(), sprache, "getter", "Getter");
         getterSpalte.setCellValueFactory(param -> param.getValue().hatGetterProperty());
@@ -1038,6 +1042,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                 .onUpdateAction((tf, methode) -> {
                     addValidierung(tf, methode, () -> methode.getParameterValidierung(), "parameterValidierung");
                     addValidierung(tf, methode, () -> methode.getSignaturValidierung(), "signaturValidierung");
+                    addValidierungCollection(tf, methode, () -> methode.getParameterValid(),
+                            "parameterNamenValidierung");
                     if (methode != null && (methode.istGetter() || methode.istSetter())) {
                         tf.setDisable(true);
                     } else {
@@ -1182,15 +1188,15 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             combo.getSelectionModel().selectFirst();
         }
     }
-    
+
     private void updateMethodeAbstrakt(Node n, KlassifiziererTyp typ) {
         boolean abstraktErlaubt = getKlassifizierer().getProgrammiersprache().getEigenschaften()
                 .erlaubtAbstrakteMethode(typ);
         boolean abstraktErzwungen = !getKlassifizierer().getProgrammiersprache().getEigenschaften()
                 .erlaubtNichtAbstrakteMethode(typ);
-        
+
         n.setDisable(!abstraktErlaubt);
-        
+
         if (abstraktErzwungen) {
             n.setDisable(true);
         }
@@ -1361,6 +1367,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
                     addValidierung(tf, konstruktor, () -> konstruktor.getParameterValidierung(),
                             "parameterValidierung");
                     addValidierung(tf, konstruktor, () -> konstruktor.getSignaturValidierung(), "signaturValidierung");
+                    addValidierungCollection(tf, konstruktor, () -> konstruktor.getParameterValid(),
+                            "parameterNamenValidierung");
                 });
         parameterlisteSpalte.setCellFactory(spalte -> parameterCellBuilder.build());
 
@@ -1376,7 +1384,8 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         ButtonType[] buttons = { new ButtonType(sprache.getText("APPLY", "Anwenden"), ButtonData.FINISH),
                 new ButtonType(sprache.getText("CANCEL_CLOSE", "Abbrechen"), ButtonData.BACK_PREVIOUS) };
         this.getDialogPane().getButtonTypes().addAll(buttons);
-        this.getDialogPane().lookupButton(buttons[0]).disableProperty().bind(eingabeValidierung.invalidProperty());
+        this.getDialogPane().lookupButton(buttons[0]).disableProperty().bind(eingabeValidierung.invalidProperty()
+                .or(getKlassifizierer().getKlassifiziererValid().isValidProperty().not()));
         loeseBindungen.add(this.getDialogPane().lookupButton(buttons[0]).disableProperty()::unbind);
     }
 
@@ -1452,17 +1461,7 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
 
     private void addValidierung(SearchField<?> node, Object sourceObj,
             Supplier<SimpleValidierung> validierungSupplier, String key) {
-        if (node.getProperties().containsKey(key)) {
-            var prop = node.getProperties().get(key);
-            if (prop instanceof Subscription sub) {
-                sub.unsubscribe();
-            }
-        }
-        if (sourceObj != null) {
-            Subscription nameBeobachter = FXValidierungUtil.setzePlatzhalter(node, validierungSupplier.get());
-            this.loeseBindungen.add(nameBeobachter::unsubscribe);
-            node.getProperties().put(key, nameBeobachter);
-        }
+        addValidierung(node.getEditor(), sourceObj, validierungSupplier, key);
     }
 
     private void addValidierung(CheckBox node, Object sourceObj,
@@ -1479,16 +1478,24 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
             node.getProperties().put(key, nameBeobachter);
         }
     }
-    
-    private void addValidierungCollection(Node node, ValidierungCollection validierung) {
-        if (node.getProperties().containsKey(validierungKey)) {
-            var prop = node.getProperties().get(validierungKey);
+
+    private void addValidierungCollection(Node node, Object sourceObj,
+            Supplier<ValidierungCollection> validierungSupplier) {
+        addValidierungCollection(node, sourceObj, validierungSupplier, validierungKey);
+    }
+
+    private void addValidierungCollection(Node node, Object sourceObj,
+            Supplier<ValidierungCollection> validierungSupplier, String key) {
+        if (node.getProperties().containsKey(key)) {
+            var prop = node.getProperties().get(key);
             if (prop instanceof Subscription sub) {
                 sub.unsubscribe();
             }
         }
-        Subscription nameBeobachter = FXValidierungUtil.setzeValidierungStyle(node, validierung);
-        this.loeseBindungen.add(nameBeobachter::unsubscribe);
-        node.getProperties().put(validierungKey, nameBeobachter);
+        if (sourceObj != null) {
+            Subscription nameBeobachter = FXValidierungUtil.setzeValidierungStyle(node, validierungSupplier.get());
+            this.loeseBindungen.add(nameBeobachter::unsubscribe);
+            node.getProperties().put(key, nameBeobachter);
+        }
     }
 }
