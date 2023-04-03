@@ -1087,11 +1087,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         TableColumn<Methode, String> rueckgabeSpalte = new TableColumn<>();
         SprachUtil.bindText(rueckgabeSpalte.textProperty(), sprache, "Rueckgabetyp",
                 "R%cckgabetyp".formatted(Umlaute.ue));
+        rueckgabeSpalte.setCellValueFactory(param -> param.getValue().getRueckgabeTyp().typNameProperty());
+        rueckgabeSpalte.setEditable(true);
         var datentypBuilder = CustomNodeTableCell.builder(Methode.class, String.class, DatentypFeld.class)
                 .nodeFactory(() -> new DatentypFeld(null, false, umlProjektRef.get().getProgrammiersprache()))
                 .getProperty(DatentypFeld::textProperty)
                 .getValue(DatentypFeld::getText)
-                .setValue(DatentypFeld::setText)
+                .setValue(DatentypFeld::select)
                 .onUpdateAction((tf, methode) -> {
 //                    addValidierung(tf, methode, () -> methode.getRueckgabeTyp().getTypValidierung());
                     tf.setDisable(false);
