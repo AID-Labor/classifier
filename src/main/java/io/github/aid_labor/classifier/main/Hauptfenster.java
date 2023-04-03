@@ -110,7 +110,7 @@ public class Hauptfenster extends Application {
 		HauptAnsicht hauptansicht = new HauptAnsicht(programm, this.getHostServices(), this::easterEgg);
 		
 		szene = new Scene(hauptansicht.getWurzelknoten());
-		FensterUtil.installiereFensterwiederherstellung(hauptFenster, 720, 1120,
+		FensterUtil.installiereFensterwiederherstellung(hauptFenster, 300, 10,
 				Ressourcen.get().KONFIGURATIONSORDNER.alsPath());
 		
 		szene.getStylesheets().add(Ressourcen.get().BASIS_CSS.externeForm());
