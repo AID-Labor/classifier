@@ -6,7 +6,7 @@ cd "$(dirname "$0")" # zum Pfad dieses Skriptes wechseln
 NAME="Classifier"
 DESCRIPTION="UML-Klassenmodellierung"
 # Version muss groesser gleich 1.0.0 sein!
-VERSION="1.3.0"
+VERSION="1.3.1"
 VENDOR="Tim Mühle"
 COPYRIGHT="Copyright © 2022 - Tim Mühle"
 LICENSE_FILE="LICENSE.txt"
