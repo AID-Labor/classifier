@@ -117,7 +117,7 @@ public class ProjektAnsicht extends Tab {
 		this.zeichenflaecheGruppe = new Group(zeichenflaeche);
 		this.inhalt = new ScrollPane(zeichenflaecheGruppe);
 		this.kannKleinerZoomen = new ReadOnlyBooleanWrapper(false);
-		this.kannKleinerZoomen.bind(zeichenflaeche.scaleXProperty().greaterThan(0.6));
+		this.kannKleinerZoomen.bind(zeichenflaeche.scaleXProperty().greaterThan(0.2));
 		
 		this.zeichenflaeche.getStyleClass().add("zeichenflaeche");
 		this.inhalt.getStyleClass().add("projekt-inhalt");
@@ -168,7 +168,7 @@ public class ProjektAnsicht extends Tab {
 		
 		this.inhalt.setOnZoom(event -> {
 			double skalierung = getSkalierung() * event.getZoomFactor();
-			if (skalierung >= 0.3) {
+			if (skalierung >= 0.1) {
 				skaliere(skalierung);
 			}
 		});
@@ -185,6 +185,9 @@ public class ProjektAnsicht extends Tab {
 	}
 	
 	public void skaliere(double skalierung) {
+	    if (skalierung < 0.1) {
+	        skalierung = 0.1;
+	    }
 		this.zeichenflaeche.setScaleX(skalierung);
 	}
 	
