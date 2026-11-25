@@ -35,3 +35,8 @@
     -ribbon-quick-button-hover: derive(gray, 90%);
     -ribbon-group-title: derive(white, -10%);
 }
+
+/* Tabelle Textfarbe für Vererbungen-Reiter */
+.table-row-cell, .table-view .table-cell {
+    -fx-text-fill: black !important;
+}

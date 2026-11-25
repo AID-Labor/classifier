@@ -373,10 +373,14 @@ public class UMLKlassifizierer extends UMLBasisElement {
     private void initialisiereValidierung(UMLProjekt projekt) {
         klassenNamen = projekt.getElementNamen();
         BooleanBinding gleicherName = Bindings.createBooleanBinding(
-                () -> klassenNamen.stream().anyMatch(kn -> {
-                    return getName().equals(kn.get()) && kn.getBean() != this;
-                }),
-                klassenNamen, name);
+                () -> {
+                    // Prüfe, ob ein anderer Klassifizierer im Projekt denselben Namen hat
+                    return projekt.getDiagrammElemente().stream()
+                        .filter(e -> e instanceof UMLKlassifizierer)
+                        .map(e -> (UMLKlassifizierer) e)
+                        .anyMatch(k -> !k.equals(this) && getName().equals(k.getName()));
+                },
+                projekt.getDiagrammElemente(), name);
         this.nameValidierung = SimpleValidierung.of(gleicherName.not(), 
                         sprache.getTextProperty("klassennameValidierung2", "Ein Element mit diesem Namen ist bereits vorhanden"))
                 .and(name.isNotEmpty(),

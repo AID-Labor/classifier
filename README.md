@@ -15,4 +15,3 @@ Classifier ist ein kostenloses Tool zur Modellierung von UML-Klassendiagrammen. 
     * als Quellcode (vorerst nur Java)
 * Import aus Quellcode (reverse-engineering)
     * Java
-	

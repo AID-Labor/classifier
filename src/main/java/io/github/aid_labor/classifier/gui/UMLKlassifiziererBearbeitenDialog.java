@@ -474,7 +474,13 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         this.typBeobachterListe.add(typBeobachter);
         typ.getSelectionModel().selectedItemProperty().addListener(typBeobachter);
 
-        this.setOnShown(e -> Platform.runLater(name::requestFocus));
+        this.setOnShown(e -> {
+            Platform.runLater(() -> {
+                name.requestFocus();
+                // Sicherstellen dass das Superklasse-Popup geschlossen ist
+                superklasse.cancel();
+            });
+        });
 
         return tabelle;
     }
@@ -558,6 +564,28 @@ public class UMLKlassifiziererBearbeitenDialog extends Alert {
         superklasse.setNewItemProducer(String::strip);
         superklasse.setShowSearchIcon(false);
         superklasse.setHidePopupWithSingleChoice(false);
+        
+        // Popup schließen und commit bei Fokusverlust
+        superklasse.getEditor().focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal) {
+                superklasse.commit();
+            }
+        });
+        
+        // Dropdown schließen bei Enter- oder Escape-Taste
+        superklasse.getEditor().setOnKeyPressed(e -> {
+            if (e.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                superklasse.commit();
+            } else if (e.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                superklasse.cancel();
+            }
+        });
+        
+        // Verhindert automatisches Öffnen beim Initialisieren
+        Platform.runLater(() -> {
+            superklasse.cancel();
+        });
+        
         return superklasse;
     }
 

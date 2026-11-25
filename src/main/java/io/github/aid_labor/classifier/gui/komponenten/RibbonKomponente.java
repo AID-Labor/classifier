@@ -39,6 +39,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -71,6 +72,7 @@ public class RibbonKomponente {
 	private Button speichern;
 	private Button screenshot;
 	private Button exportieren;
+	private Button ribbonToggle;
 	
 	private Button kopieren;
 	private Button einfuegen;
@@ -246,6 +248,10 @@ public class RibbonKomponente {
 	
 	public Button getWiederholenSchnellzugriff() {
 		return wiederholenSchnellzugriff;
+	}
+	
+	public Button getRibbonToggle() {
+		return ribbonToggle;
 	}
 	
 // protected 	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##	##
@@ -457,8 +463,15 @@ public class RibbonKomponente {
 		((FontIcon) wiederholenSchnellzugriff.getGraphic()).setIconSize(18);
 		NodeUtil.macheUnfokussierbar(speichernSchnellzugriff, rueckgaengigSchnellzugriff, wiederholenSchnellzugriff);
 		
+		// Ribbon Toggle Button
+		ribbonToggle = new Button();
+		ribbonToggle.setTooltip(new javafx.scene.control.Tooltip("Ribbon ein-/ausblenden"));
+		NodeUtil.erzeugeIconNode(ribbonToggle, org.kordamp.ikonli.bootstrapicons.BootstrapIcons.CHEVRON_UP, "ribbon-font-icon");
+		NodeUtil.macheUnfokussierbar(ribbonToggle);
+		((FontIcon) ribbonToggle.getGraphic()).setIconSize(18);
+		
 		schnellzugriff.getButtons().addAll(speichernSchnellzugriff, rueckgaengigSchnellzugriff,
-				wiederholenSchnellzugriff);
+				wiederholenSchnellzugriff, ribbonToggle);
 		
 		return schnellzugriff;
 	}

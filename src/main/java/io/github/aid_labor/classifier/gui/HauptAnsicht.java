@@ -99,6 +99,8 @@ public class HauptAnsicht {
     private final HostServices rechnerService;
     private final BooleanBinding hatKeinProjekt;
     private final Runnable easterEgg;
+    private boolean ribbonMinimiert = false;
+    private double ribbonHöheGespeichert = 0;
 
 //	* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 //  *	Konstruktoren																		*
@@ -482,6 +484,9 @@ public class HauptAnsicht {
             updateZoomKleinerButton(ribbon, neueAnzeige);
         });
 
+        // Ribbon Toggle Button Aktion
+        ribbon.getRibbonToggle().setOnAction(e -> toggleRibbon());
+
         setzeRibbonBindungen(ribbon);
     }
 
@@ -733,5 +738,35 @@ public class HauptAnsicht {
                 easterEgg.run();
             }
         });
+    }
+    
+    private void toggleRibbon() {
+        var ribbon = ribbonKomponente.getRibbon();
+        var toggleButton = ribbonKomponente.getRibbonToggle();
+        
+        if (ribbonMinimiert) {
+            // Ribbon ausfahren
+            ribbon.setMaxHeight(ribbonHöheGespeichert);
+            ribbon.setPrefHeight(ribbonHöheGespeichert);
+            
+            // Icon auf Chevron-Up ändern
+            ((org.kordamp.ikonli.javafx.FontIcon) toggleButton.getGraphic())
+                    .setIconCode(org.kordamp.ikonli.bootstrapicons.BootstrapIcons.CHEVRON_UP);
+            ribbonMinimiert = false;
+        } else {
+            // Ribbon minimieren - Höhe speichern
+            ribbonHöheGespeichert = ribbon.getMaxHeight();
+            if (ribbonHöheGespeichert <= 0 || Double.isInfinite(ribbonHöheGespeichert)) {
+                ribbonHöheGespeichert = ribbon.prefHeight(-1);
+            }
+            
+            ribbon.setMaxHeight(0);
+            ribbon.setPrefHeight(0);
+            
+            // Icon auf Chevron-Down ändern
+            ((org.kordamp.ikonli.javafx.FontIcon) toggleButton.getGraphic())
+                    .setIconCode(org.kordamp.ikonli.bootstrapicons.BootstrapIcons.CHEVRON_DOWN);
+            ribbonMinimiert = true;
+        }
     }
 }

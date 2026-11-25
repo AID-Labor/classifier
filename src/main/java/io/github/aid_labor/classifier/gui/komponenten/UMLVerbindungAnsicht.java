@@ -329,7 +329,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 						.otherwise(yMitte.add(mitteVerschiebungProperty)));
 		linieB.xProperty()
 				.bind(new When(orientierungEndeProperty.isEqualTo(Orientierung.LINKS)
-						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS))).then(linieA.xProperty())
+						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS)))
+						.then(startXProperty.add(startXVerschiebungProperty))
 						.otherwise(endeXProperty.add(endeXVerschiebungProperty)));
 		linieB.yProperty().bind(linieA.yProperty());
 	}
@@ -364,7 +365,8 @@ public class UMLVerbindungAnsicht extends Group implements AutoCloseable {
 						.otherwise(yMitte.add(mitteVerschiebungProperty)));
 		linieB.xProperty()
 				.bind(new When(orientierungEndeProperty.isEqualTo(Orientierung.LINKS)
-						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS))).then(linieA.xProperty())
+						.or(orientierungEndeProperty.isEqualTo(Orientierung.RECHTS)))
+						.then(startXProperty.add(startXVerschiebungProperty))
 						.otherwise(endeXProperty.add(endeXVerschiebungProperty)));
 		linieB.yProperty().bind(linieA.yProperty());
 	}

@@ -566,6 +566,8 @@
 			<groupId>com.pixelduke</groupId>
 			<artifactId>fxribbon</artifactId>
 			<version>1.2.1</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/fxribbon-1.2.1.jar</systemPath>
 		</dependency>
 
 		<!-- GemsFX -->

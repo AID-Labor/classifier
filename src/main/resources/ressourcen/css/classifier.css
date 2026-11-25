@@ -161,6 +161,16 @@
     -fx-background-color: transparent;
     -fx-background: transparent;
     -fx-alignment: center;
+    -fx-text-fill: black;
+}
+
+.table-row-cell .text, .table-view .table-cell .text, .table-view .text {
+    -fx-fill: black !important;
+}
+
+.table-row-cell .text-field, .table-view .text-field {
+    -fx-text-fill: black !important;
+    -fx-prompt-text-fill: derive(black, 50%) !important;
 }
 
 .table-view .table-cell:filled {

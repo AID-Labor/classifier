@@ -373,11 +373,41 @@ public class VerbindungBearbeitenListe extends BorderPane implements AutoCloseab
         TableColumn<UMLVerbindung, String> startSpalte = new TableColumn<>();
         SprachUtil.bindText(startSpalte.textProperty(), sprache, spaltenNamen[0].toLowerCase(), spaltenNamen[0]);
         startSpalte.setCellValueFactory(param -> param.getValue().verbindungsStartProperty());
+        startSpalte.setCellFactory(col -> {
+            var cell = new javafx.scene.control.TableCell<UMLVerbindung, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item);
+                    }
+                    setStyle("-fx-text-fill: black;");
+                }
+            };
+            return cell;
+        });
         
         TableColumn<UMLVerbindung, String> endSpalte = new TableColumn<>();
         SprachUtil.bindText(endSpalte.textProperty(), sprache, spaltenNamen[1].toLowerCase(), spaltenNamen[1]);
         endSpalte.setCellValueFactory(param -> param.getValue().verbindungsEndeProperty());
         endSpalte.setEditable(true);
+        endSpalte.setCellFactory(col -> {
+            var cell = new javafx.scene.control.TableCell<UMLVerbindung, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item);
+                    }
+                    setStyle("-fx-text-fill: black;");
+                }
+            };
+            return cell;
+        });
         
         TableColumn<UMLVerbindung, Boolean> ausgeblendetSpalte = new TableColumn<>();
         SprachUtil.bindText(ausgeblendetSpalte.textProperty(), sprache, spaltenNamen[2].toLowerCase(), spaltenNamen[2]);
